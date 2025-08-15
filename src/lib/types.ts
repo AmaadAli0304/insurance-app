@@ -37,10 +37,10 @@ export interface Patient {
   fullName: string;
   dateOfBirth: string;
   gender: 'Male' | 'Female' | 'Other';
-  phoneNumber: string; // Contact Information
+  phoneNumber: string; 
   address: string;
-  companyId: string; // "Insurance Company"
-  policyNumber: string; // Insurance Policy Number
+  companyId: string; 
+  policyNumber: string; 
   memberId: string;
   policyStartDate: string;
   policyEndDate: string;
@@ -53,6 +53,10 @@ export interface Patient {
   proposedTreatment: string;
   estimatedCost: number;
   expectedLengthOfStay?: number; // in days
+  doctorSpeciality?: string;
+  expectedDischargeDate?: string;
+  procedureCode?: string;
+  clinicalNotes?: string;
 }
 
 
@@ -61,16 +65,17 @@ export interface StaffingRequest {
   patientId: string;
   hospitalId: string;
   companyId: string;
-  packageId: string; 
-  requestAmount: number; 
   status: 'Pending' | 'Approved' | 'Rejected';
   createdAt: string; // ISO date string
   details: string; 
-  doctorName: string;
-  proposedTreatment: string;
-  subject?: string;
-  email?: string; // "To" email
-  fromEmail?: string; // "From" email
+  subject: string;
+  email: string; // "To" email
+  fromEmail?: string;
+  // Deprecated fields, kept for mock data compatibility for now
+  packageId?: string; 
+  requestAmount?: number; 
+  doctorName?: string;
+  proposedTreatment?: string;
   doctorSpeciality?: string;
   expectedDischargeDate?: string;
 }
