@@ -30,7 +30,7 @@ const summarizeRequestPrompt = ai.definePrompt({
   name: 'summarizeRequestPrompt',
   input: {schema: SummarizeRequestInputSchema},
   output: {schema: SummarizeRequestOutputSchema},
-  prompt: `You are an expert staffing request summarizer. Please provide a concise and accurate summary of the following request details:\n\nRequest Details: {{{requestDetails}}}`,
+  prompt: `You are an expert at summarizing text. Please provide a concise and accurate summary of the following details:\n\nDetails: {{{requestDetails}}}`,
 });
 
 const summarizeRequestFlow = ai.defineFlow(
