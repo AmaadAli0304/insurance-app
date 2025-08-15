@@ -42,6 +42,24 @@ export default function NewRequestPage() {
             <form action={formAction}>
                  <input type="hidden" name="hospitalId" value={user?.hospitalId || ''} />
                 <div className="grid gap-6">
+
+                    {/* Request Details */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Request Details</CardTitle>
+                        </CardHeader>
+                        <CardContent className="grid md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="subject">Subject</Label>
+                                <Input id="subject" name="subject" placeholder="e.g. Urgent Cardiac Nurse for John Doe" required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="email">Contact Email</Label>
+                                <Input id="email" name="email" type="email" placeholder="e.g. cardiac-unit@stjude.com" required />
+                            </div>
+                        </CardContent>
+                    </Card>
+
                     {/* Patient Information */}
                     <Card>
                         <CardHeader>

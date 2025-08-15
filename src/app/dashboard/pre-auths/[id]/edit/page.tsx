@@ -58,6 +58,14 @@ export default function EditRequestPage({ params }: { params: { id: string } }) 
                         <input type="hidden" name="patientId" value={patient.id} />
                         
                         <div className="grid md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="subject">Subject</Label>
+                                <Input id="subject" name="subject" defaultValue={request.subject} required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="email">Contact Email</Label>
+                                <Input id="email" name="email" type="email" defaultValue={request.email} required />
+                            </div>
                            <div className="space-y-2">
                                 <Label>Patient Name</Label>
                                 <Input defaultValue={patient.fullName} readOnly />

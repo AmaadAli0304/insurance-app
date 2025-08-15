@@ -41,6 +41,8 @@ export async function handleAddRequest(prevState: { message: string }, formData:
     doctorSpeciality: formData.get("doctorSpeciality") as string,
     proposedTreatment: formData.get("proposedTreatment") as string,
     expectedDischargeDate: formData.get("expectedDischargeDate") as string || undefined,
+    subject: formData.get("subject") as string,
+    email: formData.get("email") as string,
   };
 
   // Basic validation
@@ -82,6 +84,8 @@ export async function handleUpdateRequest(prevState: { message: string }, formDa
     doctorName: formData.get("doctorName"),
     doctorSpeciality: formData.get("doctorSpeciality"),
     proposedTreatment: formData.get("proposedTreatment"),
+    subject: formData.get("subject"),
+    email: formData.get("email"),
   };
   
   if (!id) {
@@ -113,6 +117,8 @@ export async function handleUpdateRequest(prevState: { message: string }, formDa
     doctorName: updatedRequestData.doctorName as string,
     doctorSpeciality: updatedRequestData.doctorSpeciality as string,
     proposedTreatment: updatedRequestData.proposedTreatment as string,
+    subject: updatedRequestData.subject as string,
+    email: updatedRequestData.email as string,
   };
 
   revalidatePath('/dashboard/pre-auths');

@@ -64,4 +64,6 @@ export interface StaffingRequest {
   doctorSpeciality: string;
   proposedTreatment: string;
   expectedDischargeDate?: string;
+  subject?: string;
+  email?: string;
 }
