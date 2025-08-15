@@ -50,7 +50,7 @@ export default function PatientsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Full Name</TableHead>
-                <TableHead>Date of Birth</TableHead>
+                <TableHead>Doctor</TableHead>
                 <TableHead>Insurance Company</TableHead>
                 <TableHead>Policy Number</TableHead>
                 <TableHead><span className="sr-only">Actions</span></TableHead>
@@ -60,7 +60,7 @@ export default function PatientsPage() {
               {patients.map(p => (
                 <TableRow key={p.id}>
                   <TableCell className="font-medium">{p.fullName}</TableCell>
-                  <TableCell>{p.dateOfBirth}</TableCell>
+                  <TableCell>{p.doctorName}</TableCell>
                   <TableCell>{getCompanyName(p.companyId)}</TableCell>
                   <TableCell>{p.policyNumber}</TableCell>
                   <TableCell>

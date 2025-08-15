@@ -37,18 +37,24 @@ export interface Patient {
   fullName: string;
   dateOfBirth: string;
   gender: 'Male' | 'Female' | 'Other';
-  phoneNumber: string;
+  phoneNumber: string; // Contact Information
   address: string;
   companyId: string; // "Insurance Company"
-  policyNumber: string;
+  policyNumber: string; // Insurance Policy Number
   memberId: string;
   policyStartDate: string;
   policyEndDate: string;
   hospitalId: string;
+  hospitalCode?: string;
+  doctorName: string;
+  doctorRegistrationNumber?: string;
   admissionDate: string;
   diagnosis: string;
+  proposedTreatment: string;
   estimatedCost: number;
+  expectedLengthOfStay?: number; // in days
 }
+
 
 export interface StaffingRequest {
   id: string;

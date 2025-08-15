@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useFormState, useFormStatus } from "react-dom";
 import { handleUpdatePatient } from "../../actions";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Upload } from "lucide-react";
 import { mockPatients, mockCompanies, mockHospitals } from "@/lib/mock-data";
 import { notFound } from "next/navigation";
 import { useAuth } from "@/components/auth-provider";
@@ -28,6 +28,7 @@ export default function EditPatientPage({ params }: { params: { id: string } }) 
     const { user } = useAuth();
     const patient = mockPatients.find(p => p.id === params.id);
     const [state, formAction] = useFormState(handleUpdatePatient, { message: "" });
+    const hospital = mockHospitals.find(h => h.id === user?.hospitalId);
 
     const assignedCompanies = useMemo(() => {
         const hospital = mockHospitals.find(h => h.id === user?.hospitalId);
@@ -56,7 +57,7 @@ export default function EditPatientPage({ params }: { params: { id: string } }) 
                 <div className="grid gap-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Patient Information</CardTitle>
+                            <CardTitle>Patient Details</CardTitle>
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
@@ -81,19 +82,15 @@ export default function EditPatientPage({ params }: { params: { id: string } }) 
                                 </Select>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="phoneNumber">Phone Number</Label>
+                                <Label htmlFor="phoneNumber">Contact Information (phone/email)</Label>
                                 <Input id="phoneNumber" name="phoneNumber" defaultValue={patient.phoneNumber} required />
                             </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Insurance Information</CardTitle>
-                        </CardHeader>
-                        <CardContent className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="companyId">Insurance Company</Label>
+                                <Label htmlFor="policyNumber">Insurance Policy Number (or member ID)</Label>
+                                <Input id="policyNumber" name="policyNumber" defaultValue={patient.policyNumber} required />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="companyId">Insurance Company Name</Label>
                                 <Select name="companyId" required defaultValue={patient.companyId}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select a company" />
@@ -105,37 +102,80 @@ export default function EditPatientPage({ params }: { params: { id: string } }) 
                                     </SelectContent>
                                 </Select>
                             </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Hospital / Provider Details</CardTitle>
+                        </CardHeader>
+                        <CardContent className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="policyNumber">Policy Number</Label>
-                                <Input id="policyNumber" name="policyNumber" defaultValue={patient.policyNumber} required />
+                                <Label htmlFor="hospitalName">Hospital Name</Label>
+                                <Input id="hospitalName" name="hospitalName" defaultValue={hospital?.name} readOnly />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="policyStartDate">Policy Start Date</Label>
-                                <Input id="policyStartDate" name="policyStartDate" type="date" defaultValue={patient.policyStartDate} required />
+                                <Label htmlFor="hospitalCode">Hospital Code</Label>
+                                <Input id="hospitalCode" name="hospitalCode" defaultValue={patient.hospitalCode} placeholder="Provided by insurer" />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="policyEndDate">Policy End Date</Label>
-                                <Input id="policyEndDate" name="policyEndDate" type="date" defaultValue={patient.policyEndDate} required />
+                                <Label htmlFor="doctorName">Doctor Name</Label>
+                                <Input id="doctorName" name="doctorName" defaultValue={patient.doctorName} required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="doctorRegistrationNumber">Doctor Registration Number</Label>
+                                <Input id="doctorRegistrationNumber" name="doctorRegistrationNumber" defaultValue={patient.doctorRegistrationNumber} placeholder="e.g., DN-12345" />
+                            </div>
+                        </CardContent>
+                    </Card>
+                    
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Treatment / Case Details</CardTitle>
+                        </CardHeader>
+                        <CardContent className="grid md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="diagnosis">Diagnosis (ICD code if applicable)</Label>
+                                <Input id="diagnosis" name="diagnosis" defaultValue={patient.diagnosis} required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="proposedTreatment">Proposed Treatment / Procedure</Label>
+                                <Input id="proposedTreatment" name="proposedTreatment" defaultValue={patient.proposedTreatment} required />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="estimatedCost">Estimated Cost ($)</Label>
+                                <Input id="estimatedCost" name="estimatedCost" type="number" defaultValue={patient.estimatedCost} required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="admissionDate">Planned Admission Date</Label>
+                                <Input id="admissionDate" name="admissionDate" type="date" defaultValue={patient.admissionDate} required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="expectedLengthOfStay">Expected Length of Stay (days)</Label>
+                                <Input id="expectedLengthOfStay" name="expectedLengthOfStay" type="number" defaultValue={patient.expectedLengthOfStay} placeholder="e.g. 2" />
                             </div>
                         </CardContent>
                     </Card>
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Hospital Admission Details</CardTitle>
+                            <CardTitle>Supporting Docs</CardTitle>
                         </CardHeader>
-                        <CardContent className="grid md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="admissionDate">Admission Date</Label>
-                                <Input id="admissionDate" name="admissionDate" type="date" defaultValue={patient.admissionDate} required />
+                        <CardContent className="grid md:grid-cols-3 gap-4">
+                             <div className="space-y-2">
+                                <Label htmlFor="medicalReports">Medical Reports / Prescriptions</Label>
+                                <Button variant="outline" className="w-full justify-start gap-2"><Upload /> Upload File</Button>
+                                <Input id="medicalReports" name="medicalReports" type="file" className="hidden" />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="diagnosis">Diagnosis</Label>
-                                <Input id="diagnosis" name="diagnosis" defaultValue={patient.diagnosis} required />
+                                <Label htmlFor="patientIdProof">Patient ID Proof</Label>
+                                <Button variant="outline" className="w-full justify-start gap-2"><Upload /> Upload File</Button>
+                                <Input id="patientIdProof" name="patientIdProof" type="file" className="hidden" />
                             </div>
-                            <div className="space-y-2 md:col-span-2">
-                                <Label htmlFor="estimatedCost">Estimated Cost ($)</Label>
-                                <Input id="estimatedCost" name="estimatedCost" type="number" defaultValue={patient.estimatedCost} required />
+                             <div className="space-y-2">
+                                <Label htmlFor="insuranceCard">Insurance Card Scan</Label>
+                                <Button variant="outline" className="w-full justify-start gap-2"><Upload /> Upload File</Button>
+                                <Input id="insuranceCard" name="insuranceCard" type="file" className="hidden" />
                             </div>
                         </CardContent>
                     </Card>
