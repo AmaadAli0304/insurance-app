@@ -26,7 +26,7 @@ export function MainNav() {
     'Hospital Staff': [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/dashboard/patients', label: 'Patients', icon: Users },
-      { href: '/dashboard/pre-auths', label: 'Pre-Auths', icon: FileText },
+      { href: '/dashboard/pre-auths', label: 'Pre-Auth Requests', icon: FileText },
     ],
     'Company Admin': [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
