@@ -1,6 +1,6 @@
 
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
+import { getAuth, type Auth } from "firebase/auth";
 
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -12,18 +12,20 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-// Check if all config keys are present
-const isConfigValid = Object.values(firebaseConfig).every(val => val);
+const isConfigValid = Object.values(firebaseConfig).every(Boolean);
 
-let app;
+let app: FirebaseApp | undefined;
+let auth: Auth;
 
 if (isConfigValid) {
     app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    auth = getAuth(app);
 } else {
     console.error("Firebase configuration is missing or incomplete. Please check your .env file.");
+    // Create a dummy auth object to avoid breaking the app structure
+    // The AuthProvider will handle the lack of a real user.
+    auth = {} as Auth;
 }
 
-
-const auth = getAuth(app);
 
 export { app, auth };
