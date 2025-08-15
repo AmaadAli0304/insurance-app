@@ -12,20 +12,7 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const isConfigValid = Object.values(firebaseConfig).every(Boolean);
-
-let app: FirebaseApp | undefined;
-let auth: Auth;
-
-if (isConfigValid) {
-    app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-    auth = getAuth(app);
-} else {
-    console.error("Firebase configuration is missing or incomplete. Please check your .env file.");
-    // Create a dummy auth object to avoid breaking the app structure
-    // The AuthProvider will handle the lack of a real user.
-    auth = {} as Auth;
-}
-
+const app: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const auth: Auth = getAuth(app);
 
 export { app, auth };
