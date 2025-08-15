@@ -51,6 +51,8 @@ export default function PreAuthsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Patient</TableHead>
+                <TableHead>Doctor</TableHead>
+                <TableHead>Treatment</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Date</TableHead>
@@ -61,6 +63,8 @@ export default function PreAuthsPage() {
               {requests.map(r => (
                 <TableRow key={r.id}>
                   <TableCell className="font-medium">{getPatientName(r.patientId)}</TableCell>
+                  <TableCell>{r.doctorName}</TableCell>
+                  <TableCell>{r.proposedTreatment}</TableCell>
                   <TableCell>${r.requestAmount.toLocaleString()}</TableCell>
                   <TableCell>
                     <Badge variant={r.status === 'Approved' ? 'default' : r.status === 'Rejected' ? 'destructive' : 'secondary'} className={r.status === 'Approved' ? 'bg-accent text-accent-foreground' : ''}>{r.status}</Badge>
