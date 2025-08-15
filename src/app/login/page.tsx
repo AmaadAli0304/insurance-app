@@ -6,24 +6,53 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { UserRole } from '@/lib/types';
 import { useAuth } from '@/components/auth-provider';
 import { Logo } from '@/components/logo';
+import { auth } from '@/lib/firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { useToast } from '@/hooks/use-toast';
+import { mockUsers } from '@/lib/mock-data';
 
 export default function LoginPage() {
-  const [selectedRole, setSelectedRole] = useState<UserRole>('Admin');
-  const { login } = useAuth();
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState("admin@medichain.com");
+  const [password, setPassword] = useState("password");
 
-  const handleLogin = (e: React.FormEvent) => {
+  // This function is for demo purposes to quickly switch between test users
+  const handleDemoUserChange = (email: string) => {
+    setEmail(email);
+    setPassword("password");
+  }
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      login(selectedRole);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      // AuthProvider will handle redirect on successful login
+    } catch (error: any) {
+      if (error.code === 'auth/user-not-found') {
+        // If user not found, create a new user for demo purposes
+        try {
+          await createUserWithEmailAndPassword(auth, email, password);
+        } catch (createError: any) {
+          toast({
+            title: "Authentication Error",
+            description: createError.message,
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+            title: "Authentication Error",
+            description: error.message,
+            variant: "destructive",
+        });
+      }
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -40,25 +69,21 @@ export default function LoginPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="user@example.com" defaultValue="test@example.com" required />
+              <Input id="email" type="email" placeholder="user@example.com" value={email} onChange={e => setEmail(e.target.value)} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" defaultValue="password" required />
+              <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
             </div>
             <div className="space-y-2">
-              <Label>Login As (For Demo)</Label>
-              <Select onValueChange={(value: UserRole) => setSelectedRole(value)} defaultValue={selectedRole}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Admin">Admin</SelectItem>
-                  <SelectItem value="Hospital Admin">Hospital Admin</SelectItem>
-                  <SelectItem value="Hospital Staff">Hospital Staff</SelectItem>
-                  <SelectItem value="Company Admin">Company Admin</SelectItem>
-                </SelectContent>
-              </Select>
+                <p className="text-sm text-muted-foreground">Demo users:</p>
+                <div className="flex flex-wrap gap-2">
+                    {mockUsers.map(user => (
+                        <Button key={user.uid} type="button" variant="outline" size="sm" onClick={() => handleDemoUserChange(user.email)}>
+                            {user.role}
+                        </Button>
+                    ))}
+                </div>
             </div>
           </CardContent>
           <CardFooter>

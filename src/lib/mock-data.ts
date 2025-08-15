@@ -43,10 +43,10 @@ export let mockStaffingRequests: StaffingRequest[] = [
   { id: 'req-004', patientId: 'pat-03', hospitalId: 'hosp-02', companyId: 'comp-02', packageId: '99213', requestAmount: 850, status: 'Rejected', createdAt: '2023-09-25T09:00:00Z', details: 'Request for follow-up consultation. Rejected as post-operative follow-ups are covered under the initial request.', doctorName: 'Dr. Sarah Chen', doctorSpeciality: 'General Surgeon', proposedTreatment: 'Follow-up Consultation' },
 ];
 
-export const getMockUser = (role: UserRole): User => {
-  const user = mockUsers.find(u => u.role === role);
+export const getMockUserByEmail = (email: string): User | null => {
+  const user = mockUsers.find(u => u.email === email);
   if (!user) {
-    return mockUsers[0]; // Default to admin
+    return null;
   }
   return user;
 }
