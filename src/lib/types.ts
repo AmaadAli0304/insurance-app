@@ -79,3 +79,18 @@ export interface StaffingRequest {
   doctorSpeciality?: string;
   expectedDischargeDate?: string;
 }
+
+export type ClaimStatus = 'Processing' | 'Approved' | 'Paid' | 'Rejected' | 'Appealed';
+export interface Claim {
+  id: string;
+  requestId: string; // Corresponds to the initial pre-auth request
+  patientId: string;
+  hospitalId: string;
+  companyId: string;
+  claimAmount: number;
+  paidAmount?: number;
+  status: ClaimStatus;
+  submittedAt: string;
+  updatedAt: string;
+  notes?: string;
+}

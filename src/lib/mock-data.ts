@@ -1,5 +1,5 @@
 
-import type { User, Hospital, Company, Patient, StaffingRequest, StaffingPackage, UserRole } from './types';
+import type { User, Hospital, Company, Patient, StaffingRequest, StaffingPackage, Claim } from './types';
 
 export let mockUsers: User[] = [
   { uid: 'admin-01', name: 'Super Admin', email: 'admin@medichain.com', role: 'Admin' },
@@ -41,6 +41,11 @@ export let mockStaffingRequests: StaffingRequest[] = [
   { id: 'req-002', patientId: 'pat-02', hospitalId: 'hosp-01', companyId: 'comp-01', status: 'Approved', createdAt: '2023-10-02T11:30:00Z', details: 'Patient Jane Smith required a physical therapist for a minor fracture rehab session.', subject: 'Physical Therapy for Jane Smith', email: 'claims@statamine.com', fromEmail: 'bob@stjude.com' },
   { id: 'req-003', patientId: 'pat-03', hospitalId: 'hosp-02', companyId: 'comp-02', status: 'Pending', createdAt: '2023-10-03T14:00:00Z', details: 'Emergency request for a surgical assistant for an appendectomy. Includes 3-day post-op monitoring.', subject: 'Emergency Appendectomy - P. Jones', email: 'claims@flexistaff.com', fromEmail: 'staff@mercy.com' },
   { id: 'req-004', patientId: 'pat-03', hospitalId: 'hosp-02', companyId: 'comp-02', status: 'Rejected', createdAt: '2023-09-25T09:00:00Z', details: 'Request for follow-up consultation. Rejected as post-operative follow-ups are covered under the initial request.', subject: 'Follow-up for P. Jones', email: 'claims@flexistaff.com', fromEmail: 'staff@mercy.com' },
+];
+
+export let mockClaims: Claim[] = [
+    { id: 'claim-001', requestId: 'req-002', patientId: 'pat-02', hospitalId: 'hosp-01', companyId: 'comp-01', claimAmount: 1250, paidAmount: 1200, status: 'Paid', submittedAt: '2023-10-05T09:00:00Z', updatedAt: '2023-10-10T15:30:00Z', notes: 'Paid after deductible.' },
+    { id: 'claim-002', requestId: 'req-004', patientId: 'pat-03', hospitalId: 'hosp-02', companyId: 'comp-02', claimAmount: 200, status: 'Rejected', submittedAt: '2023-09-26T11:00:00Z', updatedAt: '2023-09-28T16:00:00Z', notes: 'Duplicate claim. Service covered under initial surgery.' },
 ];
 
 export const getMockUserByEmail = (email: string): User | null => {
