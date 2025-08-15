@@ -61,15 +61,16 @@ export interface StaffingRequest {
   patientId: string;
   hospitalId: string;
   companyId: string;
-  packageId: string; // Corresponds to procedureCode
-  requestAmount: number; // Corresponds to estimatedCost
+  packageId: string; 
+  requestAmount: number; 
   status: 'Pending' | 'Approved' | 'Rejected';
   createdAt: string; // ISO date string
-  details: string; // Corresponds to clinicalNotes
+  details: string; 
   doctorName: string;
-  doctorSpeciality: string;
   proposedTreatment: string;
-  expectedDischargeDate?: string;
   subject?: string;
-  email?: string;
+  email?: string; // "To" email
+  fromEmail?: string; // "From" email
+  doctorSpeciality?: string;
+  expectedDischargeDate?: string;
 }

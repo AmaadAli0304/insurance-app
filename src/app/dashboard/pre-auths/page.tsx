@@ -4,9 +4,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal, PlusCircle, Trash, Edit } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Trash } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
-import { mockStaffingRequests, mockPatients, mockCompanies } from "@/lib/mock-data"
+import { mockStaffingRequests, mockPatients } from "@/lib/mock-data"
 import Link from "next/link"
 import { handleDeleteRequest } from "./actions"
 import {
@@ -51,9 +51,8 @@ export default function PreAuthsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Patient</TableHead>
-                <TableHead>Doctor</TableHead>
-                <TableHead>Treatment</TableHead>
-                <TableHead>Amount</TableHead>
+                <TableHead>Subject</TableHead>
+                <TableHead>To</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead><span className="sr-only">Actions</span></TableHead>
@@ -63,9 +62,8 @@ export default function PreAuthsPage() {
               {requests.map(r => (
                 <TableRow key={r.id}>
                   <TableCell className="font-medium">{getPatientName(r.patientId)}</TableCell>
-                  <TableCell>{r.doctorName}</TableCell>
-                  <TableCell>{r.proposedTreatment}</TableCell>
-                  <TableCell>${r.requestAmount.toLocaleString()}</TableCell>
+                  <TableCell>{r.subject}</TableCell>
+                  <TableCell>{r.email}</TableCell>
                   <TableCell>
                     <Badge variant={r.status === 'Approved' ? 'default' : r.status === 'Rejected' ? 'destructive' : 'secondary'} className={r.status === 'Approved' ? 'bg-accent text-accent-foreground' : ''}>{r.status}</Badge>
                   </TableCell>
@@ -76,11 +74,7 @@ export default function PreAuthsPage() {
                         <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/dashboard/pre-auths/${r.id}/edit`} className="flex items-center gap-2 cursor-pointer">
-                              <Edit className="h-4 w-4" /> Edit
-                            </Link>
-                          </DropdownMenuItem>
+                          <DropdownMenuItem>View</DropdownMenuItem>
                           <DropdownMenuSeparator />
                            <AlertDialogTrigger asChild>
                              <DropdownMenuItem className="text-destructive flex items-center gap-2 cursor-pointer" onSelect={(e) => e.preventDefault()}>
