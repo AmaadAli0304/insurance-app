@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useFormState, useFormStatus } from "react-dom";
 import { handleAddRequest } from "../actions";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Upload } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { mockPatients, mockCompanies } from "@/lib/mock-data";
@@ -80,6 +80,15 @@ export default function NewRequestPage() {
                             <div className="space-y-2">
                                 <Label htmlFor="details">Compose Email</Label>
                                 <Textarea id="details" name="details" placeholder="Please approve treatment for..." required rows={10}/>
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="attachment">Attach File</Label>
+                                <Button variant="outline" className="w-full justify-start gap-2" asChild>
+                                  <label htmlFor="file-upload" className="cursor-pointer">
+                                      <Upload /> Upload File
+                                  </label>
+                                </Button>
+                                <Input id="file-upload" name="attachment" type="file" className="hidden" />
                             </div>
                         </CardContent>
                     </Card>
