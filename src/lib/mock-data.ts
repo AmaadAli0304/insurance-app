@@ -49,9 +49,5 @@ export let mockClaims: Claim[] = [
 ];
 
 export const getMockUserByEmail = (email: string): User | null => {
-  const user = mockUsers.find(u => u.email === email);
-  if (!user) {
-    return null;
-  }
-  return user;
+  return mockUsers.find(u => u.email === email) ?? null;
 }
