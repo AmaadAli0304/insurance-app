@@ -34,12 +34,18 @@ export interface Company {
 
 export interface Patient {
   id: string;
-  name: string;
-  dob: string; // Date of Birth
+  fullName: string;
+  dateOfBirth: string;
+  gender: 'Male' | 'Female' | 'Other';
+  phoneNumber: string;
+  companyId: string; // "Insurance Company"
+  policyNumber: string;
+  policyStartDate: string;
+  policyEndDate: string;
   hospitalId: string;
-  companyId: string;
-  packageId: string;
-  documents?: string[]; // URLs to documents in Storage
+  admissionDate: string;
+  diagnosis: string;
+  estimatedCost: number;
 }
 
 export interface StaffingRequest {

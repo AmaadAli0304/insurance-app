@@ -36,7 +36,7 @@ export default function PatientsPage() {
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Patients</CardTitle>
-            <CardDescription>Manage patient records and their assigned staffing details.</CardDescription>
+            <CardDescription>Manage patient records and their assigned insurance details.</CardDescription>
           </div>
           <Button size="sm" className="gap-1" asChild>
             <Link href="/dashboard/patients/new">
@@ -49,18 +49,20 @@ export default function PatientsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
+                <TableHead>Full Name</TableHead>
                 <TableHead>Date of Birth</TableHead>
-                <TableHead>Staffing Company</TableHead>
+                <TableHead>Insurance Company</TableHead>
+                <TableHead>Policy Number</TableHead>
                 <TableHead><span className="sr-only">Actions</span></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {patients.map(p => (
                 <TableRow key={p.id}>
-                  <TableCell className="font-medium">{p.name}</TableCell>
-                  <TableCell>{p.dob}</TableCell>
+                  <TableCell className="font-medium">{p.fullName}</TableCell>
+                  <TableCell>{p.dateOfBirth}</TableCell>
                   <TableCell>{getCompanyName(p.companyId)}</TableCell>
+                  <TableCell>{p.policyNumber}</TableCell>
                   <TableCell>
                     <AlertDialog>
                       <DropdownMenu>

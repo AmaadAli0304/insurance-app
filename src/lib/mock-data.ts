@@ -31,9 +31,9 @@ export let mockCompanies: Company[] = [
 ];
 
 export let mockPatients: Patient[] = [
-  { id: 'pat-01', name: 'John Doe', dob: '1985-05-20', hospitalId: 'hosp-01', companyId: 'comp-01', packageId: 'stat-gold' },
-  { id: 'pat-02', name: 'Jane Smith', dob: '1992-11-15', hospitalId: 'hosp-01', companyId: 'comp-01', packageId: 'stat-silver' },
-  { id: 'pat-03', name: 'Peter Jones', dob: '1978-01-30', hospitalId: 'hosp-02', companyId: 'comp-02', packageId: 'flex-prem' },
+  { id: 'pat-01', fullName: 'John Doe', dateOfBirth: '1985-05-20', gender: 'Male', phoneNumber: '555-123-4567', hospitalId: 'hosp-01', companyId: 'comp-01', policyNumber: 'POL-1A2B3C', policyStartDate: '2023-01-01', policyEndDate: '2024-01-01', admissionDate: '2023-10-01', diagnosis: 'Cardiovascular check-up', estimatedCost: 5200 },
+  { id: 'pat-02', fullName: 'Jane Smith', dateOfBirth: '1992-11-15', gender: 'Female', phoneNumber: '555-987-6543', hospitalId: 'hosp-01', companyId: 'comp-01', policyNumber: 'POL-4D5E6F', policyStartDate: '2022-06-15', policyEndDate: '2024-06-15', admissionDate: '2023-10-02', diagnosis: 'Minor fracture rehab', estimatedCost: 1250 },
+  { id: 'pat-03', fullName: 'Peter Jones', dateOfBirth: '1978-01-30', gender: 'Male', phoneNumber: '555-555-5555', hospitalId: 'hosp-02', companyId: 'comp-02', policyNumber: 'POL-7G8H9I', policyStartDate: '2023-03-20', policyEndDate: '2025-03-20', admissionDate: '2023-10-03', diagnosis: 'Appendectomy', estimatedCost: 15000 },
 ];
 
 export let mockStaffingRequests: StaffingRequest[] = [

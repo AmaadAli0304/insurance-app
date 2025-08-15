@@ -11,9 +11,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { mockHospitals, mockCompanies, mockStaffingPackages } from "@/lib/mock-data";
-import { StaffingPackage } from "@/lib/types";
-import { useState, useMemo } from "react";
+import { mockHospitals, mockCompanies } from "@/lib/mock-data";
+import { useMemo } from "react";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -27,20 +26,12 @@ function SubmitButton() {
 export default function NewPatientPage() {
     const { user } = useAuth();
     const [state, formAction] = useFormState(handleAddPatient, { message: "" });
-    const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
 
     const assignedCompanies = useMemo(() => {
         const hospital = mockHospitals.find(h => h.id === user?.hospitalId);
         if (!hospital) return [];
         return mockCompanies.filter(c => hospital.assignedCompanies.includes(c.id));
     }, [user?.hospitalId]);
-
-    const companyPackages = useMemo((): StaffingPackage[] => {
-        if (!selectedCompanyId) return [];
-        const company = mockCompanies.find(c => c.id === selectedCompanyId);
-        return company?.packages || [];
-    }, [selectedCompanyId]);
-
 
     return (
         <div className="space-y-6">
@@ -51,57 +42,101 @@ export default function NewPatientPage() {
                         <span className="sr-only">Back</span>
                     </Link>
                 </Button>
-                <h1 className="text-2xl font-bold">Add New Patient</h1>
+                <h1 className="text-2xl font-bold">Register New Patient</h1>
             </div>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Patient Details</CardTitle>
-                    <CardDescription>Fill in the form to add a new patient to the system.</CardDescription>
-                </CardHeader>
-                <form action={formAction}>
-                     <input type="hidden" name="hospitalId" value={user?.hospitalId || ''} />
-                    <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="name">Patient Name</Label>
-                            <Input id="name" name="name" placeholder="e.g. John Doe" required />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="dob">Date of Birth</Label>
-                            <Input id="dob" name="dob" type="date" required />
-                        </div>
-                         <div className="space-y-2">
-                            <Label htmlFor="companyId">Staffing Company</Label>
-                            <Select name="companyId" required onValueChange={setSelectedCompanyId}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a company" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {assignedCompanies.map(c => (
-                                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                         <div className="space-y-2">
-                            <Label htmlFor="packageId">Staffing Package</Label>
-                            <Select name="packageId" required disabled={!selectedCompanyId}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a package" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {companyPackages.map(p => (
-                                        <SelectItem key={p.packageId} value={p.packageId}>{p.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
+            <form action={formAction}>
+                <input type="hidden" name="hospitalId" value={user?.hospitalId || ''} />
+                <div className="grid gap-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Patient Information</CardTitle>
+                        </CardHeader>
+                        <CardContent className="grid md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="fullName">Full Name</Label>
+                                <Input id="fullName" name="fullName" placeholder="e.g. John Doe" required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                                <Input id="dateOfBirth" name="dateOfBirth" type="date" required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="gender">Gender</Label>
+                                <Select name="gender" required>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select gender" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Male">Male</SelectItem>
+                                        <SelectItem value="Female">Female</SelectItem>
+                                        <SelectItem value="Other">Other</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="phoneNumber">Phone Number</Label>
+                                <Input id="phoneNumber" name="phoneNumber" placeholder="e.g. 555-123-4567" required />
+                            </div>
+                        </CardContent>
+                    </Card>
 
-                        {state.message && <p className="text-sm text-destructive">{state.message}</p>}
-                         <SubmitButton />
-                    </CardContent>
-                </form>
-            </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Insurance Information</CardTitle>
+                        </CardHeader>
+                        <CardContent className="grid md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="companyId">Insurance Company</Label>
+                                <Select name="companyId" required>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a company" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {assignedCompanies.map(c => (
+                                            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="policyNumber">Policy Number</Label>
+                                <Input id="policyNumber" name="policyNumber" placeholder="e.g. POL-1A2B3C" required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="policyStartDate">Policy Start Date</Label>
+                                <Input id="policyStartDate" name="policyStartDate" type="date" required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="policyEndDate">Policy End Date</Label>
+                                <Input id="policyEndDate" name="policyEndDate" type="date" required />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Hospital Admission Details</CardTitle>
+                        </CardHeader>
+                        <CardContent className="grid md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="admissionDate">Admission Date</Label>
+                                <Input id="admissionDate" name="admissionDate" type="date" required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="diagnosis">Diagnosis</Label>
+                                <Input id="diagnosis" name="diagnosis" placeholder="e.g. Cardiovascular check-up" required />
+                            </div>
+                            <div className="space-y-2 md:col-span-2">
+                                <Label htmlFor="estimatedCost">Estimated Cost ($)</Label>
+                                <Input id="estimatedCost" name="estimatedCost" type="number" placeholder="e.g. 5200" required />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {state.message && <p className="text-sm text-destructive">{state.message}</p>}
+                    <SubmitButton />
+                </div>
+            </form>
         </div>
     );
 }
-
