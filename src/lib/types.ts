@@ -1,4 +1,5 @@
-export type UserRole = 'Admin' | 'Hospital Admin' | 'Hospital Staff' | 'Insurance Company Admin';
+
+export type UserRole = 'Admin' | 'Hospital Admin' | 'Hospital Staff' | 'Company Admin';
 
 export interface User {
   uid: string;
@@ -6,7 +7,7 @@ export interface User {
   email: string;
   role: UserRole;
   hospitalId?: string;
-  insuranceCompanyId?: string;
+  companyId?: string;
 }
 
 export interface Hospital {
@@ -14,20 +15,20 @@ export interface Hospital {
   name: string;
   address: string;
   contact: string;
-  assignedInsuranceCompanies: string[];
+  assignedCompanies: string[];
 }
 
-export interface InsurancePlan {
-  planId: string;
+export interface StaffingPackage {
+  packageId: string;
   name: string;
-  coverageAmount: number;
+  monthlyRate: number;
 }
 
-export interface InsuranceCompany {
+export interface Company {
   id: string;
   name: string;
   contact: string;
-  plans: InsurancePlan[];
+  packages: StaffingPackage[];
   assignedHospitals: string[];
 }
 
@@ -36,18 +37,18 @@ export interface Patient {
   name: string;
   dob: string; // Date of Birth
   hospitalId: string;
-  insuranceCompanyId: string;
-  planId: string;
+  companyId: string;
+  packageId: string;
   documents?: string[]; // URLs to documents in Storage
 }
 
-export interface Claim {
+export interface StaffingRequest {
   id: string;
   patientId: string;
   hospitalId: string;
-  insuranceCompanyId: string;
-  planId: string;
-  claimAmount: number;
+  companyId: string;
+  packageId: string;
+  requestAmount: number;
   status: 'Pending' | 'Approved' | 'Rejected';
   createdAt: string; // ISO date string
   details: string;

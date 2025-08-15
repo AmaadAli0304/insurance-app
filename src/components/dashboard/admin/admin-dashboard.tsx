@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal, PlusCircle, ArrowRight } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel } from "@/components/ui/dropdown-menu"
-import { mockHospitals, mockInsuranceCompanies } from "@/lib/mock-data"
+import { mockHospitals, mockCompanies } from "@/lib/mock-data"
 import Link from "next/link"
 
 export function AdminDashboard() {
@@ -18,7 +18,7 @@ export function AdminDashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Welcome, Admin!</CardTitle>
-            <CardDescription>Manage hospitals, insurance companies, and system settings from this central hub.</CardDescription>
+            <CardDescription>Manage hospitals, staffing companies, and system settings from this central hub.</CardDescription>
           </CardHeader>
         </Card>
         <Card className="flex flex-col justify-center">
@@ -31,8 +31,8 @@ export function AdminDashboard() {
                     <p className="text-sm text-muted-foreground">Hospitals</p>
                 </div>
                 <div className="text-center">
-                    <p className="text-3xl font-bold">{mockInsuranceCompanies.length}</p>
-                    <p className="text-sm text-muted-foreground">Insurance Companies</p>
+                    <p className="text-3xl font-bold">{mockCompanies.length}</p>
+                    <p className="text-sm text-muted-foreground">Companies</p>
                 </div>
             </CardContent>
         </Card>
@@ -57,7 +57,7 @@ export function AdminDashboard() {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Address</TableHead>
-                <TableHead>Assigned Insurers</TableHead>
+                <TableHead>Assigned Companies</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -66,7 +66,7 @@ export function AdminDashboard() {
                   <TableCell className="font-medium">{h.name}</TableCell>
                   <TableCell>{h.address}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary">{h.assignedInsuranceCompanies.length}</Badge>
+                    <Badge variant="secondary">{h.assignedCompanies.length}</Badge>
                   </TableCell>
                 </TableRow>
               ))}
@@ -78,8 +78,8 @@ export function AdminDashboard() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Insurance Companies</CardTitle>
-            <CardDescription>Manage insurance company profiles and their offered plans.</CardDescription>
+            <CardTitle>Staffing Companies</CardTitle>
+            <CardDescription>Manage company profiles and their offered packages.</CardDescription>
           </div>
            <Button size="sm" className="gap-1">
             <PlusCircle className="h-4 w-4" />
@@ -92,23 +92,23 @@ export function AdminDashboard() {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Contact</TableHead>
-                <TableHead>Plans</TableHead>
+                <TableHead>Packages</TableHead>
                 <TableHead><span className="sr-only">Actions</span></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockInsuranceCompanies.map(c => (
+              {mockCompanies.map(c => (
                  <TableRow key={c.id}>
                   <TableCell className="font-medium">{c.name}</TableCell>
                   <TableCell>{c.contact}</TableCell>
-                  <TableCell><Badge variant="secondary">{c.plans.length}</Badge></TableCell>
+                  <TableCell><Badge variant="secondary">{c.packages.length}</Badge></TableCell>
                    <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>Manage Plans</DropdownMenuItem>
+                        <DropdownMenuItem>Manage Packages</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

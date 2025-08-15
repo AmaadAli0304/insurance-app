@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -14,23 +15,23 @@ export function MainNav() {
     Admin: [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/dashboard/hospitals', label: 'Hospitals', icon: Building },
-      { href: '/dashboard/insurance', label: 'Insurance Co.', icon: Factory },
+      { href: '/dashboard/companies', label: 'Companies', icon: Factory },
     ],
     'Hospital Admin': [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/dashboard/patients', label: 'Patients', icon: Users },
       { href: '/dashboard/staff', label: 'Staff', icon: User },
-      { href: '/dashboard/claims', label: 'Claims', icon: FileText },
+      { href: '/dashboard/requests', label: 'Staffing Requests', icon: FileText },
     ],
     'Hospital Staff': [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/dashboard/patients/new', label: 'Add Patient', icon: Users },
-      { href: '/dashboard/claims/new', label: 'Submit Claim', icon: FileText },
+      { href: '/dashboard/requests/new', label: 'New Request', icon: FileText },
     ],
-    'Insurance Company Admin': [
+    'Company Admin': [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-      { href: '/dashboard/claims', label: 'Claims', icon: FileText },
-      { href: '/dashboard/plans', label: 'Insurance Plans', icon: Stethoscope },
+      { href: '/dashboard/requests', label: 'Staffing Requests', icon: FileText },
+      { href: '/dashboard/packages', label: 'Staffing Packages', icon: Stethoscope },
     ],
   };
 

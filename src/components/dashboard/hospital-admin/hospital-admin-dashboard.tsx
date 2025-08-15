@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -7,14 +8,14 @@ import { Button } from "@/components/ui/button"
 import { MoreHorizontal, PlusCircle, User, FileText, Users } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/components/auth-provider"
-import { mockPatients, mockClaims, mockUsers } from "@/lib/mock-data"
+import { mockPatients, mockStaffingRequests, mockUsers } from "@/lib/mock-data"
 
 export function HospitalAdminDashboard() {
   const { user } = useAuth();
   const hospitalId = user?.hospitalId;
 
   const patients = mockPatients.filter(p => p.hospitalId === hospitalId);
-  const claims = mockClaims.filter(c => c.hospitalId === hospitalId);
+  const requests = mockStaffingRequests.filter(c => c.hospitalId === hospitalId);
   const staff = mockUsers.filter(u => u.hospitalId === hospitalId && u.role === 'Hospital Staff');
 
   return (
@@ -33,11 +34,11 @@ export function HospitalAdminDashboard() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Claims</CardTitle>
+            <CardTitle className="text-sm font-medium">Pending Requests</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{claims.filter(c => c.status === 'Pending').length}</div>
+            <div className="text-2xl font-bold">{requests.filter(r => r.status === 'Pending').length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -55,7 +56,7 @@ export function HospitalAdminDashboard() {
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Patients</CardTitle>
-            <CardDescription>Manage patient records and insurance details.</CardDescription>
+            <CardDescription>Manage patient records and staffing details.</CardDescription>
           </div>
           <Button size="sm" className="gap-1">
             <PlusCircle className="h-4 w-4" />
@@ -68,7 +69,7 @@ export function HospitalAdminDashboard() {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Date of Birth</TableHead>
-                <TableHead>Insurance</TableHead>
+                <TableHead>Staffing Company</TableHead>
                 <TableHead><span className="sr-only">Actions</span></TableHead>
               </TableRow>
             </TableHeader>
@@ -77,7 +78,7 @@ export function HospitalAdminDashboard() {
                 <TableRow key={p.id}>
                   <TableCell className="font-medium">{p.name}</TableCell>
                   <TableCell>{p.dob}</TableCell>
-                  <TableCell>{p.insuranceCompanyId}</TableCell>
+                  <TableCell>{p.companyId}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
@@ -98,12 +99,12 @@ export function HospitalAdminDashboard() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Recent Claims</CardTitle>
-            <CardDescription>Track submitted insurance claims.</CardDescription>
+            <CardTitle>Recent Staffing Requests</CardTitle>
+            <CardDescription>Track submitted staffing requests.</CardDescription>
           </div>
            <Button size="sm" className="gap-1">
             <PlusCircle className="h-4 w-4" />
-            Create Claim
+            Create Request
           </Button>
         </CardHeader>
         <CardContent>
@@ -117,12 +118,12 @@ export function HospitalAdminDashboard() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {claims.slice(0, 5).map(c => (
-                 <TableRow key={c.id}>
-                  <TableCell className="font-medium">{mockPatients.find(p=>p.id === c.patientId)?.name}</TableCell>
-                  <TableCell>${c.claimAmount.toLocaleString()}</TableCell>
+              {requests.slice(0, 5).map(r => (
+                 <TableRow key={r.id}>
+                  <TableCell className="font-medium">{mockPatients.find(p=>p.id === r.patientId)?.name}</TableCell>
+                  <TableCell>${r.requestAmount.toLocaleString()}</TableCell>
                   <TableCell>
-                     <Badge variant={c.status === 'Approved' ? 'default' : c.status === 'Rejected' ? 'destructive' : 'secondary'} className={c.status === 'Approved' ? 'bg-accent text-accent-foreground' : ''}>{c.status}</Badge>
+                     <Badge variant={r.status === 'Approved' ? 'default' : r.status === 'Rejected' ? 'destructive' : 'secondary'} className={r.status === 'Approved' ? 'bg-accent text-accent-foreground' : ''}>{r.status}</Badge>
                   </TableCell>
                    <TableCell>
                     <DropdownMenu>

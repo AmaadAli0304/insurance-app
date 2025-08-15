@@ -1,9 +1,10 @@
+
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import type { User, UserRole } from '@/lib/types';
-import { getMockUser, mockUsers } from '@/lib/mock-data';
+import { getMockUser } from '@/lib/mock-data';
 
 interface AuthContextType {
   user: User | null;

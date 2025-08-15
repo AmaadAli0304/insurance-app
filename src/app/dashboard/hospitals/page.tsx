@@ -30,7 +30,7 @@ export default function HospitalsPage() {
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Hospitals</CardTitle>
-            <CardDescription>Manage hospital profiles and their assigned insurance providers.</CardDescription>
+            <CardDescription>Manage hospital profiles and their assigned staffing companies.</CardDescription>
           </div>
           <Button size="sm" className="gap-1" asChild>
             <Link href="/dashboard/hospitals/new">
@@ -45,7 +45,7 @@ export default function HospitalsPage() {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Address</TableHead>
-                <TableHead>Assigned Insurers</TableHead>
+                <TableHead>Assigned Companies</TableHead>
                 <TableHead><span className="sr-only">Actions</span></TableHead>
               </TableRow>
             </TableHeader>
@@ -55,7 +55,7 @@ export default function HospitalsPage() {
                   <TableCell className="font-medium">{h.name}</TableCell>
                   <TableCell>{h.address}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary">{h.assignedInsuranceCompanies.length}</Badge>
+                    <Badge variant="secondary">{h.assignedCompanies.length}</Badge>
                   </TableCell>
                   <TableCell>
                     <AlertDialog>

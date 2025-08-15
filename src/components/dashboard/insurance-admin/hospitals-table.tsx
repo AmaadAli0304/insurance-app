@@ -6,30 +6,30 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { Hospital, Claim, Patient } from "@/lib/types";
+import type { Hospital, StaffingRequest, Patient } from "@/lib/types";
 
 interface HospitalsTableProps {
     hospitals: Hospital[];
-    claims: Claim[];
+    requests: StaffingRequest[];
     patients: Patient[];
-    insuranceCompanyId: string;
+    companyId: string;
 }
 
-export function HospitalsTable({ hospitals, claims, patients }: HospitalsTableProps) {
+export function HospitalsTable({ hospitals, requests, patients }: HospitalsTableProps) {
 
     const getHospitalStats = (hospitalId: string) => {
         const hospitalPatients = patients.filter(p => p.hospitalId === hospitalId);
         const livePatients = hospitalPatients.length;
 
-        const hospitalClaims = claims.filter(c => c.hospitalId === hospitalId);
-        const pendingClaims = hospitalClaims.filter(c => c.status === 'Pending').length;
-        const rejectedClaims = hospitalClaims.filter(c => c.status === 'Rejected').length; // Represents SLA Breaches
+        const hospitalRequests = requests.filter(r => r.hospitalId === hospitalId);
+        const pendingRequests = hospitalRequests.filter(r => r.status === 'Pending').length;
+        const rejectedRequests = hospitalRequests.filter(r => r.status === 'Rejected').length; // Represents SLA Breaches
 
-        return { livePatients, pendingClaims, rejectedClaims };
+        return { livePatients, pendingRequests, rejectedRequests };
     }
 
     // Assuming a max value for visualization purposes
-    const maxBreaches = Math.max(...hospitals.map(h => getHospitalStats(h.id).rejectedClaims), 1);
+    const maxBreaches = Math.max(...hospitals.map(h => getHospitalStats(h.id).rejectedRequests), 1);
 
     return (
         <Card>
@@ -60,7 +60,7 @@ export function HospitalsTable({ hospitals, claims, patients }: HospitalsTablePr
                             <TableHead>Hospital</TableHead>
                             <TableHead>State</TableHead>
                             <TableHead>Live Patients</TableHead>
-                            <TableHead>Pending Claims</TableHead>
+                            <TableHead>Pending Requests</TableHead>
                             <TableHead>SLA Breaches</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -69,17 +69,17 @@ export function HospitalsTable({ hospitals, claims, patients }: HospitalsTablePr
                             const stats = getHospitalStats(hospital.id);
                             const addressParts = hospital.address.split(',');
                             const state = addressParts.length > 1 ? addressParts[addressParts.length - 2].trim() : 'N/A';
-                            const breachPercentage = (stats.rejectedClaims / maxBreaches) * 100;
+                            const breachPercentage = (stats.rejectedRequests / maxBreaches) * 100;
 
                             return (
                                 <TableRow key={hospital.id}>
                                     <TableCell className="font-medium">{hospital.name}</TableCell>
                                     <TableCell>{state}</TableCell>
                                     <TableCell>{stats.livePatients}</TableCell>
-                                    <TableCell>{stats.pendingClaims}</TableCell>
+                                    <TableCell>{stats.pendingRequests}</TableCell>
                                     <TableCell>
                                         <div className="flex items-center gap-2">
-                                            <span>{stats.rejectedClaims}</span>
+                                            <span>{stats.rejectedRequests}</span>
                                             <Progress value={breachPercentage} className="w-[100px]" indicatorClassName={breachPercentage > 75 ? "bg-destructive" : "bg-primary"} />
                                         </div>
                                     </TableCell>

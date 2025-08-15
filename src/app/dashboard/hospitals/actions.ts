@@ -19,7 +19,7 @@ export async function handleAddHospital(prevState: { message: string }, formData
     name,
     address,
     contact,
-    assignedInsuranceCompanies: [],
+    assignedCompanies: [],
   };
 
   mockHospitals.push(newHospital);

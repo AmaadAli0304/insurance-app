@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -55,7 +56,7 @@ export default function LoginPage() {
                   <SelectItem value="Admin">Admin</SelectItem>
                   <SelectItem value="Hospital Admin">Hospital Admin</SelectItem>
                   <SelectItem value="Hospital Staff">Hospital Staff</SelectItem>
-                  <SelectItem value="Insurance Company Admin">Insurance Company Admin</SelectItem>
+                  <SelectItem value="Company Admin">Company Admin</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -1,45 +1,46 @@
+
 'use server';
 
 /**
- * @fileOverview This file defines a Genkit flow for summarizing insurance claims using AI.
+ * @fileOverview This file defines a Genkit flow for summarizing staffing requests using AI.
  *
- * - summarizeClaim - A function that takes claim details as input and returns a summarized version.
- * - SummarizeClaimInput - The input type for the summarizeClaim function, defining the structure of claim data.
- * - SummarizeClaimOutput - The output type for the summarizeClaim function, representing the summarized claim information.
+ * - summarizeRequest - A function that takes request details as input and returns a summarized version.
+ * - SummarizeRequestInput - The input type for the summarizeRequest function, defining the structure of request data.
+ * - SummarizeRequestOutput - The output type for the summarizeRequest function, representing the summarized request information.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-const SummarizeClaimInputSchema = z.object({
-  claimDetails: z.string().describe('Detailed information about the insurance claim.'),
+const SummarizeRequestInputSchema = z.object({
+  requestDetails: z.string().describe('Detailed information about the staffing request.'),
 });
-export type SummarizeClaimInput = z.infer<typeof SummarizeClaimInputSchema>;
+export type SummarizeRequestInput = z.infer<typeof SummarizeRequestInputSchema>;
 
-const SummarizeClaimOutputSchema = z.object({
-  summary: z.string().describe('A concise summary of the insurance claim.'),
+const SummarizeRequestOutputSchema = z.object({
+  summary: z.string().describe('A concise summary of the staffing request.'),
 });
-export type SummarizeClaimOutput = z.infer<typeof SummarizeClaimOutputSchema>;
+export type SummarizeRequestOutput = z.infer<typeof SummarizeRequestOutputSchema>;
 
-export async function summarizeClaim(input: SummarizeClaimInput): Promise<SummarizeClaimOutput> {
-  return summarizeClaimFlow(input);
+export async function summarizeRequest(input: SummarizeRequestInput): Promise<SummarizeRequestOutput> {
+  return summarizeRequestFlow(input);
 }
 
-const summarizeClaimPrompt = ai.definePrompt({
-  name: 'summarizeClaimPrompt',
-  input: {schema: SummarizeClaimInputSchema},
-  output: {schema: SummarizeClaimOutputSchema},
-  prompt: `You are an expert insurance claim summarizer. Please provide a concise and accurate summary of the following claim details:\n\nClaim Details: {{{claimDetails}}}`,
+const summarizeRequestPrompt = ai.definePrompt({
+  name: 'summarizeRequestPrompt',
+  input: {schema: SummarizeRequestInputSchema},
+  output: {schema: SummarizeRequestOutputSchema},
+  prompt: `You are an expert staffing request summarizer. Please provide a concise and accurate summary of the following request details:\n\nRequest Details: {{{requestDetails}}}`,
 });
 
-const summarizeClaimFlow = ai.defineFlow(
+const summarizeRequestFlow = ai.defineFlow(
   {
-    name: 'summarizeClaimFlow',
-    inputSchema: SummarizeClaimInputSchema,
-    outputSchema: SummarizeClaimOutputSchema,
+    name: 'summarizeRequestFlow',
+    inputSchema: SummarizeRequestInputSchema,
+    outputSchema: SummarizeRequestOutputSchema,
   },
   async input => {
-    const {output} = await summarizeClaimPrompt(input);
+    const {output} = await summarizeRequestPrompt(input);
     return output!;
   }
 );

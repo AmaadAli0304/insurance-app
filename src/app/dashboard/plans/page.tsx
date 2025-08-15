@@ -8,43 +8,43 @@ import { Button } from "@/components/ui/button"
 import { MoreHorizontal, PlusCircle } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/components/auth-provider"
-import { mockInsuranceCompanies } from "@/lib/mock-data"
+import { mockCompanies } from "@/lib/mock-data"
 
-export default function InsurancePlansPage() {
+export default function StaffingPackagesPage() {
   const { user } = useAuth();
-  const insuranceCompanyId = user?.insuranceCompanyId;
+  const companyId = user?.companyId;
   
-  const company = mockInsuranceCompanies.find(c => c.id === insuranceCompanyId);
+  const company = mockCompanies.find(c => c.id === companyId);
 
   return (
       <div className="space-y-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle>Insurance Plans</CardTitle>
-              <CardDescription>Manage your company's insurance plans.</CardDescription>
+              <CardTitle>Staffing Packages</CardTitle>
+              <CardDescription>Manage your company's staffing packages.</CardDescription>
             </div>
             <Button size="sm" className="gap-1">
               <PlusCircle className="h-4 w-4" />
-              Add Plan
+              Add Package
             </Button>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Plan Name</TableHead>
-                  <TableHead>Coverage Amount</TableHead>
-                   <TableHead>Plan ID</TableHead>
+                  <TableHead>Package Name</TableHead>
+                  <TableHead>Monthly Rate</TableHead>
+                   <TableHead>Package ID</TableHead>
                   <TableHead><span className="sr-only">Actions</span></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {company?.plans.map(p => (
-                  <TableRow key={p.planId}>
+                {company?.packages.map(p => (
+                  <TableRow key={p.packageId}>
                     <TableCell className="font-medium">{p.name}</TableCell>
-                    <TableCell>${p.coverageAmount.toLocaleString()}</TableCell>
-                    <TableCell className="font-mono text-xs">{p.planId}</TableCell>
+                    <TableCell>${p.monthlyRate.toLocaleString()}</TableCell>
+                    <TableCell className="font-mono text-xs">{p.packageId}</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
