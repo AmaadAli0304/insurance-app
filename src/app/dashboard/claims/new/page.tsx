@@ -25,16 +25,22 @@ function SubmitButton() {
 }
 
 export default function NewClaimPage() {
-    const { user } = useAuth();
+    const { user, role } = useAuth();
     const [state, formAction] = useFormState(handleAddClaim, { message: "" });
     
-    const companyPatients = useMemo(() => {
-        return mockPatients.filter(p => p.companyId === user?.companyId);
-    }, [user?.companyId]);
+    const relevantPatients = useMemo(() => {
+        if (role === 'Company Admin') {
+             return mockPatients.filter(p => p.companyId === user?.companyId);
+        }
+        return mockPatients.filter(p => p.hospitalId === user?.hospitalId);
+    }, [user, role]);
     
     const approvedRequests = useMemo(() => {
-        return mockStaffingRequests.filter(r => r.companyId === user?.companyId && r.status === 'Approved');
-    }, [user?.companyId])
+        if (role === 'Company Admin') {
+            return mockStaffingRequests.filter(r => r.companyId === user?.companyId && r.status === 'Approved');
+        }
+        return mockStaffingRequests.filter(r => r.hospitalId === user?.hospitalId && r.status === 'Approved');
+    }, [user, role])
 
     return (
         <div className="space-y-6">
@@ -62,7 +68,7 @@ export default function NewClaimPage() {
                                         <SelectValue placeholder="Select a patient" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {companyPatients.map(p => (
+                                        {relevantPatients.map(p => (
                                             <SelectItem key={p.id} value={p.id}>{p.fullName}</SelectItem>
                                         ))}
                                     </SelectContent>

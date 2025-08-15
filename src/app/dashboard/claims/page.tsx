@@ -26,8 +26,10 @@ import type { ClaimStatus } from "@/lib/types"
 
 
 export default function ClaimsPage() {
-  const { user } = useAuth();
-  const claims = mockClaims.filter(c => c.companyId === user?.companyId);
+  const { user, role } = useAuth();
+  const claims = role === 'Company Admin' 
+    ? mockClaims.filter(c => c.companyId === user?.companyId)
+    : mockClaims.filter(c => c.hospitalId === user?.hospitalId);
 
   const getPatientName = (patientId: string) => {
     return mockPatients.find(p => p.id === patientId)?.fullName || 'N/A';

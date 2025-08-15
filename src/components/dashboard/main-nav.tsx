@@ -27,6 +27,7 @@ export function MainNav() {
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/dashboard/patients', label: 'Patients', icon: Users },
       { href: '/dashboard/pre-auths', label: 'Pre-Auth Requests', icon: FileText },
+      { href: '/dashboard/claims', label: 'Claim Tracker', icon: HandCoins },
     ],
     'Company Admin': [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
