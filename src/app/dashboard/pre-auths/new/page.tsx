@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -26,7 +27,22 @@ function SubmitButton() {
 export default function NewRequestPage() {
     const { user } = useAuth();
     const [state, formAction] = useFormState(handleAddRequest, { message: "" });
-    const patients = mockPatients.filter(p => p.hospitalId === user?.hospitalId);
+    const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
+
+    const hospitalPatients = useMemo(() => {
+        return mockPatients.filter(p => p.hospitalId === user?.hospitalId);
+    }, [user?.hospitalId]);
+    
+    const hospitalCompanies = useMemo(() => {
+        const companyIds = new Set(hospitalPatients.map(p => p.companyId));
+        return mockCompanies.filter(c => companyIds.has(c.id));
+    }, [hospitalPatients]);
+
+    const filteredPatients = useMemo(() => {
+        if (!selectedCompany) return [];
+        return hospitalPatients.filter(p => p.companyId === selectedCompany);
+    }, [selectedCompany, hospitalPatients]);
+
 
     return (
         <div className="space-y-6">
@@ -46,17 +62,30 @@ export default function NewRequestPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle>Compose Pre-Authorization</CardTitle>
-                             <CardDescription>Select a patient and compose the request.</CardDescription>
+                             <CardDescription>Select an insurance company and patient to compose the request.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
+                             <div className="space-y-2">
+                                <Label htmlFor="insuranceCompany">Select Insurance Company</Label>
+                                <Select onValueChange={setSelectedCompany}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a company" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {hospitalCompanies.map(c => (
+                                            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                             <div className="space-y-2">
                                 <Label htmlFor="patientId">Select Patient</Label>
-                                <Select name="patientId" required>
+                                <Select name="patientId" required disabled={!selectedCompany}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select a patient" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {patients.map(p => (
+                                        {filteredPatients.map(p => (
                                             <SelectItem key={p.id} value={p.id}>{p.fullName} (ID: {p.id})</SelectItem>
                                         ))}
                                     </SelectContent>
@@ -65,7 +94,7 @@ export default function NewRequestPage() {
                             <div className="grid md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="to">To</Label>
-                                    <Input id="to" name="to" placeholder="e.g. claims@statamine.com" required />
+                                    <Input id="to" name="to" placeholder="e.g. claims@company.com" required />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="from">From</Label>
