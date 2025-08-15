@@ -37,9 +37,9 @@ export default function LoginPage() {
         try {
           await createUserWithEmailAndPassword(auth, email, password);
         } catch (createError: any) {
-          toast({
+           toast({
             title: "Authentication Error",
-            description: createError.message,
+            description: `Could not create demo user: ${createError.message}`,
             variant: "destructive",
           });
         }
