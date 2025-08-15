@@ -20,7 +20,16 @@ export function HospitalStaffDashboard() {
   // Using a placeholder for rejected requests as SLA Breaches
   const slaBreaches = requests.filter(r => r.status === 'Rejected').length;
 
-  const getPatientName = (id: string) => mockPatients.find(p => p.id === id)?.name || 'Unknown Patient';
+  const getPatientName = (id: string) => mockPatients.find(p => p.id === id)?.fullName || 'Unknown Patient';
+  
+  const getRequestAmount = (patientId: string, requestAmount?: number) => {
+    if (requestAmount !== undefined) {
+      return requestAmount;
+    }
+    const patient = mockPatients.find(p => p.id === patientId);
+    return patient?.estimatedCost || 0;
+  }
+
 
   return (
     <div className="space-y-6">
@@ -77,7 +86,7 @@ export function HospitalStaffDashboard() {
               {requests.map(request => (
                 <TableRow key={request.id}>
                   <TableCell className="font-medium">{getPatientName(request.patientId)}</TableCell>
-                  <TableCell>${request.requestAmount.toLocaleString()}</TableCell>
+                  <TableCell>${getRequestAmount(request.patientId, request.requestAmount).toLocaleString()}</TableCell>
                   <TableCell>
                     <Badge variant={request.status === 'Approved' ? 'default' : request.status === 'Rejected' ? 'destructive' : 'secondary'} className={request.status === 'Approved' ? 'bg-accent text-accent-foreground' : ''}>{request.status}</Badge>
                   </TableCell>
