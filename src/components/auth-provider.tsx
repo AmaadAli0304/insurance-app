@@ -4,54 +4,36 @@
 import React, { createContext, useContext, useState, ReactNode, useMemo, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import type { User } from '@/lib/types';
-import { getMockUserByEmail } from '@/lib/mock-data';
-import { auth } from '@/lib/firebase';
-import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
-import { useToast } from '@/hooks/use-toast';
+import { getMockUserByEmail, mockUsers } from '@/lib/mock-data';
+
+// This is a simplified, mock auth provider for demonstration purposes.
+// In a real application, this would be replaced with a proper authentication service.
 
 interface AuthContextType {
   user: User | null;
-  firebaseUser: FirebaseUser | null;
   role: User['role'] | null;
   loading: boolean;
+  login: (email: string) => void;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// A simple in-memory session storage.
+let memoryUser: User | null = null;
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
+  const [user, setUser] = useState<User | null>(memoryUser);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
-  const { toast } = useToast();
 
+  // Simulate loading the user on initial mount
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (firebaseUser) {
-        setFirebaseUser(firebaseUser);
-        const appUser = getMockUserByEmail(firebaseUser.email || '');
-        if (appUser) {
-          setUser(appUser);
-        } else {
-          // Handle case where user is authenticated with Firebase but not in our mock DB
-          setUser({
-            uid: firebaseUser.uid,
-            email: firebaseUser.email || 'No email',
-            name: firebaseUser.displayName || 'No name',
-            role: 'Hospital Staff', // Default role
-          });
-          console.warn(`User with email ${firebaseUser.email} not found in mock data. Assigning default role.`);
-        }
-      } else {
-        setFirebaseUser(null);
-        setUser(null);
-      }
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+    // In a real app, you might check a token from localStorage here.
+    // For this mock, we just use the in-memory user.
+    setUser(memoryUser);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -65,27 +47,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, loading, pathname, router]);
 
-  const logout = async () => {
-    try {
-      await signOut(auth);
-      router.push('/login');
-    } catch (error) {
-        console.error("Error signing out:", error);
-        toast({
-            title: "Logout Failed",
-            description: "An error occurred while signing out. Please try again.",
-            variant: "destructive",
-        })
+  const login = (email: string) => {
+    setLoading(true);
+    const appUser = getMockUserByEmail(email);
+    if (appUser) {
+        memoryUser = appUser;
+        setUser(appUser);
+    } else {
+        // For demo purposes, if user not found, we can default to the first mock user
+        console.warn(`User with email ${email} not found in mock data. Defaulting to admin.`);
+        memoryUser = mockUsers[0];
+        setUser(mockUsers[0]);
     }
+    setLoading(false);
+  };
+  
+  const logout = () => {
+    memoryUser = null;
+    setUser(null);
+    router.push('/login');
   };
 
   const value = useMemo(() => ({
     user,
-    firebaseUser,
     role: user?.role ?? null,
     loading,
+    login,
     logout,
-  }), [user, firebaseUser, loading]);
+  }), [user, loading]);
 
   if (loading) {
     return (
