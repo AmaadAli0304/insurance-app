@@ -38,8 +38,10 @@ export interface Patient {
   dateOfBirth: string;
   gender: 'Male' | 'Female' | 'Other';
   phoneNumber: string;
+  address: string;
   companyId: string; // "Insurance Company"
   policyNumber: string;
+  memberId: string;
   policyStartDate: string;
   policyEndDate: string;
   hospitalId: string;
@@ -53,9 +55,13 @@ export interface StaffingRequest {
   patientId: string;
   hospitalId: string;
   companyId: string;
-  packageId: string;
-  requestAmount: number;
+  packageId: string; // Corresponds to procedureCode
+  requestAmount: number; // Corresponds to estimatedCost
   status: 'Pending' | 'Approved' | 'Rejected';
   createdAt: string; // ISO date string
-  details: string;
+  details: string; // Corresponds to clinicalNotes
+  doctorName: string;
+  doctorSpeciality: string;
+  proposedTreatment: string;
+  expectedDischargeDate?: string;
 }

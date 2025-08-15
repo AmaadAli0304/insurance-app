@@ -14,7 +14,6 @@ import { mockStaffingRequests, mockPatients, mockCompanies } from "@/lib/mock-da
 import { notFound } from "next/navigation";
 import { useAuth } from "@/components/auth-provider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useMemo } from "react";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -30,16 +29,9 @@ export default function EditRequestPage({ params }: { params: { id: string } }) 
     const request = mockStaffingRequests.find(r => r.id === params.id);
     const [state, formAction] = useFormState(handleUpdateRequest, { message: "" });
     
-    const hospitalPatients = useMemo(() => {
-        return mockPatients.filter(p => p.hospitalId === user?.hospitalId);
-    }, [user?.hospitalId]);
+    const patient = mockPatients.find(p => p.id === request?.patientId);
 
-    const assignedCompanies = useMemo(() => {
-        const patientCompanies = hospitalPatients.map(p => p.companyId);
-        return mockCompanies.filter(c => patientCompanies.includes(c.id));
-    }, [hospitalPatients]);
-
-    if (!request) {
+    if (!request || !patient) {
         notFound();
     }
 
@@ -63,57 +55,67 @@ export default function EditRequestPage({ params }: { params: { id: string } }) 
                     <CardContent className="space-y-4">
                         <input type="hidden" name="id" value={request.id} />
                         <input type="hidden" name="hospitalId" value={user?.hospitalId || ''} />
-
-                        <div className="space-y-2">
-                            <Label htmlFor="patientId">Patient</Label>
-                            <Select name="patientId" required defaultValue={request.patientId}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a patient" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {hospitalPatients.map(p => (
-                                        <SelectItem key={p.id} value={p.id}>{p.fullName}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                         <div className="space-y-2">
-                            <Label htmlFor="companyId">Staffing Company</Label>
-                            <Select name="companyId" required defaultValue={request.companyId}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a company" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {assignedCompanies.map(c => (
-                                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="packageId">Staffing Package ID</Label>
-                            <Input id="packageId" name="packageId" defaultValue={request.packageId} required />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="requestAmount">Request Amount ($)</Label>
-                            <Input id="requestAmount" name="requestAmount" type="number" defaultValue={request.requestAmount} required />
-                        </div>
-                         <div className="space-y-2">
-                            <Label htmlFor="status">Status</Label>
-                            <Select name="status" required defaultValue={request.status}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Pending">Pending</SelectItem>
-                                    <SelectItem value="Approved">Approved</SelectItem>
-                                    <SelectItem value="Rejected">Rejected</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="details">Request Details</Label>
-                            <Textarea id="details" name="details" defaultValue={request.details} required />
+                        <input type="hidden" name="patientId" value={patient.id} />
+                        
+                        <div className="grid md:grid-cols-2 gap-4">
+                           <div className="space-y-2">
+                                <Label>Patient Name</Label>
+                                <Input defaultValue={patient.fullName} readOnly />
+                            </div>
+                             <div className="space-y-2">
+                                <Label>Patient ID</Label>
+                                <Input defaultValue={patient.id} readOnly />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="companyId">Staffing Company</Label>
+                                <Select name="companyId" required defaultValue={request.companyId}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a company" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {mockCompanies.map(c => (
+                                            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="packageId">Procedure Code</Label>
+                                <Input id="packageId" name="packageId" defaultValue={request.packageId} required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="requestAmount">Estimated Cost ($)</Label>
+                                <Input id="requestAmount" name="requestAmount" type="number" defaultValue={request.requestAmount} required />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="status">Status</Label>
+                                <Select name="status" required defaultValue={request.status}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Pending">Pending</SelectItem>
+                                        <SelectItem value="Approved">Approved</SelectItem>
+                                        <SelectItem value="Rejected">Rejected</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="doctorName">Doctor's Name</Label>
+                                <Input id="doctorName" name="doctorName" defaultValue={request.doctorName} required />
+                            </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="doctorSpeciality">Doctor's Speciality</Label>
+                                <Input id="doctorSpeciality" name="doctorSpeciality" defaultValue={request.doctorSpeciality} required />
+                            </div>
+                              <div className="space-y-2 md:col-span-2">
+                                <Label htmlFor="proposedTreatment">Proposed Treatment</Label>
+                                <Input id="proposedTreatment" name="proposedTreatment" defaultValue={request.proposedTreatment} required />
+                            </div>
+                            <div className="space-y-2 md:col-span-2">
+                                <Label htmlFor="details">Clinical Notes</Label>
+                                <Textarea id="details" name="details" defaultValue={request.details} required rows={5} />
+                            </div>
                         </div>
 
                         {state.message && <p className="text-sm text-destructive">{state.message}</p>}
