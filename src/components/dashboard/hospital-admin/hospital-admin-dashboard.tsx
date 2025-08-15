@@ -5,10 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal, PlusCircle, User, FileText, Users } from "lucide-react"
+import { MoreHorizontal, PlusCircle, User, FileText, Users, ArrowRight } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/components/auth-provider"
-import { mockPatients, mockStaffingRequests, mockUsers } from "@/lib/mock-data"
+import { mockPatients, mockStaffingRequests, mockUsers, mockCompanies } from "@/lib/mock-data"
+import Link from "next/link"
 
 export function HospitalAdminDashboard() {
   const { user } = useAuth();
@@ -17,6 +18,10 @@ export function HospitalAdminDashboard() {
   const patients = mockPatients.filter(p => p.hospitalId === hospitalId);
   const requests = mockStaffingRequests.filter(c => c.hospitalId === hospitalId);
   const staff = mockUsers.filter(u => u.hospitalId === hospitalId && u.role === 'Hospital Staff');
+
+  const getCompanyName = (companyId: string) => {
+    return mockCompanies.find(c => c.id === companyId)?.name || 'N/A';
+  }
 
   return (
     <div className="space-y-6">
@@ -58,9 +63,11 @@ export function HospitalAdminDashboard() {
             <CardTitle>Patients</CardTitle>
             <CardDescription>Manage patient records and staffing details.</CardDescription>
           </div>
-          <Button size="sm" className="gap-1">
-            <PlusCircle className="h-4 w-4" />
-            Add Patient
+          <Button size="sm" className="gap-1" asChild>
+            <Link href="/dashboard/patients">
+              View All
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </Button>
         </CardHeader>
         <CardContent>
@@ -78,16 +85,13 @@ export function HospitalAdminDashboard() {
                 <TableRow key={p.id}>
                   <TableCell className="font-medium">{p.name}</TableCell>
                   <TableCell>{p.dob}</TableCell>
-                  <TableCell>{p.companyId}</TableCell>
+                  <TableCell>{getCompanyName(p.companyId)}</TableCell>
                   <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                     <Button variant="ghost" size="icon" asChild>
+                        <Link href={`/dashboard/patients/${p.id}/edit`}>
+                           <MoreHorizontal className="h-4 w-4" />
+                        </Link>
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

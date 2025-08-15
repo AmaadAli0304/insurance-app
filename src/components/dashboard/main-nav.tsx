@@ -25,13 +25,13 @@ export function MainNav() {
     ],
     'Hospital Staff': [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-      { href: '/dashboard/patients/new', label: 'Add Patient', icon: Users },
+      { href: '/dashboard/patients', label: 'Patients', icon: Users },
       { href: '/dashboard/requests/new', label: 'New Request', icon: FileText },
     ],
     'Company Admin': [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/dashboard/requests', label: 'Staffing Requests', icon: FileText },
-      { href: '/dashboard/packages', label: 'Staffing Packages', icon: Stethoscope },
+      { href: '/dashboard/plans', label: 'Staffing Packages', icon: Stethoscope },
     ],
   };
 
@@ -47,7 +47,7 @@ export function MainNav() {
             href={route.href}
             className={cn(
               'flex items-center gap-3 rounded-lg px-3 py-2 text-sidebar-foreground transition-all hover:text-primary-foreground hover:bg-sidebar-accent',
-              pathname === route.href && 'bg-sidebar-accent text-primary-foreground'
+              pathname.startsWith(route.href) && route.href !== '/dashboard' ? 'bg-sidebar-accent text-primary-foreground' : pathname === '/dashboard' && route.href === '/dashboard' ? 'bg-sidebar-accent text-primary-foreground' : ''
             )}
           >
             <Icon className="h-4 w-4" />
