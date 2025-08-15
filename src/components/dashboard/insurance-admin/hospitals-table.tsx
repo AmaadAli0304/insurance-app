@@ -1,6 +1,7 @@
 
 "use client";
 
+import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
@@ -79,7 +80,7 @@ export function HospitalsTable({ hospitals, claims, patients }: HospitalsTablePr
                                     <TableCell>
                                         <div className="flex items-center gap-2">
                                             <span>{stats.rejectedClaims}</span>
-                                            <Progress value={breachPercentage} className="w-[100px]" indicatorClassName={breachPercentage > 75 ? "bg-red-500" : "bg-primary"} />
+                                            <Progress value={breachPercentage} className="w-[100px]" indicatorClassName={breachPercentage > 75 ? "bg-destructive" : "bg-primary"} />
                                         </div>
                                     </TableCell>
                                 </TableRow>
@@ -90,43 +91,4 @@ export function HospitalsTable({ hospitals, claims, patients }: HospitalsTablePr
             </CardContent>
         </Card>
     );
-}
-
-// Add a new prop to Progress component to style indicator
-declare module "react" {
-  interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
-    indicatorClassName?: string;
-  }
-}
-
-// Monkey-patching Progress to accept indicatorClassName
-const OriginalProgress = Progress;
-const PatchedProgress = React.forwardRef<
-  React.ElementRef<typeof OriginalProgress>,
-  React.ComponentPropsWithoutRef<typeof OriginalProgress> & { indicatorClassName?: string }
->(({ indicatorClassName, ...props }, ref) => (
-  <OriginalProgress
-    ref={ref}
-    {...props}
-    // @ts-ignore
-    indicatorClassName={indicatorClassName}
-  />
-));
-
-const OriginalProgressIndicator = require('react').forwardRef(
-    // @ts-ignore
-    ({className, ...props}, ref) => {
-        const { indicatorClassName } = React.useContext(ProgressContext);
-        return <div ref={ref} className={`${className} ${indicatorClassName}`} {...props} />
-    }
-);
-
-let ProgressContext;
-try {
-    // @ts-ignore
-    ProgressContext = require('@radix-ui/react-progress').ProgressContext;
-    // @ts-ignore
-    require('@radix-ui/react-progress').Indicator = OriginalProgressIndicator;
-} catch (e) {
-    // If context doesn't exist, we just ignore the patch
 }
