@@ -12,7 +12,18 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+// Check if all config keys are present
+const isConfigValid = Object.values(firebaseConfig).every(val => val);
+
+let app;
+
+if (isConfigValid) {
+    app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+} else {
+    console.error("Firebase configuration is missing or incomplete. Please check your .env file.");
+}
+
+
 const auth = getAuth(app);
 
 export { app, auth };
