@@ -31,6 +31,7 @@ export function MainNav() {
     ],
     'Company Admin': [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { href: '/dashboard/company-hospitals', label: 'Hospitals', icon: Building },
       { href: '/dashboard/tpas', label: 'TPAs', icon: Briefcase },
       { href: '/dashboard/claims', label: 'Claim Tracker', icon: HandCoins },
       { href: '/dashboard/plans', label: 'Staffing Packages', icon: Stethoscope },

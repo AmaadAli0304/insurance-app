@@ -1,0 +1,90 @@
+
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useFormState, useFormStatus } from "react-dom";
+import { handleAddHospital } from "../actions";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/components/auth-provider";
+
+function SubmitButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending}>
+            {pending ? "Adding..." : "Add Hospital"}
+        </Button>
+    );
+}
+
+export default function NewCompanyHospitalPage() {
+    const { user } = useAuth();
+    const [state, formAction] = useFormState(handleAddHospital, { message: "" });
+
+    return (
+        <div className="space-y-6">
+            <div className="flex items-center gap-4">
+                <Button asChild variant="outline" size="icon">
+                    <Link href="/dashboard/company-hospitals">
+                        <ArrowLeft className="h-4 w-4" />
+                        <span className="sr-only">Back</span>
+                    </Link>
+                </Button>
+                <h1 className="text-2xl font-bold">Add New Hospital</h1>
+            </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Hospital Details</CardTitle>
+                    <CardDescription>Fill in the form to add a new hospital to your network.</CardDescription>
+                </CardHeader>
+                <form action={formAction}>
+                    <input type="hidden" name="companyId" value={user?.companyId || ''} />
+                    <CardContent className="space-y-4">
+                         <div className="grid md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Hospital Name</Label>
+                                <Input id="name" name="name" placeholder="e.g. Mercy General Hospital" required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="registrationNumber">Registration Number</Label>
+                                <Input id="registrationNumber" name="registrationNumber" placeholder="Official registration/license number" />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="address">Full Postal Address</Label>
+                            <Textarea id="address" name="address" placeholder="e.g. 4001 J St, Sacramento, CA" required />
+                        </div>
+
+                         <div className="grid md:grid-cols-3 gap-4">
+                             <div className="space-y-2">
+                                <Label htmlFor="contactPerson">Contact Person</Label>
+                                <Input id="contactPerson" name="contactPerson" placeholder="e.g. TPA Desk Incharge" required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="email">Official Email</Label>
+                                <Input id="email" name="email" type="email" placeholder="e.g. contact@hospital.com" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="phone">Phone</Label>
+                                <Input id="phone" name="phone" placeholder="e.g. 916-453-4444" />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="servicesOffered">Services Offered (comma-separated)</Label>
+                            <Input id="servicesOffered" name="servicesOffered" placeholder="e.g. General medicine, Surgery, Cardiology" />
+                        </div>
+                        
+                        {state.message && <p className="text-sm text-destructive">{state.message}</p>}
+                         <SubmitButton />
+                    </CardContent>
+                </form>
+            </Card>
+        </div>
+    );
+}

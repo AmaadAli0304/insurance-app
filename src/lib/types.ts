@@ -13,9 +13,16 @@ export interface User {
 export interface Hospital {
   id: string;
   name: string;
+  registrationNumber?: string;
+  contactPerson?: string;
+  phone?: string;
+  email?: string;
   address: string;
-  contact: string;
+  contact: string; // Keeping for backward compatibility with admin view for now
   assignedCompanies: string[];
+  assignedTPAs?: string[];
+  insuranceCoverageLimits?: Record<string, number>;
+  servicesOffered?: string[];
 }
 
 export interface StaffingPackage {
