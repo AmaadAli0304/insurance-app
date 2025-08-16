@@ -120,3 +120,17 @@ export interface TPA {
   slaDays: number;
   remarks?: string;
 }
+
+export interface Staff {
+  id: string;
+  fullName: string;
+  designation: string;
+  department: string;
+  contactNumber: string;
+  email: string;
+  companyId: string;
+  joiningDate: string;
+  endDate?: string;
+  shiftTiming?: string;
+  status: 'Active' | 'Inactive';
+}

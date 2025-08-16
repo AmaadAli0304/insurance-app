@@ -1,5 +1,5 @@
 
-import type { User, Hospital, Company, Patient, StaffingRequest, Policy, Claim, TPA } from './types';
+import type { User, Hospital, Company, Patient, StaffingRequest, Policy, Claim, TPA, Staff } from './types';
 
 export let mockUsers: User[] = [
   { uid: 'admin-01', name: 'Super Admin', email: 'admin@medichain.com', role: 'Admin' },
@@ -95,6 +95,11 @@ export let mockClaims: Claim[] = [
 export let mockTPAs: TPA[] = [
   { tpaId: 'tpa-01', name: 'HealthServe TPA', contactPerson: 'David Chen', phone: '888-123-4567', email: 'contact@healthserve.com', address: '100 Health Way, Suite 50, Big City, USA', associatedInsuranceCompanies: ['comp-01'], associatedHospitals: ['hosp-01', 'hosp-02'], servicesOffered: ['Cashless claim processing', 'Reimbursement', 'Pre-auth approval'], slaDays: 2, remarks: 'Primary TPA for Statamine Inc.' },
   { tpaId: 'tpa-02', name: 'MediCare Assist', contactPerson: 'Laura Wilson', phone: '888-987-6543', email: 'support@medicareassist.com', address: '200 Assist Blvd, Capital City, USA', associatedInsuranceCompanies: ['comp-01', 'comp-02'], associatedHospitals: ['hosp-02'], servicesOffered: ['Cashless claim processing', 'Reimbursement'], slaDays: 3, remarks: 'Specializes in quick reimbursements.' },
+];
+
+export let mockStaff: Staff[] = [
+    { id: 'staff-01', fullName: 'Eleanor Vance', designation: 'Claim Coordinator', department: 'Claims', contactNumber: '555-0101', email: 'eleanor@statamine.com', companyId: 'comp-01', joiningDate: '2022-08-01', status: 'Active' },
+    { id: 'staff-02', fullName: 'Marcus Thorne', designation: 'Nurse', department: 'On-site Support', contactNumber: '555-0102', email: 'marcus@statamine.com', companyId: 'comp-01', joiningDate: '2023-01-15', shiftTiming: '9 AM - 6 PM', status: 'Active' },
 ];
 
 
