@@ -1,5 +1,5 @@
 
-import type { User, Hospital, Company, Patient, StaffingRequest, StaffingPackage, Claim, TPA } from './types';
+import type { User, Hospital, Company, Patient, StaffingRequest, Policy, Claim, TPA } from './types';
 
 export let mockUsers: User[] = [
   { uid: 'admin-01', name: 'Super Admin', email: 'admin@medichain.com', role: 'Admin' },
@@ -9,14 +9,14 @@ export let mockUsers: User[] = [
   { uid: 'hadmin-02', name: 'Diana', email: 'diana@mercy.com', role: 'Hospital Admin', hospitalId: 'hosp-02' },
 ];
 
-export const mockStaffingPackages: Record<string, StaffingPackage[]> = {
+export const mockPolicies: Record<string, Policy[]> = {
   'comp-01': [
-    { packageId: 'stat-gold', name: 'Statamine Gold', monthlyRate: 100000 },
-    { packageId: 'stat-silver', name: 'Statamine Silver', monthlyRate: 50000 },
+    { policyId: 'stat-gold', policyName: 'Statamine Gold', coverageAmount: 100000, conditions: 'Covers all pre-existing conditions.' },
+    { policyId: 'stat-silver', policyName: 'Statamine Silver', coverageAmount: 50000, conditions: 'Excludes dental and vision.' },
   ],
   'comp-02': [
-    { packageId: 'flex-prem', name: 'FlexiStaff Premium', monthlyRate: 250000 },
-    { packageId: 'flex-basic', name: 'FlexiStaff Basic', monthlyRate: 75000 },
+    { policyId: 'flex-prem', policyName: 'FlexiStaff Premium', coverageAmount: 250000, conditions: 'Includes international coverage.' },
+    { policyId: 'flex-basic', policyName: 'FlexiStaff Basic', coverageAmount: 75000, conditions: 'Basic hospitalization only.' },
   ],
 };
 
@@ -50,8 +50,28 @@ export let mockHospitals: Hospital[] = [
 ];
 
 export let mockCompanies: Company[] = [
-  { id: 'comp-01', name: 'Statamine Inc.', contact: '800-786-5433', packages: mockStaffingPackages['comp-01'], assignedHospitals: ['hosp-01', 'hosp-02'] },
-  { id: 'comp-02', name: 'FlexiStaff Solutions', contact: '800-393-6130', packages: mockStaffingPackages['comp-02'], assignedHospitals: ['hosp-02'] },
+  { 
+    id: 'comp-01', 
+    name: 'Statamine Inc.', 
+    policies: mockPolicies['comp-01'], 
+    assignedHospitals: ['hosp-01', 'hosp-02'],
+    registrationNumber: 'COMPREG-STAT',
+    contactPerson: 'Mr. Charlie',
+    phone: '800-786-5433',
+    email: 'contact@statamine.com',
+    address: '123 Insurance Rd, Big City, USA'
+  },
+  { 
+    id: 'comp-02', 
+    name: 'FlexiStaff Solutions', 
+    policies: mockPolicies['comp-02'], 
+    assignedHospitals: ['hosp-02'],
+    registrationNumber: 'COMPREG-FLEX',
+    contactPerson: 'Ms. Flexi',
+    phone: '800-393-6130',
+    email: 'contact@flexistaff.com',
+    address: '456 Policy Ave, Metro, USA'
+  },
 ];
 
 export let mockPatients: Patient[] = [

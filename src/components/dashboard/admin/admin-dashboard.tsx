@@ -18,7 +18,7 @@ export function AdminDashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Welcome, Admin!</CardTitle>
-            <CardDescription>Manage hospitals, staffing companies, and system settings from this central hub.</CardDescription>
+            <CardDescription>Manage hospitals, insurance companies, and system settings from this central hub.</CardDescription>
           </CardHeader>
         </Card>
         <Card className="flex flex-col justify-center">
@@ -78,8 +78,8 @@ export function AdminDashboard() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Staffing Companies</CardTitle>
-            <CardDescription>Manage company profiles and their offered packages.</CardDescription>
+            <CardTitle>Insurance Companies</CardTitle>
+            <CardDescription>Manage company profiles and their offered policies.</CardDescription>
           </div>
            <Button size="sm" className="gap-1">
             <PlusCircle className="h-4 w-4" />
@@ -91,8 +91,8 @@ export function AdminDashboard() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Packages</TableHead>
+                <TableHead>Contact Person</TableHead>
+                <TableHead>Policies</TableHead>
                 <TableHead><span className="sr-only">Actions</span></TableHead>
               </TableRow>
             </TableHeader>
@@ -100,15 +100,15 @@ export function AdminDashboard() {
               {mockCompanies.map(c => (
                  <TableRow key={c.id}>
                   <TableCell className="font-medium">{c.name}</TableCell>
-                  <TableCell>{c.contact}</TableCell>
-                  <TableCell><Badge variant="secondary">{c.packages.length}</Badge></TableCell>
+                  <TableCell>{c.contactPerson}</TableCell>
+                  <TableCell><Badge variant="secondary">{c.policies.length}</Badge></TableCell>
                    <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>Manage Packages</DropdownMenuItem>
+                        <DropdownMenuItem>Manage Policies</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

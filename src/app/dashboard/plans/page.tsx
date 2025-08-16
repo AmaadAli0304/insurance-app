@@ -10,7 +10,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { useAuth } from "@/components/auth-provider"
 import { mockCompanies } from "@/lib/mock-data"
 
-export default function StaffingPackagesPage() {
+export default function PoliciesPage() {
   const { user } = useAuth();
   const companyId = user?.companyId;
   
@@ -21,30 +21,30 @@ export default function StaffingPackagesPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle>Staffing Packages</CardTitle>
-              <CardDescription>Manage your company's staffing packages.</CardDescription>
+              <CardTitle>Insurance Policies</CardTitle>
+              <CardDescription>Manage your company's insurance policies.</CardDescription>
             </div>
             <Button size="sm" className="gap-1">
               <PlusCircle className="h-4 w-4" />
-              Add Package
+              Add Policy
             </Button>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Package Name</TableHead>
-                  <TableHead>Monthly Rate</TableHead>
-                   <TableHead>Package ID</TableHead>
+                  <TableHead>Policy Name</TableHead>
+                  <TableHead>Coverage Amount</TableHead>
+                   <TableHead>Policy ID</TableHead>
                   <TableHead><span className="sr-only">Actions</span></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {company?.packages.map(p => (
-                  <TableRow key={p.packageId}>
-                    <TableCell className="font-medium">{p.name}</TableCell>
-                    <TableCell>${p.monthlyRate.toLocaleString()}</TableCell>
-                    <TableCell className="font-mono text-xs">{p.packageId}</TableCell>
+                {company?.policies.map(p => (
+                  <TableRow key={p.policyId}>
+                    <TableCell className="font-medium">{p.policyName}</TableCell>
+                    <TableCell>${p.coverageAmount.toLocaleString()}</TableCell>
+                    <TableCell className="font-mono text-xs">{p.policyId}</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>

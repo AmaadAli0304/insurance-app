@@ -25,17 +25,22 @@ export interface Hospital {
   servicesOffered?: string[];
 }
 
-export interface StaffingPackage {
-  packageId: string;
-  name: string;
-  monthlyRate: number;
+export interface Policy {
+  policyId: string;
+  policyName: string;
+  coverageAmount: number;
+  conditions?: string;
 }
 
 export interface Company {
   id: string;
   name: string;
-  contact: string;
-  packages: StaffingPackage[];
+  registrationNumber?: string;
+  contactPerson?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  policies: Policy[];
   assignedHospitals: string[];
 }
 
