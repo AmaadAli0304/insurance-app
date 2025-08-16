@@ -15,9 +15,9 @@ export async function handleAddTPA(prevState: { message: string }, formData: For
         address: formData.get("address") as string,
         slaDays: Number(formData.get("slaDays")),
         remarks: formData.get("remarks") as string,
-        servicesOffered: (formData.get("servicesOffered") as string).split(',').map(s => s.trim()),
-        associatedInsuranceCompanies: (formData.get("associatedInsuranceCompanies") as string).split(',').map(s => s.trim()),
-        associatedHospitals: (formData.get("associatedHospitals") as string).split(',').map(s => s.trim()),
+        servicesOffered: (formData.get("servicesOffered") as string || '').split(',').map(s => s.trim()).filter(Boolean),
+        associatedInsuranceCompanies: (formData.get("associatedInsuranceCompanies") as string || '').split(',').map(s => s.trim()).filter(Boolean),
+        associatedHospitals: (formData.get("associatedHospitals") as string || '').split(',').map(s => s.trim()).filter(Boolean),
     };
 
   // Basic validation
@@ -46,9 +46,9 @@ export async function handleUpdateTPA(prevState: { message: string }, formData: 
         address: formData.get("address") as string,
         slaDays: Number(formData.get("slaDays")),
         remarks: formData.get("remarks") as string,
-        servicesOffered: (formData.get("servicesOffered") as string).split(',').map(s => s.trim()),
-        associatedInsuranceCompanies: (formData.get("associatedInsuranceCompanies") as string).split(',').map(s => s.trim()),
-        associatedHospitals: (formData.get("associatedHospitals") as string).split(',').map(s => s.trim()),
+        servicesOffered: (formData.get("servicesOffered") as string || '').split(',').map(s => s.trim()).filter(Boolean),
+        associatedInsuranceCompanies: (formData.get("associatedInsuranceCompanies") as string || '').split(',').map(s => s.trim()).filter(Boolean),
+        associatedHospitals: (formData.get("associatedHospitals") as string || '').split(',').map(s => s.trim()).filter(Boolean),
     };
   
   if (!tpaId) {
