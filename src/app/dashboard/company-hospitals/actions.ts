@@ -15,6 +15,8 @@ export async function handleAddHospital(prevState: { message: string }, formData
         email: formData.get("email") as string,
         address: formData.get("address") as string,
         servicesOffered: (formData.get("servicesOffered") as string || '').split(',').map(s => s.trim()).filter(Boolean),
+        assignedCompanies: (formData.get("assignedInsuranceCompanies") as string || '').split(',').map(s => s.trim()).filter(Boolean),
+        assignedTPAs: (formData.get("assignedTPAs") as string || '').split(',').map(s => s.trim()).filter(Boolean),
     };
 
   // Basic validation
@@ -22,13 +24,16 @@ export async function handleAddHospital(prevState: { message: string }, formData
     return { message: "Please fill all required fields." };
   }
 
+  // Ensure the current company is always assigned
+  if (!newHospitalData.assignedCompanies.includes(companyId)) {
+      newHospitalData.assignedCompanies.push(companyId);
+  }
+
   const newHospital = {
     id: `hosp-${Date.now()}`,
     ...newHospitalData,
-    assignedCompanies: [companyId], // Assign to the current company
     // Default empty values for other fields
     contact: newHospitalData.phone,
-    assignedTPAs: [],
   };
 
   mockHospitals.push(newHospital);
@@ -47,6 +52,8 @@ export async function handleUpdateHospital(prevState: { message: string }, formD
         email: formData.get("email") as string,
         address: formData.get("address") as string,
         servicesOffered: (formData.get("servicesOffered") as string || '').split(',').map(s => s.trim()).filter(Boolean),
+        assignedCompanies: (formData.get("assignedInsuranceCompanies") as string || '').split(',').map(s => s.trim()).filter(Boolean),
+        assignedTPAs: (formData.get("assignedTPAs") as string || '').split(',').map(s => s.trim()).filter(Boolean),
     };
 
   if (!id) {

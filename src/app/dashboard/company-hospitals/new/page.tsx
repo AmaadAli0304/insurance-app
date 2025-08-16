@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,9 +9,18 @@ import { Label } from "@/components/ui/label";
 import { useFormState, useFormStatus } from "react-dom";
 import { handleAddHospital } from "../actions";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronsUpDown } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/components/auth-provider";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { mockCompanies, mockTPAs } from "@/lib/mock-data";
+
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -24,6 +34,8 @@ function SubmitButton() {
 export default function NewCompanyHospitalPage() {
     const { user } = useAuth();
     const [state, formAction] = useFormState(handleAddHospital, { message: "" });
+    const [selectedCompanies, setSelectedCompanies] = useState<string[]>([user?.companyId || '']);
+    const [selectedTPAs, setSelectedTPAs] = useState<string[]>([]);
 
     return (
         <div className="space-y-6">
@@ -80,6 +92,81 @@ export default function NewCompanyHospitalPage() {
                             <Input id="servicesOffered" name="servicesOffered" placeholder="e.g. General medicine, Surgery, Cardiology" />
                         </div>
                         
+                         <div className="grid md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label>Assigned Insurance Companies</Label>
+                                <input type="hidden" name="assignedInsuranceCompanies" value={selectedCompanies.join(',')} />
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" className="w-full justify-between">
+                                            <div className="flex-1 text-left font-normal">
+                                                {selectedCompanies.length > 0
+                                                    ? `${selectedCompanies.length} selected`
+                                                    : "Select companies"}
+                                            </div>
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent className="w-full">
+                                        {mockCompanies.map(company => (
+                                            <DropdownMenuCheckboxItem
+                                                key={company.id}
+                                                checked={selectedCompanies.includes(company.id)}
+                                                onCheckedChange={(checked) => {
+                                                    setSelectedCompanies(prev =>
+                                                        checked ? [...prev, company.id] : prev.filter(id => id !== company.id)
+                                                    );
+                                                }}
+                                            >
+                                                {company.name}
+                                            </DropdownMenuCheckboxItem>
+                                        ))}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                    {selectedCompanies.map(id => (
+                                        <Badge key={id} variant="secondary">{mockCompanies.find(c=>c.id === id)?.name}</Badge>
+                                    ))}
+                                </div>
+                            </div>
+                             <div className="space-y-2">
+                                <Label>Assigned TPAs</Label>
+                                <input type="hidden" name="assignedTPAs" value={selectedTPAs.join(',')} />
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" className="w-full justify-between">
+                                             <div className="flex-1 text-left font-normal">
+                                                {selectedTPAs.length > 0
+                                                    ? `${selectedTPAs.length} selected`
+                                                    : "Select TPAs"}
+                                            </div>
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent className="w-full">
+                                        {mockTPAs.map(tpa => (
+                                            <DropdownMenuCheckboxItem
+                                                key={tpa.tpaId}
+                                                checked={selectedTPAs.includes(tpa.tpaId)}
+                                                onCheckedChange={(checked) => {
+                                                    setSelectedTPAs(prev =>
+                                                        checked ? [...prev, tpa.tpaId] : prev.filter(id => id !== tpa.tpaId)
+                                                    );
+                                                }}
+                                            >
+                                                {tpa.name}
+                                            </DropdownMenuCheckboxItem>
+                                        ))}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                    {selectedTPAs.map(id => (
+                                        <Badge key={id} variant="secondary">{mockTPAs.find(t=>t.tpaId === id)?.name}</Badge>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
                         {state.message && <p className="text-sm text-destructive">{state.message}</p>}
                          <SubmitButton />
                     </CardContent>
