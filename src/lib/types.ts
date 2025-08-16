@@ -129,6 +129,7 @@ export interface Staff {
   contactNumber: string;
   email: string;
   companyId: string;
+  hospitalId?: string;
   joiningDate: string;
   endDate?: string;
   shiftTiming?: string;

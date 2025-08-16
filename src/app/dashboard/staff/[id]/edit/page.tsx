@@ -9,7 +9,7 @@ import { useFormState, useFormStatus } from "react-dom";
 import { handleUpdateStaff } from "../../actions";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { mockStaff } from "@/lib/mock-data";
+import { mockHospitals, mockStaff } from "@/lib/mock-data";
 import { notFound } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -69,6 +69,19 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
                              <div className="space-y-2">
                                 <Label htmlFor="department">Department</Label>
                                 <Input id="department" name="department" defaultValue={staff.department} required />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="hospitalId">Assigned Hospital</Label>
+                                <Select name="hospitalId" defaultValue={staff.hospitalId}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select hospital" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {mockHospitals.map(h => (
+                                            <SelectItem key={h.id} value={h.id}>{h.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="joiningDate">Joining Date</Label>

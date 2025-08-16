@@ -98,8 +98,8 @@ export let mockTPAs: TPA[] = [
 ];
 
 export let mockStaff: Staff[] = [
-    { id: 'staff-01', fullName: 'Eleanor Vance', designation: 'Claim Coordinator', department: 'Claims', contactNumber: '555-0101', email: 'eleanor@statamine.com', companyId: 'comp-01', joiningDate: '2022-08-01', status: 'Active' },
-    { id: 'staff-02', fullName: 'Marcus Thorne', designation: 'Nurse', department: 'On-site Support', contactNumber: '555-0102', email: 'marcus@statamine.com', companyId: 'comp-01', joiningDate: '2023-01-15', shiftTiming: '9 AM - 6 PM', status: 'Active' },
+    { id: 'staff-01', fullName: 'Eleanor Vance', designation: 'Claim Coordinator', department: 'Claims', contactNumber: '555-0101', email: 'eleanor@statamine.com', companyId: 'comp-01', hospitalId: 'hosp-01', joiningDate: '2022-08-01', status: 'Active' },
+    { id: 'staff-02', fullName: 'Marcus Thorne', designation: 'Nurse', department: 'On-site Support', contactNumber: '555-0102', email: 'marcus@statamine.com', companyId: 'comp-01', hospitalId: 'hosp-02', joiningDate: '2023-01-15', shiftTiming: '9 AM - 6 PM', status: 'Active' },
 ];
 
 

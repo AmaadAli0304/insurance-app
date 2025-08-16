@@ -11,6 +11,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/components/auth-provider";
+import { mockHospitals } from "@/lib/mock-data";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -64,6 +65,19 @@ export default function NewStaffPage() {
                              <div className="space-y-2">
                                 <Label htmlFor="department">Department</Label>
                                 <Input id="department" name="department" placeholder="e.g., Claims Processing" required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="hospitalId">Assigned Hospital</Label>
+                                <Select name="hospitalId">
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select hospital" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {mockHospitals.map(h => (
+                                            <SelectItem key={h.id} value={h.id}>{h.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="joiningDate">Joining Date</Label>

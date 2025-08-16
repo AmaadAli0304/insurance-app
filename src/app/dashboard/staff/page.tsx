@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal, PlusCircle, Trash, Edit } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
-import { mockStaff } from "@/lib/mock-data"
+import { mockHospitals, mockStaff } from "@/lib/mock-data"
 import Link from "next/link"
 import { handleDeleteStaff } from "./actions"
 import {
@@ -26,6 +26,10 @@ import { useAuth } from "@/components/auth-provider"
 export default function StaffPage() {
   const { user } = useAuth();
   const staff = mockStaff.filter(s => s.companyId === user?.companyId);
+  const getHospitalName = (hospitalId?: string) => {
+    if (!hospitalId) return 'N/A';
+    return mockHospitals.find(h => h.id === hospitalId)?.name || 'N/A';
+  }
 
   return (
     <div className="space-y-6">
@@ -48,7 +52,7 @@ export default function StaffPage() {
               <TableRow>
                 <TableHead>Full Name</TableHead>
                 <TableHead>Designation</TableHead>
-                <TableHead>Department</TableHead>
+                <TableHead>Assigned Hospital</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead><span className="sr-only">Actions</span></TableHead>
@@ -59,7 +63,7 @@ export default function StaffPage() {
                 <TableRow key={s.id}>
                   <TableCell className="font-medium">{s.fullName}</TableCell>
                   <TableCell>{s.designation}</TableCell>
-                  <TableCell>{s.department}</TableCell>
+                  <TableCell>{getHospitalName(s.hospitalId)}</TableCell>
                   <TableCell>{s.email}</TableCell>
                   <TableCell>
                     <Badge variant={s.status === 'Active' ? 'default' : 'destructive'} className={s.status === 'Active' ? 'bg-accent text-accent-foreground' : ''}>{s.status}</Badge>
