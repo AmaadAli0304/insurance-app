@@ -94,3 +94,17 @@ export interface Claim {
   updatedAt: string;
   notes?: string;
 }
+
+export interface TPA {
+  tpaId: string;
+  name: string;
+  contactPerson: string;
+  phone: string;
+  email: string;
+  address: string;
+  associatedInsuranceCompanies: string[];
+  associatedHospitals: string[];
+  servicesOffered: string[];
+  slaDays: number;
+  remarks?: string;
+}

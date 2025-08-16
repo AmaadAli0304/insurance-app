@@ -1,5 +1,5 @@
 
-import type { User, Hospital, Company, Patient, StaffingRequest, StaffingPackage, Claim } from './types';
+import type { User, Hospital, Company, Patient, StaffingRequest, StaffingPackage, Claim, TPA } from './types';
 
 export let mockUsers: User[] = [
   { uid: 'admin-01', name: 'Super Admin', email: 'admin@medichain.com', role: 'Admin' },
@@ -47,6 +47,12 @@ export let mockClaims: Claim[] = [
     { id: 'claim-001', requestId: 'req-002', patientId: 'pat-02', hospitalId: 'hosp-01', companyId: 'comp-01', claimAmount: 1250, paidAmount: 1200, status: 'Paid', submittedAt: '2023-10-05T09:00:00Z', updatedAt: '2023-10-10T15:30:00Z', notes: 'Paid after deductible.' },
     { id: 'claim-002', requestId: 'req-004', patientId: 'pat-03', hospitalId: 'hosp-02', companyId: 'comp-02', claimAmount: 200, status: 'Rejected', submittedAt: '2023-09-26T11:00:00Z', updatedAt: '2023-09-28T16:00:00Z', notes: 'Duplicate claim. Service covered under initial surgery.' },
 ];
+
+export let mockTPAs: TPA[] = [
+  { tpaId: 'tpa-01', name: 'HealthServe TPA', contactPerson: 'David Chen', phone: '888-123-4567', email: 'contact@healthserve.com', address: '100 Health Way, Suite 50, Big City, USA', associatedInsuranceCompanies: ['comp-01'], associatedHospitals: ['hosp-01', 'hosp-02'], servicesOffered: ['Cashless claim processing', 'Reimbursement', 'Pre-auth approval'], slaDays: 2, remarks: 'Primary TPA for Statamine Inc.' },
+  { tpaId: 'tpa-02', name: 'MediCare Assist', contactPerson: 'Laura Wilson', phone: '888-987-6543', email: 'support@medicareassist.com', address: '200 Assist Blvd, Capital City, USA', associatedInsuranceCompanies: ['comp-01', 'comp-02'], associatedHospitals: ['hosp-02'], servicesOffered: ['Cashless claim processing', 'Reimbursement'], slaDays: 3, remarks: 'Specializes in quick reimbursements.' },
+];
+
 
 export const getMockUserByEmail = (email: string): User | null => {
   return mockUsers.find(u => u.email === email) ?? null;

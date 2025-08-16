@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Building, Factory, FileText, LayoutDashboard, Stethoscope, User, Users, HandCoins } from 'lucide-react';
+import { Building, Factory, FileText, LayoutDashboard, Stethoscope, User, Users, HandCoins, Briefcase } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/components/auth-provider';
 
@@ -31,6 +31,7 @@ export function MainNav() {
     ],
     'Company Admin': [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { href: '/dashboard/tpas', label: 'TPAs', icon: Briefcase },
       { href: '/dashboard/claims', label: 'Claim Tracker', icon: HandCoins },
       { href: '/dashboard/plans', label: 'Staffing Packages', icon: Stethoscope },
     ],
