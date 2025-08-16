@@ -15,6 +15,15 @@ export async function handleAddCompany(prevState: { message: string }, formData:
     email: formData.get("email") as string,
     address: formData.get("address") as string,
   };
+  
+  const policiesString = formData.get("policies") as string;
+  let policies: Policy[] = [];
+  try {
+    policies = JSON.parse(policiesString);
+  } catch (error) {
+    return { message: "Invalid policy data format." };
+  }
+
 
   if (!newCompanyData.name || !newCompanyData.contactPerson) {
     return { message: "Please fill all required fields." };
@@ -23,7 +32,7 @@ export async function handleAddCompany(prevState: { message: string }, formData:
   const newCompany: Company = {
     id: `comp-${Date.now()}`,
     ...newCompanyData,
-    policies: [], // Policies are managed separately
+    policies,
     assignedHospitals: [], // Managed separately
   };
 
@@ -44,6 +53,14 @@ export async function handleUpdateCompany(prevState: { message: string }, formDa
     address: formData.get("address") as string,
   };
 
+  const policiesString = formData.get("policies") as string;
+  let policies: Policy[] = [];
+  try {
+    policies = JSON.parse(policiesString);
+  } catch (error) {
+    return { message: "Invalid policy data format." };
+  }
+
   if (!id) {
     return { message: "Company ID is missing." };
   }
@@ -57,6 +74,7 @@ export async function handleUpdateCompany(prevState: { message: string }, formDa
   mockCompanies[companyIndex] = {
     ...mockCompanies[companyIndex],
     ...updatedData,
+    policies,
   };
 
   revalidatePath('/dashboard/companies');

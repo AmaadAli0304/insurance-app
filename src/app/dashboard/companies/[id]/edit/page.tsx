@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,9 +9,10 @@ import { Label } from "@/components/ui/label";
 import { useFormState, useFormStatus } from "react-dom";
 import { handleUpdateCompany } from "../../actions";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, PlusCircle, Trash2 } from "lucide-react";
 import { mockCompanies } from "@/lib/mock-data";
 import { notFound } from "next/navigation";
+import type { Policy } from "@/lib/types";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -24,10 +26,27 @@ function SubmitButton() {
 export default function EditCompanyPage({ params }: { params: { id: string } }) {
     const company = mockCompanies.find(c => c.id === params.id);
     const [state, formAction] = useFormState(handleUpdateCompany, { message: "" });
+    const [policies, setPolicies] = useState<Partial<Policy>[]>(company?.policies || []);
 
     if (!company) {
         notFound();
     }
+    
+    const handlePolicyChange = (index: number, field: keyof Policy, value: string | number) => {
+        const newPolicies = [...policies];
+        const policy = newPolicies[index];
+        (policy[field] as any) = value;
+        setPolicies(newPolicies);
+    };
+
+    const addPolicy = () => {
+        setPolicies([...policies, { policyId: '', policyName: '', coverageAmount: 0, conditions: '' }]);
+    };
+
+    const removePolicy = (index: number) => {
+        const newPolicies = policies.filter((_, i) => i !== index);
+        setPolicies(newPolicies);
+    };
 
     return (
         <div className="space-y-6">
@@ -48,6 +67,7 @@ export default function EditCompanyPage({ params }: { params: { id: string } }) 
                 <form action={formAction}>
                     <CardContent className="space-y-4">
                         <input type="hidden" name="id" value={company.id} />
+                         <input type="hidden" name="policies" value={JSON.stringify(policies)} />
                         <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Company Name</Label>
@@ -78,6 +98,45 @@ export default function EditCompanyPage({ params }: { params: { id: string } }) 
                                 <Input id="phone" name="phone" defaultValue={company.phone} />
                             </div>
                         </div>
+                        
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Policies</CardTitle>
+                                <CardDescription>Manage the insurance policies offered by this company.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {policies.map((policy, index) => (
+                                    <div key={index} className="p-4 border rounded-md space-y-3 relative">
+                                         <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => removePolicy(index)}>
+                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                         </Button>
+                                         <div className="grid grid-cols-2 gap-4">
+                                             <div className="space-y-2">
+                                                <Label htmlFor={`policyId-${index}`}>Policy ID</Label>
+                                                <Input id={`policyId-${index}`} value={policy.policyId} onChange={e => handlePolicyChange(index, 'policyId', e.target.value)} placeholder="e.g. GOLD-100" />
+                                            </div>
+                                             <div className="space-y-2">
+                                                <Label htmlFor={`policyName-${index}`}>Policy Name</Label>
+                                                <Input id={`policyName-${index}`} value={policy.policyName} onChange={e => handlePolicyChange(index, 'policyName', e.target.value)} placeholder="e.g. Gold Plan" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor={`coverageAmount-${index}`}>Coverage Amount ($)</Label>
+                                                <Input id={`coverageAmount-${index}`} type="number" value={policy.coverageAmount} onChange={e => handlePolicyChange(index, 'coverageAmount', Number(e.target.value))} placeholder="e.g. 50000" />
+                                            </div>
+                                             <div className="space-y-2">
+                                                <Label htmlFor={`conditions-${index}`}>Conditions</Label>
+                                                <Input id={`conditions-${index}`} value={policy.conditions} onChange={e => handlePolicyChange(index, 'conditions', e.target.value)} placeholder="Brief summary or link" />
+                                            </div>
+                                         </div>
+                                    </div>
+                                ))}
+                                <Button type="button" variant="outline" size="sm" className="gap-1" onClick={addPolicy}>
+                                    <PlusCircle className="h-4 w-4" />
+                                    Add Policy
+                                </Button>
+                            </CardContent>
+                        </Card>
+
 
                         {state.message && <p className="text-sm text-destructive">{state.message}</p>}
                          <SubmitButton />
