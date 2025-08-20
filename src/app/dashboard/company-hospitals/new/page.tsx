@@ -63,7 +63,7 @@ export default function NewCompanyHospitalPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="location">Location</Label>
-                                <Input id="location" name="location" placeholder="e.g. Sacramento" />
+                                <Input id="location" name="location" placeholder="e.g. Sacramento" required />
                             </div>
                         </div>
 
@@ -75,11 +75,11 @@ export default function NewCompanyHospitalPage() {
                          <div className="grid md:grid-cols-3 gap-4">
                              <div className="space-y-2">
                                 <Label htmlFor="contactPerson">Contact Person</Label>
-                                <Input id="contactPerson" name="contactPerson" placeholder="e.g. TPA Desk Incharge" required />
+                                <Input id="contactPerson" name="contactPerson" placeholder="e.g. TPA Desk Incharge" />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="email">Official Email</Label>
-                                <Input id="email" name="email" type="email" placeholder="e.g. contact@hospital.com" />
+                                <Input id="email" name="email" type="email" placeholder="e.g. contact@hospital.com" required />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="phone">Phone</Label>

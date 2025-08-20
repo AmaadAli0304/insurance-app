@@ -68,7 +68,7 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="location">Location</Label>
-                                <Input id="location" name="location" defaultValue={hospital.location} />
+                                <Input id="location" name="location" defaultValue={hospital.location} required />
                             </div>
                         </div>
 
@@ -80,11 +80,11 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
                          <div className="grid md:grid-cols-3 gap-4">
                              <div className="space-y-2">
                                 <Label htmlFor="contactPerson">Contact Person</Label>
-                                <Input id="contactPerson" name="contactPerson" defaultValue={hospital.contactPerson} required />
+                                <Input id="contactPerson" name="contactPerson" defaultValue={hospital.contactPerson} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="email">Official Email</Label>
-                                <Input id="email" name="email" type="email" defaultValue={hospital.email} />
+                                <Input id="email" name="email" type="email" defaultValue={hospital.email} required />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="phone">Phone</Label>

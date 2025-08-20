@@ -19,8 +19,8 @@ export async function handleAddHospital(prevState: { message: string }, formData
     };
 
   // Basic validation
-  if (!newHospitalData.name || !newHospitalData.address || !newHospitalData.contactPerson) {
-    return { message: "Please fill all required fields." };
+  if (!newHospitalData.name || !newHospitalData.location || !newHospitalData.address || !newHospitalData.email) {
+    return { message: "Please fill all required fields: Name, Location, Address, and Email." };
   }
 
   // Ensure the current company is always assigned
@@ -56,6 +56,10 @@ export async function handleUpdateHospital(prevState: { message: string }, formD
 
   if (!id) {
     return { message: "Hospital ID is missing." };
+  }
+  
+  if (!updatedData.name || !updatedData.location || !updatedData.address || !updatedData.email) {
+    return { message: "Please fill all required fields: Name, Location, Address, and Email." };
   }
 
   const hospitalIndex = mockHospitals.findIndex(h => h.id === id);
