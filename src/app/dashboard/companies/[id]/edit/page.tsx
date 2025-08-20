@@ -57,18 +57,18 @@ export default function EditCompanyPage({ params }: { params: { id: string } }) 
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="address">Full Postal Address</Label>
-                            <Input id="address" name="address" defaultValue={company.address} />
+                            <Label htmlFor="address">Full Postal Address <span className="text-destructive">*</span></Label>
+                            <Input id="address" name="address" defaultValue={company.address} required />
                         </div>
 
                          <div className="grid md:grid-cols-3 gap-4">
                              <div className="space-y-2">
-                                <Label htmlFor="contactPerson">Contact Person <span className="text-destructive">*</span></Label>
-                                <Input id="contactPerson" name="contactPerson" defaultValue={company.contactPerson} required />
+                                <Label htmlFor="contactPerson">Contact Person</Label>
+                                <Input id="contactPerson" name="contactPerson" defaultValue={company.contactPerson} />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="email">Official Email</Label>
-                                <Input id="email" name="email" type="email" defaultValue={company.email} />
+                                <Label htmlFor="email">Official Email <span className="text-destructive">*</span></Label>
+                                <Input id="email" name="email" type="email" defaultValue={company.email} required />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="phone">Phone</Label>

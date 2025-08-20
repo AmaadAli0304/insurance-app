@@ -15,7 +15,7 @@ export async function handleAddCompany(prevState: { message: string }, formData:
     address: formData.get("address") as string,
   };
 
-  if (!newCompanyData.name || !newCompanyData.contactPerson) {
+  if (!newCompanyData.name || !newCompanyData.email || !newCompanyData.address) {
     return { message: "Please fill all required fields." };
   }
 
@@ -44,6 +44,10 @@ export async function handleUpdateCompany(prevState: { message: string }, formDa
 
   if (!id) {
     return { message: "Company ID is missing." };
+  }
+  
+  if (!updatedData.name || !updatedData.email || !updatedData.address) {
+    return { message: "Please fill all required fields." };
   }
 
   const companyIndex = mockCompanies.findIndex(c => c.id === id);
