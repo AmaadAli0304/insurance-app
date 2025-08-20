@@ -9,12 +9,10 @@ export async function handleAddHospital(prevState: { message: string }, formData
     const companyId = formData.get("companyId") as string;
     const newHospitalData = {
         name: formData.get("name") as string,
-        registrationNumber: formData.get("registrationNumber") as string,
         contactPerson: formData.get("contactPerson") as string,
         phone: formData.get("phone") as string,
         email: formData.get("email") as string,
         address: formData.get("address") as string,
-        servicesOffered: (formData.get("servicesOffered") as string || '').split(',').map(s => s.trim()).filter(Boolean),
         assignedCompanies: (formData.get("assignedInsuranceCompanies") as string || '').split(',').map(s => s.trim()).filter(Boolean),
         assignedTPAs: (formData.get("assignedTPAs") as string || '').split(',').map(s => s.trim()).filter(Boolean),
     };
@@ -46,12 +44,10 @@ export async function handleUpdateHospital(prevState: { message: string }, formD
   const id = formData.get("id") as string;
   const updatedData = {
         name: formData.get("name") as string,
-        registrationNumber: formData.get("registrationNumber") as string,
         contactPerson: formData.get("contactPerson") as string,
         phone: formData.get("phone") as string,
         email: formData.get("email") as string,
         address: formData.get("address") as string,
-        servicesOffered: (formData.get("servicesOffered") as string || '').split(',').map(s => s.trim()).filter(Boolean),
         assignedCompanies: (formData.get("assignedInsuranceCompanies") as string || '').split(',').map(s => s.trim()).filter(Boolean),
         assignedTPAs: (formData.get("assignedTPAs") as string || '').split(',').map(s => s.trim()).filter(Boolean),
     };

@@ -27,12 +27,10 @@ export let mockHospitals: Hospital[] = [
     address: '262 Danny Thomas Pl, Memphis, TN', 
     contact: '901-595-3300', 
     assignedCompanies: ['comp-01'],
-    registrationNumber: 'HOSPREG-STJ',
     contactPerson: 'Mr. John Smith',
     phone: '901-555-1234',
     email: 'contact@stjude.org',
     assignedTPAs: ['tpa-01'],
-    servicesOffered: ['Pediatrics', 'Oncology', 'Research'],
   },
   { 
     id: 'hosp-02', 
@@ -40,12 +38,10 @@ export let mockHospitals: Hospital[] = [
     address: '4001 J St, Sacramento, CA', 
     contact: '916-453-4444', 
     assignedCompanies: ['comp-01', 'comp-02'],
-    registrationNumber: 'HOSPREG-MGH',
     contactPerson: 'Ms. Susan Bones',
     phone: '916-555-5678',
     email: 'billing@mercygeneral.com',
     assignedTPAs: ['tpa-01', 'tpa-02'],
-    servicesOffered: ['Cardiology', 'General Surgery', 'Orthopedics'],
   },
 ];
 

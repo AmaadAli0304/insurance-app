@@ -54,7 +54,6 @@ export default function CompanyHospitalsPage() {
                 <TableHead>Contact Person</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
-                <TableHead>Services Offered</TableHead>
                 <TableHead><span className="sr-only">Actions</span></TableHead>
               </TableRow>
             </TableHeader>
@@ -65,9 +64,6 @@ export default function CompanyHospitalsPage() {
                   <TableCell>{h.contactPerson}</TableCell>
                   <TableCell>{h.email}</TableCell>
                   <TableCell>{h.phone}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{h.servicesOffered?.length || 0}</Badge>
-                  </TableCell>
                   <TableCell>
                     <AlertDialog>
                       <DropdownMenu>

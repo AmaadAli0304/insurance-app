@@ -13,7 +13,6 @@ export interface User {
 export interface Hospital {
   id: string;
   name: string;
-  registrationNumber?: string;
   contactPerson?: string;
   phone?: string;
   email?: string;
@@ -22,7 +21,6 @@ export interface Hospital {
   assignedCompanies: string[];
   assignedTPAs?: string[];
   insuranceCoverageLimits?: Record<string, number>;
-  servicesOffered?: string[];
 }
 
 export interface Policy {

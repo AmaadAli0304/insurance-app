@@ -56,14 +56,10 @@ export default function NewCompanyHospitalPage() {
                 <form action={formAction}>
                     <input type="hidden" name="companyId" value={user?.companyId || ''} />
                     <CardContent className="space-y-4">
-                         <div className="grid md:grid-cols-2 gap-4">
+                         <div className="grid md:grid-cols-1 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Hospital Name</Label>
                                 <Input id="name" name="name" placeholder="e.g. Mercy General Hospital" required />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="registrationNumber">Registration Number</Label>
-                                <Input id="registrationNumber" name="registrationNumber" placeholder="Official registration/license number" />
                             </div>
                         </div>
 
@@ -85,11 +81,6 @@ export default function NewCompanyHospitalPage() {
                                 <Label htmlFor="phone">Phone</Label>
                                 <Input id="phone" name="phone" placeholder="e.g. 916-453-4444" />
                             </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="servicesOffered">Services Offered (comma-separated)</Label>
-                            <Input id="servicesOffered" name="servicesOffered" placeholder="e.g. General medicine, Surgery, Cardiology" />
                         </div>
                         
                          <div className="grid md:grid-cols-2 gap-4">

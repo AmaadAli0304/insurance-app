@@ -61,14 +61,10 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
                 <form action={formAction}>
                     <CardContent className="space-y-4">
                         <input type="hidden" name="id" value={hospital.id} />
-                         <div className="grid md:grid-cols-2 gap-4">
+                         <div className="grid md:grid-cols-1 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Hospital Name</Label>
                                 <Input id="name" name="name" defaultValue={hospital.name} required />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="registrationNumber">Registration Number</Label>
-                                <Input id="registrationNumber" name="registrationNumber" defaultValue={hospital.registrationNumber} />
                             </div>
                         </div>
 
@@ -90,11 +86,6 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
                                 <Label htmlFor="phone">Phone</Label>
                                 <Input id="phone" name="phone" defaultValue={hospital.phone} />
                             </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="servicesOffered">Services Offered (comma-separated)</Label>
-                            <Input id="servicesOffered" name="servicesOffered" defaultValue={hospital.servicesOffered?.join(', ')} />
                         </div>
 
                          <div className="grid md:grid-cols-2 gap-4">
