@@ -63,17 +63,17 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
                         <input type="hidden" name="id" value={hospital.id} />
                          <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="name">Hospital Name</Label>
+                                <Label htmlFor="name">Hospital Name <span className="text-destructive">*</span></Label>
                                 <Input id="name" name="name" defaultValue={hospital.name} required />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="location">Location</Label>
+                                <Label htmlFor="location">Location <span className="text-destructive">*</span></Label>
                                 <Input id="location" name="location" defaultValue={hospital.location} required />
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="address">Full Postal Address</Label>
+                            <Label htmlFor="address">Full Postal Address <span className="text-destructive">*</span></Label>
                             <Textarea id="address" name="address" defaultValue={hospital.address} required />
                         </div>
 
@@ -83,7 +83,7 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
                                 <Input id="contactPerson" name="contactPerson" defaultValue={hospital.contactPerson} />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="email">Official Email</Label>
+                                <Label htmlFor="email">Official Email <span className="text-destructive">*</span></Label>
                                 <Input id="email" name="email" type="email" defaultValue={hospital.email} required />
                             </div>
                             <div className="space-y-2">

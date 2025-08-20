@@ -58,17 +58,17 @@ export default function NewCompanyHospitalPage() {
                     <CardContent className="space-y-4">
                          <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="name">Hospital Name</Label>
+                                <Label htmlFor="name">Hospital Name <span className="text-destructive">*</span></Label>
                                 <Input id="name" name="name" placeholder="e.g. Mercy General Hospital" required />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="location">Location</Label>
+                                <Label htmlFor="location">Location <span className="text-destructive">*</span></Label>
                                 <Input id="location" name="location" placeholder="e.g. Sacramento" required />
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="address">Full Postal Address</Label>
+                            <Label htmlFor="address">Full Postal Address <span className="text-destructive">*</span></Label>
                             <Textarea id="address" name="address" placeholder="e.g. 4001 J St, Sacramento, CA" required />
                         </div>
 
@@ -78,7 +78,7 @@ export default function NewCompanyHospitalPage() {
                                 <Input id="contactPerson" name="contactPerson" placeholder="e.g. TPA Desk Incharge" />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="email">Official Email</Label>
+                                <Label htmlFor="email">Official Email <span className="text-destructive">*</span></Label>
                                 <Input id="email" name="email" type="email" placeholder="e.g. contact@hospital.com" required />
                             </div>
                             <div className="space-y-2">
