@@ -12,7 +12,8 @@ export interface User {
 
 export interface Hospital {
   id: string;
-  name: string;
+  name:string;
+  location?: string;
   contactPerson?: string;
   phone?: string;
   email?: string;

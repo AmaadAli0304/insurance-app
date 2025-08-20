@@ -9,6 +9,7 @@ export async function handleAddHospital(prevState: { message: string }, formData
     const companyId = formData.get("companyId") as string;
     const newHospitalData = {
         name: formData.get("name") as string,
+        location: formData.get("location") as string,
         contactPerson: formData.get("contactPerson") as string,
         phone: formData.get("phone") as string,
         email: formData.get("email") as string,
@@ -44,6 +45,7 @@ export async function handleUpdateHospital(prevState: { message: string }, formD
   const id = formData.get("id") as string;
   const updatedData = {
         name: formData.get("name") as string,
+        location: formData.get("location") as string,
         contactPerson: formData.get("contactPerson") as string,
         phone: formData.get("phone") as string,
         email: formData.get("email") as string,

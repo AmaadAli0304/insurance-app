@@ -6,6 +6,7 @@ import { z } from 'zod';
 const hospitalUpdateSchema = z.object({
   name: z.string().optional(),
   address: z.string().optional(),
+  location: z.string().optional(),
   contact: z.string().optional(),
 });
 

@@ -61,10 +61,14 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
                 <form action={formAction}>
                     <CardContent className="space-y-4">
                         <input type="hidden" name="id" value={hospital.id} />
-                         <div className="grid md:grid-cols-1 gap-4">
+                         <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Hospital Name</Label>
                                 <Input id="name" name="name" defaultValue={hospital.name} required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="location">Location</Label>
+                                <Input id="location" name="location" defaultValue={hospital.location} />
                             </div>
                         </div>
 
