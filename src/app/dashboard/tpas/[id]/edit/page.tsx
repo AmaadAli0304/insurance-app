@@ -59,10 +59,10 @@ export default function EditTPAPage({ params }: { params: { id: string } }) {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="phone">Phone</Label>
-                                <Input id="phone" name="phone" defaultValue={tpa.phone} required />
+                                <Input id="phone" name="phone" defaultValue={tpa.phone} />
                             </div>
                              <div className="space-y-2">
-                                <Label htmlFor="portalLink">Portal Link (Optional)</Label>
+                                <Label htmlFor="portalLink">Portal Link</Label>
                                 <Input id="portalLink" name="portalLink" type="url" defaultValue={tpa.portalLink} placeholder="https://tpa-portal.com" />
                             </div>
                         </div>

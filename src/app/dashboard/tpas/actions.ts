@@ -16,7 +16,7 @@ export async function handleAddTPA(prevState: { message: string }, formData: For
     };
 
   // Basic validation
-  if (!newTPAData.name || !newTPAData.email || !newTPAData.phone || !newTPAData.address) {
+  if (!newTPAData.name || !newTPAData.email || !newTPAData.address) {
     return { message: "Please fill all required fields." };
   }
 
@@ -45,7 +45,7 @@ export async function handleUpdateTPA(prevState: { message: string }, formData: 
       return { message: "TPA ID is missing."}
   }
   
-  if (!updatedTPAData.name || !updatedTPAData.email || !updatedTPAData.phone || !updatedTPAData.address) {
+  if (!updatedTPAData.name || !updatedTPAData.email || !updatedTPAData.address) {
     return { message: "Please fill all required fields." };
   }
 

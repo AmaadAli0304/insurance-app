@@ -43,7 +43,7 @@ export default function NewTPAPage() {
                     <CardContent className="space-y-4">
                         <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="name">TPA Name</Label>
+                                <Label htmlFor="name">Name</Label>
                                 <Input id="name" name="name" placeholder="e.g. HealthServe TPA" required />
                             </div>
                             <div className="space-y-2">
@@ -52,10 +52,10 @@ export default function NewTPAPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="phone">Phone</Label>
-                                <Input id="phone" name="phone" placeholder="e.g. 888-123-4567" required />
+                                <Input id="phone" name="phone" placeholder="e.g. 888-123-4567" />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="portalLink">Portal Link (Optional)</Label>
+                                <Label htmlFor="portalLink">Portal Link</Label>
                                 <Input id="portalLink" name="portalLink" type="url" placeholder="https://tpa-portal.com" />
                             </div>
                         </div>
