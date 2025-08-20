@@ -112,6 +112,7 @@ export interface TPA {
   phone: string;
   email: string;
   address: string;
+  portalLink?: string;
 }
 
 export interface Staff {

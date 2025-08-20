@@ -91,8 +91,8 @@ export let mockClaims: Claim[] = [
 ];
 
 export let mockTPAs: TPA[] = [
-  { tpaId: 'tpa-01', name: 'HealthServe TPA', phone: '888-123-4567', email: 'contact@healthserve.com', address: '100 Health Way, Suite 50, Big City, USA' },
-  { tpaId: 'tpa-02', name: 'MediCare Assist', phone: '888-987-6543', email: 'support@medicareassist.com', address: '200 Assist Blvd, Capital City, USA' },
+  { tpaId: 'tpa-01', name: 'HealthServe TPA', phone: '888-123-4567', email: 'contact@healthserve.com', address: '100 Health Way, Suite 50, Big City, USA', portalLink: 'https://healthserve.com/portal' },
+  { tpaId: 'tpa-02', name: 'MediCare Assist', phone: '888-987-6543', email: 'support@medicareassist.com', address: '200 Assist Blvd, Capital City, USA', portalLink: 'https://medicareassist.com/login' },
 ];
 
 export let mockStaff: Staff[] = [

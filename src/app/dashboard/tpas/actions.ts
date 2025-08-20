@@ -12,6 +12,7 @@ export async function handleAddTPA(prevState: { message: string }, formData: For
         phone: formData.get("phone") as string,
         email: formData.get("email") as string,
         address: formData.get("address") as string,
+        portalLink: formData.get("portalLink") as string,
     };
 
   // Basic validation
@@ -37,6 +38,7 @@ export async function handleUpdateTPA(prevState: { message: string }, formData: 
         phone: formData.get("phone") as string,
         email: formData.get("email") as string,
         address: formData.get("address") as string,
+        portalLink: formData.get("portalLink") as string,
     };
   
   if (!tpaId) {

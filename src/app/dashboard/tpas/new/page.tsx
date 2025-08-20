@@ -54,6 +54,10 @@ export default function NewTPAPage() {
                                 <Label htmlFor="phone">Phone</Label>
                                 <Input id="phone" name="phone" placeholder="e.g. 888-123-4567" required />
                             </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="portalLink">Portal Link (Optional)</Label>
+                                <Input id="portalLink" name="portalLink" type="url" placeholder="https://tpa-portal.com" />
+                            </div>
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="address">Address</Label>
