@@ -51,7 +51,7 @@ export default function EditCompanyPage({ params }: { params: { id: string } }) 
                         <input type="hidden" name="id" value={company.id} />
                         <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="name">Company Name</Label>
+                                <Label htmlFor="name">Company Name <span className="text-destructive">*</span></Label>
                                 <Input id="name" name="name" defaultValue={company.name} required />
                             </div>
                         </div>
@@ -63,7 +63,7 @@ export default function EditCompanyPage({ params }: { params: { id: string } }) 
 
                          <div className="grid md:grid-cols-3 gap-4">
                              <div className="space-y-2">
-                                <Label htmlFor="contactPerson">Contact Person</Label>
+                                <Label htmlFor="contactPerson">Contact Person <span className="text-destructive">*</span></Label>
                                 <Input id="contactPerson" name="contactPerson" defaultValue={company.contactPerson} required />
                             </div>
                             <div className="space-y-2">

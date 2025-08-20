@@ -50,11 +50,11 @@ export default function EditTPAPage({ params }: { params: { id: string } }) {
                         <input type="hidden" name="tpaId" value={tpa.tpaId} />
                         <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="name">TPA Name</Label>
+                                <Label htmlFor="name">TPA Name <span className="text-destructive">*</span></Label>
                                 <Input id="name" name="name" defaultValue={tpa.name} required />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="email">Email</Label>
+                                <Label htmlFor="email">Email <span className="text-destructive">*</span></Label>
                                 <Input id="email" name="email" type="email" defaultValue={tpa.email} required />
                             </div>
                             <div className="space-y-2">
@@ -67,7 +67,7 @@ export default function EditTPAPage({ params }: { params: { id: string } }) {
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="address">Address</Label>
+                            <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
                             <Input id="address" name="address" defaultValue={tpa.address} required />
                         </div>
                         

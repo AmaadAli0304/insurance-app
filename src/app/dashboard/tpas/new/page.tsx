@@ -43,11 +43,11 @@ export default function NewTPAPage() {
                     <CardContent className="space-y-4">
                         <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="name">Name</Label>
+                                <Label htmlFor="name">Name <span className="text-destructive">*</span></Label>
                                 <Input id="name" name="name" placeholder="e.g. HealthServe TPA" required />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="email">Email</Label>
+                                <Label htmlFor="email">Email <span className="text-destructive">*</span></Label>
                                 <Input id="email" name="email" type="email" placeholder="e.g. contact@tpa.com" required />
                             </div>
                             <div className="space-y-2">
@@ -60,7 +60,7 @@ export default function NewTPAPage() {
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="address">Address</Label>
+                            <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
                             <Input id="address" name="address" placeholder="e.g. 123 Health Way, Anytown, USA" required />
                         </div>
 
