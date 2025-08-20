@@ -2,28 +2,18 @@
 "use server";
 
 import { mockCompanies } from "@/lib/mock-data";
-import { Company, Policy } from "@/lib/types";
+import { Company } from "@/lib/types";
 import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation';
 
 export async function handleAddCompany(prevState: { message: string }, formData: FormData) {
   const newCompanyData = {
     name: formData.get("name") as string,
-    registrationNumber: formData.get("registrationNumber") as string,
     contactPerson: formData.get("contactPerson") as string,
     phone: formData.get("phone") as string,
     email: formData.get("email") as string,
     address: formData.get("address") as string,
   };
-  
-  const policiesString = formData.get("policies") as string;
-  let policies: Policy[] = [];
-  try {
-    policies = JSON.parse(policiesString);
-  } catch (error) {
-    return { message: "Invalid policy data format." };
-  }
-
 
   if (!newCompanyData.name || !newCompanyData.contactPerson) {
     return { message: "Please fill all required fields." };
@@ -32,7 +22,6 @@ export async function handleAddCompany(prevState: { message: string }, formData:
   const newCompany: Company = {
     id: `comp-${Date.now()}`,
     ...newCompanyData,
-    policies,
     assignedHospitals: [], // Managed separately
   };
 
@@ -46,20 +35,12 @@ export async function handleUpdateCompany(prevState: { message: string }, formDa
   const id = formData.get("id") as string;
   const updatedData = {
     name: formData.get("name") as string,
-    registrationNumber: formData.get("registrationNumber") as string,
     contactPerson: formData.get("contactPerson") as string,
     phone: formData.get("phone") as string,
     email: formData.get("email") as string,
     address: formData.get("address") as string,
   };
 
-  const policiesString = formData.get("policies") as string;
-  let policies: Policy[] = [];
-  try {
-    policies = JSON.parse(policiesString);
-  } catch (error) {
-    return { message: "Invalid policy data format." };
-  }
 
   if (!id) {
     return { message: "Company ID is missing." };
@@ -74,7 +55,6 @@ export async function handleUpdateCompany(prevState: { message: string }, formDa
   mockCompanies[companyIndex] = {
     ...mockCompanies[companyIndex],
     ...updatedData,
-    policies,
   };
 
   revalidatePath('/dashboard/companies');

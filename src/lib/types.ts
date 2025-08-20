@@ -34,12 +34,10 @@ export interface Policy {
 export interface Company {
   id: string;
   name: string;
-  registrationNumber?: string;
   contactPerson?: string;
   phone?: string;
   email?: string;
   address?: string;
-  policies: Policy[];
   assignedHospitals: string[];
 }
 

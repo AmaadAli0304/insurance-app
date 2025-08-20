@@ -3,7 +3,6 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal, PlusCircle, Trash, Edit } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
@@ -45,7 +44,6 @@ export default function CompaniesPage() {
                 <TableHead>Name</TableHead>
                 <TableHead>Contact Person</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Policies</TableHead>
                 <TableHead><span className="sr-only">Actions</span></TableHead>
               </TableRow>
             </TableHeader>
@@ -55,9 +53,6 @@ export default function CompaniesPage() {
                   <TableCell className="font-medium">{c.name}</TableCell>
                   <TableCell>{c.contactPerson}</TableCell>
                   <TableCell>{c.email}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{c.policies?.length || 0}</Badge>
-                  </TableCell>
                   <TableCell>
                     <AlertDialog>
                       <DropdownMenu>

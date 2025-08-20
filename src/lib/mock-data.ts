@@ -51,9 +51,7 @@ export let mockCompanies: Company[] = [
   { 
     id: 'comp-01', 
     name: 'Statamine Inc.', 
-    policies: mockPolicies['comp-01'], 
     assignedHospitals: ['hosp-01', 'hosp-02'],
-    registrationNumber: 'COMPREG-STAT',
     contactPerson: 'Mr. Charlie',
     phone: '800-786-5433',
     email: 'contact@statamine.com',
@@ -62,9 +60,7 @@ export let mockCompanies: Company[] = [
   { 
     id: 'comp-02', 
     name: 'FlexiStaff Solutions', 
-    policies: mockPolicies['comp-02'], 
     assignedHospitals: ['hosp-02'],
-    registrationNumber: 'COMPREG-FLEX',
     contactPerson: 'Ms. Flexi',
     phone: '800-393-6130',
     email: 'contact@flexistaff.com',
