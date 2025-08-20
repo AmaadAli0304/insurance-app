@@ -13,14 +13,13 @@ export async function authenticateUser(prevState: { message: string }, formData:
     return { message: 'Email and password are required.', user: null };
   }
 
+  let poolConnection;
   try {
-    const poolConnection = await pool.connect();
+    poolConnection = await pool.connect();
     const result = await poolConnection
       .request()
       .input('email', sql.NVarChar, email)
       .query('SELECT * FROM users WHERE email = @email');
-    
-    poolConnection.close();
 
     if (result.recordset.length === 0) {
       return { message: 'Invalid email or password.', user: null };
@@ -40,8 +39,12 @@ export async function authenticateUser(prevState: { message: string }, formData:
     return { message: '', user: userClientData };
   } catch (error) {
     console.error('Authentication error:', error);
-    return { message: 'An unexpected error occurred.', user: null };
+    const dbError = error as { code?: string };
+    if (dbError.code === 'ELOGIN' || dbError.code === 'ETIMEOUT') {
+        return { message: 'Failed to connect to the database. Please check your connection settings.', user: null };
+    }
+    return { message: 'An unexpected error occurred during authentication.', user: null };
+  } finally {
+      poolConnection?.close();
   }
 }
-
-    
