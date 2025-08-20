@@ -1,14 +1,16 @@
-import mysql from 'mysql2/promise';
+import sql from 'mssql';
 
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
+const config = {
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
+  server: process.env.DB_HOST || 'localhost',
   database: process.env.DB_DATABASE,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-});
+  port: Number(process.env.DB_PORT),
+  options: {
+    encrypt: process.env.DB_ENCRYPT === 'true', // Use true for Azure SQL Database, or if you have an SSL certificate
+    trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === 'true' // Change to true for local dev / self-signed certs
+  }
+};
 
+const pool = new sql.ConnectionPool(config);
 export default pool;

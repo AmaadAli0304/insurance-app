@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { z } from 'zod';
+import sql from 'mssql';
 
 const hospitalSchema = z.object({
   name: z.string(),
@@ -13,10 +14,10 @@ const hospitalSchema = z.object({
 
 export async function GET() {
   try {
-    const connection = await pool.getConnection();
-    const [rows] = await connection.query('SELECT * FROM hospitals');
-    connection.release();
-    return NextResponse.json(rows);
+    const poolConnection = await pool.connect();
+    const result = await poolConnection.request().query('SELECT * FROM hospitals');
+    poolConnection.close();
+    return NextResponse.json(result.recordset);
   } catch (error) {
     console.error(error);
     return NextResponse.json({ message: 'Error fetching hospitals' }, { status: 500 });
@@ -28,14 +29,17 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, address, location, contact } = hospitalSchema.parse(body);
 
-    const connection = await pool.getConnection();
-    const [result] = await connection.query(
-      'INSERT INTO hospitals (name, address, location, contact) VALUES (?, ?, ?, ?)',
-      [name, address, location, contact]
-    );
-    connection.release();
+    const poolConnection = await pool.connect();
+    const result = await poolConnection.request()
+      .input('name', sql.NVarChar, name)
+      .input('address', sql.NVarChar, address)
+      .input('location', sql.NVarChar, location)
+      .input('contact', sql.NVarChar, contact)
+      .query('INSERT INTO hospitals (name, address, location, contact) OUTPUT INSERTED.id VALUES (@name, @address, @location, @contact)');
+    
+    poolConnection.close();
 
-    const insertedId = (result as any).insertId;
+    const insertedId = result.recordset[0].id;
     return NextResponse.json({ id: insertedId, name, address, location, contact }, { status: 201 });
 
   } catch (error) {

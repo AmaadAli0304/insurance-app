@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { z } from 'zod';
+import sql from 'mssql';
 
 const hospitalUpdateSchema = z.object({
   name: z.string().optional(),
@@ -15,15 +16,17 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const connection = await pool.getConnection();
-    const [rows] = await connection.query('SELECT * FROM hospitals WHERE id = ?', [params.id]);
-    connection.release();
+    const poolConnection = await pool.connect();
+    const result = await poolConnection.request()
+        .input('id', sql.Int, Number(params.id))
+        .query('SELECT * FROM hospitals WHERE id = @id');
+    poolConnection.close();
 
-    if ((rows as any[]).length === 0) {
+    if (result.recordset.length === 0) {
       return NextResponse.json({ message: 'Hospital not found' }, { status: 404 });
     }
 
-    return NextResponse.json((rows as any)[0]);
+    return NextResponse.json(result.recordset[0]);
   } catch (error) {
     console.error(error);
     return NextResponse.json({ message: 'Error fetching hospital' }, { status: 500 });
@@ -43,17 +46,22 @@ export async function PUT(
         return NextResponse.json({ message: 'No fields to update' }, { status: 400 });
     }
 
-    const setClause = fieldsToUpdate.map(([key]) => `${key} = ?`).join(', ');
-    const values = fieldsToUpdate.map(([, value]) => value);
+    const setClause = fieldsToUpdate.map(([key]) => `${key} = @${key}`).join(', ');
+    
+    const poolConnection = await pool.connect();
+    const req = poolConnection.request();
 
-    const connection = await pool.getConnection();
-    const [result] = await connection.query(
-      `UPDATE hospitals SET ${setClause} WHERE id = ?`,
-      [...values, params.id]
-    );
-    connection.release();
+    fieldsToUpdate.forEach(([key, value]) => {
+        req.input(key, sql.NVarChar, value);
+    });
 
-    if ((result as any).affectedRows === 0) {
+    const result = await req
+      .input('id', sql.Int, Number(params.id))
+      .query(`UPDATE hospitals SET ${setClause} WHERE id = @id`);
+      
+    poolConnection.close();
+
+    if (result.rowsAffected[0] === 0) {
         return NextResponse.json({ message: 'Hospital not found' }, { status: 404 });
     }
 
@@ -74,11 +82,13 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const connection = await pool.getConnection();
-    const [result] = await connection.query('DELETE FROM hospitals WHERE id = ?', [params.id]);
-    connection.release();
+    const poolConnection = await pool.connect();
+    const result = await poolConnection.request()
+      .input('id', sql.Int, Number(params.id))
+      .query('DELETE FROM hospitals WHERE id = @id');
+    poolConnection.close();
 
-    if ((result as any).affectedRows === 0) {
+    if (result.rowsAffected[0] === 0) {
         return NextResponse.json({ message: 'Hospital not found' }, { status: 404 });
     }
     
