@@ -1,7 +1,6 @@
 
 "use server";
 
-import { summarizeRequest } from "@/ai/flows/summarize-request";
 import { z } from "zod";
 
 const SummarizeRequestStateSchema = z.object({
@@ -22,8 +21,9 @@ export async function handleSummarizeRequest(
     }
 
     try {
-        const result = await summarizeRequest({ requestDetails });
-        return { summary: result.summary };
+        // AI summarization logic was here and has been removed.
+        // You can add a new implementation here if needed.
+        return { summary: "AI functionality has been removed." };
     } catch (e) {
         console.error(e);
         const errorMessage = e instanceof Error ? e.message : "An unexpected error occurred.";
