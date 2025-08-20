@@ -8,7 +8,7 @@ const config = {
   port: Number(process.env.DB_PORT),
   options: {
     encrypt: process.env.DB_ENCRYPT === 'true', // Use true for Azure SQL Database, or if you have an SSL certificate
-    trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === 'true' // Change to true for local dev / self-signed certs
+    trustServerCertificate: true // Change to true for local dev / self-signed certs
   }
 };
 
