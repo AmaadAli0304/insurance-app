@@ -4,16 +4,12 @@
 import React, { createContext, useContext, useState, ReactNode, useMemo, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import type { User } from '@/lib/types';
-import { getMockUserByEmail, mockUsers } from '@/lib/mock-data';
-
-// This is a simplified, mock auth provider for demonstration purposes.
-// In a real application, this would be replaced with a proper authentication service.
 
 interface AuthContextType {
   user: User | null;
   role: User['role'] | null;
   loading: boolean;
-  login: (email: string) => void;
+  login: (user: User) => void;
   logout: () => void;
 }
 
@@ -47,19 +43,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, loading, pathname, router]);
 
-  const login = (email: string) => {
-    setLoading(true);
-    const appUser = getMockUserByEmail(email);
-    if (appUser) {
-        memoryUser = appUser;
-        setUser(appUser);
-    } else {
-        // For demo purposes, if user not found, we can default to the first mock user
-        console.warn(`User with email ${email} not found in mock data. Defaulting to admin.`);
-        memoryUser = mockUsers[0];
-        setUser(mockUsers[0]);
-    }
-    setLoading(false);
+  const login = (appUser: User) => {
+    memoryUser = appUser;
+    setUser(appUser);
   };
   
   const logout = () => {
@@ -98,3 +84,5 @@ export function useAuth() {
   }
   return context;
 }
+
+    
