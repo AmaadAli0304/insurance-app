@@ -1,13 +1,13 @@
 
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
 import { handleAddClaim } from "../actions";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -26,7 +26,7 @@ function SubmitButton() {
 
 export default function NewClaimPage() {
     const { user, role } = useAuth();
-    const [state, formAction] = useFormState(handleAddClaim, { message: "" });
+    const [state, formAction] = useActionState(handleAddClaim, { message: "" });
     
     const relevantPatients = useMemo(() => {
         if (role === 'Company Admin') {

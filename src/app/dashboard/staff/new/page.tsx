@@ -1,11 +1,12 @@
 
 "use client";
 
+import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
 import { handleAddStaff } from "../actions";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -24,7 +25,7 @@ function SubmitButton() {
 
 export default function NewStaffPage() {
     const { user } = useAuth();
-    const [state, formAction] = useFormState(handleAddStaff, { message: "" });
+    const [state, formAction] = useActionState(handleAddStaff, { message: "" });
 
     return (
         <div className="space-y-6">

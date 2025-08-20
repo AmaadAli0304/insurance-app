@@ -1,11 +1,12 @@
 
 "use client";
 
+import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
 import { handleUpdateStaff } from "../../actions";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -24,7 +25,7 @@ function SubmitButton() {
 
 export default function EditStaffPage({ params }: { params: { id: string } }) {
     const staff = mockStaff.find(s => s.id === params.id);
-    const [state, formAction] = useFormState(handleUpdateStaff, { message: "" });
+    const [state, formAction] = useActionState(handleUpdateStaff, { message: "" });
 
     if (!staff) {
         notFound();

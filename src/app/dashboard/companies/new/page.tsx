@@ -1,12 +1,12 @@
 
 "use client";
 
-import { useState } from "react";
+import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
 import { handleAddCompany } from "../actions";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -21,7 +21,7 @@ function SubmitButton() {
 }
 
 export default function NewCompanyPage() {
-    const [state, formAction] = useFormState(handleAddCompany, { message: "" });
+    const [state, formAction] = useActionState(handleAddCompany, { message: "" });
 
     return (
         <div className="space-y-6">

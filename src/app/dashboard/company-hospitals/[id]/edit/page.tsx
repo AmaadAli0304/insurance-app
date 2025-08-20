@@ -1,12 +1,12 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
 import { handleUpdateHospital } from "../../actions";
 import Link from "next/link";
 import { ArrowLeft, ChevronsUpDown } from "lucide-react";
@@ -32,7 +32,7 @@ function SubmitButton() {
 
 export default function EditCompanyHospitalPage({ params }: { params: { id: string } }) {
     const hospital = mockHospitals.find(h => h.id === params.id);
-    const [state, formAction] = useFormState(handleUpdateHospital, { message: "" });
+    const [state, formAction] = useActionState(handleUpdateHospital, { message: "" });
 
     const [selectedCompanies, setSelectedCompanies] = useState<string[]>(hospital?.assignedCompanies || []);
     const [selectedTPAs, setSelectedTPAs] = useState<string[]>(hospital?.assignedTPAs || []);

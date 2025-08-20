@@ -1,13 +1,13 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
 import { handleAddRequest } from "../actions";
 import Link from "next/link";
 import { ArrowLeft, Upload } from "lucide-react";
@@ -26,7 +26,7 @@ function SubmitButton() {
 
 export default function NewRequestPage() {
     const { user } = useAuth();
-    const [state, formAction] = useFormState(handleAddRequest, { message: "" });
+    const [state, formAction] = useActionState(handleAddRequest, { message: "" });
     const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
 
     const hospitalPatients = useMemo(() => {
