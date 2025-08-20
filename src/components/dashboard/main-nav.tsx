@@ -17,12 +17,6 @@ export function MainNav() {
       { href: '/dashboard/hospitals', label: 'Hospitals', icon: Building },
       { href: '/dashboard/companies', label: 'Companies', icon: Factory },
     ],
-    'Hospital Admin': [
-      { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-      { href: '/dashboard/patients', label: 'Patients', icon: Users },
-      { href: '/dashboard/staff', label: 'Staff', icon: User },
-      { href: '/dashboard/requests', label: 'Staffing Requests', icon: FileText },
-    ],
     'Hospital Staff': [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/dashboard/patients', label: 'Patients', icon: Users },

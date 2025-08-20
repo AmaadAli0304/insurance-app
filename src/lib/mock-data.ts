@@ -3,10 +3,8 @@ import type { User, Hospital, Company, Patient, StaffingRequest, Policy, Claim, 
 
 export let mockUsers: User[] = [
   { uid: 'admin-01', name: 'Super Admin', email: 'admin@medichain.com', role: 'Admin' },
-  { uid: 'hadmin-01', name: 'Alice', email: 'alice@stjude.com', role: 'Hospital Admin', hospitalId: 'hosp-01' },
   { uid: 'hstaff-01', name: 'Bob', email: 'bob@stjude.com', role: 'Hospital Staff', hospitalId: 'hosp-01' },
   { uid: 'cadmin-01', name: 'Charlie', email: 'charlie@statamine.com', role: 'Company Admin', companyId: 'comp-01' },
-  { uid: 'hadmin-02', name: 'Diana', email: 'diana@mercy.com', role: 'Hospital Admin', hospitalId: 'hosp-02' },
 ];
 
 export const mockPolicies: Record<string, Policy[]> = {

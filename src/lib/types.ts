@@ -1,5 +1,5 @@
 
-export type UserRole = 'Admin' | 'Hospital Admin' | 'Hospital Staff' | 'Company Admin';
+export type UserRole = 'Admin' | 'Hospital Staff' | 'Company Admin';
 
 export interface User {
   uid: string;
