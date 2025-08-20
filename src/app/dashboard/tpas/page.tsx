@@ -3,7 +3,6 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal, PlusCircle, Trash, Edit } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
@@ -44,9 +43,8 @@ export default function TPAsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Contact Person</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>SLA (Days)</TableHead>
+                <TableHead>Phone</TableHead>
                 <TableHead><span className="sr-only">Actions</span></TableHead>
               </TableRow>
             </TableHeader>
@@ -54,11 +52,8 @@ export default function TPAsPage() {
               {mockTPAs.map(tpa => (
                 <TableRow key={tpa.tpaId}>
                   <TableCell className="font-medium">{tpa.name}</TableCell>
-                  <TableCell>{tpa.contactPerson}</TableCell>
                   <TableCell>{tpa.email}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{tpa.slaDays}</Badge>
-                  </TableCell>
+                  <TableCell>{tpa.phone}</TableCell>
                   <TableCell>
                     <AlertDialog>
                       <DropdownMenu>

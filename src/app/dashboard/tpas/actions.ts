@@ -1,7 +1,7 @@
 
 "use server";
 
-import { mockTPAs, mockCompanies, mockHospitals } from "@/lib/mock-data";
+import { mockTPAs } from "@/lib/mock-data";
 import { TPA } from "@/lib/types";
 import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation';
@@ -9,19 +9,13 @@ import { redirect } from 'next/navigation';
 export async function handleAddTPA(prevState: { message: string }, formData: FormData) {
     const newTPAData = {
         name: formData.get("name") as string,
-        contactPerson: formData.get("contactPerson") as string,
         phone: formData.get("phone") as string,
         email: formData.get("email") as string,
         address: formData.get("address") as string,
-        slaDays: Number(formData.get("slaDays")),
-        remarks: formData.get("remarks") as string,
-        servicesOffered: (formData.get("servicesOffered") as string || '').split(',').map(s => s.trim()).filter(Boolean),
-        associatedInsuranceCompanies: (formData.get("associatedInsuranceCompanies") as string || '').split(',').map(s => s.trim()).filter(Boolean),
-        associatedHospitals: (formData.get("associatedHospitals") as string || '').split(',').map(s => s.trim()).filter(Boolean),
     };
 
   // Basic validation
-  if (!newTPAData.name || !newTPAData.contactPerson || !newTPAData.email || !newTPAData.slaDays) {
+  if (!newTPAData.name || !newTPAData.email || !newTPAData.phone || !newTPAData.address) {
     return { message: "Please fill all required fields." };
   }
 
@@ -40,20 +34,19 @@ export async function handleUpdateTPA(prevState: { message: string }, formData: 
   const tpaId = formData.get("tpaId") as string;
   const updatedTPAData = {
         name: formData.get("name") as string,
-        contactPerson: formData.get("contactPerson") as string,
         phone: formData.get("phone") as string,
         email: formData.get("email") as string,
         address: formData.get("address") as string,
-        slaDays: Number(formData.get("slaDays")),
-        remarks: formData.get("remarks") as string,
-        servicesOffered: (formData.get("servicesOffered") as string || '').split(',').map(s => s.trim()).filter(Boolean),
-        associatedInsuranceCompanies: (formData.get("associatedInsuranceCompanies") as string || '').split(',').map(s => s.trim()).filter(Boolean),
-        associatedHospitals: (formData.get("associatedHospitals") as string || '').split(',').map(s => s.trim()).filter(Boolean),
     };
   
   if (!tpaId) {
       return { message: "TPA ID is missing."}
   }
+  
+  if (!updatedTPAData.name || !updatedTPAData.email || !updatedTPAData.phone || !updatedTPAData.address) {
+    return { message: "Please fill all required fields." };
+  }
+
 
   const tpaIndex = mockTPAs.findIndex(t => t.tpaId === tpaId);
 
