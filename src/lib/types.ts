@@ -8,6 +8,7 @@ export interface User {
   role: UserRole;
   hospitalId?: string;
   companyId?: string;
+  password?: string;
 }
 
 export interface Hospital {
