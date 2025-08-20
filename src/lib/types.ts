@@ -38,6 +38,7 @@ export interface Company {
   phone?: string;
   email?: string;
   address?: string;
+  portalLink?: string;
   assignedHospitals: string[];
 }
 

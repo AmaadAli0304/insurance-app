@@ -13,6 +13,7 @@ export async function handleAddCompany(prevState: { message: string }, formData:
     phone: formData.get("phone") as string,
     email: formData.get("email") as string,
     address: formData.get("address") as string,
+    portalLink: formData.get("portalLink") as string,
   };
 
   if (!newCompanyData.name || !newCompanyData.email || !newCompanyData.address) {
@@ -39,6 +40,7 @@ export async function handleUpdateCompany(prevState: { message: string }, formDa
     phone: formData.get("phone") as string,
     email: formData.get("email") as string,
     address: formData.get("address") as string,
+    portalLink: formData.get("portalLink") as string,
   };
 
 

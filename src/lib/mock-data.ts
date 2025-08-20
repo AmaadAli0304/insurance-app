@@ -55,7 +55,8 @@ export let mockCompanies: Company[] = [
     contactPerson: 'Mr. Charlie',
     phone: '800-786-5433',
     email: 'contact@statamine.com',
-    address: '123 Insurance Rd, Big City, USA'
+    address: '123 Insurance Rd, Big City, USA',
+    portalLink: 'https://statamine.com/portal',
   },
   { 
     id: 'comp-02', 
@@ -64,7 +65,8 @@ export let mockCompanies: Company[] = [
     contactPerson: 'Ms. Flexi',
     phone: '800-393-6130',
     email: 'contact@flexistaff.com',
-    address: '456 Policy Ave, Metro, USA'
+    address: '456 Policy Ave, Metro, USA',
+    portalLink: 'https://flexistaff.com/portal',
   },
 ];
 

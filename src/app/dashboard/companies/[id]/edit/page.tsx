@@ -54,6 +54,10 @@ export default function EditCompanyPage({ params }: { params: { id: string } }) 
                                 <Label htmlFor="name">Company Name <span className="text-destructive">*</span></Label>
                                 <Input id="name" name="name" defaultValue={company.name} required />
                             </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="email">Official Email <span className="text-destructive">*</span></Label>
+                                <Input id="email" name="email" type="email" defaultValue={company.email} required />
+                            </div>
                         </div>
 
                         <div className="space-y-2">
@@ -67,12 +71,12 @@ export default function EditCompanyPage({ params }: { params: { id: string } }) 
                                 <Input id="contactPerson" name="contactPerson" defaultValue={company.contactPerson} />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="email">Official Email <span className="text-destructive">*</span></Label>
-                                <Input id="email" name="email" type="email" defaultValue={company.email} required />
-                            </div>
-                            <div className="space-y-2">
                                 <Label htmlFor="phone">Phone</Label>
                                 <Input id="phone" name="phone" defaultValue={company.phone} />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="portalLink">Portal Link</Label>
+                                <Input id="portalLink" name="portalLink" type="url" defaultValue={company.portalLink} />
                             </div>
                         </div>
 

@@ -46,6 +46,10 @@ export default function NewCompanyPage() {
                                 <Label htmlFor="name">Company Name <span className="text-destructive">*</span></Label>
                                 <Input id="name" name="name" placeholder="e.g. Statamine Inc." required />
                             </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="email">Official Email <span className="text-destructive">*</span></Label>
+                                <Input id="email" name="email" type="email" placeholder="e.g. contact@company.com" required />
+                            </div>
                         </div>
 
                         <div className="space-y-2">
@@ -59,12 +63,12 @@ export default function NewCompanyPage() {
                                 <Input id="contactPerson" name="contactPerson" placeholder="e.g. John Doe" />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="email">Official Email <span className="text-destructive">*</span></Label>
-                                <Input id="email" name="email" type="email" placeholder="e.g. contact@company.com" required />
-                            </div>
-                            <div className="space-y-2">
                                 <Label htmlFor="phone">Phone</Label>
                                 <Input id="phone" name="phone" placeholder="e.g. 800-555-1234" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="portalLink">Portal Link</Label>
+                                <Input id="portalLink" name="portalLink" type="url" placeholder="https://company-portal.com" />
                             </div>
                         </div>
                         
