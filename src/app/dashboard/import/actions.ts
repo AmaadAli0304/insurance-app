@@ -24,7 +24,7 @@ export async function handleImportCompanies(prevState: { message: string, type?:
     }
 
     const headerRow: any[] = data[0];
-    const headers = headerRow.map(header => (typeof header === 'string' ? header.toLowerCase().trim() : ''));
+    const headers = headerRow.map(header => (typeof header === 'string' ? String(header).toLowerCase().trim() : ''));
     
     const nameIndex = headers.indexOf('name');
     const emailIndex = headers.indexOf('email');
@@ -39,29 +39,32 @@ export async function handleImportCompanies(prevState: { message: string, type?:
     })).filter(row => row.name && row.email);
 
     if (rowsToInsert.length === 0) {
-      return { message: "No valid rows with both Name and Email were found in the file.", type: "error" };
+      return { message: "No new companies were imported. This may be due to processing errors or empty rows.", type: "error" };
     }
     
     const pool = await getDbConnection();
     transaction = new sql.Transaction(pool);
     await transaction.begin();
 
-    let companiesProcessed = 0;
     const request = new sql.Request(transaction);
 
-    // Prepare the statement for insertion
-    const preparedStatement = new sql.PreparedStatement(transaction);
-    preparedStatement.input('name', sql.NVarChar);
-    preparedStatement.input('email', sql.NVarChar);
-    await preparedStatement.prepare('INSERT INTO companies (name, email) VALUES (@name, @email)');
+    // Create a new table variable for the bulk insert
+    const table = new sql.Table('companies');
+    table.create = false; // We are not creating a new table
+    table.columns.add('name', sql.NVarChar(255), { nullable: false });
+    table.columns.add('email', sql.NVarChar(255), { nullable: true });
 
+    // Add rows to the table variable
     for (const row of rowsToInsert) {
-      await preparedStatement.execute({ name: row.name, email: row.email });
-      companiesProcessed++;
+      table.rows.add(row.name, row.email);
     }
+    
+    // Perform the bulk insert
+    const result = await request.bulk(table);
 
-    await preparedStatement.unprepare();
     await transaction.commit();
+
+    const companiesProcessed = result.rowsAffected;
 
     if (companiesProcessed > 0) {
       revalidatePath('/dashboard/companies');
@@ -71,8 +74,12 @@ export async function handleImportCompanies(prevState: { message: string, type?:
     }
 
   } catch (error) {
-    if (transaction) {
-      await transaction.rollback();
+    if (transaction && transaction.rolledBack === false) {
+      try {
+        await transaction.rollback();
+      } catch (rollbackError) {
+        console.error('Error during rollback:', rollbackError);
+      }
     }
     const dbError = error as { message?: string, code?: string };
     console.error('Error importing companies:', dbError);
