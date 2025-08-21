@@ -26,13 +26,15 @@ export async function handleImportCompanies(prevState: { message: string, type?:
       return { message: "No data found in the Excel file.", type: "error" };
     }
     
-    const headers = sheetData[0];
-    // Find the index of the name and email columns, ignoring case and whitespace
-    const nameHeaderIndex = headers.findIndex(h => h.toString().trim().toLowerCase().includes('name'));
-    const emailHeaderIndex = headers.findIndex(h => h.toString().trim().toLowerCase().includes('email'));
+    const headers = sheetData[0].map(h => h.toString().trim());
+    const nameHeader = "All Insurers Name";
+    const emailHeader = "Email ID";
+    
+    const nameHeaderIndex = headers.indexOf(nameHeader);
+    const emailHeaderIndex = headers.indexOf(emailHeader);
 
     if (nameHeaderIndex === -1 || emailHeaderIndex === -1) {
-      return { message: "Could not find 'Name' and 'Email' columns in the file. Please check the column headers.", type: "error" };
+      return { message: "Could not find 'All Insurers Name' and 'Email ID' columns in the file. Please check the column headers.", type: "error" };
     }
 
     const data = sheetData.slice(1);
@@ -41,14 +43,17 @@ export async function handleImportCompanies(prevState: { message: string, type?:
     
     let companiesProcessed = 0;
     for (const row of data) {
+      // Ensure row is an array and has data at the expected indices
+      if (!Array.isArray(row) || row.length <= Math.max(nameHeaderIndex, emailHeaderIndex)) continue;
+
       const companyName = row[nameHeaderIndex];
       const companyEmail = row[emailHeaderIndex];
 
       if (companyName && companyEmail) {
         const request = poolConnection.request();
         await request
-          .input('name', sql.NVarChar, companyName)
-          .input('email', sql.NVarChar, companyEmail)
+          .input('name', sql.NVarChar, companyName.toString())
+          .input('email', sql.NVarChar, companyEmail.toString())
           .query(`
               INSERT INTO companies (name, email) 
               VALUES (@name, @email)
@@ -61,7 +66,7 @@ export async function handleImportCompanies(prevState: { message: string, type?:
         revalidatePath('/dashboard/companies');
         return { message: `${companiesProcessed} companies were imported successfully.`, type: "success" };
     } else {
-        return { message: "No companies with both name and email were found in the file.", type: "error" };
+        return { message: "No new companies were imported. The file may be empty or companies lacked required name/email.", type: "error" };
     }
 
   } catch (error) {
