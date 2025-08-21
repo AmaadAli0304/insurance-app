@@ -70,7 +70,7 @@ async function setupDatabase() {
           name NVARCHAR(255) NOT NULL,
           contactPerson NVARCHAR(255),
           phone NVARCHAR(50),
-          email NVARCHAR(255) UNIQUE,
+          email NVARCHAR(255),
           address NVARCHAR(MAX),
           portalLink NVARCHAR(MAX)
         );
@@ -92,7 +92,7 @@ async function setupDatabase() {
         CREATE TABLE tpas (
           id INT IDENTITY(1,1) PRIMARY KEY,
           name NVARCHAR(255) NOT NULL,
-          email NVARCHAR(255) UNIQUE,
+          email NVARCHAR(255),
           phone NVARCHAR(50),
           portalLink NVARCHAR(MAX),
           address NVARCHAR(MAX)
