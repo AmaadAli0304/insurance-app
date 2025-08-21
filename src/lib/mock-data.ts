@@ -5,6 +5,7 @@ export let mockUsers: User[] = [
   { uid: 'admin-01', name: 'Super Admin', email: 'admin@medichain.com', role: 'Admin' },
   { uid: 'hstaff-01', name: 'Bob', email: 'bob@stjude.com', role: 'Hospital Staff', hospitalId: 'hosp-01' },
   { uid: 'cadmin-01', name: 'Charlie', email: 'charlie@statamine.com', role: 'Company Admin', companyId: 'comp-01' },
+  { uid: 'cadmin-02', name: 'Company Admin', email: 'companyadmin@yopmail.com', role: 'Company Admin', companyId: 'comp-01' },
 ];
 
 export const mockPolicies: Record<string, Policy[]> = {
