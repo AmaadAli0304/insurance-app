@@ -1,32 +1,50 @@
 
 "use server";
 
-import { mockCompanies } from "@/lib/mock-data";
-import { Company } from "@/lib/types";
 import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation';
+import pool from '@/lib/db';
+import sql from 'mssql';
+import { Company } from "@/lib/types";
+import { mockCompanies } from "@/lib/mock-data";
+
 
 export async function handleAddCompany(prevState: { message: string }, formData: FormData) {
-  const newCompanyData = {
-    name: formData.get("name") as string,
-    contactPerson: formData.get("contactPerson") as string,
-    phone: formData.get("phone") as string,
-    email: formData.get("email") as string,
-    address: formData.get("address") as string,
-    portalLink: formData.get("portalLink") as string,
-  };
+  const name = formData.get("name") as string;
+  const contactPerson = formData.get("contactPerson") as string;
+  const phone = formData.get("phone") as string;
+  const email = formData.get("email") as string;
+  const address = formData.get("address") as string;
+  const portalLink = formData.get("portalLink") as string;
 
-  if (!newCompanyData.name || !newCompanyData.email || !newCompanyData.address) {
+
+  if (!name || !email || !address) {
     return { message: "Please fill all required fields." };
   }
 
-  const newCompany: Company = {
-    id: `comp-${Date.now()}`,
-    ...newCompanyData,
-    assignedHospitals: [], // Managed separately
-  };
+  try {
+    const poolConnection = await pool.connect();
+    const id = `comp-${Date.now()}`;
 
-  mockCompanies.push(newCompany);
+    await poolConnection.request()
+      .input('id', sql.NVarChar, id)
+      .input('name', sql.NVarChar, name)
+      .input('contactPerson', sql.NVarChar, contactPerson)
+      .input('phone', sql.NVarChar, phone)
+      .input('email', sql.NVarChar, email)
+      .input('address', sql.NVarChar, address)
+      .input('portalLink', sql.NVarChar, portalLink)
+      .query(`
+        INSERT INTO companies (id, name, contactPerson, phone, email, address, portalLink) 
+        VALUES (@id, @name, @contactPerson, @phone, @email, @address, @portalLink)
+      `);
+    
+    poolConnection.close();
+  } catch (error) {
+      console.error('Error adding company:', error);
+      const dbError = error as { message?: string };
+      return { message: `Error adding company: ${dbError.message || 'Unknown error'}` };
+  }
   
   revalidatePath('/dashboard/companies');
   redirect('/dashboard/companies');
