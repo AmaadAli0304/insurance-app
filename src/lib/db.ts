@@ -9,7 +9,7 @@ const config = {
   database: process.env.DB_DATABASE,
   options: {
     encrypt: process.env.DB_ENCRYPT === 'true',
-    trustServerCertificate: true // This is the key change to prevent SNI issues with IP addresses
+    trustServerCertificate: true, // Necessary for IP addresses with SSL
   },
   pool: {
     max: 10,
