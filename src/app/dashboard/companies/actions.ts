@@ -7,6 +7,26 @@ import { getDbConnection, sql } from '@/lib/db';
 import { Company } from "@/lib/types";
 import { mockCompanies } from "@/lib/mock-data";
 
+export async function getCompanies(): Promise<Company[]> {
+  try {
+    const pool = await getDbConnection();
+    const result = await pool.request().query('SELECT * FROM companies');
+    
+    // The Company type expects assignedHospitals and policies which are not in the db table.
+    // We will return them as empty arrays for now.
+    const companies = result.recordset.map(record => ({
+        ...record,
+        assignedHospitals: [],
+        policies: [],
+    })) as Company[];
+
+    return companies;
+  } catch (error) {
+      console.error('Error fetching companies:', error);
+      return [];
+  }
+}
+
 
 export async function handleAddCompany(prevState: { message: string, type?: string }, formData: FormData) {
   const name = formData.get("name") as string;
@@ -23,8 +43,10 @@ export async function handleAddCompany(prevState: { message: string, type?: stri
 
   try {
     const poolConnection = await getDbConnection();
+    const id = `comp-${Date.now()}`;
 
     await poolConnection.request()
+      .input('id', sql.NVarChar, id)
       .input('name', sql.NVarChar, name)
       .input('contactPerson', sql.NVarChar, contactPerson)
       .input('phone', sql.NVarChar, phone)
@@ -32,8 +54,8 @@ export async function handleAddCompany(prevState: { message: string, type?: stri
       .input('address', sql.NVarChar, address)
       .input('portalLink', sql.NVarChar, portalLink)
       .query(`
-        INSERT INTO companies (name, contactPerson, phone, email, address, portalLink) 
-        VALUES (@name, @contactPerson, @phone, @email, @address, @portalLink)
+        INSERT INTO companies (id, name, contactPerson, phone, email, address, portalLink) 
+        VALUES (@id, @name, @contactPerson, @phone, @email, @address, @portalLink)
       `);
     
   } catch (error) {
@@ -43,8 +65,6 @@ export async function handleAddCompany(prevState: { message: string, type?: stri
   }
   
   revalidatePath('/dashboard/companies');
-  // We are returning a success message now instead of redirecting.
-  // The client will handle the toast and redirection.
   return { message: "Company added successfully", type: "success" };
 }
 

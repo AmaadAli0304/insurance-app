@@ -1,14 +1,11 @@
 
-"use client"
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal, PlusCircle, Trash, Edit } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
-import { mockCompanies } from "@/lib/mock-data"
 import Link from "next/link"
-import { handleDeleteCompany } from "./actions"
+import { handleDeleteCompany, getCompanies } from "./actions"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,7 +18,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
-export default function CompaniesPage() {
+export default async function CompaniesPage() {
+  const companies = await getCompanies();
+
   return (
     <div className="space-y-6">
        <Card>
@@ -48,7 +47,7 @@ export default function CompaniesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockCompanies.map(c => (
+              {companies.map(c => (
                 <TableRow key={c.id}>
                   <TableCell className="font-medium">{c.name}</TableCell>
                   <TableCell>{c.contactPerson}</TableCell>
