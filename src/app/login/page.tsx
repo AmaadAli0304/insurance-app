@@ -34,26 +34,10 @@ export default function LoginPage() {
     setTimeout(() => {
         const user = getMockUserByEmail(email);
 
-        if (user && user.password === password) {
+        if (user && user.password === password) { // Check for explicit password first
             login(user);
-        } else if (user && user.password !== password) {
-             toast({
-                title: "Authentication Error",
-                description: "Invalid email or password.",
-                variant: "destructive",
-            });
-            setError("Invalid email or password.");
-        } else if (user && !user.password) { // Handle mock users without explicit password
-             if (password === 'password') {
-                 login(user);
-             } else {
-                 toast({
-                    title: "Authentication Error",
-                    description: "Invalid email or password.",
-                    variant: "destructive",
-                });
-                setError("Invalid email or password.");
-             }
+        } else if (user && !user.password && password === 'password') { // Fallback for mock users without password
+            login(user);
         }
         else {
              toast({
