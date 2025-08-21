@@ -56,6 +56,7 @@ export let mockCompanies: Company[] = [
     email: 'contact@statamine.com',
     address: '123 Insurance Rd, Big City, USA',
     portalLink: 'https://statamine.com/portal',
+    policies: mockPolicies['comp-01'],
   },
   { 
     id: 'comp-02', 
@@ -66,6 +67,7 @@ export let mockCompanies: Company[] = [
     email: 'contact@flexistaff.com',
     address: '456 Policy Ave, Metro, USA',
     portalLink: 'https://flexistaff.com/portal',
+    policies: mockPolicies['comp-02'],
   },
 ];
 

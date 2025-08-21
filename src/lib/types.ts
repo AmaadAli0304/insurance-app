@@ -41,6 +41,7 @@ export interface Company {
   address?: string;
   portalLink?: string;
   assignedHospitals: string[];
+  policies: Policy[];
 }
 
 export interface Patient {

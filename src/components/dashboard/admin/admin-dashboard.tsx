@@ -92,7 +92,7 @@ export function AdminDashboard() {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Contact Person</TableHead>
-                <TableHead>Policies</TableHead>
+                <TableHead>Assigned Hospitals</TableHead>
                 <TableHead><span className="sr-only">Actions</span></TableHead>
               </TableRow>
             </TableHeader>
@@ -101,7 +101,7 @@ export function AdminDashboard() {
                  <TableRow key={c.id}>
                   <TableCell className="font-medium">{c.name}</TableCell>
                   <TableCell>{c.contactPerson}</TableCell>
-                  <TableCell><Badge variant="secondary">{c.policies.length}</Badge></TableCell>
+                  <TableCell><Badge variant="secondary">{c.assignedHospitals.length}</Badge></TableCell>
                    <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
