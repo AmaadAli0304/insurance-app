@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     console.error(error);
     const dbError = error as { code?: string };
     if (dbError.code === 'ELOGIN' || dbError.code === 'ETIMEOUT') {
-        return { message: 'Failed to connect to the database. Please check your connection settings.', user: null };
+        return NextResponse.json({ message: 'Failed to connect to the database. Please check your connection settings.' }, { status: 500 });
     }
     return NextResponse.json({ message: 'Error creating user' }, { status: 500 });
   } finally {
