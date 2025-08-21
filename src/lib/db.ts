@@ -1,3 +1,4 @@
+
 import sql from 'mssql';
 
 const config = {
@@ -8,7 +9,7 @@ const config = {
   database: process.env.DB_DATABASE,
   options: {
     encrypt: process.env.DB_ENCRYPT === 'true',
-    trustServerCertificate: true 
+    trustServerCertificate: true // This is the key change to prevent SNI issues with IP addresses
   },
   pool: {
     max: 10,
