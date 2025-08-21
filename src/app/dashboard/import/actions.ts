@@ -1,4 +1,3 @@
-
 "use server";
 
 import * as XLSX from 'xlsx';
@@ -33,7 +32,8 @@ export async function handleImportCompanies(prevState: { message: string, type?:
       return { message: `Detected columns: [${headerRow.join(', ')}]. Please ensure 'Name' and 'Email' columns exist.`, type: "error" };
     }
 
-    const rowsToInsert = data.slice(1).map(row => ({
+    const rowsToInsert = data.slice(1).map((row, index) => ({
+      id: `comp-${Date.now()}-${index}`, // Generate a unique ID
       name: row[nameIndex],
       email: row[emailIndex]
     })).filter(row => row.name && row.email);
@@ -45,18 +45,19 @@ export async function handleImportCompanies(prevState: { message: string, type?:
     const pool = await getDbConnection();
     transaction = new sql.Transaction(pool);
     await transaction.begin();
-
+    
     const request = new sql.Request(transaction);
 
-    // Create a new table variable for the bulk insert
+    // Prepare a bulk insert operation
     const table = new sql.Table('companies');
     table.create = false; // We are not creating a new table
+    table.columns.add('id', sql.NVarChar(255), { nullable: false });
     table.columns.add('name', sql.NVarChar(255), { nullable: false });
     table.columns.add('email', sql.NVarChar(255), { nullable: true });
 
     // Add rows to the table variable
     for (const row of rowsToInsert) {
-      table.rows.add(row.name, row.email);
+      table.rows.add(row.id, row.name, row.email);
     }
     
     // Perform the bulk insert
