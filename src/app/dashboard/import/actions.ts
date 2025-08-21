@@ -34,7 +34,7 @@ export async function handleImportCompanies(prevState: { message: string, type?:
 
       if (companyName && companyEmail) {
         const request = poolConnection.request();
-        await request
+        const result = await request
           .input('name', sql.NVarChar, companyName)
           .input('email', sql.NVarChar, companyEmail)
           .query(`
@@ -44,15 +44,18 @@ export async function handleImportCompanies(prevState: { message: string, type?:
               VALUES (@name, @email)
             END
           `);
-        companiesProcessed++;
+        
+        if (result.rowsAffected[0] > 0) {
+            companiesProcessed++;
+        }
       }
     }
     
     if (companiesProcessed > 0) {
         revalidatePath('/dashboard/companies');
-        return { message: `${companiesProcessed} companies processed successfully.`, type: "success" };
+        return { message: `${companiesProcessed} new companies were imported successfully.`, type: "success" };
     } else {
-        return { message: "No new companies were imported.", type: "error" };
+        return { message: "No new companies were imported. All companies in the file may already exist in the database.", type: "error" };
     }
 
   } catch (error) {
