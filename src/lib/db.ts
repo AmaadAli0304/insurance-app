@@ -9,7 +9,7 @@ const config = {
   database: process.env.DB_DATABASE,
   options: {
     encrypt: process.env.DB_ENCRYPT === 'true',
-    trustServerCertificate: true, // Necessary for IP addresses with SSL
+    trustServerCertificate: true,
   },
   pool: {
     max: 10,
@@ -19,11 +19,18 @@ const config = {
 };
 
 const pool = new sql.ConnectionPool(config);
-const poolConnect = pool.connect();
+const poolConnect = pool.connect().catch(err => {
+    console.error('Initial Database Connection Error:', err);
+});
 
 pool.on('error', err => {
     console.error('SQL Pool Error', err);
 });
 
-export default pool;
-export { sql, poolConnect };
+
+export async function getDbConnection() {
+  await poolConnect;
+  return pool;
+}
+
+export { sql };
