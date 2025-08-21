@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useActionState, useEffect } from "react";
@@ -32,6 +31,7 @@ export default function NewCompanyPage() {
             toast({
                 title: "Insurance Company",
                 description: state.message,
+                variant: "success",
             });
             router.push('/dashboard/companies');
         } else if (state.type === 'error') {
