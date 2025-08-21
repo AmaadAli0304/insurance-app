@@ -19,18 +19,30 @@ export async function handleImportCompanies(prevState: { message: string, type?:
     const workbook = XLSX.read(bytes, { type: "buffer" });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    const data = XLSX.utils.sheet_to_json(worksheet) as { "All Insurers Name": string; "Email ID": string }[];
+    // Use header: 1 to get an array of arrays
+    const sheetData: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
-    if (!data || data.length === 0) {
-      return { message: "No data found in the Excel file or file is not in the correct format.", type: "error" };
+    if (sheetData.length < 2) {
+      return { message: "No data found in the Excel file.", type: "error" };
     }
+    
+    const headers = sheetData[0];
+    // Find the index of the name and email columns, ignoring case and whitespace
+    const nameHeaderIndex = headers.findIndex(h => h.toString().trim().toLowerCase().includes('name'));
+    const emailHeaderIndex = headers.findIndex(h => h.toString().trim().toLowerCase().includes('email'));
+
+    if (nameHeaderIndex === -1 || emailHeaderIndex === -1) {
+      return { message: "Could not find 'Name' and 'Email' columns in the file. Please check the column headers.", type: "error" };
+    }
+
+    const data = sheetData.slice(1);
     
     poolConnection = await pool.connect();
     
     let companiesProcessed = 0;
-    for (const company of data) {
-      const companyName = company["All Insurers Name"];
-      const companyEmail = company["Email ID"];
+    for (const row of data) {
+      const companyName = row[nameHeaderIndex];
+      const companyEmail = row[emailHeaderIndex];
 
       if (companyName && companyEmail) {
         const request = poolConnection.request();
