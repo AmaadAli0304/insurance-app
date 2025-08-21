@@ -11,16 +11,13 @@ export async function getCompanies(): Promise<Company[]> {
   try {
     const pool = await getDbConnection();
     const result = await pool.request().query('SELECT * FROM companies');
-    
-    // The Company type expects assignedHospitals and policies which are not in the db table.
-    // We will return them as empty arrays for now.
-    const companies = result.recordset.map(record => ({
+    // The UI doesn't use assignedHospitals or policies on this page, 
+    // so we can safely return them as empty.
+    return result.recordset.map(record => ({
         ...record,
         assignedHospitals: [],
         policies: [],
     })) as Company[];
-
-    return companies;
   } catch (error) {
       console.error('Error fetching companies:', error);
       return [];
