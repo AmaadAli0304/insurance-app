@@ -9,7 +9,7 @@ import { Company } from "@/lib/types";
 import { mockCompanies } from "@/lib/mock-data";
 
 
-export async function handleAddCompany(prevState: { message: string }, formData: FormData) {
+export async function handleAddCompany(prevState: { message: string, type?: string }, formData: FormData) {
   const name = formData.get("name") as string;
   const contactPerson = formData.get("contactPerson") as string;
   const phone = formData.get("phone") as string;
@@ -19,7 +19,7 @@ export async function handleAddCompany(prevState: { message: string }, formData:
 
 
   if (!name || !email || !address) {
-    return { message: "Please fill all required fields." };
+    return { message: "Please fill all required fields.", type: "error" };
   }
 
   try {
@@ -43,11 +43,13 @@ export async function handleAddCompany(prevState: { message: string }, formData:
   } catch (error) {
       console.error('Error adding company:', error);
       const dbError = error as { message?: string };
-      return { message: `Error adding company: ${dbError.message || 'Unknown error'}` };
+      return { message: `Error adding company: ${dbError.message || 'Unknown error'}`, type: "error" };
   }
   
   revalidatePath('/dashboard/companies');
-  redirect('/dashboard/companies');
+  // We are returning a success message now instead of redirecting.
+  // The client will handle the toast and redirection.
+  return { message: "company added successfully", type: "success" };
 }
 
 export async function handleUpdateCompany(prevState: { message: string }, formData: FormData) {
