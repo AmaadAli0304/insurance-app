@@ -1,8 +1,6 @@
-
 'use server';
 
-import pool from '@/lib/db';
-import sql from 'mssql';
+import pool, { sql, poolConnect } from '@/lib/db';
 import type { User } from '@/lib/types';
 
 export async function authenticateUser(prevState: { message: string }, formData: FormData) {
@@ -13,10 +11,9 @@ export async function authenticateUser(prevState: { message: string }, formData:
     return { message: 'Email and password are required.', user: null };
   }
 
-  let poolConnection;
   try {
-    poolConnection = await pool.connect();
-    const result = await poolConnection
+    await poolConnect; // Ensures the pool is connected before querying
+    const result = await pool
       .request()
       .input('email', sql.NVarChar, email)
       .query('SELECT * FROM users WHERE email = @email');
@@ -40,11 +37,9 @@ export async function authenticateUser(prevState: { message: string }, formData:
   } catch (error) {
     console.error('Authentication error:', error);
     const dbError = error as { code?: string };
-    if (dbError.code === 'ELOGIN' || dbError.code === 'ETIMEOUT') {
+    if (dbError.code === 'ELOGIN' || dbError.code === 'ETIMEOUT' || dbError.code === 'ECONNRESET') {
         return { message: 'Failed to connect to the database. Please check your connection settings.', user: null };
     }
     return { message: 'An unexpected error occurred during authentication.', user: null };
-  } finally {
-      poolConnection?.close();
   }
 }

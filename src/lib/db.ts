@@ -7,10 +7,22 @@ const config = {
   database: process.env.DB_DATABASE,
   port: Number(process.env.DB_PORT),
   options: {
-    encrypt: process.env.DB_ENCRYPT === 'true', // Use true for Azure SQL Database, or if you have an SSL certificate
-    trustServerCertificate: true // Change to true for local dev / self-signed certs
+    encrypt: process.env.DB_ENCRYPT === 'true',
+    trustServerCertificate: true 
+  },
+  pool: {
+    max: 10,
+    min: 0,
+    idleTimeoutMillis: 30000
   }
 };
 
 const pool = new sql.ConnectionPool(config);
+const poolConnect = pool.connect();
+
+pool.on('error', err => {
+    console.error('SQL Pool Error', err);
+});
+
 export default pool;
+export { sql, poolConnect };

@@ -1,8 +1,7 @@
 
 import { NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import pool, { sql, poolConnect } from '@/lib/db';
 import { z } from 'zod';
-import sql from 'mssql';
 
 const signupSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -10,7 +9,6 @@ const signupSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  let poolConnection;
   try {
     const body = await request.json();
     const parsedData = signupSchema.safeParse(body);
@@ -20,12 +18,11 @@ export async function POST(request: Request) {
     }
     
     const { email, password } = parsedData.data;
-
-    poolConnection = await pool.connect();
     
+    await poolConnect; // Ensures the pool is connected
+
     // Check if user already exists
-    const checkUserRequest = poolConnection.request();
-    const userExistsResult = await checkUserRequest
+    const userExistsResult = await pool.request()
         .input('email', sql.NVarChar, email)
         .query('SELECT uid FROM users WHERE email = @email');
 
@@ -39,8 +36,7 @@ export async function POST(request: Request) {
     const name = email.split('@')[0]; // Simple name generation
     const role = 'Hospital Staff'; // Default role for new signups
 
-    const insertRequest = poolConnection.request();
-    await insertRequest
+    await pool.request()
       .input('uid', sql.NVarChar, uid)
       .input('name', sql.NVarChar, name)
       .input('email', sql.NVarChar, email)
@@ -59,11 +55,9 @@ export async function POST(request: Request) {
     }
     console.error(error);
     const dbError = error as { code?: string };
-    if (dbError.code === 'ELOGIN' || dbError.code === 'ETIMEOUT') {
+    if (dbError.code === 'ELOGIN' || dbError.code === 'ETIMEOUT' || dbError.code === 'ECONNRESET') {
         return NextResponse.json({ message: 'Failed to connect to the database. Please check your connection settings.' }, { status: 500 });
     }
     return NextResponse.json({ message: 'Error creating user' }, { status: 500 });
-  } finally {
-      poolConnection?.close();
   }
 }
