@@ -24,10 +24,8 @@ export async function handleAddCompany(prevState: { message: string, type?: stri
 
   try {
     const poolConnection = await pool.connect();
-    const id = `comp-${Date.now()}`;
 
     await poolConnection.request()
-      .input('id', sql.NVarChar, id)
       .input('name', sql.NVarChar, name)
       .input('contactPerson', sql.NVarChar, contactPerson)
       .input('phone', sql.NVarChar, phone)
@@ -35,8 +33,8 @@ export async function handleAddCompany(prevState: { message: string, type?: stri
       .input('address', sql.NVarChar, address)
       .input('portalLink', sql.NVarChar, portalLink)
       .query(`
-        INSERT INTO companies (id, name, contactPerson, phone, email, address, portalLink) 
-        VALUES (@id, @name, @contactPerson, @phone, @email, @address, @portalLink)
+        INSERT INTO companies (name, contactPerson, phone, email, address, portalLink) 
+        VALUES (@name, @contactPerson, @phone, @email, @address, @portalLink)
       `);
     
     poolConnection.close();
