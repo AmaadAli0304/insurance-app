@@ -64,7 +64,6 @@ export async function handleImportCompanies(prevState: { message: string, type?:
               `);
             companiesProcessed++;
         } catch (insertError) {
-            // Log the error but continue trying to insert other companies
             console.error(`Failed to insert company ${company.name} (${company.email}):`, insertError);
         }
     }
