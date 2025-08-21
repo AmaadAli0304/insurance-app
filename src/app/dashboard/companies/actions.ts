@@ -3,8 +3,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation';
-import pool from '@/lib/db';
-import sql from 'mssql';
+import { getDbConnection, sql } from '@/lib/db';
 import { Company } from "@/lib/types";
 import { mockCompanies } from "@/lib/mock-data";
 
@@ -23,7 +22,7 @@ export async function handleAddCompany(prevState: { message: string, type?: stri
   }
 
   try {
-    const poolConnection = await pool.connect();
+    const poolConnection = await getDbConnection();
 
     await poolConnection.request()
       .input('name', sql.NVarChar, name)
@@ -37,7 +36,6 @@ export async function handleAddCompany(prevState: { message: string, type?: stri
         VALUES (@name, @contactPerson, @phone, @email, @address, @portalLink)
       `);
     
-    poolConnection.close();
   } catch (error) {
       console.error('Error adding company:', error);
       const dbError = error as { message?: string };
@@ -47,7 +45,7 @@ export async function handleAddCompany(prevState: { message: string, type?: stri
   revalidatePath('/dashboard/companies');
   // We are returning a success message now instead of redirecting.
   // The client will handle the toast and redirection.
-  return { message: "company added successfully", type: "success" };
+  return { message: "Company added successfully", type: "success" };
 }
 
 export async function handleUpdateCompany(prevState: { message: string }, formData: FormData) {
