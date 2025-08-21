@@ -13,6 +13,7 @@ export async function handleImportCompanies(prevState: { message: string, type?:
     return { message: "Please upload a valid XLSX file.", type: "error" };
   }
 
+  let poolConnection;
   try {
     const bytes = await file.arrayBuffer();
     const workbook = XLSX.read(bytes, { type: "buffer" });
@@ -24,7 +25,7 @@ export async function handleImportCompanies(prevState: { message: string, type?:
       return { message: "No data found in the Excel file or file is not in the correct format.", type: "error" };
     }
     
-    const poolConnection = await pool.connect();
+    poolConnection = await pool.connect();
     
     for (const company of data) {
       const companyName = company["All Insurers Name"];
@@ -39,20 +40,23 @@ export async function handleImportCompanies(prevState: { message: string, type?:
           .input('name', sql.NVarChar, companyName)
           .input('email', sql.NVarChar, companyEmail)
           .query(`
-            INSERT INTO companies (id, name, email) 
-            VALUES (@id, @name, @email)
+            IF NOT EXISTS (SELECT 1 FROM companies WHERE email = @email)
+            BEGIN
+              INSERT INTO companies (id, name, email) 
+              VALUES (@id, @name, @email)
+            END
           `);
       }
     }
-
-    poolConnection.close();
     
     revalidatePath('/dashboard/companies');
-    return { message: `${data.length} companies imported successfully.`, type: "success" };
+    return { message: `${data.length} companies processed successfully.`, type: "success" };
 
   } catch (error) {
     console.error('Error importing companies:', error);
     const dbError = error as { message?: string };
     return { message: `Error importing companies: ${dbError.message || 'Unknown error'}`, type: "error" };
+  } finally {
+    await poolConnection?.close();
   }
 }
