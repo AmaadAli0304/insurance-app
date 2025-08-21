@@ -1,4 +1,5 @@
 import type {NextConfig} from 'next';
+require('dotenv').config({ path: './.env' });
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -21,6 +22,7 @@ const nextConfig: NextConfig = {
   devServer: {
     allowedDevOrigins: [
       'https://6000-firebase-studio-1755239775149.cluster-htdgsbmflbdmov5xrjithceibm.cloudworkstations.dev',
+      'https://*.cloudworkstations.dev',
     ],
   },
 };
