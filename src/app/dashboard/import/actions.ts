@@ -34,28 +34,22 @@ export async function handleImportCompanies(prevState: { message: string, type?:
 
       if (companyName && companyEmail) {
         const request = poolConnection.request();
-        const result = await request
+        await request
           .input('name', sql.NVarChar, companyName)
           .input('email', sql.NVarChar, companyEmail)
           .query(`
-            IF NOT EXISTS (SELECT 1 FROM companies WHERE email = @email)
-            BEGIN
               INSERT INTO companies (name, email) 
               VALUES (@name, @email)
-            END
           `);
-        
-        if (result.rowsAffected[0] > 0) {
-            companiesProcessed++;
-        }
+        companiesProcessed++;
       }
     }
     
     if (companiesProcessed > 0) {
         revalidatePath('/dashboard/companies');
-        return { message: `${companiesProcessed} new companies were imported successfully.`, type: "success" };
+        return { message: `${companiesProcessed} companies were imported successfully.`, type: "success" };
     } else {
-        return { message: "No new companies were imported. All companies in the file may already exist in the database.", type: "error" };
+        return { message: "No companies with both name and email were found in the file.", type: "error" };
     }
 
   } catch (error) {
