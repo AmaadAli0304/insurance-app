@@ -2,8 +2,6 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,49 +9,63 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from '@/components/auth-provider';
 import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
-import { authenticateUser } from './actions';
-import { mockUsers } from '@/lib/mock-data';
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <Button className="w-full" type="submit" disabled={pending}>
-      {pending ? (
-        <div className="w-5 h-5 border-2 border-background border-t-transparent rounded-full animate-spin"></div>
-      ) : (
-        'Sign In'
-      )}
-    </Button>
-  );
-}
-
+import { mockUsers, getMockUserByEmail } from '@/lib/mock-data';
+import type { User } from '@/lib/types';
 
 export default function LoginPage() {
   const { login } = useAuth();
   const { toast } = useToast();
-  const [state, formAction] = useActionState(authenticateUser, { message: "", user: null });
   const [email, setEmail] = useState("admin@medichain.com");
   const [password, setPassword] = useState("password");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // This function is for demo purposes to quickly switch between test users
   const handleDemoUserChange = (email: string) => {
     setEmail(email);
     setPassword("password");
-  }
+  };
 
-  useEffect(() => {
-    if (state.message) {
-      toast({
-        title: "Authentication Error",
-        description: state.message,
-        variant: "destructive",
-      });
-    }
-    if (state.user) {
-      login(state.user);
-    }
-  }, [state, login, toast]);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
+    // Simulate async operation
+    setTimeout(() => {
+        const user = getMockUserByEmail(email);
+
+        if (user && user.password === password) {
+            login(user);
+        } else if (user && user.password !== password) {
+             toast({
+                title: "Authentication Error",
+                description: "Invalid email or password.",
+                variant: "destructive",
+            });
+            setError("Invalid email or password.");
+        } else if (user && !user.password) { // Handle mock users without explicit password
+             if (password === 'password') {
+                 login(user);
+             } else {
+                 toast({
+                    title: "Authentication Error",
+                    description: "Invalid email or password.",
+                    variant: "destructive",
+                });
+                setError("Invalid email or password.");
+             }
+        }
+        else {
+             toast({
+                title: "Authentication Error",
+                description: "Invalid email or password.",
+                variant: "destructive",
+            });
+            setError("Invalid email or password.");
+        }
+        setLoading(false);
+    }, 500);
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
@@ -65,7 +77,7 @@ export default function LoginPage() {
           <CardTitle className="text-2xl">Welcome Back</CardTitle>
           <CardDescription>Enter your credentials to access your account.</CardDescription>
         </CardHeader>
-        <form action={formAction}>
+        <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -85,15 +97,19 @@ export default function LoginPage() {
                     ))}
                 </div>
             </div>
-            {state.message && <p className="text-sm text-destructive text-center">{state.message}</p>}
+            {error && <p className="text-sm text-destructive text-center">{error}</p>}
           </CardContent>
           <CardFooter>
-            <SubmitButton />
+             <Button className="w-full" type="submit" disabled={loading}>
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-background border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                'Sign In'
+              )}
+            </Button>
           </CardFooter>
         </form>
       </Card>
     </div>
   );
 }
-
-    
