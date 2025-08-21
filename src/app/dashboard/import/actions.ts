@@ -13,66 +13,25 @@ export async function handleImportCompanies(prevState: { message: string, type?:
     return { message: "Please upload a valid XLSX file.", type: "error" };
   }
 
-  let poolConnection;
   try {
     const bytes = await file.arrayBuffer();
     const workbook = XLSX.read(bytes, { type: "buffer" });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    // Use header: 1 to get an array of arrays
     const sheetData: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
-    if (sheetData.length < 2) {
-      return { message: "No data found in the Excel file.", type: "error" };
+    if (sheetData.length === 0) {
+        return { message: "The uploaded file is empty.", type: "error" };
     }
-    
+
     const headers = sheetData[0].map(h => h.toString().trim());
-    const nameHeader = "name";
-    const emailHeader = "email";
-    
-    const nameHeaderIndex = headers.indexOf(nameHeader);
-    const emailHeaderIndex = headers.indexOf(emailHeader);
 
-    if (nameHeaderIndex === -1 || emailHeaderIndex === -1) {
-      return { message: "Could not find 'name' and 'email' columns in the file. Please check the column headers.", type: "error" };
-    }
-
-    const data = sheetData.slice(1);
-    
-    poolConnection = await pool.connect();
-    
-    let companiesProcessed = 0;
-    for (const row of data) {
-      if (!Array.isArray(row) || row.length <= Math.max(nameHeaderIndex, emailHeaderIndex)) continue;
-
-      const companyName = row[nameHeaderIndex];
-      const companyEmail = row[emailHeaderIndex];
-
-      if (companyName && companyEmail) {
-        const request = poolConnection.request();
-        await request
-          .input('name', sql.NVarChar, companyName.toString())
-          .input('email', sql.NVarChar, companyEmail.toString())
-          .query(`
-              INSERT INTO companies (name, email) 
-              VALUES (@name, @email)
-          `);
-        companiesProcessed++;
-      }
-    }
-    
-    if (companiesProcessed > 0) {
-        revalidatePath('/dashboard/companies');
-        return { message: `${companiesProcessed} companies were imported successfully.`, type: "success" };
-    } else {
-        return { message: "No new companies were imported. The file may be empty or companies lacked required name/email.", type: "error" };
-    }
+    // For debugging, we will just return the headers found.
+    return { message: `Detected headers: [${headers.join(', ')}]. Please ensure 'name' and 'email' are present.`, type: "error" };
 
   } catch (error) {
-    console.error('Error importing companies:', error);
+    console.error('Error reading file headers:', error);
     const dbError = error as { message?: string };
-    return { message: `Error importing companies: ${dbError.message || 'Unknown error'}`, type: "error" };
-  } finally {
-    await poolConnection?.close();
+    return { message: `Error reading file: ${dbError.message || 'Unknown error'}`, type: "error" };
   }
 }
