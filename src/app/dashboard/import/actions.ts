@@ -27,30 +27,33 @@ export async function handleImportCompanies(prevState: { message: string, type?:
     
     poolConnection = await pool.connect();
     
+    let companiesProcessed = 0;
     for (const company of data) {
       const companyName = company["All Insurers Name"];
       const companyEmail = company["Email ID"];
 
       if (companyName && companyEmail) {
-        const id = `comp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-
         const request = poolConnection.request();
         await request
-          .input('id', sql.NVarChar, id)
           .input('name', sql.NVarChar, companyName)
           .input('email', sql.NVarChar, companyEmail)
           .query(`
             IF NOT EXISTS (SELECT 1 FROM companies WHERE email = @email)
             BEGIN
-              INSERT INTO companies (id, name, email) 
-              VALUES (@id, @name, @email)
+              INSERT INTO companies (name, email) 
+              VALUES (@name, @email)
             END
           `);
+        companiesProcessed++;
       }
     }
     
-    revalidatePath('/dashboard/companies');
-    return { message: `${data.length} companies processed successfully.`, type: "success" };
+    if (companiesProcessed > 0) {
+        revalidatePath('/dashboard/companies');
+        return { message: `${companiesProcessed} companies processed successfully.`, type: "success" };
+    } else {
+        return { message: "No new companies were imported.", type: "error" };
+    }
 
   } catch (error) {
     console.error('Error importing companies:', error);

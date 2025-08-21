@@ -64,18 +64,35 @@ async function setupDatabase() {
     console.log('Checking for "companies" table...');
     const createCompaniesTableQuery = `
       IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='companies' and xtype='U')
-      CREATE TABLE companies (
-        id NVARCHAR(255) PRIMARY KEY,
-        name NVARCHAR(255) NOT NULL,
-        contactPerson NVARCHAR(255),
-        phone NVARCHAR(50),
-        email NVARCHAR(255),
-        address NVARCHAR(MAX),
-        portalLink NVARCHAR(MAX)
-      );
+      BEGIN
+        CREATE TABLE companies (
+          id INT IDENTITY(1,1) PRIMARY KEY,
+          name NVARCHAR(255) NOT NULL,
+          contactPerson NVARCHAR(255),
+          phone NVARCHAR(50),
+          email NVARCHAR(255) UNIQUE,
+          address NVARCHAR(MAX),
+          portalLink NVARCHAR(MAX)
+        );
+        PRINT '"companies" table created.';
+      END
+      ELSE
+      BEGIN
+        IF COL_LENGTH('companies', 'id') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM sys.identity_columns WHERE object_id = OBJECT_ID('companies'))
+        BEGIN
+            -- This is a more complex migration, for now we will just print a message
+            -- A proper migration would be to create a new table, move data, drop old table, and rename.
+            -- For this app's purpose, we assume if the table exists, it's either correct or needs manual intervention.
+            PRINT 'Warning: "companies" table exists but ID column is not IDENTITY. Manual migration may be needed.';
+        END
+        ELSE
+        BEGIN
+            PRINT '"companies" table already exists with expected schema.';
+        END
+      END
     `;
     await request.query(createCompaniesTableQuery);
-    console.log('"companies" table created or already exists.');
+    console.log('Companies table check/create complete.');
     
     console.log('Database setup complete!');
 
