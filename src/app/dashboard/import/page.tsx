@@ -49,7 +49,7 @@ export default function ImportPage() {
                     <CardTitle>Import Insurance Companies</CardTitle>
                     <CardDescription>
                         Upload an XLSX file with company data. Ensure the file has columns
-                        named &quot;All Insurers Name&quot; and &quot;Email ID&quot;.
+                        named &quot;name&quot; and &quot;email&quot;.
                     </CardDescription>
                 </CardHeader>
                 <form action={formAction} ref={formRef}>

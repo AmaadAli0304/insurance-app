@@ -26,16 +26,15 @@ export async function handleImportCompanies(prevState: { message: string, type?:
       return { message: "No data found in the Excel file.", type: "error" };
     }
     
-    // Trim and convert headers to lower case for robust matching
-    const headers = sheetData[0].map(h => h.toString().trim().toLowerCase());
-    const nameHeader = "all insurers name";
-    const emailHeader = "email id";
+    const headers = sheetData[0].map(h => h.toString().trim());
+    const nameHeader = "name";
+    const emailHeader = "email";
     
     const nameHeaderIndex = headers.indexOf(nameHeader);
     const emailHeaderIndex = headers.indexOf(emailHeader);
 
     if (nameHeaderIndex === -1 || emailHeaderIndex === -1) {
-      return { message: "Could not find 'All Insurers Name' and 'Email ID' columns in the file. Please check the column headers.", type: "error" };
+      return { message: "Could not find 'name' and 'email' columns in the file. Please check the column headers.", type: "error" };
     }
 
     const data = sheetData.slice(1);
@@ -44,7 +43,6 @@ export async function handleImportCompanies(prevState: { message: string, type?:
     
     let companiesProcessed = 0;
     for (const row of data) {
-      // Ensure row is an array and has data at the expected indices
       if (!Array.isArray(row) || row.length <= Math.max(nameHeaderIndex, emailHeaderIndex)) continue;
 
       const companyName = row[nameHeaderIndex];
