@@ -1,3 +1,4 @@
+
 "use server";
 
 import * as XLSX from 'xlsx';
@@ -28,15 +29,15 @@ export async function handleImportCompanies(prevState: { message: string, type?:
     const nameIndex = headers.indexOf('name');
     const emailIndex = headers.indexOf('email');
 
-    if (nameIndex === -1 || emailIndex === -1) {
-      return { message: `Detected columns: [${headerRow.join(', ')}]. Please ensure 'Name' and 'Email' columns exist.`, type: "error" };
+    if (nameIndex === -1) {
+      return { message: `Detected columns: [${headerRow.join(', ')}]. Please ensure 'Name' column exists.`, type: "error" };
     }
 
     const rowsToInsert = data.slice(1).map((row, index) => ({
       id: `comp-${Date.now()}-${index}`, // Generate a unique ID
       name: row[nameIndex],
-      email: row[emailIndex]
-    })).filter(row => row.name && row.email);
+      email: row[emailIndex] || null // Use null if email is missing
+    })).filter(row => row.name); // Only filter if name is missing
 
     if (rowsToInsert.length === 0) {
       return { message: "No new companies were imported. This may be due to processing errors or empty rows.", type: "error" };
@@ -47,20 +48,16 @@ export async function handleImportCompanies(prevState: { message: string, type?:
     await transaction.begin();
     
     const request = new sql.Request(transaction);
-
-    // Prepare a bulk insert operation
     const table = new sql.Table('companies');
-    table.create = false; // We are not creating a new table
+    table.create = false; 
     table.columns.add('id', sql.NVarChar(255), { nullable: false });
     table.columns.add('name', sql.NVarChar(255), { nullable: false });
     table.columns.add('email', sql.NVarChar(255), { nullable: true });
 
-    // Add rows to the table variable
     for (const row of rowsToInsert) {
       table.rows.add(row.id, row.name, row.email);
     }
     
-    // Perform the bulk insert
     const result = await request.bulk(table);
 
     await transaction.commit();
