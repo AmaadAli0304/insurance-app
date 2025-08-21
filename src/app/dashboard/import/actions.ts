@@ -26,9 +26,10 @@ export async function handleImportCompanies(prevState: { message: string, type?:
       return { message: "No data found in the Excel file.", type: "error" };
     }
     
-    const headers = sheetData[0].map(h => h.toString().trim());
-    const nameHeader = "All Insurers Name";
-    const emailHeader = "Email ID";
+    // Trim and convert headers to lower case for robust matching
+    const headers = sheetData[0].map(h => h.toString().trim().toLowerCase());
+    const nameHeader = "all insurers name";
+    const emailHeader = "email id";
     
     const nameHeaderIndex = headers.indexOf(nameHeader);
     const emailHeaderIndex = headers.indexOf(emailHeader);
