@@ -33,7 +33,7 @@ if (!config.user || !config.password || !config.server || !config.port || !confi
 
 
 const pool = new sql.ConnectionPool(config);
-const poolConnect = pool.connect().catch(err => {
+export const poolConnect = pool.connect().catch(err => {
     console.error('Initial Database Connection Error:', err);
     console.error('This might be due to incorrect credentials, firewall issues, or missing environment variables on your deployment platform (e.g., Vercel).');
 });
@@ -42,10 +42,5 @@ pool.on('error', err => {
     console.error('SQL Pool Error', err);
 });
 
-
-export async function getDbConnection() {
-  await poolConnect;
-  return pool;
-}
-
 export { sql };
+export default pool;

@@ -4,9 +4,7 @@ import pool from '@/lib/db';
 
 export async function GET() {
   try {
-    const poolConnection = await pool.connect();
-    const result = await poolConnection.request().query('SELECT * FROM users');
-    poolConnection.close();
+    const result = await pool.request().query('SELECT * FROM users');
     return NextResponse.json(result.recordset);
   } catch (error) {
     console.error(error);

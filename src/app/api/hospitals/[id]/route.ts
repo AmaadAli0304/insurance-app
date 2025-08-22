@@ -1,8 +1,7 @@
 
 import { NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import pool, { sql } from '@/lib/db';
 import { z } from 'zod';
-import sql from 'mssql';
 
 const hospitalUpdateSchema = z.object({
   name: z.string().optional(),
@@ -16,11 +15,9 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const poolConnection = await pool.connect();
-    const result = await poolConnection.request()
+    const result = await pool.request()
         .input('id', sql.Int, Number(params.id))
         .query('SELECT * FROM hospitals WHERE id = @id');
-    poolConnection.close();
 
     if (result.recordset.length === 0) {
       return NextResponse.json({ message: 'Hospital not found' }, { status: 404 });
@@ -48,8 +45,7 @@ export async function PUT(
 
     const setClause = fieldsToUpdate.map(([key]) => `${key} = @${key}`).join(', ');
     
-    const poolConnection = await pool.connect();
-    const req = poolConnection.request();
+    const req = pool.request();
 
     fieldsToUpdate.forEach(([key, value]) => {
         req.input(key, sql.NVarChar, value);
@@ -59,8 +55,6 @@ export async function PUT(
       .input('id', sql.Int, Number(params.id))
       .query(`UPDATE hospitals SET ${setClause} WHERE id = @id`);
       
-    poolConnection.close();
-
     if (result.rowsAffected[0] === 0) {
         return NextResponse.json({ message: 'Hospital not found' }, { status: 404 });
     }
@@ -82,11 +76,9 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const poolConnection = await pool.connect();
-    const result = await poolConnection.request()
+    const result = await pool.request()
       .input('id', sql.Int, Number(params.id))
       .query('DELETE FROM hospitals WHERE id = @id');
-    poolConnection.close();
 
     if (result.rowsAffected[0] === 0) {
         return NextResponse.json({ message: 'Hospital not found' }, { status: 404 });

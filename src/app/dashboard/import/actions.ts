@@ -2,7 +2,7 @@
 "use server";
 
 import * as XLSX from 'xlsx';
-import { getDbConnection, sql } from '@/lib/db';
+import pool, { sql } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 
 export async function handleImportCompanies(prevState: { message: string, type?: string }, formData: FormData) {
@@ -43,7 +43,6 @@ export async function handleImportCompanies(prevState: { message: string, type?:
       return { message: "No new companies were imported. This may be due to processing errors or empty rows.", type: "error" };
     }
     
-    const pool = await getDbConnection();
     transaction = new sql.Transaction(pool);
     await transaction.begin();
     

@@ -1,8 +1,7 @@
 
 import { NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import pool, { sql } from '@/lib/db';
 import { z } from 'zod';
-import sql from 'mssql';
 
 const hospitalSchema = z.object({
   name: z.string(),
@@ -14,9 +13,7 @@ const hospitalSchema = z.object({
 
 export async function GET() {
   try {
-    const poolConnection = await pool.connect();
-    const result = await poolConnection.request().query('SELECT * FROM hospitals');
-    poolConnection.close();
+    const result = await pool.request().query('SELECT * FROM hospitals');
     return NextResponse.json(result.recordset);
   } catch (error) {
     console.error(error);
@@ -29,16 +26,13 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, address, location, contact } = hospitalSchema.parse(body);
 
-    const poolConnection = await pool.connect();
-    const result = await poolConnection.request()
+    const result = await pool.request()
       .input('name', sql.NVarChar, name)
       .input('address', sql.NVarChar, address)
       .input('location', sql.NVarChar, location)
       .input('contact', sql.NVarChar, contact)
       .query('INSERT INTO hospitals (name, address, location, contact) OUTPUT INSERTED.id VALUES (@name, @address, @location, @contact)');
     
-    poolConnection.close();
-
     const insertedId = result.recordset[0].id;
     return NextResponse.json({ id: insertedId, name, address, location, contact }, { status: 201 });
 

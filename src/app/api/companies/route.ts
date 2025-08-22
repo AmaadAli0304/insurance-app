@@ -1,8 +1,7 @@
 
 import { NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import pool, { sql } from '@/lib/db';
 import { z } from 'zod';
-import sql from 'mssql';
 
 const companySchema = z.object({
   name: z.string().min(1, { message: "Company name is required" }),
@@ -24,11 +23,9 @@ export async function POST(request: Request) {
     
     const { name, contactPerson, phone, email, address, portalLink } = parsedData.data;
     
-    const poolConnection = await pool.connect();
-
     const id = `comp-${Date.now()}`;
 
-    await poolConnection.request()
+    await pool.request()
       .input('id', sql.NVarChar, id)
       .input('name', sql.NVarChar, name)
       .input('contactPerson', sql.NVarChar, contactPerson)
@@ -41,7 +38,6 @@ export async function POST(request: Request) {
         VALUES (@id, @name, @contactPerson, @phone, @email, @address, @portalLink)
       `);
 
-    poolConnection.close();
 
     return NextResponse.json({ message: 'Company created successfully', companyId: id }, { status: 201 });
 

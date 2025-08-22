@@ -3,13 +3,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation';
-import { getDbConnection, sql } from '@/lib/db';
+import pool, { sql } from '@/lib/db';
 import { Company } from "@/lib/types";
 import { mockCompanies } from "@/lib/mock-data";
 
 export async function getCompanies(): Promise<Company[]> {
   try {
-    const pool = await getDbConnection();
     const result = await pool.request().query('SELECT * FROM companies');
     // The UI doesn't use assignedHospitals or policies on this page, 
     // so we can safely return them as empty.
@@ -39,10 +38,9 @@ export async function handleAddCompany(prevState: { message: string, type?: stri
   }
 
   try {
-    const poolConnection = await getDbConnection();
     const id = `comp-${Date.now()}`;
 
-    await poolConnection.request()
+    await pool.request()
       .input('id', sql.NVarChar, id)
       .input('name', sql.NVarChar, name)
       .input('contactPerson', sql.NVarChar, contactPerson)

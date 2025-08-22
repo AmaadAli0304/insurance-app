@@ -1,14 +1,12 @@
 
-import pool from '@/lib/db';
-import sql from 'mssql';
+import pool, { poolConnect, sql } from '@/lib/db';
 import { mockUsers } from '@/lib/mock-data';
 
 async function setupDatabase() {
-  let poolConnection;
   try {
     console.log('Connecting to database...');
-    poolConnection = await pool.connect();
-    const request = poolConnection.request();
+    await poolConnect; // Wait for the initial connection to be established
+    const request = pool.request();
     console.log('Connection successful.');
 
     // Create Users Table
@@ -33,13 +31,13 @@ async function setupDatabase() {
     for (const user of mockUsers) {
       const password = user.password || 'password'; 
 
-      const checkUserRequest = poolConnection.request();
+      const checkUserRequest = pool.request();
       const userExistsResult = await checkUserRequest
         .input('email_check', sql.NVarChar, user.email)
         .query('SELECT uid FROM users WHERE email = @email_check');
 
       if (userExistsResult.recordset.length === 0) {
-        const insertRequest = poolConnection.request();
+        const insertRequest = pool.request();
         await insertRequest
           .input('uid', sql.NVarChar, user.uid)
           .input('name', sql.NVarChar, user.name)
@@ -113,7 +111,7 @@ async function setupDatabase() {
     console.error('Error during database setup:', err);
     process.exit(1);
   } finally {
-    await poolConnection?.close();
+    await pool.close();
     console.log('Database connection closed.');
   }
 }
