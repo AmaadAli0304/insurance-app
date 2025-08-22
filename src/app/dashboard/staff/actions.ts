@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { Staff } from "@/lib/types";
 
 const staffSchema = z.object({
-  name: z.string().min(1, "Full Name is a required field."),
+  name: z.string().min(1, "Full Name is the only required field."),
   designation: z.string().optional().nullable(),
   department: z.string().optional().nullable(),
   number: z.string().optional().nullable(),
@@ -59,10 +59,10 @@ export async function getStaffById(id: string): Promise<Staff | null> {
 export async function handleAddStaff(prevState: { message: string, type?: string }, formData: FormData) {
   
   const validatedFields = staffSchema.safeParse({
-    name: formData.get("fullName"),
+    name: formData.get("name"),
     designation: formData.get("designation"),
     department: formData.get("department"),
-    number: formData.get("contactNumber"),
+    number: formData.get("number"),
     email: formData.get("email"),
     joiningDate: formData.get("joiningDate") || null,
     endDate: formData.get("endDate") || null,
@@ -115,10 +115,10 @@ export async function handleAddStaff(prevState: { message: string, type?: string
 export async function handleUpdateStaff(prevState: { message: string, type?: string }, formData: FormData) {
   const parsed = staffUpdateSchema.safeParse({
     id: formData.get("id"),
-    name: formData.get("fullName"),
+    name: formData.get("name"),
     designation: formData.get("designation"),
     department: formData.get("department"),
-    number: formData.get("contactNumber"),
+    number: formData.get("number"),
     email: formData.get("email"),
     joiningDate: formData.get("joiningDate") || null,
     endDate: formData.get("endDate") || null,
