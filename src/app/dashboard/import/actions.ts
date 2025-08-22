@@ -168,7 +168,7 @@ export async function handleCreateStaffTable(prevState: { message: string, type?
       IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='staff' and xtype='U')
       BEGIN
         CREATE TABLE staff (
-          id NVARCHAR(255) PRIMARY KEY,
+          id INT IDENTITY(1,1) PRIMARY KEY,
           name NVARCHAR(255) NOT NULL,
           photo NVARCHAR(MAX),
           email NVARCHAR(255),

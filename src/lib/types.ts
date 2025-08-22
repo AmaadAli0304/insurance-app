@@ -119,13 +119,12 @@ export interface TPA {
 }
 
 export interface Staff {
-  id: string;
+  id: number;
   name: string;
   designation?: string | null;
   department?: string | null;
   number?: string | null;
   email?: string | null;
-  hospitalId?: string | null;
   joiningDate?: string | null;
   endDate?: string | null;
   shiftTime?: string | null;

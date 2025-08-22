@@ -19,7 +19,7 @@ const staffSchema = z.object({
 });
 
 const staffUpdateSchema = staffSchema.extend({
-    id: z.string().min(1),
+    id: z.coerce.number().int().min(1),
 });
 
 export async function getStaff(): Promise<Staff[]> {
@@ -34,11 +34,11 @@ export async function getStaff(): Promise<Staff[]> {
   }
 }
 
-export async function getStaffById(id: string): Promise<Staff | null> {
+export async function getStaffById(id: number): Promise<Staff | null> {
   try {
     await poolConnect;
     const result = await pool.request()
-      .input('id', sql.NVarChar, id)
+      .input('id', sql.Int, id)
       .query('SELECT * FROM staff WHERE id = @id');
 
     if (result.recordset.length === 0) {
@@ -77,12 +77,10 @@ export async function handleAddStaff(prevState: { message: string, type?: string
   }
 
   const { data } = validatedFields;
-  const id = `staff-${Date.now()}`;
 
   try {
     await poolConnect;
     await pool.request()
-      .input('id', sql.NVarChar, id)
       .input('name', sql.NVarChar, data.name)
       .input('email', sql.NVarChar, data.email)
       .input('number', sql.NVarChar, data.number)
@@ -93,8 +91,8 @@ export async function handleAddStaff(prevState: { message: string, type?: string
       .input('shiftTime', sql.NVarChar, data.shiftTime)
       .input('status', sql.NVarChar, data.status)
       .query(`
-        INSERT INTO staff (id, name, email, number, designation, department, joiningDate, endDate, shiftTime, status) 
-        VALUES (@id, @name, @email, @number, @designation, @department, @joiningDate, @endDate, @shiftTime, @status)
+        INSERT INTO staff (name, email, number, designation, department, joiningDate, endDate, shiftTime, status) 
+        VALUES (@name, @email, @number, @designation, @department, @joiningDate, @endDate, @shiftTime, @status)
       `);
     
   } catch (error) {
@@ -145,7 +143,7 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
     ].join(', ');
     
     const result = await request
-        .input('id', sql.NVarChar, id)
+        .input('id', sql.Int, id)
         .input('name', sql.NVarChar, data.name)
         .input('email', sql.NVarChar, data.email)
         .input('number', sql.NVarChar, data.number)
@@ -179,7 +177,7 @@ export async function handleDeleteStaff(prevState: { message: string, type?: str
     try {
         await poolConnect;
         const result = await pool.request()
-            .input('id', sql.NVarChar, id)
+            .input('id', sql.Int, Number(id))
             .query('DELETE FROM staff WHERE id = @id');
 
         if (result.rowsAffected[0] === 0) {
