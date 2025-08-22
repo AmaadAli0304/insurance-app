@@ -72,19 +72,6 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
                                 <Input id="department" name="department" defaultValue={staff.department} required />
                             </div>
                              <div className="space-y-2">
-                                <Label htmlFor="hospitalId">Assigned Hospital</Label>
-                                <Select name="hospitalId" defaultValue={staff.hospitalId}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select hospital" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {mockHospitals.map(h => (
-                                            <SelectItem key={h.id} value={h.id}>{h.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                             <div className="space-y-2">
                                 <Label htmlFor="joiningDate">Joining Date</Label>
                                 <Input id="joiningDate" name="joiningDate" type="date" defaultValue={staff.joiningDate} required />
                             </div>

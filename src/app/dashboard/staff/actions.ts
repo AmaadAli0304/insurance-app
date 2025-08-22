@@ -18,7 +18,7 @@ export async function handleAddStaff(prevState: { message: string }, formData: F
     shiftTiming: formData.get("shiftTiming") as string || undefined,
     status: formData.get("status") as "Active" | "Inactive",
     companyId: formData.get("companyId") as string,
-    hospitalId: formData.get("hospitalId") as string || undefined,
+    hospitalId: undefined, // No longer collected from form
   };
 
   if (!newStaffData.fullName || !newStaffData.email || !newStaffData.companyId) {
@@ -48,7 +48,7 @@ export async function handleUpdateStaff(prevState: { message: string }, formData
     endDate: formData.get("endDate") as string || undefined,
     shiftTiming: formData.get("shiftTiming") as string || undefined,
     status: formData.get("status") as "Active" | "Inactive",
-    hospitalId: formData.get("hospitalId") as string || undefined,
+    hospitalId: undefined, // No longer collected from form
   };
 
   if (!id) {

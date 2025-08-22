@@ -67,19 +67,6 @@ export default function NewStaffPage() {
                                 <Label htmlFor="department">Department</Label>
                                 <Input id="department" name="department" placeholder="e.g., Claims Processing" required />
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="hospitalId">Assigned Hospital</Label>
-                                <Select name="hospitalId">
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select hospital" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {mockHospitals.map(h => (
-                                            <SelectItem key={h.id} value={h.id}>{h.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
                              <div className="space-y-2">
                                 <Label htmlFor="joiningDate">Joining Date</Label>
                                 <Input id="joiningDate" name="joiningDate" type="date" required />
