@@ -11,7 +11,7 @@ import { useFormStatus } from "react-dom";
 import { handleUpdateTPA, getTPAById } from "../../actions";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { notFound } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import type { TPA } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 
@@ -30,6 +30,7 @@ export default function EditTPAPage({ params }: { params: { id: string } }) {
     const [error, setError] = React.useState<string | null>(null);
     const [state, formAction] = useActionState(handleUpdateTPA, { message: "", type: "initial" });
     const { toast } = useToast();
+    const router = useRouter();
 
     useEffect(() => {
         async function fetchTpa() {
@@ -56,14 +57,21 @@ export default function EditTPAPage({ params }: { params: { id: string } }) {
     }, [params.id]);
 
     useEffect(() => {
-        if (state.type === 'error') {
+        if (state.type === 'success') {
+           toast({
+             title: "TPA",
+             description: "TPA updated successfully",
+             variant: "success",
+           });
+           router.push('/dashboard/tpas');
+        } else if (state.type === 'error') {
            toast({
              title: "Error",
              description: state.message,
              variant: "destructive",
            });
         }
-    }, [state, toast]);
+    }, [state, router, toast]);
 
     if (isLoading) {
         return <div>Loading...</div>;

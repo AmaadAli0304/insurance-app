@@ -83,7 +83,7 @@ export async function handleAddTPA(prevState: { message: string, type?: string }
   }
 
   revalidatePath('/dashboard/tpas');
-  redirect('/dashboard/tpas');
+  return { message: "TPA added successfully.", type: "success" };
 }
 
 export async function handleUpdateTPA(prevState: { message: string, type?: string }, formData: FormData) {
@@ -134,7 +134,7 @@ export async function handleUpdateTPA(prevState: { message: string, type?: strin
   }
 
   revalidatePath('/dashboard/tpas');
-  redirect('/dashboard/tpas');
+  return { message: "TPA updated successfully.", type: "success" };
 }
 
 export async function handleDeleteTPA(prevState: { message: string, type?: string }, formData: FormData) {
