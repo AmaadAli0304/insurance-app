@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useActionState, useEffect } from "react";
@@ -67,14 +68,14 @@ export default function NewCompanyPage() {
                                 <Input id="name" name="name" placeholder="e.g. Statamine Inc." required />
                             </div>
                              <div className="space-y-2">
-                                <Label htmlFor="email">Official Email</Label>
-                                <Input id="email" name="email" type="email" placeholder="e.g. contact@company.com" />
+                                <Label htmlFor="email">Official Email <span className="text-destructive">*</span></Label>
+                                <Input id="email" name="email" type="email" placeholder="e.g. contact@company.com" required />
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="address">Full Postal Address</Label>
-                            <Input id="address" name="address" placeholder="e.g. 123 Insurance Rd, Big City, USA" />
+                            <Label htmlFor="address">Full Postal Address <span className="text-destructive">*</span></Label>
+                            <Input id="address" name="address" placeholder="e.g. 123 Insurance Rd, Big City, USA" required />
                         </div>
 
                          <div className="grid md:grid-cols-3 gap-4">
@@ -86,13 +87,13 @@ export default function NewCompanyPage() {
                                 <Label htmlFor="phone">Phone</Label>
                                 <Input id="phone" name="phone" placeholder="e.g. 800-555-1234" />
                             </div>
-                            <div className="space-y-2">
+                             <div className="space-y-2">
                                 <Label htmlFor="portalLink">Portal Link</Label>
                                 <Input id="portalLink" name="portalLink" type="url" placeholder="https://company-portal.com" />
                             </div>
                         </div>
                         
-                        {state.type === 'error' && <p className="text-sm text-destructive">{state.message}</p>}
+                        {state?.type === 'error' && <p className="text-sm text-destructive">{state.message}</p>}
                          <SubmitButton />
                     </CardContent>
                 </form>
