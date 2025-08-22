@@ -76,7 +76,7 @@ export function StaffTable({ staff }: StaffTableProps) {
       <TableBody>
         {staff.map(s => (
           <TableRow key={s.id}>
-            <TableCell className="font-medium">{s.fullName}</TableCell>
+            <TableCell className="font-medium">{s.name}</TableCell>
             <TableCell>{s.designation}</TableCell>
             <TableCell>{s.email}</TableCell>
             <TableCell>

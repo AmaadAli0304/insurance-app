@@ -97,8 +97,8 @@ export default function NewStaffPage() {
                                 <Input id="endDate" name="endDate" type="date" />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="shiftTiming">Shift Timing</Label>
-                                <Input id="shiftTiming" name="shiftTiming" placeholder="e.g., 9 AM - 6 PM" />
+                                <Label htmlFor="shiftTime">Shift Timing</Label>
+                                <Input id="shiftTime" name="shiftTime" placeholder="e.g., 9 AM - 6 PM" />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="status">Status</Label>

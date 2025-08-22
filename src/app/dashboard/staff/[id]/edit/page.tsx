@@ -103,7 +103,7 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
                         <span className="sr-only">Back</span>
                     </Link>
                 </Button>
-                <h1 className="text-2xl font-bold">Edit Staff: {staff.fullName}</h1>
+                <h1 className="text-2xl font-bold">Edit Staff: {staff.name}</h1>
             </div>
             <Card>
                 <CardHeader>
@@ -117,7 +117,7 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
                          <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="fullName">Full Name <span className="text-destructive">*</span></Label>
-                                <Input id="fullName" name="fullName" defaultValue={staff.fullName} required />
+                                <Input id="fullName" name="fullName" defaultValue={staff.name} required />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email Address</Label>
@@ -125,7 +125,7 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="contactNumber">Contact Number</Label>
-                                <Input id="contactNumber" name="contactNumber" defaultValue={staff.contactNumber ?? ""} />
+                                <Input id="contactNumber" name="contactNumber" defaultValue={staff.number ?? ""} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="designation">Designation</Label>
@@ -144,12 +144,12 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
                                 <Input id="endDate" name="endDate" type="date" defaultValue={formatDateForInput(staff.endDate)} />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="shiftTiming">Shift Timing</Label>
-                                <Input id="shiftTiming" name="shiftTiming" defaultValue={staff.shiftTiming ?? ""} />
+                                <Label htmlFor="shiftTime">Shift Timing</Label>
+                                <Input id="shiftTime" name="shiftTime" defaultValue={staff.shiftTime ?? ""} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="status">Status</Label>
-                                <Select name="status" defaultValue={staff.status}>
+                                <Select name="status" defaultValue={staff.status ?? undefined}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select status" />
                                     </SelectTrigger>

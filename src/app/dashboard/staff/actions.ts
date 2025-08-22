@@ -7,14 +7,14 @@ import { z } from 'zod';
 import { Staff } from "@/lib/types";
 
 const staffSchema = z.object({
-  fullName: z.string().min(1, "Full Name is a required field."),
+  name: z.string().min(1, "Full Name is a required field."),
   designation: z.string().optional().nullable(),
   department: z.string().optional().nullable(),
-  contactNumber: z.string().optional().nullable(),
+  number: z.string().optional().nullable(),
   email: z.string().email("Invalid email address").optional().or(z.literal('')),
   joiningDate: z.string().optional().nullable(),
   endDate: z.string().optional().nullable(),
-  shiftTiming: z.string().optional().nullable(),
+  shiftTime: z.string().optional().nullable(),
   status: z.enum(["Active", "Inactive"]).optional().nullable(),
   companyId: z.string(),
 });
@@ -28,7 +28,7 @@ export async function getStaff(companyId: string): Promise<Staff[]> {
     await poolConnect;
     const result = await pool.request()
       .input('companyId', sql.NVarChar, companyId)
-      .query('SELECT *, name as fullName, number as contactNumber, shiftTime as shiftTiming FROM staff WHERE companyId = @companyId');
+      .query('SELECT * FROM staff WHERE companyId = @companyId');
     return result.recordset as Staff[];
   } catch (error) {
       const dbError = error as Error;
@@ -41,7 +41,7 @@ export async function getStaffById(id: string): Promise<Staff | null> {
     await poolConnect;
     const result = await pool.request()
       .input('id', sql.NVarChar, id)
-      .query('SELECT *, name as fullName, number as contactNumber, shiftTime as shiftTiming FROM staff WHERE id = @id');
+      .query('SELECT * FROM staff WHERE id = @id');
 
     if (result.recordset.length === 0) {
       return null;
@@ -59,14 +59,14 @@ export async function getStaffById(id: string): Promise<Staff | null> {
 export async function handleAddStaff(prevState: { message: string, type?: string }, formData: FormData) {
   
   const validatedFields = staffSchema.safeParse({
-    fullName: formData.get("fullName"),
+    name: formData.get("fullName"),
     designation: formData.get("designation"),
     department: formData.get("department"),
-    contactNumber: formData.get("contactNumber"),
+    number: formData.get("contactNumber"),
     email: formData.get("email"),
     joiningDate: formData.get("joiningDate") || null,
     endDate: formData.get("endDate") || null,
-    shiftTiming: formData.get("shiftTiming"),
+    shiftTime: formData.get("shiftTime"),
     status: formData.get("status"),
     companyId: formData.get("companyId"),
   });
@@ -86,14 +86,14 @@ export async function handleAddStaff(prevState: { message: string, type?: string
     await poolConnect;
     await pool.request()
       .input('id', sql.NVarChar, id)
-      .input('name', sql.NVarChar, data.fullName)
+      .input('name', sql.NVarChar, data.name)
       .input('email', sql.NVarChar, data.email)
-      .input('number', sql.NVarChar, data.contactNumber)
+      .input('number', sql.NVarChar, data.number)
       .input('designation', sql.NVarChar, data.designation)
       .input('department', sql.NVarChar, data.department)
       .input('joiningDate', data.joiningDate ? sql.Date : sql.Date, data.joiningDate ? new Date(data.joiningDate) : null)
       .input('endDate', data.endDate ? sql.Date : sql.Date, data.endDate ? new Date(data.endDate) : null)
-      .input('shiftTime', sql.NVarChar, data.shiftTiming)
+      .input('shiftTime', sql.NVarChar, data.shiftTime)
       .input('status', sql.NVarChar, data.status)
       .input('companyId', sql.NVarChar, data.companyId)
       .query(`
@@ -115,14 +115,14 @@ export async function handleAddStaff(prevState: { message: string, type?: string
 export async function handleUpdateStaff(prevState: { message: string, type?: string }, formData: FormData) {
   const parsed = staffUpdateSchema.safeParse({
     id: formData.get("id"),
-    fullName: formData.get("fullName"),
+    name: formData.get("fullName"),
     designation: formData.get("designation"),
     department: formData.get("department"),
-    contactNumber: formData.get("contactNumber"),
+    number: formData.get("contactNumber"),
     email: formData.get("email"),
     joiningDate: formData.get("joiningDate") || null,
     endDate: formData.get("endDate") || null,
-    shiftTiming: formData.get("shiftTiming"),
+    shiftTime: formData.get("shiftTime"),
     status: formData.get("status"),
     companyId: formData.get("companyId"),
   });
@@ -151,14 +151,14 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
     
     const result = await request
         .input('id', sql.NVarChar, id)
-        .input('name', sql.NVarChar, data.fullName)
+        .input('name', sql.NVarChar, data.name)
         .input('email', sql.NVarChar, data.email)
-        .input('number', sql.NVarChar, data.contactNumber)
+        .input('number', sql.NVarChar, data.number)
         .input('designation', sql.NVarChar, data.designation)
         .input('department', sql.NVarChar, data.department)
         .input('joiningDate', data.joiningDate ? sql.Date : sql.Date, data.joiningDate ? new Date(data.joiningDate) : null)
         .input('endDate', data.endDate ? sql.Date : sql.Date, data.endDate ? new Date(data.endDate) : null)
-        .input('shiftTime', sql.NVarChar, data.shiftTiming)
+        .input('shiftTime', sql.NVarChar, data.shiftTime)
         .input('status', sql.NVarChar, data.status)
         .query(`UPDATE staff SET ${setClauses} WHERE id = @id`);
 
