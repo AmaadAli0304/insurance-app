@@ -90,7 +90,7 @@ export default async function ViewStaffPage({ params }: { params: { id: string }
 
             <div className="grid lg:grid-cols-1 gap-6">
                  <AssociationList 
-                    title="Assigned Hospitals" 
+                    title="Assigned Hospital" 
                     items={staff.assignedHospitalsDetails || []} 
                     icon={<Building className="h-6 w-6 text-primary" />} 
                 />
