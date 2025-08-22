@@ -121,14 +121,14 @@ export interface TPA {
 export interface Staff {
   id: string;
   fullName: string;
-  designation: string;
-  department: string;
-  contactNumber: string;
-  email: string;
+  designation?: string | null;
+  department?: string | null;
+  contactNumber?: string | null;
+  email?: string | null;
   companyId: string;
-  hospitalId?: string;
-  joiningDate: string;
-  endDate?: string;
-  shiftTiming?: string;
-  status: 'Active' | 'Inactive';
+  hospitalId?: string | null;
+  joiningDate?: string | null;
+  endDate?: string | null;
+  shiftTiming?: string | null;
+  status?: 'Active' | 'Inactive' | null;
 }

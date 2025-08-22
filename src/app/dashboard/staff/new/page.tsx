@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/components/auth-provider";
-import { mockHospitals } from "@/lib/mock-data";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -25,7 +26,27 @@ function SubmitButton() {
 
 export default function NewStaffPage() {
     const { user } = useAuth();
-    const [state, formAction] = useActionState(handleAddStaff, { message: "" });
+    const [state, formAction] = useActionState(handleAddStaff, { message: "", type: "initial" });
+    const { toast } = useToast();
+    const router = useRouter();
+
+     useEffect(() => {
+        if (state.type === 'success') {
+            toast({
+                title: "Staff Management",
+                description: state.message,
+                variant: "success",
+            });
+            router.push('/dashboard/staff');
+        } else if (state.type === 'error') {
+            toast({
+                title: "Error",
+                description: state.message,
+                variant: "destructive"
+            });
+        }
+    }, [state, toast, router]);
+
 
     return (
         <div className="space-y-6">
@@ -93,7 +114,7 @@ export default function NewStaffPage() {
                             </div>
                         </div>
 
-                        {state.message && <p className="text-sm text-destructive">{state.message}</p>}
+                        {state.type === 'error' && <p className="text-sm text-destructive">{state.message}</p>}
                          <SubmitButton />
                     </CardContent>
                 </form>

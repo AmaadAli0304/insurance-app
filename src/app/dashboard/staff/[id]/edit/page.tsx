@@ -1,18 +1,21 @@
 
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleUpdateStaff } from "../../actions";
+import { handleUpdateStaff, getStaffById } from "../../actions";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { mockHospitals, mockStaff } from "@/lib/mock-data";
-import { notFound } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { Staff } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/components/auth-provider";
+import { format } from 'date-fns';
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -24,8 +27,68 @@ function SubmitButton() {
 }
 
 export default function EditStaffPage({ params }: { params: { id: string } }) {
-    const staff = mockStaff.find(s => s.id === params.id);
-    const [state, formAction] = useActionState(handleUpdateStaff, { message: "" });
+    const { user } = useAuth();
+    const [staff, setStaff] = useState<Staff | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [state, formAction] = useActionState(handleUpdateStaff, { message: "", type: "initial" });
+    const { toast } = useToast();
+    const router = useRouter();
+
+
+    useEffect(() => {
+        async function fetchStaff() {
+            try {
+                const fetchedStaff = await getStaffById(params.id);
+                if (!fetchedStaff) {
+                    notFound();
+                    return;
+                }
+                setStaff(fetchedStaff);
+            } catch (err) {
+                const dbError = err as Error;
+                setError(dbError.message);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        fetchStaff();
+    }, [params.id]);
+
+
+    useEffect(() => {
+        if (state.type === 'success') {
+           toast({
+             title: "Staff Management",
+             description: state.message,
+             variant: "success",
+           });
+           router.push('/dashboard/staff');
+        } else if (state.type === 'error') {
+           toast({
+             title: "Error",
+             description: state.message,
+             variant: "destructive",
+           });
+        }
+    }, [state, router, toast]);
+
+    const formatDateForInput = (dateString?: string) => {
+        if (!dateString) return '';
+        try {
+            return format(new Date(dateString), 'yyyy-MM-dd');
+        } catch {
+            return '';
+        }
+    };
+
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
+
+    if (error) {
+        return <div>Error: {error}</div>;
+    }
 
     if (!staff) {
         notFound();
@@ -50,6 +113,7 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
                 <form action={formAction}>
                     <CardContent className="space-y-4">
                         <input type="hidden" name="id" value={staff.id} />
+                        <input type="hidden" name="companyId" value={user?.companyId || ''} />
                          <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="fullName">Full Name <span className="text-destructive">*</span></Label>
@@ -57,31 +121,31 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email Address</Label>
-                                <Input id="email" name="email" type="email" defaultValue={staff.email} />
+                                <Input id="email" name="email" type="email" defaultValue={staff.email ?? ""} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="contactNumber">Contact Number</Label>
-                                <Input id="contactNumber" name="contactNumber" defaultValue={staff.contactNumber} />
+                                <Input id="contactNumber" name="contactNumber" defaultValue={staff.contactNumber ?? ""} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="designation">Designation</Label>
-                                <Input id="designation" name="designation" defaultValue={staff.designation} />
+                                <Input id="designation" name="designation" defaultValue={staff.designation ?? ""} />
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="department">Department</Label>
-                                <Input id="department" name="department" defaultValue={staff.department} />
+                                <Input id="department" name="department" defaultValue={staff.department ?? ""} />
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="joiningDate">Joining Date</Label>
-                                <Input id="joiningDate" name="joiningDate" type="date" defaultValue={staff.joiningDate} />
+                                <Input id="joiningDate" name="joiningDate" type="date" defaultValue={formatDateForInput(staff.joiningDate)} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="endDate">End Date</Label>
-                                <Input id="endDate" name="endDate" type="date" defaultValue={staff.endDate} />
+                                <Input id="endDate" name="endDate" type="date" defaultValue={formatDateForInput(staff.endDate)} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="shiftTiming">Shift Timing</Label>
-                                <Input id="shiftTiming" name="shiftTiming" defaultValue={staff.shiftTiming} />
+                                <Input id="shiftTiming" name="shiftTiming" defaultValue={staff.shiftTiming ?? ""} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="status">Status</Label>
@@ -96,7 +160,7 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
                                 </Select>
                             </div>
                         </div>
-                        {state.message && <p className="text-sm text-destructive">{state.message}</p>}
+                        {state.type === 'error' && <p className="text-sm text-destructive">{state.message}</p>}
                          <SubmitButton />
                     </CardContent>
                 </form>

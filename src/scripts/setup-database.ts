@@ -1,4 +1,5 @@
 
+
 import pool, { poolConnect, sql } from '@/lib/db';
 import { mockUsers } from '@/lib/mock-data';
 
@@ -114,6 +115,35 @@ async function setupDatabase() {
     `;
     await request.query(createTpasTableQuery);
     console.log('TPAs table check/create complete.');
+    
+    // Create Staff Table
+    console.log('Checking for "staff" table...');
+    const createStaffTableQuery = `
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='staff' and xtype='U')
+      BEGIN
+        CREATE TABLE staff (
+          id NVARCHAR(255) PRIMARY KEY,
+          name NVARCHAR(255) NOT NULL,
+          photo NVARCHAR(MAX),
+          email NVARCHAR(255),
+          number NVARCHAR(50),
+          designation NVARCHAR(255),
+          department NVARCHAR(255),
+          joiningDate DATE,
+          endDate DATE,
+          shiftTime NVARCHAR(100),
+          status NVARCHAR(50),
+          companyId NVARCHAR(255)
+        );
+        PRINT '"staff" table created.';
+      END
+      ELSE
+      BEGIN
+          PRINT '"staff" table already exists.';
+      END
+    `;
+    await request.query(createStaffTableQuery);
+    console.log('Staff table check/create complete.');
 
     console.log('Database setup complete!');
 
