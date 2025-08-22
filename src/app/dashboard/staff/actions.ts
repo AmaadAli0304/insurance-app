@@ -28,7 +28,7 @@ export async function getStaff(companyId: string): Promise<Staff[]> {
     await poolConnect;
     const result = await pool.request()
       .input('companyId', sql.NVarChar, companyId)
-      .query('SELECT * FROM staff WHERE companyId = @companyId');
+      .query('SELECT *, name as fullName, number as contactNumber, shiftTime as shiftTiming FROM staff WHERE companyId = @companyId');
     return result.recordset as Staff[];
   } catch (error) {
       const dbError = error as Error;
@@ -41,7 +41,7 @@ export async function getStaffById(id: string): Promise<Staff | null> {
     await poolConnect;
     const result = await pool.request()
       .input('id', sql.NVarChar, id)
-      .query('SELECT * FROM staff WHERE id = @id');
+      .query('SELECT *, name as fullName, number as contactNumber, shiftTime as shiftTiming FROM staff WHERE id = @id');
 
     if (result.recordset.length === 0) {
       return null;
