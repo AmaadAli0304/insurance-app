@@ -44,7 +44,7 @@ export default function NewCompanyHospitalPage() {
     const [staff, setStaff] = useState<Staff[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    const [selectedCompanies, setSelectedCompanies] = useState<string[]>(user?.companyId ? [user.companyId] : []);
+    const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
     const [selectedTPAs, setSelectedTPAs] = useState<string[]>([]);
     const [selectedStaff, setSelectedStaff] = useState<string[]>([]);
 
