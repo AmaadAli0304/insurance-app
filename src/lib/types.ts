@@ -1,4 +1,5 @@
 
+
 export type UserRole = 'Admin' | 'Hospital Staff' | 'Company Admin';
 
 export interface User {
@@ -108,11 +109,12 @@ export interface Claim {
 }
 
 export interface TPA {
-  tpaId: string;
+  id?: number; // from DB (identity)
+  tpaId: string; // for mock data compatibility
   name: string;
-  phone: string;
-  email: string;
-  address: string;
+  phone?: string;
+  email?: string;
+  address?: string;
   portalLink?: string;
 }
 

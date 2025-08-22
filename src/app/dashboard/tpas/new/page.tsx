@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,8 @@ import { useFormStatus } from "react-dom";
 import { handleAddTPA } from "../actions";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -21,7 +23,26 @@ function SubmitButton() {
 }
 
 export default function NewTPAPage() {
-    const [state, formAction] = useActionState(handleAddTPA, { message: "" });
+    const [state, formAction] = useActionState(handleAddTPA, { message: "", type: undefined });
+    const { toast } = useToast();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (state.type === 'success') {
+            toast({
+                title: "TPA",
+                description: "TPA added successfully",
+                variant: "success",
+            });
+            router.push('/dashboard/tpas');
+        } else if (state.type === 'error') {
+            toast({
+                title: "Error",
+                description: state.message,
+                variant: "destructive"
+            });
+        }
+    }, [state, toast, router]);
 
     return (
         <div className="space-y-6">
@@ -47,8 +68,8 @@ export default function NewTPAPage() {
                                 <Input id="name" name="name" placeholder="e.g. HealthServe TPA" required />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="email">Email <span className="text-destructive">*</span></Label>
-                                <Input id="email" name="email" type="email" placeholder="e.g. contact@tpa.com" required />
+                                <Label htmlFor="email">Email</Label>
+                                <Input id="email" name="email" type="email" placeholder="e.g. contact@tpa.com" />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="phone">Phone</Label>
@@ -60,11 +81,11 @@ export default function NewTPAPage() {
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
-                            <Input id="address" name="address" placeholder="e.g. 123 Health Way, Anytown, USA" required />
+                            <Label htmlFor="address">Address</Label>
+                            <Input id="address" name="address" placeholder="e.g. 123 Health Way, Anytown, USA" />
                         </div>
 
-                        {state.message && <p className="text-sm text-destructive">{state.message}</p>}
+                        {state.type === 'error' && <p className="text-sm text-destructive">{state.message}</p>}
                          <SubmitButton />
                     </CardContent>
                 </form>
