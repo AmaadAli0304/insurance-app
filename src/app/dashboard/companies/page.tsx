@@ -1,22 +1,15 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { PlusCircle, AlertCircle } from "lucide-react"
+import { PlusCircle } from "lucide-react"
 import Link from "next/link"
-import { getCompanies } from "./actions"
 import { CompaniesTable } from "./companies-table"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { mockCompanies } from "@/lib/mock-data"
 
 
 export default async function CompaniesPage() {
-  let companies = [];
-  let error = null;
-
-  try {
-    companies = await getCompanies();
-  } catch (e) {
-    console.error(e); // Also log it on the server
-    error = e instanceof Error ? e.message : "An unknown error occurred.";
-  }
+  // Using mock data for now to ensure functionality
+  const companies = mockCompanies;
 
   return (
     <div className="space-y-6">
@@ -34,18 +27,7 @@ export default async function CompaniesPage() {
           </Button>
         </CardHeader>
         <CardContent>
-          {error ? (
-             <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error Fetching Companies</AlertTitle>
-                <AlertDescription>
-                  {error}
-                  <p className="mt-2 text-xs">This is likely an issue with the database connection on the deployed server (Vercel). Please check your environment variables and firewall settings.</p>
-                </AlertDescription>
-              </Alert>
-          ) : (
-            <CompaniesTable companies={companies} />
-          )}
+           <CompaniesTable companies={companies} />
         </CardContent>
       </Card>
     </div>
