@@ -2,6 +2,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal, Trash, Edit } from "lucide-react"
@@ -24,6 +25,19 @@ import { useToast } from "@/hooks/use-toast";
 
 interface CompaniesTableProps {
   companies: Company[];
+}
+
+function DeleteButton() {
+    const { pending } = useFormStatus();
+    return (
+        <AlertDialogAction type="submit" disabled={pending}>
+            {pending ? (
+                <div className="w-5 h-5 border-2 border-background border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+                'Continue'
+            )}
+        </AlertDialogAction>
+    );
 }
 
 export function CompaniesTable({ companies }: CompaniesTableProps) {
@@ -93,7 +107,7 @@ export function CompaniesTable({ companies }: CompaniesTableProps) {
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                      <form action={formAction} ref={formRef}>
                         <input type="hidden" name="id" value={c.id} />
-                        <AlertDialogAction type="submit">Continue</AlertDialogAction>
+                        <DeleteButton />
                      </form>
                   </AlertDialogFooter>
                 </AlertDialogContent>
