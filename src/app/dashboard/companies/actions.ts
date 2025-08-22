@@ -151,11 +151,18 @@ export async function handleUpdateCompany(prevState: { message: string }, formDa
     }
     const request = pool.request();
     const setClauses = Object.entries(updatedData)
-      .map(([key]) => `${key} = @${key}`)
+      .map(([key, value]) => value !== null && value !== '' ? `${key} = @${key}` : null)
+      .filter(Boolean)
       .join(', ');
-    
+
+    if (!setClauses) {
+      return { message: "No data to update." };
+    }
+
     Object.entries(updatedData).forEach(([key, value]) => {
-      request.input(key, value || null);
+       if (value !== null && value !== '') {
+        request.input(key, value);
+      }
     });
 
     const result = await request

@@ -38,6 +38,7 @@ export default function EditCompanyPage({ params }: { params: { id: string } }) 
                 const fetchedCompany = await getCompanyById(params.id);
                 if (!fetchedCompany) {
                     notFound();
+                    return;
                 }
                 setCompany(fetchedCompany);
             } catch (err) {
@@ -51,15 +52,12 @@ export default function EditCompanyPage({ params }: { params: { id: string } }) 
     }, [params.id]);
 
     useEffect(() => {
-        if (state?.message && state.message !== "Company not found or data is the same.") {
+        if (state?.message && state.message !== "Company not found or data is the same." && !state.message.includes('success')) {
            toast({
-             title: state.message.includes("success") ? "Success" : "Error",
+             title: "Error",
              description: state.message,
-             variant: state.message.includes("success") ? "success" : "destructive",
+             variant: "destructive",
            });
-           if(state.message.includes("success")) {
-             router.push('/dashboard/companies');
-           }
         }
     }, [state, router, toast]);
 
@@ -125,7 +123,7 @@ export default function EditCompanyPage({ params }: { params: { id: string } }) 
                             </div>
                         </div>
 
-                        {state.message && <p className="text-sm text-destructive">{state.message}</p>}
+                        {state.message && !state.message.includes('success') && <p className="text-sm text-destructive">{state.message}</p>}
                          <SubmitButton />
                     </CardContent>
                 </form>
