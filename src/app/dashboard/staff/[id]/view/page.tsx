@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Building } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns';
 
@@ -13,6 +13,24 @@ const DetailItem = ({ label, value }: { label: string, value?: string | null }) 
         <p className="text-sm font-medium text-muted-foreground">{label}</p>
         <p className="text-base">{value || "N/A"}</p>
     </div>
+);
+
+const AssociationList = ({ title, items, icon }: { title: string, items: { id: string | number, name: string }[], icon: React.ReactNode }) => (
+    <Card>
+        <CardHeader className="flex flex-row items-center gap-4">
+            {icon}
+            <CardTitle>{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+            {items.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                    {items.map(item => <Badge key={item.id} variant="secondary">{item.name}</Badge>)}
+                </div>
+            ) : (
+                <p className="text-sm text-muted-foreground">No {title.toLowerCase()} assigned.</p>
+            )}
+        </CardContent>
+    </Card>
 );
 
 export default async function ViewStaffPage({ params }: { params: { id: string } }) {
@@ -69,6 +87,14 @@ export default async function ViewStaffPage({ params }: { params: { id: string }
                     <DetailItem label="End Date" value={formatDate(staff.endDate)} />
                 </CardContent>
             </Card>
+
+            <div className="grid lg:grid-cols-1 gap-6">
+                 <AssociationList 
+                    title="Assigned Hospitals" 
+                    items={staff.assignedHospitalsDetails || []} 
+                    icon={<Building className="h-6 w-6 text-primary" />} 
+                />
+            </div>
 
         </div>
     );

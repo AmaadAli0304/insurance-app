@@ -37,15 +37,23 @@ export async function getStaff(): Promise<Staff[]> {
 export async function getStaffById(id: number): Promise<Staff | null> {
   try {
     await poolConnect;
-    const result = await pool.request()
+    const staffResult = await pool.request()
       .input('id', sql.Int, id)
       .query('SELECT * FROM staff WHERE id = @id');
 
-    if (result.recordset.length === 0) {
+    if (staffResult.recordset.length === 0) {
       return null;
     }
     
-    return result.recordset[0] as Staff;
+    const staff = staffResult.recordset[0] as Staff;
+
+    const hospitalsResult = await pool.request()
+      .input('staff_id', sql.Int, id)
+      .query('SELECT h.id, h.name FROM hospitals h JOIN hospital_staff hs ON h.id = hs.hospital_id WHERE hs.staff_id = @staff_id');
+
+    staff.assignedHospitalsDetails = hospitalsResult.recordset;
+    
+    return staff;
 
   } catch (error) {
     console.error('Error fetching staff by ID:', error);
