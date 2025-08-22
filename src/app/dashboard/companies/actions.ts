@@ -2,7 +2,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import pool, { sql } from "@/lib/db";
+import pool, { sql, poolConnect } from "@/lib/db";
 import { z } from 'zod';
 import { Company } from "@/lib/types";
 
@@ -17,20 +17,18 @@ const companySchema = z.object({
 
 export async function getCompanies(): Promise<Company[]> {
   try {
-    await pool.connect();
+    await poolConnect;
     const result = await pool.request().query('SELECT * FROM companies');
     return result.recordset as Company[];
   } catch (error) {
       const dbError = error as Error;
-      throw new Error(`Failed to fetch companies. Please check server logs for details. Error: ${dbError.message}`);
-  } finally {
-      pool.close();
+      throw new Error(`Error fetching companies: ${dbError.message}`);
   }
 }
 
 export async function getCompanyById(id: string): Promise<Company | null> {
   try {
-    await pool.connect();
+    await poolConnect;
     const result = await pool.request()
       .input('id', sql.NVarChar, id)
       .query('SELECT * FROM companies WHERE id = @id');
@@ -44,8 +42,6 @@ export async function getCompanyById(id: string): Promise<Company | null> {
   } catch (error) {
     console.error('Error fetching company by ID:', error);
     throw new Error('Failed to fetch company details from the database.');
-  } finally {
-      pool.close();
   }
 }
 
@@ -69,7 +65,7 @@ export async function handleAddCompany(prevState: { message: string, type?: stri
 
   try {
     const id = `comp-${Date.now()}`;
-    await pool.connect();
+    await poolConnect;
     await pool.request()
       .input('id', sql.NVarChar, id)
       .input('name', sql.NVarChar, validatedFields.data.name)
@@ -86,9 +82,7 @@ export async function handleAddCompany(prevState: { message: string, type?: stri
   } catch (error) {
       console.error('Error adding company:', error);
       const dbError = error as { message?: string };
-      return { message: `Error adding company: ${dbError.message || 'Unknown error'}`, type: "error" };
-  } finally {
-    pool.close();
+      return { message: `Database Error: ${dbError.message || 'Unknown error'}`, type: "error" };
   }
   
   revalidatePath('/dashboard/companies');
@@ -126,7 +120,7 @@ export async function handleUpdateCompany(prevState: { message: string, type?: s
   const { id, ...updatedData } = parsed.data;
 
   try {
-    await pool.connect();
+    await poolConnect;
     const request = pool.request();
     const setClauses = Object.entries(updatedData)
       .map(([key, value]) => (value !== null && value !== undefined && value !== '') ? `${key} = @${key}` : null)
@@ -153,8 +147,6 @@ export async function handleUpdateCompany(prevState: { message: string, type?: s
   } catch (error) {
     console.error('Database error:', error);
     return { message: "Failed to update company in the database.", type: 'error' };
-  } finally {
-    pool.close();
   }
 
   revalidatePath('/dashboard/companies');
@@ -168,7 +160,7 @@ export async function handleDeleteCompany(prevState: { message: string, type?: s
     }
 
     try {
-        await pool.connect();
+        await poolConnect;
         const result = await pool.request()
             .input('id', sql.NVarChar, id)
             .query('DELETE FROM companies WHERE id = @id');
@@ -179,8 +171,6 @@ export async function handleDeleteCompany(prevState: { message: string, type?: s
     } catch (error) {
         console.error('Database error:', error);
         return { message: "Database error during deletion.", type: 'error' };
-    } finally {
-      pool.close();
     }
     
     revalidatePath('/dashboard/companies');
