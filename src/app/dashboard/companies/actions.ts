@@ -39,8 +39,8 @@ export async function handleAddCompany(prevState: { message: string, type?: stri
   const portalLink = formData.get("portalLink") as string;
 
 
-  if (!name || !email || !address) {
-    return { message: "Please fill all required fields.", type: "error" };
+  if (!name) {
+    return { message: "Please fill the required company name field.", type: "error" };
   }
 
   try {
@@ -88,8 +88,8 @@ export async function handleUpdateCompany(prevState: { message: string }, formDa
     return { message: "Company ID is missing." };
   }
   
-  if (!updatedData.name || !updatedData.email || !updatedData.address) {
-    return { message: "Please fill all required fields." };
+  if (!updatedData.name) {
+    return { message: "Company name is a required field." };
   }
 
   const companyIndex = mockCompanies.findIndex(c => c.id === id);

@@ -67,14 +67,14 @@ export default function NewCompanyPage() {
                                 <Input id="name" name="name" placeholder="e.g. Statamine Inc." required />
                             </div>
                              <div className="space-y-2">
-                                <Label htmlFor="email">Official Email <span className="text-destructive">*</span></Label>
-                                <Input id="email" name="email" type="email" placeholder="e.g. contact@company.com" required />
+                                <Label htmlFor="email">Official Email</Label>
+                                <Input id="email" name="email" type="email" placeholder="e.g. contact@company.com" />
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="address">Full Postal Address <span className="text-destructive">*</span></Label>
-                            <Input id="address" name="address" placeholder="e.g. 123 Insurance Rd, Big City, USA" required />
+                            <Label htmlFor="address">Full Postal Address</Label>
+                            <Input id="address" name="address" placeholder="e.g. 123 Insurance Rd, Big City, USA" />
                         </div>
 
                          <div className="grid md:grid-cols-3 gap-4">
