@@ -1,17 +1,18 @@
 
 "use client";
 
-import { useActionState } from "react";
+import { useEffect, useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleUpdateCompany } from "../../actions";
+import { handleUpdateCompany, getCompanyById } from "../../actions";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { mockCompanies } from "@/lib/mock-data";
-import { notFound } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
+import type { Company } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -23,8 +24,51 @@ function SubmitButton() {
 }
 
 export default function EditCompanyPage({ params }: { params: { id: string } }) {
-    const company = mockCompanies.find(c => c.id === params.id);
+    const [company, setCompany] = React.useState<Company | null>(null);
+    const [isLoading, setIsLoading] = React.useState(true);
+    const [error, setError] = React.useState<string | null>(null);
     const [state, formAction] = useActionState(handleUpdateCompany, { message: "" });
+    const router = useRouter();
+    const { toast } = useToast();
+
+    useEffect(() => {
+        async function fetchCompany() {
+            try {
+                const fetchedCompany = await getCompanyById(params.id);
+                if (!fetchedCompany) {
+                    notFound();
+                }
+                setCompany(fetchedCompany);
+            } catch (err) {
+                const dbError = err as Error;
+                setError(dbError.message);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        fetchCompany();
+    }, [params.id]);
+
+    useEffect(() => {
+        if (state?.message && state.message !== "Company not found or data is the same.") {
+           toast({
+             title: state.message.includes("success") ? "Success" : "Error",
+             description: state.message,
+             variant: state.message.includes("success") ? "success" : "destructive",
+           });
+           if(state.message.includes("success")) {
+             router.push('/dashboard/companies');
+           }
+        }
+    }, [state, router, toast]);
+
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
+
+    if (error) {
+        return <div>Error: {error}</div>;
+    }
 
     if (!company) {
         notFound();

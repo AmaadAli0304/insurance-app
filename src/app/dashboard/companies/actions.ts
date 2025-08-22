@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import pool, { sql } from "@/lib/db";
 import { z } from 'zod';
 import { Company } from "@/lib/types";
+
 const companySchema = z.object({
   name: z.string().min(1, "Company name is required"),
   contactPerson: z.string().optional(),
@@ -14,6 +15,7 @@ const companySchema = z.object({
   address: z.string().min(1, "Address is required"),
   portalLink: z.string().url().optional().or(z.literal('')),
 });
+
 export async function getCompanies(): Promise<Company[]> {
   try {
     if (!pool.connected) {
@@ -35,6 +37,34 @@ export async function getCompanies(): Promise<Company[]> {
       throw new Error(`Failed to fetch companies. Please check server logs for details. Error: ${dbError.message}`);
   }
 }
+
+export async function getCompanyById(id: string): Promise<Company | null> {
+  try {
+    if (!pool.connected) {
+      await pool.connect();
+    }
+    const result = await pool.request()
+      .input('id', sql.NVarChar, id)
+      .query('SELECT * FROM companies WHERE id = @id');
+
+    if (result.recordset.length === 0) {
+      return null;
+    }
+    
+    const record = result.recordset[0];
+    return {
+        ...record,
+        assignedHospitals: [], // Not needed for the edit form
+        policies: [], // Not needed for the edit form
+    } as Company;
+
+  } catch (error) {
+    console.error('Error fetching company by ID:', error);
+    throw new Error('Failed to fetch company details from the database.');
+  }
+}
+
+
 export async function handleAddCompany(prevState: { message: string, type?: string }, formData: FormData) {
   const name = formData.get("name") as string;
   const contactPerson = formData.get("contactPerson") as string;
@@ -43,9 +73,15 @@ export async function handleAddCompany(prevState: { message: string, type?: stri
   const address = formData.get("address") as string;
   const portalLink = formData.get("portalLink") as string;
 
+  const validatedFields = companySchema.safeParse({
+    name, contactPerson, phone, email, address, portalLink
+  });
 
-  if (!name) {
-    return { message: "Please fill the required company name field.", type: "error" };
+  if (!validatedFields.success) {
+      return {
+          message: validatedFields.error.flatten().fieldErrors.name?.[0] || 'Invalid data provided.',
+          type: 'error'
+      };
   }
 
   try {
@@ -75,7 +111,6 @@ export async function handleAddCompany(prevState: { message: string, type?: stri
   
   revalidatePath('/dashboard/companies');
   return { message: "Company added successfully", type: "success" };
-
 }
 
 
@@ -86,7 +121,7 @@ const companyUpdateSchema = z.object({
   phone: z.string().optional(),
   email: z.string().email("Invalid email address").optional(),
   address: z.string().optional(),
-  portalLink: z.string().url().optional().or(z.literal('')),
+  portalLink: z.string().url("Invalid URL").optional().or(z.literal('')),
 });
 
 
@@ -111,17 +146,21 @@ export async function handleUpdateCompany(prevState: { message: string }, formDa
   const { id, ...updatedData } = parsed.data;
 
   try {
+    if (!pool.connected) {
+      await pool.connect();
+    }
     const request = pool.request();
-    const setClauses = Object.keys(updatedData).map(key => `${key} = @${key}`);
+    const setClauses = Object.entries(updatedData)
+      .map(([key]) => `${key} = @${key}`)
+      .join(', ');
     
     Object.entries(updatedData).forEach(([key, value]) => {
-      // Assuming appropriate sql types, adjust if necessary
       request.input(key, value || null);
     });
 
     const result = await request
       .input('id', sql.NVarChar, id)
-      .query(`UPDATE companies SET ${setClauses.join(', ')} WHERE id = @id`);
+      .query(`UPDATE companies SET ${setClauses} WHERE id = @id`);
 
     if (result.rowsAffected[0] === 0) {
       return { message: "Company not found or data is the same." };
@@ -143,6 +182,9 @@ export async function handleDeleteCompany(formData: FormData) {
     }
 
     try {
+        if (!pool.connected) {
+          await pool.connect();
+        }
         await pool.request()
             .input('id', sql.NVarChar, id)
             .query('DELETE FROM companies WHERE id = @id');
