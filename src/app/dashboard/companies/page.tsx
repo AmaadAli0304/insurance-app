@@ -20,6 +20,7 @@ export default function CompaniesPage() {
 
   useEffect(() => {
     async function loadCompanies() {
+      setIsLoading(true);
       try {
         const fetchedCompanies = await getCompanies();
         setCompanies(fetchedCompanies);
@@ -30,7 +31,7 @@ export default function CompaniesPage() {
       }
     }
     loadCompanies();
-  }, [companies]);
+  }, []);
 
 
   return (
