@@ -35,15 +35,23 @@ export async function getTPAs(): Promise<TPA[]> {
 export async function getTPAById(id: number): Promise<TPA | null> {
   try {
     await poolConnect;
-    const result = await pool.request()
+    const tpaResult = await pool.request()
       .input('id', sql.Int, id)
       .query('SELECT * FROM tpas WHERE id = @id');
 
-    if (result.recordset.length === 0) {
+    if (tpaResult.recordset.length === 0) {
       return null;
     }
-    const record = result.recordset[0];
-    return { ...record, tpaId: String(record.id) };
+    const tpa = tpaResult.recordset[0];
+    
+    const hospitalsResult = await pool.request()
+      .input('tpa_id', sql.Int, id)
+      .query('SELECT h.id, h.name FROM hospitals h JOIN hospital_tpas ht ON h.id = ht.hospital_id WHERE ht.tpa_id = @tpa_id');
+
+    tpa.assignedHospitalsDetails = hospitalsResult.recordset;
+
+
+    return { ...tpa, tpaId: String(tpa.id) };
   } catch (error) {
     console.error('Error fetching TPA by ID:', error);
     throw new Error('Failed to fetch TPA details from the database.');

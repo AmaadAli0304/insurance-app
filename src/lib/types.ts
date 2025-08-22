@@ -118,6 +118,7 @@ export interface TPA {
   email?: string;
   address?: string;
   portalLink?: string;
+  assignedHospitalsDetails?: { id: string, name: string }[];
 }
 
 export interface Staff {
