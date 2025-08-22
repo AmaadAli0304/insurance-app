@@ -52,7 +52,7 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
                         <input type="hidden" name="id" value={staff.id} />
                          <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="fullName">Full Name</Label>
+                                <Label htmlFor="fullName">Full Name <span className="text-destructive">*</span></Label>
                                 <Input id="fullName" name="fullName" defaultValue={staff.fullName} required />
                             </div>
                             <div className="space-y-2">

@@ -48,7 +48,7 @@ export default function NewStaffPage() {
                         <input type="hidden" name="companyId" value={user?.companyId || ''} />
                         <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="fullName">Full Name</Label>
+                                <Label htmlFor="fullName">Full Name <span className="text-destructive">*</span></Label>
                                 <Input id="fullName" name="fullName" placeholder="e.g., John Doe" required />
                             </div>
                             <div className="space-y-2">
