@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
 import { handleUpdateHospital, getStaff, getCompaniesForForm, getTPAsForForm, getHospitalById } from "../../actions";
 import Link from "next/link";
-import { ArrowLeft, ChevronsUpDown } from "lucide-react";
+import { ArrowLeft, ChevronsUpDown, X } from "lucide-react";
 import { notFound, useRouter } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -191,7 +191,12 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
                                 </DropdownMenu>
                                 <div className="flex flex-wrap gap-1 mt-1">
                                     {selectedCompanies.map(id => (
-                                        <Badge key={id} variant="secondary">{companies.find(c=>c.id === id)?.name}</Badge>
+                                        <Badge key={id} variant="secondary" className="flex items-center gap-1">
+                                            {companies.find(c=>c.id === id)?.name}
+                                            <button type="button" onClick={() => setSelectedCompanies(prev => prev.filter(companyId => companyId !== id))} className="rounded-full hover:bg-muted-foreground/20 p-0.5">
+                                                <X className="h-3 w-3" />
+                                            </button>
+                                        </Badge>
                                     ))}
                                 </div>
                             </div>
@@ -228,7 +233,12 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
                                 </DropdownMenu>
                                 <div className="flex flex-wrap gap-1 mt-1">
                                     {selectedTPAs.map(id => (
-                                        <Badge key={id} variant="secondary">{tpas.find(t=>String(t.id) === id)?.name}</Badge>
+                                        <Badge key={id} variant="secondary" className="flex items-center gap-1">
+                                            {tpas.find(t=>String(t.id) === id)?.name}
+                                            <button type="button" onClick={() => setSelectedTPAs(prev => prev.filter(tpaId => tpaId !== id))} className="rounded-full hover:bg-muted-foreground/20 p-0.5">
+                                                <X className="h-3 w-3" />
+                                            </button>
+                                        </Badge>
                                     ))}
                                 </div>
                             </div>
@@ -267,7 +277,12 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
                             </DropdownMenu>
                             <div className="flex flex-wrap gap-1 mt-1">
                                 {selectedStaff.map(id => (
-                                    <Badge key={id} variant="secondary">{staff.find(s => String(s.id) === id)?.name}</Badge>
+                                     <Badge key={id} variant="secondary" className="flex items-center gap-1">
+                                        {staff.find(s => String(s.id) === id)?.name}
+                                        <button type="button" onClick={() => setSelectedStaff(prev => prev.filter(staffId => staffId !== id))} className="rounded-full hover:bg-muted-foreground/20 p-0.5">
+                                            <X className="h-3 w-3" />
+                                        </button>
+                                    </Badge>
                                 ))}
                             </div>
                         </div>
@@ -280,3 +295,5 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
         </div>
     );
 }
+
+    
