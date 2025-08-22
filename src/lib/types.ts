@@ -43,6 +43,7 @@ export interface Company {
   address?: string;
   portalLink?: string;
   assignedHospitals: string[];
+  assignedHospitalsDetails?: { id: string, name: string }[];
   policies: Policy[];
 }
 

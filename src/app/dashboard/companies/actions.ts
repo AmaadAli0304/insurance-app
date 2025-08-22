@@ -29,15 +29,23 @@ export async function getCompanies(): Promise<Company[]> {
 export async function getCompanyById(id: string): Promise<Company | null> {
   try {
     await poolConnect;
-    const result = await pool.request()
+    const companyResult = await pool.request()
       .input('id', sql.NVarChar, id)
       .query('SELECT * FROM companies WHERE id = @id');
 
-    if (result.recordset.length === 0) {
+    if (companyResult.recordset.length === 0) {
       return null;
     }
     
-    return result.recordset[0] as Company;
+    const company = companyResult.recordset[0] as Company;
+    
+    const hospitalsResult = await pool.request()
+        .input('company_id', sql.NVarChar, id)
+        .query('SELECT h.id, h.name FROM hospitals h JOIN hospital_companies hc ON h.id = hc.hospital_id WHERE hc.company_id = @company_id');
+
+    company.assignedHospitalsDetails = hospitalsResult.recordset;
+
+    return company;
 
   } catch (error) {
     console.error('Error fetching company by ID:', error);
