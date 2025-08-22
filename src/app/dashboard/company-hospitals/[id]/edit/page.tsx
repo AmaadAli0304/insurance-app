@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useActionState, useEffect } from "react";
@@ -6,10 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleUpdateHospital, getStaff } from "../../actions";
+import { handleUpdateHospital, getStaff, getCompaniesForForm, getTPAsForForm } from "../../actions";
 import Link from "next/link";
 import { ArrowLeft, ChevronsUpDown } from "lucide-react";
-import { mockHospitals, mockTPAs, mockCompanies } from "@/lib/mock-data";
+import { mockHospitals } from "@/lib/mock-data";
 import { notFound } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -19,7 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import type { Staff } from "@/lib/types";
+import type { Staff, Company, TPA } from "@/lib/types";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -33,18 +34,27 @@ function SubmitButton() {
 export default function EditCompanyHospitalPage({ params }: { params: { id: string } }) {
     const hospital = mockHospitals.find(h => h.id === params.id);
     const [state, formAction] = useActionState(handleUpdateHospital, { message: "" });
+    
+    const [companies, setCompanies] = useState<Pick<Company, 'id' | 'name'>[]>([]);
+    const [tpas, setTpas] = useState<Pick<TPA, 'id' | 'name'>[]>([]);
     const [staff, setStaff] = useState<Staff[]>([]);
 
     useEffect(() => {
-        async function loadStaff() {
+        async function loadData() {
             try {
-                const staffList = await getStaff();
+                const [staffList, companiesList, tpasList] = await Promise.all([
+                    getStaff(),
+                    getCompaniesForForm(),
+                    getTPAsForForm()
+                ]);
                 setStaff(staffList);
+                setCompanies(companiesList);
+                setTpas(tpasList);
             } catch (error) {
-                console.error("Failed to fetch staff", error);
+                console.error("Failed to fetch data for hospital form", error);
             }
         }
-        loadStaff();
+        loadData();
     }, []);
 
     const [selectedCompanies, setSelectedCompanies] = useState<string[]>(hospital?.assignedCompanies || []);
@@ -122,7 +132,7 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent className="w-full">
-                                        {mockCompanies.map(company => (
+                                        {companies.map(company => (
                                             <DropdownMenuCheckboxItem
                                                 key={company.id}
                                                 checked={selectedCompanies.includes(company.id)}
@@ -139,7 +149,7 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
                                 </DropdownMenu>
                                 <div className="flex flex-wrap gap-1 mt-1">
                                     {selectedCompanies.map(id => (
-                                        <Badge key={id} variant="secondary">{mockCompanies.find(c=>c.id === id)?.name}</Badge>
+                                        <Badge key={id} variant="secondary">{companies.find(c=>c.id === id)?.name}</Badge>
                                     ))}
                                 </div>
                             </div>
@@ -158,13 +168,14 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent className="w-full">
-                                        {mockTPAs.map(tpa => (
+                                        {tpas.map(tpa => (
                                             <DropdownMenuCheckboxItem
-                                                key={tpa.tpaId}
-                                                checked={selectedTPAs.includes(tpa.tpaId)}
+                                                key={tpa.id}
+                                                checked={selectedTPAs.includes(String(tpa.id))}
                                                 onCheckedChange={(checked) => {
+                                                    const tpaId = String(tpa.id);
                                                     setSelectedTPAs(prev =>
-                                                        checked ? [...prev, tpa.tpaId] : prev.filter(id => id !== tpa.tpaId)
+                                                        checked ? [...prev, tpaId] : prev.filter(id => id !== tpaId)
                                                     );
                                                 }}
                                             >
@@ -175,7 +186,7 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
                                 </DropdownMenu>
                                 <div className="flex flex-wrap gap-1 mt-1">
                                     {selectedTPAs.map(id => (
-                                        <Badge key={id} variant="secondary">{mockTPAs.find(t=>t.tpaId === id)?.name}</Badge>
+                                        <Badge key={id} variant="secondary">{tpas.find(t=>String(t.id) === id)?.name}</Badge>
                                     ))}
                                 </div>
                             </div>

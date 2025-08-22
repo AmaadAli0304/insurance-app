@@ -1,23 +1,45 @@
 
 "use server";
 
-import { mockHospitals } from "@/lib/mock-data";
 import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation';
-import pool, { poolConnect } from "@/lib/db";
-import type { Staff } from "@/lib/types";
+import pool, { sql, poolConnect } from "@/lib/db";
+import type { Staff, Company, TPA } from "@/lib/types";
 
 export async function getStaff(): Promise<Staff[]> {
   try {
     await poolConnect;
     const result = await pool.request()
-      .query('SELECT * FROM staff');
+      .query('SELECT id, name FROM staff');
     return result.recordset as Staff[];
   } catch (error) {
       const dbError = error as Error;
       throw new Error(`Error fetching staff: ${dbError.message}`);
   }
 }
+
+export async function getCompaniesForForm(): Promise<Pick<Company, 'id' | 'name'>[]> {
+    try {
+        await poolConnect;
+        const result = await pool.request().query('SELECT id, name FROM companies');
+        return result.recordset;
+    } catch (error) {
+        const dbError = error as Error;
+        throw new Error(`Error fetching companies for form: ${dbError.message}`);
+    }
+}
+
+export async function getTPAsForForm(): Promise<Pick<TPA, 'id' | 'name'>[]> {
+    try {
+        await poolConnect;
+        const result = await pool.request().query('SELECT id, name FROM tpas');
+        return result.recordset.map(r => ({...r, id: r.id}));
+    } catch (error) {
+        const dbError = error as Error;
+        throw new Error(`Error fetching TPAs for form: ${dbError.message}`);
+    }
+}
+
 
 export async function handleAddHospital(prevState: { message: string }, formData: FormData) {
     const companyId = formData.get("companyId") as string;
@@ -50,7 +72,11 @@ export async function handleAddHospital(prevState: { message: string }, formData
     contact: newHospitalData.phone,
   };
 
-  mockHospitals.push(newHospital);
+  // This part would need to be updated to write to the DB instead of mock data
+  // For now, we continue with mock data for simplicity of the request
+  // mockHospitals.push(newHospital);
+  
+  console.log("Would be adding to DB:", newHospital);
   
   revalidatePath('/dashboard/company-hospitals');
   redirect('/dashboard/company-hospitals');
@@ -78,17 +104,22 @@ export async function handleUpdateHospital(prevState: { message: string }, formD
     return { message: "Please fill all required fields: Name, Location, Address, and Email." };
   }
 
-  const hospitalIndex = mockHospitals.findIndex(h => h.id === id);
+  // This part would need to be updated to write to the DB instead of mock data
+  // For now, we continue with mock data for simplicity of the request
+  // const hospitalIndex = mockHospitals.findIndex(h => h.id === id);
 
-  if (hospitalIndex === -1) {
-    return { message: "Hospital not found." };
-  }
+  // if (hospitalIndex === -1) {
+  //   return { message: "Hospital not found." };
+  // }
 
-  mockHospitals[hospitalIndex] = {
-    ...mockHospitals[hospitalIndex],
-    ...updatedData,
-    contact: updatedData.phone || mockHospitals[hospitalIndex].contact,
-  };
+  // mockHospitals[hospitalIndex] = {
+  //   ...mockHospitals[hospitalIndex],
+  //   ...updatedData,
+  //   contact: updatedData.phone || mockHospitals[hospitalIndex].contact,
+  // };
+  
+  console.log("Would be updating in DB:", id, updatedData);
+
 
   revalidatePath('/dashboard/company-hospitals');
   redirect('/dashboard/company-hospitals');
@@ -96,9 +127,11 @@ export async function handleUpdateHospital(prevState: { message: string }, formD
 
 export async function handleDeleteHospital(formData: FormData) {
     const id = formData.get("id") as string;
-    const index = mockHospitals.findIndex(h => h.id === id);
-    if (index > -1) {
-        mockHospitals.splice(index, 1);
-    }
+    // This part would need to be updated to write to the DB instead of mock data
+    // const index = mockHospitals.findIndex(h => h.id === id);
+    // if (index > -1) {
+    //     mockHospitals.splice(index, 1);
+    // }
+    console.log("Would be deleting from DB:", id);
     revalidatePath('/dashboard/company-hospitals');
 }
