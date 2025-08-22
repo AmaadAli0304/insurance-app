@@ -4,12 +4,20 @@ import { Button } from "@/components/ui/button"
 import { PlusCircle } from "lucide-react"
 import Link from "next/link"
 import { CompaniesTable } from "./companies-table"
-import { mockCompanies } from "@/lib/mock-data"
+import { getCompanies } from "./actions"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { AlertTriangle } from "lucide-react"
 
 
 export default async function CompaniesPage() {
-  // Using mock data for now to ensure functionality
-  const companies = mockCompanies;
+  let companies = [];
+  let error = null;
+
+  try {
+    companies = await getCompanies();
+  } catch (e: any) {
+    error = e.message;
+  }
 
   return (
     <div className="space-y-6">
@@ -27,7 +35,18 @@ export default async function CompaniesPage() {
           </Button>
         </CardHeader>
         <CardContent>
-           <CompaniesTable companies={companies} />
+           {error ? (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Error Fetching Companies</AlertTitle>
+                <AlertDescription>
+                  {error}
+                  <p className="mt-2 text-xs">Please ensure your database is running and the connection details in your .env file are correct. Check the server logs for more details.</p>
+                </AlertDescription>
+              </Alert>
+           ) : (
+            <CompaniesTable companies={companies} />
+           )}
         </CardContent>
       </Card>
     </div>

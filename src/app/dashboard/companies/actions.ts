@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation';
 import pool, { sql } from "@/lib/db";
 import { z } from 'zod';
-
+import { Company } from "@/lib/types";
 const companySchema = z.object({
   name: z.string().min(1, "Company name is required"),
   contactPerson: z.string().optional(),
@@ -14,48 +14,68 @@ const companySchema = z.object({
   address: z.string().min(1, "Address is required"),
   portalLink: z.string().url().optional().or(z.literal('')),
 });
-
+export async function getCompanies(): Promise<Company[]> {
+  try {
+    if (!pool.connected) {
+      await pool.connect();
+    }
+    const result = await pool.request().query('SELECT * FROM companies');
+    // The UI doesn't use assignedHospitals or policies on this page, 
+    // so we can safely return them as empty.
+    return result.recordset.map(record => ({
+        ...record,
+        assignedHospitals: [],
+        policies: [],
+    })) as Company[];
+  } catch (error) {
+      console.error('Error fetching companies from database:', error);
+      // It's better to throw the error to be caught by the page component
+      // This helps in displaying a proper error message to the user.
+      const dbError = error as Error;
+      throw new Error(`Failed to fetch companies. Please check server logs for details. Error: ${dbError.message}`);
+  }
+}
 export async function handleAddCompany(prevState: { message: string, type?: string }, formData: FormData) {
-  const rawData = {
-    name: formData.get("name"),
-    contactPerson: formData.get("contactPerson"),
-    phone: formData.get("phone"),
-    email: formData.get("email"),
-    address: formData.get("address"),
-    portalLink: formData.get("portalLink"),
-  };
+  const name = formData.get("name") as string;
+  const contactPerson = formData.get("contactPerson") as string;
+  const phone = formData.get("phone") as string;
+  const email = formData.get("email") as string;
+  const address = formData.get("address") as string;
+  const portalLink = formData.get("portalLink") as string;
 
-  const parsed = companySchema.safeParse(rawData);
 
-  if (!parsed.success) {
-    const errorMessages = parsed.error.errors.map(e => e.message).join(', ');
-    return { message: `Invalid data: ${errorMessages}`, type: "error" };
+  if (!name) {
+    return { message: "Please fill the required company name field.", type: "error" };
   }
 
-  const { name, contactPerson, phone, email, address, portalLink } = parsed.data;
-  const id = `comp-${Date.now()}`;
-  
   try {
-    const request = pool.request();
-    await request
+    const id = `comp-${Date.now()}`;
+    
+    if (!pool.connected) {
+        await pool.connect();
+    }
+    await pool.request()
       .input('id', sql.NVarChar, id)
       .input('name', sql.NVarChar, name)
-      .input('contactPerson', sql.NVarChar, contactPerson || null)
-      .input('phone', sql.NVarChar, phone || null)
+      .input('contactPerson', sql.NVarChar, contactPerson)
+      .input('phone', sql.NVarChar, phone)
       .input('email', sql.NVarChar, email)
       .input('address', sql.NVarChar, address)
-      .input('portalLink', sql.NVarChar, portalLink || null)
+      .input('portalLink', sql.NVarChar, portalLink)
       .query(`
         INSERT INTO companies (id, name, contactPerson, phone, email, address, portalLink) 
         VALUES (@id, @name, @contactPerson, @phone, @email, @address, @portalLink)
       `);
+    
   } catch (error) {
-    console.error('Database error:', error);
-    return { message: "Failed to add company to the database.", type: "error" };
+      console.error('Error adding company:', error);
+      const dbError = error as { message?: string };
+      return { message: `Error adding company: ${dbError.message || 'Unknown error'}`, type: "error" };
   }
   
   revalidatePath('/dashboard/companies');
-  redirect('/dashboard/companies');
+  return { message: "Company added successfully", type: "success" };
+
 }
 
 

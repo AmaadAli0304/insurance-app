@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -18,17 +19,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import type { Company } from "@/lib/types"
-import { mockCompanies } from "@/lib/mock-data";
 
 interface CompaniesTableProps {
   companies: Company[];
 }
 
-export function CompaniesTable({ companies: initialCompanies }: CompaniesTableProps) {
-  // Since we are using mock data, we'll use the mockCompanies directly to see updates.
-  // In a real DB scenario, the page would just refetch.
-  const companies = mockCompanies;
-  
+export function CompaniesTable({ companies }: CompaniesTableProps) {
   return (
     <Table>
       <TableHeader>
