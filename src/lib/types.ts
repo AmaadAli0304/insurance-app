@@ -125,7 +125,6 @@ export interface Staff {
   department?: string | null;
   number?: string | null;
   email?: string | null;
-  companyId: string;
   hospitalId?: string | null;
   joiningDate?: string | null;
   endDate?: string | null;

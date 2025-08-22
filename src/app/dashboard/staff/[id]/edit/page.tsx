@@ -14,7 +14,6 @@ import { notFound, useRouter } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Staff } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/components/auth-provider";
 import { format } from 'date-fns';
 
 function SubmitButton() {
@@ -27,7 +26,6 @@ function SubmitButton() {
 }
 
 export default function EditStaffPage({ params }: { params: { id: string } }) {
-    const { user } = useAuth();
     const [staff, setStaff] = useState<Staff | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -73,7 +71,7 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
         }
     }, [state, router, toast]);
 
-    const formatDateForInput = (dateString?: string) => {
+    const formatDateForInput = (dateString?: string | null) => {
         if (!dateString) return '';
         try {
             return format(new Date(dateString), 'yyyy-MM-dd');
@@ -113,19 +111,18 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
                 <form action={formAction}>
                     <CardContent className="space-y-4">
                         <input type="hidden" name="id" value={staff.id} />
-                        <input type="hidden" name="companyId" value={user?.companyId || ''} />
                          <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="fullName">Full Name <span className="text-destructive">*</span></Label>
-                                <Input id="fullName" name="fullName" defaultValue={staff.name} required />
+                                <Label htmlFor="name">Full Name <span className="text-destructive">*</span></Label>
+                                <Input id="name" name="name" defaultValue={staff.name} required />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email Address</Label>
                                 <Input id="email" name="email" type="email" defaultValue={staff.email ?? ""} />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="contactNumber">Contact Number</Label>
-                                <Input id="contactNumber" name="contactNumber" defaultValue={staff.number ?? ""} />
+                                <Label htmlFor="number">Contact Number</Label>
+                                <Input id="number" name="number" defaultValue={staff.number ?? ""} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="designation">Designation</Label>

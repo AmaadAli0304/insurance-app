@@ -11,7 +11,6 @@ import { handleAddStaff } from "../actions";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useAuth } from "@/components/auth-provider";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 
@@ -25,7 +24,6 @@ function SubmitButton() {
 }
 
 export default function NewStaffPage() {
-    const { user } = useAuth();
     const [state, formAction] = useActionState(handleAddStaff, { message: "", type: "initial" });
     const { toast } = useToast();
     const router = useRouter();
@@ -62,23 +60,22 @@ export default function NewStaffPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Staff Details</CardTitle>
-                    <CardDescription>Fill in the form to add a new staff member to your company.</CardDescription>
+                    <CardDescription>Fill in the form to add a new staff member.</CardDescription>
                 </CardHeader>
                 <form action={formAction}>
                     <CardContent className="space-y-4">
-                        <input type="hidden" name="companyId" value={user?.companyId || ''} />
                         <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="fullName">Full Name <span className="text-destructive">*</span></Label>
-                                <Input id="fullName" name="fullName" placeholder="e.g., John Doe" required />
+                                <Label htmlFor="name">Full Name <span className="text-destructive">*</span></Label>
+                                <Input id="name" name="name" placeholder="e.g., John Doe" required />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email Address</Label>
                                 <Input id="email" name="email" type="email" placeholder="e.g., john.d@company.com" />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="contactNumber">Contact Number</Label>
-                                <Input id="contactNumber" name="contactNumber" placeholder="e.g., 555-123-4567" />
+                                <Label htmlFor="number">Contact Number</Label>
+                                <Input id="number" name="number" placeholder="e.g., 555-123-4567" />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="designation">Designation</Label>

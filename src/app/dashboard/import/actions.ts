@@ -178,8 +178,7 @@ export async function handleCreateStaffTable(prevState: { message: string, type?
           joiningDate DATE,
           endDate DATE,
           shiftTime NVARCHAR(100),
-          status NVARCHAR(50),
-          companyId NVARCHAR(255)
+          status NVARCHAR(50)
         );
       END
     `;

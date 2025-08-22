@@ -16,19 +16,17 @@ const staffSchema = z.object({
   endDate: z.string().optional().nullable(),
   shiftTime: z.string().optional().nullable(),
   status: z.enum(["Active", "Inactive"]).optional().nullable(),
-  companyId: z.string(),
 });
 
 const staffUpdateSchema = staffSchema.extend({
     id: z.string().min(1),
 });
 
-export async function getStaff(companyId: string): Promise<Staff[]> {
+export async function getStaff(): Promise<Staff[]> {
   try {
     await poolConnect;
     const result = await pool.request()
-      .input('companyId', sql.NVarChar, companyId)
-      .query('SELECT * FROM staff WHERE companyId = @companyId');
+      .query('SELECT * FROM staff');
     return result.recordset as Staff[];
   } catch (error) {
       const dbError = error as Error;
@@ -68,7 +66,6 @@ export async function handleAddStaff(prevState: { message: string, type?: string
     endDate: formData.get("endDate") || null,
     shiftTime: formData.get("shiftTime"),
     status: formData.get("status"),
-    companyId: formData.get("companyId"),
   });
   
   if (!validatedFields.success) {
@@ -95,10 +92,9 @@ export async function handleAddStaff(prevState: { message: string, type?: string
       .input('endDate', data.endDate ? sql.Date : sql.Date, data.endDate ? new Date(data.endDate) : null)
       .input('shiftTime', sql.NVarChar, data.shiftTime)
       .input('status', sql.NVarChar, data.status)
-      .input('companyId', sql.NVarChar, data.companyId)
       .query(`
-        INSERT INTO staff (id, name, email, number, designation, department, joiningDate, endDate, shiftTime, status, companyId) 
-        VALUES (@id, @name, @email, @number, @designation, @department, @joiningDate, @endDate, @shiftTime, @status, @companyId)
+        INSERT INTO staff (id, name, email, number, designation, department, joiningDate, endDate, shiftTime, status) 
+        VALUES (@id, @name, @email, @number, @designation, @department, @joiningDate, @endDate, @shiftTime, @status)
       `);
     
   } catch (error) {
@@ -124,7 +120,6 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
     endDate: formData.get("endDate") || null,
     shiftTime: formData.get("shiftTime"),
     status: formData.get("status"),
-    companyId: formData.get("companyId"),
   });
 
   if (!parsed.success) {

@@ -8,23 +8,17 @@ import { getStaff } from "./actions"
 import { StaffTable } from "./staff-table"
 import type { Staff } from "@/lib/types"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { useAuth } from "@/components/auth-provider"
 import { useEffect, useState } from "react"
 
 export default function StaffPage() {
-  const { user } = useAuth();
   const [staff, setStaff] = useState<Staff[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadStaff() {
-      if (!user?.companyId) {
-        setIsLoading(false);
-        return;
-      }
       try {
-        const staffData = await getStaff(user.companyId);
+        const staffData = await getStaff();
         setStaff(staffData);
       } catch (e: any) {
         setError(e.message);
@@ -33,7 +27,7 @@ export default function StaffPage() {
       }
     }
     loadStaff();
-  }, [user?.companyId]);
+  }, []);
 
 
   return (
@@ -42,7 +36,7 @@ export default function StaffPage() {
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Staff Management</CardTitle>
-            <CardDescription>Manage staff member details for your company.</CardDescription>
+            <CardDescription>Manage staff member details.</CardDescription>
           </div>
           <Button size="sm" className="gap-1" asChild>
             <Link href="/dashboard/staff/new">
