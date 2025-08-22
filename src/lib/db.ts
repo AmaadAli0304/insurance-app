@@ -26,16 +26,11 @@ if (!config.user || !config.password || !config.server || !config.port || !confi
 }
 
 const pool = new sql.ConnectionPool(config);
-export const poolConnect = pool.connect().catch(err => {
-    console.error('Initial Database Connection Error:', err);
-    console.error('This might be due to incorrect credentials, firewall issues, or missing environment variables on your deployment platform (e.g., Vercel).');
-    // Re-throw the error to ensure connection failures are not silent.
-    throw err;
-});
 
 pool.on('error', err => {
     console.error('SQL Pool Error', err);
 });
 
+// Export the pool directly. We will manage connections in the actions.
 export { sql };
 export default pool;

@@ -9,7 +9,9 @@ import { mockCompanies } from "@/lib/mock-data";
 
 export async function getCompanies(): Promise<Company[]> {
   try {
-    await pool.connect();
+    if (!pool.connected) {
+      await pool.connect();
+    }
     const result = await pool.request().query('SELECT * FROM companies');
     // The UI doesn't use assignedHospitals or policies on this page, 
     // so we can safely return them as empty.
@@ -22,7 +24,8 @@ export async function getCompanies(): Promise<Company[]> {
       console.error('Error fetching companies from database:', error);
       // It's better to throw the error to be caught by the page component
       // This helps in displaying a proper error message to the user.
-      throw new Error("Failed to fetch companies. Please check server logs for details.");
+      const dbError = error as Error;
+      throw new Error(`Failed to fetch companies. Please check server logs for details. Error: ${dbError.message}`);
   }
 }
 
@@ -42,8 +45,10 @@ export async function handleAddCompany(prevState: { message: string, type?: stri
 
   try {
     const id = `comp-${Date.now()}`;
-
-    await pool.connect();
+    
+    if (!pool.connected) {
+        await pool.connect();
+    }
     await pool.request()
       .input('id', sql.NVarChar, id)
       .input('name', sql.NVarChar, name)
