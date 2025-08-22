@@ -56,12 +56,12 @@ export async function handleAddHospital(prevState: { message: string }, formData
     };
 
   // Basic validation
-  if (!newHospitalData.name || !newHospitalData.location || !newHospitalData.address || !newHospitalData.email) {
-    return { message: "Please fill all required fields: Name, Location, Address, and Email." };
+  if (!newHospitalData.name) {
+    return { message: "Please fill all required fields: Name." };
   }
 
   // Ensure the current company is always assigned
-  if (!newHospitalData.assignedCompanies.includes(companyId)) {
+  if (companyId && !newHospitalData.assignedCompanies.includes(companyId)) {
       newHospitalData.assignedCompanies.push(companyId);
   }
 
@@ -100,8 +100,8 @@ export async function handleUpdateHospital(prevState: { message: string }, formD
     return { message: "Hospital ID is missing." };
   }
   
-  if (!updatedData.name || !updatedData.location || !updatedData.address || !updatedData.email) {
-    return { message: "Please fill all required fields: Name, Location, Address, and Email." };
+  if (!updatedData.name) {
+    return { message: "Please fill all required fields: Name." };
   }
 
   // This part would need to be updated to write to the DB instead of mock data

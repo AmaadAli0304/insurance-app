@@ -91,14 +91,14 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
                                 <Input id="name" name="name" defaultValue={hospital.name} required />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="location">Location <span className="text-destructive">*</span></Label>
-                                <Input id="location" name="location" defaultValue={hospital.location} required />
+                                <Label htmlFor="location">Location</Label>
+                                <Input id="location" name="location" defaultValue={hospital.location} />
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="address">Full Postal Address <span className="text-destructive">*</span></Label>
-                            <Textarea id="address" name="address" defaultValue={hospital.address} required />
+                            <Label htmlFor="address">Full Postal Address</Label>
+                            <Textarea id="address" name="address" defaultValue={hospital.address} />
                         </div>
 
                          <div className="grid md:grid-cols-3 gap-4">
@@ -107,8 +107,8 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
                                 <Input id="contactPerson" name="contactPerson" defaultValue={hospital.contactPerson} />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="email">Official Email <span className="text-destructive">*</span></Label>
-                                <Input id="email" name="email" type="email" defaultValue={hospital.email} required />
+                                <Label htmlFor="email">Official Email</Label>
+                                <Input id="email" name="email" type="email" defaultValue={hospital.email} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="phone">Phone</Label>
