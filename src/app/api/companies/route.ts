@@ -1,6 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import pool, { sql } from '@/lib/db';
+import pool, { sql, poolConnect } from '@/lib/db';
 import { z } from 'zod';
 
 const companySchema = z.object({
@@ -24,7 +24,8 @@ export async function POST(request: Request) {
     const { name, contactPerson, phone, email, address, portalLink } = parsedData.data;
     
     const id = `comp-${Date.now()}`;
-
+    
+    await poolConnect;
     await pool.request()
       .input('id', sql.NVarChar, id)
       .input('name', sql.NVarChar, name)

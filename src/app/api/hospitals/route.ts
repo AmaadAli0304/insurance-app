@@ -1,6 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import pool, { sql } from '@/lib/db';
+import pool, { sql, poolConnect } from '@/lib/db';
 import { z } from 'zod';
 
 const hospitalSchema = z.object({
@@ -13,6 +13,7 @@ const hospitalSchema = z.object({
 
 export async function GET() {
   try {
+    await poolConnect;
     const result = await pool.request().query('SELECT * FROM hospitals');
     return NextResponse.json(result.recordset);
   } catch (error) {
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, address, location, contact } = hospitalSchema.parse(body);
 
+    await poolConnect;
     const result = await pool.request()
       .input('name', sql.NVarChar, name)
       .input('address', sql.NVarChar, address)

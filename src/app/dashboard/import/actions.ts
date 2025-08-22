@@ -2,7 +2,7 @@
 "use server";
 
 import * as XLSX from 'xlsx';
-import pool, { sql } from '@/lib/db';
+import pool, { sql, poolConnect } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 
 export async function handleImportCompanies(prevState: { message: string, type?: string }, formData: FormData) {
@@ -14,6 +14,7 @@ export async function handleImportCompanies(prevState: { message: string, type?:
 
   let transaction;
   try {
+    await poolConnect;
     const workbook = XLSX.read(await file.arrayBuffer(), { type: "buffer" });
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     

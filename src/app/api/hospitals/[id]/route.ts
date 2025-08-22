@@ -1,6 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import pool, { sql } from '@/lib/db';
+import pool, { sql, poolConnect } from '@/lib/db';
 import { z } from 'zod';
 
 const hospitalUpdateSchema = z.object({
@@ -15,6 +15,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    await poolConnect;
     const result = await pool.request()
         .input('id', sql.Int, Number(params.id))
         .query('SELECT * FROM hospitals WHERE id = @id');
@@ -45,6 +46,7 @@ export async function PUT(
 
     const setClause = fieldsToUpdate.map(([key]) => `${key} = @${key}`).join(', ');
     
+    await poolConnect;
     const req = pool.request();
 
     fieldsToUpdate.forEach(([key, value]) => {
@@ -76,6 +78,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    await poolConnect;
     const result = await pool.request()
       .input('id', sql.Int, Number(params.id))
       .query('DELETE FROM hospitals WHERE id = @id');

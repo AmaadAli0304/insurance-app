@@ -31,9 +31,10 @@ pool.on('error', err => {
     console.error('SQL Pool Error', err);
 });
 
-// Export a promise that resolves when the pool is connected.
-// This will only connect once and subsequent calls will reuse the connection.
+// We export the pool itself, and connection management will be handled by each function.
+// This is more robust for serverless environments.
 export const poolConnect = pool.connect();
+
 
 export { sql };
 export default pool;
