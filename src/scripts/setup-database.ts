@@ -28,6 +28,7 @@ async function setupDatabase() {
 
     // Seed Users Table
     console.log('Seeding users table...');
+    mockUsers[0].email = "admin@onestop.com"; // Ensure admin email is updated before seeding
     for (const user of mockUsers) {
       const password = user.password || 'password'; 
 
@@ -51,7 +52,16 @@ async function setupDatabase() {
               VALUES (@uid, @name, @email, @role, @hospitalId, @companyId, @password)
           `);
         console.log(`Inserted user: ${user.email}`);
-      } else {
+      } else if (user.email === "admin@onestop.com") {
+        // Special case to update the admin email if it was medichain before
+         const updateAdminEmailRequest = pool.request();
+         await updateAdminEmailRequest
+          .input('new_email', sql.NVarChar, "admin@onestop.com")
+          .input('old_email', sql.NVarChar, "admin@medichain.com")
+          .query('UPDATE users SET email = @new_email WHERE email = @old_email');
+        console.log('Updated admin user email to admin@onestop.com');
+      }
+      else {
         console.log(`User already exists: ${user.email}`);
       }
     }

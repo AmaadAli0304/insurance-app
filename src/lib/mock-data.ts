@@ -2,7 +2,7 @@
 import type { User, Hospital, Company, Patient, StaffingRequest, Policy, Claim, TPA, Staff } from './types';
 
 export let mockUsers: User[] = [
-  { uid: 'admin-01', name: 'Super Admin', email: 'admin@medichain.com', role: 'Admin' },
+  { uid: 'admin-01', name: 'Super Admin', email: 'admin@onestop.com', role: 'Admin' },
   { uid: 'hstaff-01', name: 'Bob', email: 'bob@stjude.com', role: 'Hospital Staff', hospitalId: 'hosp-01' },
   { uid: 'cadmin-01', name: 'Charlie', email: 'charlie@statamine.com', role: 'Company Admin', companyId: 'comp-01' },
   { uid: 'cadmin-02', name: 'Company Admin', email: 'companyadmin@yopmail.com', role: 'Company Admin', companyId: 'comp-01' },

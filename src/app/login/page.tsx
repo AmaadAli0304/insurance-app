@@ -15,7 +15,7 @@ import type { User } from '@/lib/types';
 export default function LoginPage() {
   const { login } = useAuth();
   const { toast } = useToast();
-  const [email, setEmail] = useState("admin@medichain.com");
+  const [email, setEmail] = useState("admin@onestop.com");
   const [password, setPassword] = useState("password");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
