@@ -11,8 +11,8 @@ const companySchema = z.object({
   name: z.string().min(1, "Company name is required"),
   contactPerson: z.string().optional(),
   phone: z.string().optional(),
-  email: z.string().email("Invalid email address"),
-  address: z.string().min(1, "Address is required"),
+  email: z.string().email("Invalid email address").optional().or(z.literal('')),
+  address: z.string().optional(),
   portalLink: z.string().url().optional().or(z.literal('')),
 });
 
@@ -78,11 +78,15 @@ export async function handleAddCompany(prevState: { message: string, type?: stri
   });
 
   if (!validatedFields.success) {
+      const errorMessages = validatedFields.error.errors.map(e => e.message).join(', ');
       return {
-          message: validatedFields.error.flatten().fieldErrors.name?.[0] || 'Invalid data provided.',
+          message: `Invalid data: ${errorMessages}`,
           type: 'error'
       };
   }
+  
+  const { name: validatedName, ...otherData } = validatedFields.data;
+
 
   try {
     const id = `comp-${Date.now()}`;
@@ -92,12 +96,12 @@ export async function handleAddCompany(prevState: { message: string, type?: stri
     }
     await pool.request()
       .input('id', sql.NVarChar, id)
-      .input('name', sql.NVarChar, name)
-      .input('contactPerson', sql.NVarChar, contactPerson)
-      .input('phone', sql.NVarChar, phone)
-      .input('email', sql.NVarChar, email)
-      .input('address', sql.NVarChar, address)
-      .input('portalLink', sql.NVarChar, portalLink)
+      .input('name', sql.NVarChar, validatedName)
+      .input('contactPerson', sql.NVarChar, otherData.contactPerson)
+      .input('phone', sql.NVarChar, otherData.phone)
+      .input('email', sql.NVarChar, otherData.email)
+      .input('address', sql.NVarChar, otherData.address)
+      .input('portalLink', sql.NVarChar, otherData.portalLink)
       .query(`
         INSERT INTO companies (id, name, contactPerson, phone, email, address, portalLink) 
         VALUES (@id, @name, @contactPerson, @phone, @email, @address, @portalLink)
@@ -119,7 +123,7 @@ const companyUpdateSchema = z.object({
   name: z.string().min(1, "Company name is required"),
   contactPerson: z.string().optional(),
   phone: z.string().optional(),
-  email: z.string().email("Invalid email address").optional(),
+  email: z.string().email("Invalid email address").optional().or(z.literal('')),
   address: z.string().optional(),
   portalLink: z.string().url("Invalid URL").optional().or(z.literal('')),
 });
