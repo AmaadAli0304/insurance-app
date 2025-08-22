@@ -74,53 +74,62 @@ export function StaffTable({ staff }: StaffTableProps) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {staff.map(s => (
-          <TableRow key={s.id}>
-            <TableCell className="font-medium">{s.name}</TableCell>
-            <TableCell>{s.designation}</TableCell>
-            <TableCell>{s.email}</TableCell>
-            <TableCell>
-              <Badge variant={s.status === 'Active' ? 'default' : 'destructive'} className={s.status === 'Active' ? 'bg-accent text-accent-foreground' : ''}>{s.status}</Badge>
-            </TableCell>
-            <TableCell>
-              <AlertDialog>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem asChild>
-                      <Link href={`/dashboard/staff/${s.id}/edit`} className="flex items-center gap-2 cursor-pointer">
-                        <Edit className="h-4 w-4" /> Edit
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                     <AlertDialogTrigger asChild>
-                       <DropdownMenuItem className="text-destructive flex items-center gap-2 cursor-pointer" onSelect={(e) => e.preventDefault()}>
-                         <Trash className="h-4 w-4" /> Delete
-                       </DropdownMenuItem>
-                     </AlertDialogTrigger>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete this staff record.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                     <form action={formAction} ref={formRef}>
-                        <input type="hidden" name="id" value={s.id} />
-                        <DeleteButton />
-                     </form>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+        {staff.length > 0 ? (
+          staff.map(s => (
+            <TableRow key={s.id}>
+              <TableCell className="font-medium">{s.name}</TableCell>
+              <TableCell>{s.designation}</TableCell>
+              <TableCell>{s.email}</TableCell>
+              <TableCell>
+                <Badge variant={s.status === 'Active' ? 'default' : 'destructive'} className={s.status === 'Active' ? 'bg-accent text-accent-foreground' : ''}>{s.status}</Badge>
+              </TableCell>
+              <TableCell>
+                <AlertDialog>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem asChild>
+                        <Link href={`/dashboard/staff/${s.id}/edit`} className="flex items-center gap-2 cursor-pointer">
+                          <Edit className="h-4 w-4" /> Edit
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                       <AlertDialogTrigger asChild>
+                         <DropdownMenuItem className="text-destructive flex items-center gap-2 cursor-pointer" onSelect={(e) => e.preventDefault()}>
+                           <Trash className="h-4 w-4" /> Delete
+                         </DropdownMenuItem>
+                       </AlertDialogTrigger>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete this staff record.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                       <form action={formAction} ref={formRef}>
+                          <input type="hidden" name="id" value={s.id} />
+                          <DeleteButton />
+                       </form>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </TableCell>
+            </TableRow>
+          ))
+        ) : (
+          <TableRow>
+            <TableCell colSpan={5} className="h-24 text-center">
+              No data found
             </TableCell>
           </TableRow>
-        ))}
+        )}
       </TableBody>
     </Table>
   );
 }
+
