@@ -7,9 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleImportCompanies, handleCreateTable } from "./actions";
+import { handleImportCompanies, handleCreateTable, handleCreateRelationshipTables } from "./actions";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Database } from "lucide-react";
+import { Upload, Database, GitMerge } from "lucide-react";
 
 function SubmitImportButton() {
     const { pending } = useFormStatus();
@@ -31,9 +31,22 @@ function SubmitTableButton() {
     );
 }
 
+function SubmitRelationshipTableButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending} variant="secondary">
+             <GitMerge className="mr-2 h-4 w-4" />
+            {pending ? "Creating..." : "Create Relationship Tables"}
+        </Button>
+    );
+}
+
+
 export default function ImportPage() {
     const [importState, importAction] = useActionState(handleImportCompanies, { message: "", type: undefined });
     const [createTableState, createTableAction] = useActionState(handleCreateTable, { message: "", type: undefined });
+    const [createRelationshipTableState, createRelationshipTableAction] = useActionState(handleCreateRelationshipTables, { message: "", type: undefined });
+
 
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
@@ -70,6 +83,23 @@ export default function ImportPage() {
             });
         }
     }, [createTableState, toast]);
+    
+     useEffect(() => {
+        if (createRelationshipTableState.type === 'success') {
+            toast({
+                title: "Database Action",
+                description: createRelationshipTableState.message,
+                variant: "success",
+            });
+        } else if (createRelationshipTableState.type === 'error') {
+            toast({
+                title: "Database Error",
+                description: createRelationshipTableState.message,
+                variant: "destructive"
+            });
+        }
+    }, [createRelationshipTableState, toast]);
+
 
     return (
         <div className="space-y-6">
@@ -103,11 +133,14 @@ export default function ImportPage() {
                        Perform database setup tasks. Use this to create necessary tables if they don't exist.
                     </CardDescription>
                 </CardHeader>
-                <form action={createTableAction}>
-                    <CardContent>
-                         <SubmitTableButton />
-                    </CardContent>
-                </form>
+                <CardContent className="flex flex-wrap gap-4">
+                    <form action={createTableAction}>
+                        <SubmitTableButton />
+                    </form>
+                    <form action={createRelationshipTableAction}>
+                        <SubmitRelationshipTableButton />
+                    </form>
+                </CardContent>
             </Card>
         </div>
     );

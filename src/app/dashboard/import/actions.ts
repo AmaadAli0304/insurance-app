@@ -110,3 +110,52 @@ export async function handleCreateTable(prevState: { message: string, type?: str
     return { message: `Error creating TPA table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
+
+export async function handleCreateRelationshipTables(prevState: { message: string, type?: string }, formData: FormData) {
+  try {
+    await poolConnect;
+    const request = pool.request();
+    
+    const createHospitalCompaniesQuery = `
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='hospital_companies' and xtype='U')
+      BEGIN
+        CREATE TABLE hospital_companies (
+          id INT IDENTITY(1,1) PRIMARY KEY,
+          company_id NVARCHAR(255),
+          hospital_id NVARCHAR(255)
+        );
+      END
+    `;
+    await request.query(createHospitalCompaniesQuery);
+
+    const createHospitalTpasQuery = `
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='hospital_tpas' and xtype='U')
+      BEGIN
+        CREATE TABLE hospital_tpas (
+          id INT IDENTITY(1,1) PRIMARY KEY,
+          tpa_id INT,
+          hospital_id NVARCHAR(255)
+        );
+      END
+    `;
+    await request.query(createHospitalTpasQuery);
+
+    const createHospitalStaffQuery = `
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='hospital_staff' and xtype='U')
+      BEGIN
+        CREATE TABLE hospital_staff (
+          id INT IDENTITY(1,1) PRIMARY KEY,
+          staff_id NVARCHAR(255),
+          hospital_id NVARCHAR(255)
+        );
+      END
+    `;
+    await request.query(createHospitalStaffQuery);
+
+    return { message: "Relationship tables created successfully or already exist.", type: "success" };
+  } catch (error) {
+    const dbError = error as { message?: string };
+    console.error('Error creating relationship tables:', dbError);
+    return { message: `Error creating relationship tables: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+  }
+}
