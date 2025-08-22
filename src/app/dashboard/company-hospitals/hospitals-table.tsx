@@ -5,7 +5,7 @@ import { useActionState, useEffect, useRef } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal, Trash, Edit } from "lucide-react"
+import { MoreHorizontal, Trash, Edit, Eye } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
 import { handleDeleteHospital } from "./actions"
@@ -85,6 +85,11 @@ export function HospitalsTable({ hospitals }: HospitalsTableProps) {
                   <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                     <DropdownMenuItem asChild>
+                      <Link href={`/dashboard/company-hospitals/${h.id}/view`} className="flex items-center gap-2 cursor-pointer">
+                        <Eye className="h-4 w-4" /> View Details
+                      </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href={`/dashboard/company-hospitals/${h.id}/edit`} className="flex items-center gap-2 cursor-pointer">
                         <Edit className="h-4 w-4" /> Edit
