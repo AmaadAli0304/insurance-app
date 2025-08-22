@@ -1,4 +1,7 @@
 
+"use client"
+
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { PlusCircle } from "lucide-react"
@@ -7,17 +10,28 @@ import { CompaniesTable } from "./companies-table"
 import { getCompanies } from "./actions"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertTriangle } from "lucide-react"
+import type { Company } from "@/lib/types";
 
 
-export default async function CompaniesPage() {
-  let companies = [];
-  let error = null;
+export default function CompaniesPage() {
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  try {
-    companies = await getCompanies();
-  } catch (e: any) {
-    error = e.message;
-  }
+  useEffect(() => {
+    async function loadCompanies() {
+      try {
+        const fetchedCompanies = await getCompanies();
+        setCompanies(fetchedCompanies);
+      } catch (e: any) {
+        setError(e.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadCompanies();
+  }, [companies]);
+
 
   return (
     <div className="space-y-6">
@@ -35,7 +49,9 @@ export default async function CompaniesPage() {
           </Button>
         </CardHeader>
         <CardContent>
-           {error ? (
+           {isLoading ? (
+             <p>Loading companies...</p>
+           ) : error ? (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>Error Fetching Companies</AlertTitle>

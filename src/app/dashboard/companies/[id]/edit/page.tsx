@@ -28,7 +28,7 @@ export default function EditCompanyPage({ params }: { params: { id: string } }) 
     const [company, setCompany] = React.useState<Company | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
     const [error, setError] = React.useState<string | null>(null);
-    const [state, formAction] = useActionState(handleUpdateCompany, { message: "" });
+    const [state, formAction] = useActionState(handleUpdateCompany, { message: "", type: "initial" });
     const router = useRouter();
     const { toast } = useToast();
 
@@ -52,7 +52,14 @@ export default function EditCompanyPage({ params }: { params: { id: string } }) 
     }, [params.id]);
 
     useEffect(() => {
-        if (state?.message && state.message !== "Company not found or data is the same." && !state.message.includes('success')) {
+        if (state.type === 'success') {
+           toast({
+             title: "Success",
+             description: state.message,
+             variant: "success",
+           });
+           router.push('/dashboard/companies');
+        } else if (state.type === 'error') {
            toast({
              title: "Error",
              description: state.message,
@@ -123,7 +130,7 @@ export default function EditCompanyPage({ params }: { params: { id: string } }) 
                             </div>
                         </div>
 
-                        {state.message && !state.message.includes('success') && <p className="text-sm text-destructive">{state.message}</p>}
+                        {state.type === 'error' && <p className="text-sm text-destructive">{state.message}</p>}
                          <SubmitButton />
                     </CardContent>
                 </form>

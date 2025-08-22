@@ -2,7 +2,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from 'next/navigation';
 import pool, { sql } from "@/lib/db";
 import { z } from 'zod';
 import { Company } from "@/lib/types";
@@ -18,31 +17,20 @@ const companySchema = z.object({
 
 export async function getCompanies(): Promise<Company[]> {
   try {
-    if (!pool.connected) {
-      await pool.connect();
-    }
+    await pool.connect();
     const result = await pool.request().query('SELECT * FROM companies');
-    // The UI doesn't use assignedHospitals or policies on this page, 
-    // so we can safely return them as empty.
-    return result.recordset.map(record => ({
-        ...record,
-        assignedHospitals: [],
-        policies: [],
-    })) as Company[];
+    return result.recordset as Company[];
   } catch (error) {
-      console.error('Error fetching companies from database:', error);
-      // It's better to throw the error to be caught by the page component
-      // This helps in displaying a proper error message to the user.
       const dbError = error as Error;
       throw new Error(`Failed to fetch companies. Please check server logs for details. Error: ${dbError.message}`);
+  } finally {
+      pool.close();
   }
 }
 
 export async function getCompanyById(id: string): Promise<Company | null> {
   try {
-    if (!pool.connected) {
-      await pool.connect();
-    }
+    await pool.connect();
     const result = await pool.request()
       .input('id', sql.NVarChar, id)
       .query('SELECT * FROM companies WHERE id = @id');
@@ -51,30 +39,24 @@ export async function getCompanyById(id: string): Promise<Company | null> {
       return null;
     }
     
-    const record = result.recordset[0];
-    return {
-        ...record,
-        assignedHospitals: [], // Not needed for the edit form
-        policies: [], // Not needed for the edit form
-    } as Company;
+    return result.recordset[0] as Company;
 
   } catch (error) {
     console.error('Error fetching company by ID:', error);
     throw new Error('Failed to fetch company details from the database.');
+  } finally {
+      pool.close();
   }
 }
 
-
 export async function handleAddCompany(prevState: { message: string, type?: string }, formData: FormData) {
-  const name = formData.get("name") as string;
-  const contactPerson = formData.get("contactPerson") as string;
-  const phone = formData.get("phone") as string;
-  const email = formData.get("email") as string;
-  const address = formData.get("address") as string;
-  const portalLink = formData.get("portalLink") as string;
-
   const validatedFields = companySchema.safeParse({
-    name, contactPerson, phone, email, address, portalLink
+    name: formData.get("name"),
+    contactPerson: formData.get("contactPerson"),
+    phone: formData.get("phone"),
+    email: formData.get("email"),
+    address: formData.get("address"),
+    portalLink: formData.get("portalLink"),
   });
 
   if (!validatedFields.success) {
@@ -84,24 +66,18 @@ export async function handleAddCompany(prevState: { message: string, type?: stri
           type: 'error'
       };
   }
-  
-  const { name: validatedName, ...otherData } = validatedFields.data;
-
 
   try {
     const id = `comp-${Date.now()}`;
-    
-    if (!pool.connected) {
-        await pool.connect();
-    }
+    await pool.connect();
     await pool.request()
       .input('id', sql.NVarChar, id)
-      .input('name', sql.NVarChar, validatedName)
-      .input('contactPerson', sql.NVarChar, otherData.contactPerson)
-      .input('phone', sql.NVarChar, otherData.phone)
-      .input('email', sql.NVarChar, otherData.email)
-      .input('address', sql.NVarChar, otherData.address)
-      .input('portalLink', sql.NVarChar, otherData.portalLink)
+      .input('name', sql.NVarChar, validatedFields.data.name)
+      .input('contactPerson', sql.NVarChar, validatedFields.data.contactPerson)
+      .input('phone', sql.NVarChar, validatedFields.data.phone)
+      .input('email', sql.NVarChar, validatedFields.data.email)
+      .input('address', sql.NVarChar, validatedFields.data.address)
+      .input('portalLink', sql.NVarChar, validatedFields.data.portalLink)
       .query(`
         INSERT INTO companies (id, name, contactPerson, phone, email, address, portalLink) 
         VALUES (@id, @name, @contactPerson, @phone, @email, @address, @portalLink)
@@ -111,10 +87,12 @@ export async function handleAddCompany(prevState: { message: string, type?: stri
       console.error('Error adding company:', error);
       const dbError = error as { message?: string };
       return { message: `Error adding company: ${dbError.message || 'Unknown error'}`, type: "error" };
+  } finally {
+    pool.close();
   }
   
   revalidatePath('/dashboard/companies');
-  return { message: "Company added successfully", type: "success" };
+  return { message: "Company added successfully.", type: "success" };
 }
 
 
@@ -129,8 +107,8 @@ const companyUpdateSchema = z.object({
 });
 
 
-export async function handleUpdateCompany(prevState: { message: string }, formData: FormData) {
-  const rawData = {
+export async function handleUpdateCompany(prevState: { message: string, type?: string }, formData: FormData) {
+  const parsed = companyUpdateSchema.safeParse({
     id: formData.get("id"),
     name: formData.get("name"),
     contactPerson: formData.get("contactPerson"),
@@ -138,33 +116,29 @@ export async function handleUpdateCompany(prevState: { message: string }, formDa
     email: formData.get("email"),
     address: formData.get("address"),
     portalLink: formData.get("portalLink"),
-  };
-
-  const parsed = companyUpdateSchema.safeParse(rawData);
+  });
 
   if (!parsed.success) {
       const errorMessages = parsed.error.errors.map(e => e.message).join(', ');
-      return { message: `Invalid data: ${errorMessages}` };
+      return { message: `Invalid data: ${errorMessages}`, type: 'error' };
   }
   
   const { id, ...updatedData } = parsed.data;
 
   try {
-    if (!pool.connected) {
-      await pool.connect();
-    }
+    await pool.connect();
     const request = pool.request();
     const setClauses = Object.entries(updatedData)
-      .map(([key, value]) => value !== null && value !== '' ? `${key} = @${key}` : null)
+      .map(([key, value]) => (value !== null && value !== undefined && value !== '') ? `${key} = @${key}` : null)
       .filter(Boolean)
       .join(', ');
 
     if (!setClauses) {
-      return { message: "No data to update." };
+      return { message: "No data to update.", type: "error" };
     }
 
     Object.entries(updatedData).forEach(([key, value]) => {
-       if (value !== null && value !== '') {
+       if (value !== null && value !== undefined && value !== '') {
         request.input(key, value);
       }
     });
@@ -174,35 +148,41 @@ export async function handleUpdateCompany(prevState: { message: string }, formDa
       .query(`UPDATE companies SET ${setClauses} WHERE id = @id`);
 
     if (result.rowsAffected[0] === 0) {
-      return { message: "Company not found or data is the same." };
+      return { message: "Company not found or data is the same.", type: 'error' };
     }
   } catch (error) {
     console.error('Database error:', error);
-    return { message: "Failed to update company in the database." };
+    return { message: "Failed to update company in the database.", type: 'error' };
+  } finally {
+    pool.close();
   }
 
   revalidatePath('/dashboard/companies');
-  redirect('/dashboard/companies');
+  return { message: "Company updated successfully.", type: "success" };
 }
 
-export async function handleDeleteCompany(formData: FormData) {
+export async function handleDeleteCompany(prevState: { message: string, type?: string }, formData: FormData) {
     const id = formData.get("id") as string;
     if (!id) {
-      console.error("Delete error: ID is missing");
-      return;
+      return { message: "Delete error: ID is missing", type: 'error' };
     }
 
     try {
-        if (!pool.connected) {
-          await pool.connect();
-        }
-        await pool.request()
+        await pool.connect();
+        const result = await pool.request()
             .input('id', sql.NVarChar, id)
             .query('DELETE FROM companies WHERE id = @id');
+
+        if (result.rowsAffected[0] === 0) {
+            return { message: "Company not found.", type: 'error' };
+        }
     } catch (error) {
         console.error('Database error:', error);
-        // Optionally, you could return an error message to be displayed.
+        return { message: "Database error during deletion.", type: 'error' };
+    } finally {
+      pool.close();
     }
     
     revalidatePath('/dashboard/companies');
+    return { message: "Company deleted successfully.", type: 'success' };
 }

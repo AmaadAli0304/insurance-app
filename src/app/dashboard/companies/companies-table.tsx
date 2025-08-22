@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useActionState, useEffect, useRef } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal, Trash, Edit } from "lucide-react"
@@ -19,12 +20,33 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import type { Company } from "@/lib/types"
+import { useToast } from "@/hooks/use-toast";
 
 interface CompaniesTableProps {
   companies: Company[];
 }
 
 export function CompaniesTable({ companies }: CompaniesTableProps) {
+  const { toast } = useToast();
+  const [state, formAction] = useActionState(handleDeleteCompany, { message: "", type: "initial" });
+  const formRef = useRef<HTMLFormElement>(null);
+  
+  useEffect(() => {
+    if (state.type === 'success') {
+      toast({
+        title: "Success",
+        description: state.message,
+        variant: "success",
+      });
+    } else if (state.type === 'error') {
+      toast({
+        title: "Error",
+        description: state.message,
+        variant: "destructive"
+      });
+    }
+  }, [state, toast]);
+
   return (
     <Table>
       <TableHeader>
@@ -39,8 +61,8 @@ export function CompaniesTable({ companies }: CompaniesTableProps) {
         {companies.map(c => (
           <TableRow key={c.id}>
             <TableCell className="font-medium">{c.name}</TableCell>
-            <TableCell>{c.contactPerson}</TableCell>
-            <TableCell>{c.email}</TableCell>
+            <TableCell>{c.contactPerson || 'N/A'}</TableCell>
+            <TableCell>{c.email || 'N/A'}</TableCell>
             <TableCell>
               <AlertDialog>
                 <DropdownMenu>
@@ -69,7 +91,7 @@ export function CompaniesTable({ companies }: CompaniesTableProps) {
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                     <form action={handleDeleteCompany}>
+                     <form action={formAction} ref={formRef}>
                         <input type="hidden" name="id" value={c.id} />
                         <AlertDialogAction type="submit">Continue</AlertDialogAction>
                      </form>
