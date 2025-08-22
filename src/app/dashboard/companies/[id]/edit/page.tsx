@@ -1,6 +1,7 @@
 
 "use client";
 
+import * as React from "react";
 import { useEffect, useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -100,27 +101,27 @@ export default function EditCompanyPage({ params }: { params: { id: string } }) 
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="email">Official Email</Label>
-                                <Input id="email" name="email" type="email" defaultValue={company.email} />
+                                <Input id="email" name="email" type="email" defaultValue={company.email ?? ""} />
                             </div>
                         </div>
 
                         <div className="space-y-2">
                             <Label htmlFor="address">Full Postal Address</Label>
-                            <Input id="address" name="address" defaultValue={company.address} />
+                            <Input id="address" name="address" defaultValue={company.address ?? ""} />
                         </div>
 
                          <div className="grid md:grid-cols-3 gap-4">
                              <div className="space-y-2">
                                 <Label htmlFor="contactPerson">Contact Person</Label>
-                                <Input id="contactPerson" name="contactPerson" defaultValue={company.contactPerson} />
+                                <Input id="contactPerson" name="contactPerson" defaultValue={company.contactPerson ?? ""} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="phone">Phone</Label>
-                                <Input id="phone" name="phone" defaultValue={company.phone} />
+                                <Input id="phone" name="phone" defaultValue={company.phone ?? ""} />
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="portalLink">Portal Link</Label>
-                                <Input id="portalLink" name="portalLink" type="url" defaultValue={company.portalLink} />
+                                <Input id="portalLink" name="portalLink" type="url" defaultValue={company.portalLink ?? ""} />
                             </div>
                         </div>
 
