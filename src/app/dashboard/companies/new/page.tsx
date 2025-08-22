@@ -30,8 +30,8 @@ export default function NewCompanyPage() {
     useEffect(() => {
         if (state.type === 'success') {
             toast({
-                title: "Success",
-                description: state.message,
+                title: "Insurance Company",
+                description: "company added successfully",
                 variant: "success",
             });
             router.push('/dashboard/companies');

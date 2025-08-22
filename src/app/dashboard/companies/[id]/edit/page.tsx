@@ -54,8 +54,8 @@ export default function EditCompanyPage({ params }: { params: { id: string } }) 
     useEffect(() => {
         if (state.type === 'success') {
            toast({
-             title: "Success",
-             description: state.message,
+             title: "Insurance Company",
+             description: "company updated successfully",
              variant: "success",
            });
            router.push('/dashboard/companies');

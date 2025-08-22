@@ -34,8 +34,8 @@ export function CompaniesTable({ companies }: CompaniesTableProps) {
   useEffect(() => {
     if (state.type === 'success') {
       toast({
-        title: "Success",
-        description: state.message,
+        title: "Insurance Company",
+        description: "company deleted successfully",
         variant: "success",
       });
     } else if (state.type === 'error') {
