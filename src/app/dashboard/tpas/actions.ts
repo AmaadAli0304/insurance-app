@@ -5,13 +5,14 @@ import { revalidatePath } from "next/cache";
 import pool, { sql, poolConnect } from "@/lib/db";
 import { z } from 'zod';
 import { TPA } from "@/lib/types";
+import { redirect } from 'next/navigation';
 
 const tpaSchema = z.object({
   name: z.string().min(1, "TPA name is required"),
   email: z.string().email("Invalid email address").optional().or(z.literal('')),
   phone: z.string().optional(),
   address: z.string().optional(),
-  portalLink: z.string().url().optional().or(z.literal('')),
+  portalLink: z.string().url("Invalid URL").optional().or(z.literal('')),
 });
 
 const tpaUpdateSchema = tpaSchema.extend({
@@ -82,7 +83,7 @@ export async function handleAddTPA(prevState: { message: string, type?: string }
   }
 
   revalidatePath('/dashboard/tpas');
-  return { message: "TPA added successfully.", type: "success" };
+  redirect('/dashboard/tpas');
 }
 
 export async function handleUpdateTPA(prevState: { message: string, type?: string }, formData: FormData) {
@@ -106,7 +107,7 @@ export async function handleUpdateTPA(prevState: { message: string, type?: strin
     await poolConnect;
     const request = pool.request();
     const setClauses = Object.entries(updatedData)
-      .map(([key, value]) => (value !== null && value !== undefined) ? `${key} = @${key}` : null)
+      .map(([key, value]) => (value !== null && value !== undefined && value !== '') ? `${key} = @${key}` : null)
       .filter(Boolean)
       .join(', ');
 
@@ -115,7 +116,7 @@ export async function handleUpdateTPA(prevState: { message: string, type?: strin
     }
 
     Object.entries(updatedData).forEach(([key, value]) => {
-       if (value !== null && value !== undefined) {
+       if (value !== null && value !== undefined && value !== '') {
         request.input(key, value);
       }
     });
@@ -133,7 +134,7 @@ export async function handleUpdateTPA(prevState: { message: string, type?: strin
   }
 
   revalidatePath('/dashboard/tpas');
-  return { message: "TPA updated successfully.", type: "success" };
+  redirect('/dashboard/tpas');
 }
 
 export async function handleDeleteTPA(prevState: { message: string, type?: string }, formData: FormData) {

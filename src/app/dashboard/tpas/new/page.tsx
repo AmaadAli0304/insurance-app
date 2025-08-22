@@ -11,7 +11,6 @@ import { handleAddTPA } from "../actions";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -25,24 +24,16 @@ function SubmitButton() {
 export default function NewTPAPage() {
     const [state, formAction] = useActionState(handleAddTPA, { message: "", type: undefined });
     const { toast } = useToast();
-    const router = useRouter();
 
     useEffect(() => {
-        if (state.type === 'success') {
-            toast({
-                title: "TPA",
-                description: "TPA added successfully",
-                variant: "success",
-            });
-            router.push('/dashboard/tpas');
-        } else if (state.type === 'error') {
+        if (state.type === 'error') {
             toast({
                 title: "Error",
                 description: state.message,
                 variant: "destructive"
             });
         }
-    }, [state, toast, router]);
+    }, [state, toast]);
 
     return (
         <div className="space-y-6">
