@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft, Building, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { mockPolicies } from "@/lib/mock-data";
 
 const DetailItem = ({ label, value }: { label: string, value?: string | null }) => (
     <div>
@@ -40,9 +39,6 @@ export default async function ViewCompanyPage({ params }: { params: { id: string
         notFound();
     }
     
-    // Using mock policies for now as they are not in the DB
-    const policies = mockPolicies[company.id] || [];
-
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-4">
@@ -79,21 +75,6 @@ export default async function ViewCompanyPage({ params }: { params: { id: string
                     items={company.assignedHospitalsDetails || []} 
                     icon={<Building className="h-6 w-6 text-primary" />} 
                 />
-                  <Card>
-                    <CardHeader className="flex flex-row items-center gap-4">
-                        <FileText className="h-6 w-6 text-primary" />
-                        <CardTitle>Policies</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {policies.length > 0 ? (
-                            <div className="flex flex-wrap gap-2">
-                                {policies.map(item => <Badge key={item.policyId} variant="secondary">{item.policyName}</Badge>)}
-                            </div>
-                        ) : (
-                            <p className="text-sm text-muted-foreground">No policies found.</p>
-                        )}
-                    </CardContent>
-                </Card>
             </div>
         </div>
     );
