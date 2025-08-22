@@ -7,11 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleUpdateHospital, getStaff, getCompaniesForForm, getTPAsForForm } from "../../actions";
+import { handleUpdateHospital, getStaff, getCompaniesForForm, getTPAsForForm, getHospitalById } from "../../actions";
 import Link from "next/link";
 import { ArrowLeft, ChevronsUpDown } from "lucide-react";
-import { mockHospitals } from "@/lib/mock-data";
-import { notFound } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
 import {
   DropdownMenu,
@@ -20,7 +19,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import type { Staff, Company, TPA } from "@/lib/types";
+import type { Staff, Company, TPA, Hospital } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -32,39 +32,81 @@ function SubmitButton() {
 }
 
 export default function EditCompanyHospitalPage({ params }: { params: { id: string } }) {
-    const hospital = mockHospitals.find(h => h.id === params.id);
-    const [state, formAction] = useActionState(handleUpdateHospital, { message: "" });
+    const [hospital, setHospital] = useState<Hospital | null>(null);
+    const [state, formAction] = useActionState(handleUpdateHospital, { message: "", type: 'initial' });
+    const router = useRouter();
+    const { toast } = useToast();
     
     const [companies, setCompanies] = useState<Pick<Company, 'id' | 'name'>[]>([]);
     const [tpas, setTpas] = useState<Pick<TPA, 'id' | 'name'>[]>([]);
     const [staff, setStaff] = useState<Staff[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
+    const [selectedTPAs, setSelectedTPAs] = useState<string[]>([]);
+    const [selectedStaff, setSelectedStaff] = useState<string[]>([]);
 
     useEffect(() => {
         async function loadData() {
             try {
-                const [staffList, companiesList, tpasList] = await Promise.all([
+                setIsLoading(true);
+                const [hospitalData, staffList, companiesList, tpasList] = await Promise.all([
+                    getHospitalById(params.id),
                     getStaff(),
                     getCompaniesForForm(),
                     getTPAsForForm()
                 ]);
+
+                if (!hospitalData) {
+                    notFound();
+                    return;
+                }
+
+                setHospital(hospitalData);
                 setStaff(staffList);
                 setCompanies(companiesList);
                 setTpas(tpasList);
+
+                setSelectedCompanies(hospitalData.assignedCompanies || []);
+                setSelectedTPAs(hospitalData.assignedTPAs || []);
+                setSelectedStaff(hospitalData.assignedStaff || []);
+
             } catch (error) {
                 console.error("Failed to fetch data for hospital form", error);
+                toast({ title: "Error", description: "Failed to load required data.", variant: "destructive" });
+            } finally {
+                setIsLoading(false);
             }
         }
         loadData();
-    }, []);
+    }, [params.id, toast]);
 
-    const [selectedCompanies, setSelectedCompanies] = useState<string[]>(hospital?.assignedCompanies || []);
-    const [selectedTPAs, setSelectedTPAs] = useState<string[]>(hospital?.assignedTPAs || []);
-    const [selectedStaff, setSelectedStaff] = useState<string[]>(hospital?.assignedStaff || []);
 
+    useEffect(() => {
+        if (state.type === 'success') {
+           toast({
+             title: "Hospital Management",
+             description: "Hospital updated successfully",
+             variant: "success",
+           });
+           router.push('/dashboard/company-hospitals');
+        } else if (state.type === 'error') {
+           toast({
+             title: "Error",
+             description: state.message,
+             variant: "destructive",
+           });
+        }
+    }, [state, router, toast]);
+
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
 
     if (!hospital) {
         notFound();
     }
+
 
     return (
         <div className="space-y-6">
@@ -92,27 +134,27 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="location">Location</Label>
-                                <Input id="location" name="location" defaultValue={hospital.location} />
+                                <Input id="location" name="location" defaultValue={hospital.location ?? ""} />
                             </div>
                         </div>
 
                         <div className="space-y-2">
                             <Label htmlFor="address">Full Postal Address</Label>
-                            <Textarea id="address" name="address" defaultValue={hospital.address} />
+                            <Textarea id="address" name="address" defaultValue={hospital.address ?? ""} />
                         </div>
 
                          <div className="grid md:grid-cols-3 gap-4">
                              <div className="space-y-2">
                                 <Label htmlFor="contactPerson">Contact Person</Label>
-                                <Input id="contactPerson" name="contactPerson" defaultValue={hospital.contactPerson} />
+                                <Input id="contactPerson" name="contactPerson" defaultValue={hospital.contactPerson ?? ""} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="email">Official Email</Label>
-                                <Input id="email" name="email" type="email" defaultValue={hospital.email} />
+                                <Input id="email" name="email" type="email" defaultValue={hospital.email ?? ""} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="phone">Phone</Label>
-                                <Input id="phone" name="phone" defaultValue={hospital.phone} />
+                                <Input id="phone" name="phone" defaultValue={hospital.phone ?? ""} />
                             </div>
                         </div>
 
@@ -230,7 +272,7 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
                             </div>
                         </div>
 
-                        {state.message && <p className="text-sm text-destructive">{state.message}</p>}
+                        {state.type === 'error' && <p className="text-sm text-destructive">{state.message}</p>}
                          <SubmitButton />
                     </CardContent>
                 </form>

@@ -15,12 +15,12 @@ export interface User {
 export interface Hospital {
   id: string;
   name:string;
-  location?: string;
-  contactPerson?: string;
-  phone?: string;
-  email?: string;
-  address: string;
-  contact: string; // Keeping for backward compatibility with admin view for now
+  location?: string | null;
+  contactPerson?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  contact?: string; // Keeping for backward compatibility with admin view for now
   assignedCompanies: string[];
   assignedTPAs?: string[];
   assignedStaff?: string[];

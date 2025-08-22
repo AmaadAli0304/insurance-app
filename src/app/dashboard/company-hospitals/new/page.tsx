@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import type { Staff, Company, TPA } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 
 function SubmitButton() {
@@ -33,19 +35,23 @@ function SubmitButton() {
 
 export default function NewCompanyHospitalPage() {
     const { user } = useAuth();
-    const [state, formAction] = useActionState(handleAddHospital, { message: "" });
+    const [state, formAction] = useActionState(handleAddHospital, { message: "", type: "initial" });
+    const { toast } = useToast();
+    const router = useRouter();
     
     const [companies, setCompanies] = useState<Pick<Company, 'id' | 'name'>[]>([]);
     const [tpas, setTpas] = useState<Pick<TPA, 'id' | 'name'>[]>([]);
     const [staff, setStaff] = useState<Staff[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const [selectedCompanies, setSelectedCompanies] = useState<string[]>([user?.companyId || '']);
+    const [selectedCompanies, setSelectedCompanies] = useState<string[]>(user?.companyId ? [user.companyId] : []);
     const [selectedTPAs, setSelectedTPAs] = useState<string[]>([]);
     const [selectedStaff, setSelectedStaff] = useState<string[]>([]);
 
     useEffect(() => {
         async function loadData() {
             try {
+                setIsLoading(true);
                 const [staffList, companiesList, tpasList] = await Promise.all([
                     getStaff(),
                     getCompaniesForForm(),
@@ -56,10 +62,30 @@ export default function NewCompanyHospitalPage() {
                 setTpas(tpasList);
             } catch (error) {
                 console.error("Failed to fetch data for hospital form", error);
+                toast({ title: "Error", description: "Failed to load required data.", variant: "destructive" });
+            } finally {
+                setIsLoading(false);
             }
         }
         loadData();
-    }, []);
+    }, [toast]);
+
+    useEffect(() => {
+        if (state.type === 'success') {
+            toast({
+                title: "Hospital Management",
+                description: state.message,
+                variant: "success",
+            });
+            router.push('/dashboard/company-hospitals');
+        } else if (state.type === 'error') {
+            toast({
+                title: "Error",
+                description: state.message,
+                variant: "destructive"
+            });
+        }
+    }, [state, toast, router]);
 
     return (
         <div className="space-y-6">
@@ -117,7 +143,7 @@ export default function NewCompanyHospitalPage() {
                                 <input type="hidden" name="assignedInsuranceCompanies" value={selectedCompanies.join(',')} />
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" className="w-full justify-between">
+                                        <Button variant="outline" className="w-full justify-between" disabled={isLoading}>
                                             <div className="flex-1 text-left font-normal">
                                                 {selectedCompanies.length > 0
                                                     ? `${selectedCompanies.length} selected`
@@ -144,7 +170,7 @@ export default function NewCompanyHospitalPage() {
                                 </DropdownMenu>
                                 <div className="flex flex-wrap gap-1 mt-1">
                                     {selectedCompanies.map(id => (
-                                        <Badge key={id} variant="secondary">{companies.find(c=>c.id === id)?.name}</Badge>
+                                        <Badge key={id} variant="secondary">{companies.find(c=>c.id === id)?.name || id}</Badge>
                                     ))}
                                 </div>
                             </div>
@@ -153,7 +179,7 @@ export default function NewCompanyHospitalPage() {
                                 <input type="hidden" name="assignedTPAs" value={selectedTPAs.join(',')} />
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" className="w-full justify-between">
+                                        <Button variant="outline" className="w-full justify-between" disabled={isLoading}>
                                              <div className="flex-1 text-left font-normal">
                                                 {selectedTPAs.length > 0
                                                     ? `${selectedTPAs.length} selected`
@@ -181,7 +207,7 @@ export default function NewCompanyHospitalPage() {
                                 </DropdownMenu>
                                 <div className="flex flex-wrap gap-1 mt-1">
                                     {selectedTPAs.map(id => (
-                                        <Badge key={id} variant="secondary">{tpas.find(t=>String(t.id) === id)?.name}</Badge>
+                                        <Badge key={id} variant="secondary">{tpas.find(t=>String(t.id) === id)?.name || id}</Badge>
                                     ))}
                                 </div>
                             </div>
@@ -192,7 +218,7 @@ export default function NewCompanyHospitalPage() {
                             <input type="hidden" name="assignedStaff" value={selectedStaff.join(',')} />
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" className="w-full justify-between">
+                                    <Button variant="outline" className="w-full justify-between" disabled={isLoading}>
                                         <div className="flex-1 text-left font-normal">
                                             {selectedStaff.length > 0
                                                 ? `${selectedStaff.length} staff selected`
@@ -220,12 +246,12 @@ export default function NewCompanyHospitalPage() {
                             </DropdownMenu>
                             <div className="flex flex-wrap gap-1 mt-1">
                                 {selectedStaff.map(id => (
-                                    <Badge key={id} variant="secondary">{staff.find(s => String(s.id) === id)?.name}</Badge>
+                                    <Badge key={id} variant="secondary">{staff.find(s => String(s.id) === id)?.name || id}</Badge>
                                 ))}
                             </div>
                         </div>
 
-                        {state.message && <p className="text-sm text-destructive">{state.message}</p>}
+                        {state.type === 'error' && <p className="text-sm text-destructive">{state.message}</p>}
                          <SubmitButton />
                     </CardContent>
                 </form>
