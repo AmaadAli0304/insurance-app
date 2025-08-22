@@ -18,24 +18,19 @@ const config = {
   }
 };
 
-// Check for missing environment variables
+// Check for missing environment variables on app startup
 if (!config.user || !config.password || !config.server || !config.port || !config.database) {
     console.error("FATAL ERROR: Database environment variables are not set. Please check your .env file or deployment environment variables.");
-    // Exit gracefully if essential variables are missing.
-    // This prevents the app from crashing with a less clear error later on.
-    if (typeof process.exit !== 'undefined') {
-        // process.exit() is not available in all environments (like Vercel edge functions), but we call it if it exists.
-        // process.exit(1);
-    } else {
-        throw new Error("Database environment variables are not set.");
-    }
+    // In a serverless environment, throwing an error is better than trying to exit.
+    throw new Error("Database environment variables are not configured. The application cannot start.");
 }
-
 
 const pool = new sql.ConnectionPool(config);
 export const poolConnect = pool.connect().catch(err => {
     console.error('Initial Database Connection Error:', err);
     console.error('This might be due to incorrect credentials, firewall issues, or missing environment variables on your deployment platform (e.g., Vercel).');
+    // Re-throw the error to ensure connection failures are not silent.
+    throw err;
 });
 
 pool.on('error', err => {
