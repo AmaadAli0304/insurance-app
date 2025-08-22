@@ -7,9 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleImportCompanies, handleCreateTable, handleCreateRelationshipTables } from "./actions";
+import { handleImportCompanies, handleCreateTable, handleCreateRelationshipTables, handleCreateStaffTable } from "./actions";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Database, GitMerge } from "lucide-react";
+import { Upload, Database, GitMerge, UserPlus } from "lucide-react";
 
 function SubmitImportButton() {
     const { pending } = useFormStatus();
@@ -41,11 +41,22 @@ function SubmitRelationshipTableButton() {
     );
 }
 
+function SubmitStaffTableButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending} variant="secondary">
+             <UserPlus className="mr-2 h-4 w-4" />
+            {pending ? "Creating..." : "Create Staff Table"}
+        </Button>
+    );
+}
+
 
 export default function ImportPage() {
     const [importState, importAction] = useActionState(handleImportCompanies, { message: "", type: undefined });
     const [createTableState, createTableAction] = useActionState(handleCreateTable, { message: "", type: undefined });
     const [createRelationshipTableState, createRelationshipTableAction] = useActionState(handleCreateRelationshipTables, { message: "", type: undefined });
+    const [createStaffTableState, createStaffTableAction] = useActionState(handleCreateStaffTable, { message: "", type: undefined });
 
 
     const { toast } = useToast();
@@ -100,6 +111,22 @@ export default function ImportPage() {
         }
     }, [createRelationshipTableState, toast]);
 
+    useEffect(() => {
+        if (createStaffTableState.type === 'success') {
+            toast({
+                title: "Database Action",
+                description: createStaffTableState.message,
+                variant: "success",
+            });
+        } else if (createStaffTableState.type === 'error') {
+            toast({
+                title: "Database Error",
+                description: createStaffTableState.message,
+                variant: "destructive"
+            });
+        }
+    }, [createStaffTableState, toast]);
+
 
     return (
         <div className="space-y-6">
@@ -139,6 +166,9 @@ export default function ImportPage() {
                     </form>
                     <form action={createRelationshipTableAction}>
                         <SubmitRelationshipTableButton />
+                    </form>
+                    <form action={createStaffTableAction}>
+                        <SubmitStaffTableButton />
                     </form>
                 </CardContent>
             </Card>

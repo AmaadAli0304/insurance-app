@@ -159,3 +159,34 @@ export async function handleCreateRelationshipTables(prevState: { message: strin
     return { message: `Error creating relationship tables: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
+
+export async function handleCreateStaffTable(prevState: { message: string, type?: string }, formData: FormData) {
+  try {
+    await poolConnect;
+    const request = pool.request();
+    const createStaffTableQuery = `
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='staff' and xtype='U')
+      BEGIN
+        CREATE TABLE staff (
+          id INT IDENTITY(1,1) PRIMARY KEY,
+          name NVARCHAR(255) NOT NULL,
+          photo NVARCHAR(MAX),
+          email NVARCHAR(255),
+          number NVARCHAR(50),
+          designation NVARCHAR(255),
+          department NVARCHAR(255),
+          joiningDate DATE,
+          endDate DATE,
+          shiftTime NVARCHAR(100),
+          status NVARCHAR(50)
+        );
+      END
+    `;
+    await request.query(createStaffTableQuery);
+    return { message: "Staff table created successfully or already exists.", type: "success" };
+  } catch (error) {
+    const dbError = error as { message?: string };
+    console.error('Error creating Staff table:', dbError);
+    return { message: `Error creating Staff table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+  }
+}
