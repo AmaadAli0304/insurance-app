@@ -26,6 +26,7 @@ import { Badge } from '@/components/ui/badge';
 
 interface StaffTableProps {
   staff: Staff[];
+  onStaffDeleted: () => void;
 }
 
 function DeleteButton() {
@@ -41,7 +42,7 @@ function DeleteButton() {
     );
 }
 
-export function StaffTable({ staff }: StaffTableProps) {
+export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
   const { toast } = useToast();
   const [state, formAction] = useActionState(handleDeleteStaff, { message: "", type: "initial" });
   const formRef = useRef<HTMLFormElement>(null);
@@ -53,6 +54,7 @@ export function StaffTable({ staff }: StaffTableProps) {
         description: "Staff member deleted successfully",
         variant: "success",
       });
+      onStaffDeleted();
     } else if (state.type === 'error') {
       toast({
         title: "Error",
@@ -60,7 +62,7 @@ export function StaffTable({ staff }: StaffTableProps) {
         variant: "destructive"
       });
     }
-  }, [state, toast]);
+  }, [state, toast, onStaffDeleted]);
 
   return (
     <Table>
@@ -132,4 +134,3 @@ export function StaffTable({ staff }: StaffTableProps) {
     </Table>
   );
 }
-

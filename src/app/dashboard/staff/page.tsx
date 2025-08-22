@@ -1,4 +1,3 @@
-
 "use client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -8,26 +7,28 @@ import { getStaff } from "./actions"
 import { StaffTable } from "./staff-table"
 import type { Staff } from "@/lib/types"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 
 export default function StaffPage() {
   const [staff, setStaff] = useState<Staff[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    async function loadStaff() {
-      try {
-        const staffData = await getStaff();
-        setStaff(staffData);
-      } catch (e: any) {
-        setError(e.message);
-      } finally {
-        setIsLoading(false);
-      }
+  const loadStaff = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const staffData = await getStaff();
+      setStaff(staffData);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setIsLoading(false);
     }
-    loadStaff();
   }, []);
+
+  useEffect(() => {
+    loadStaff();
+  }, [loadStaff]);
 
 
   return (
@@ -57,7 +58,7 @@ export default function StaffPage() {
                 </AlertDescription>
               </Alert>
            ) : (
-            <StaffTable staff={staff} />
+            <StaffTable staff={staff} onStaffDeleted={loadStaff} />
            )}
         </CardContent>
       </Card>
