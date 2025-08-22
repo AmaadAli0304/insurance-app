@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useActionState, useEffect, useRef } from 'react';
@@ -25,7 +24,6 @@ import { useToast } from "@/hooks/use-toast";
 
 interface CompaniesTableProps {
   companies: Company[];
-  
 }
 
 function DeleteButton() {
