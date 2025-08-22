@@ -1,13 +1,12 @@
-
 "use client";
 
-import { useState, useActionState } from "react";
+import { useState, useActionState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleUpdateHospital } from "../../actions";
+import { handleUpdateHospital, getStaff } from "../../actions";
 import Link from "next/link";
 import { ArrowLeft, ChevronsUpDown } from "lucide-react";
 import { mockHospitals, mockTPAs, mockCompanies } from "@/lib/mock-data";
@@ -20,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import type { Staff } from "@/lib/types";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -33,9 +33,23 @@ function SubmitButton() {
 export default function EditCompanyHospitalPage({ params }: { params: { id: string } }) {
     const hospital = mockHospitals.find(h => h.id === params.id);
     const [state, formAction] = useActionState(handleUpdateHospital, { message: "" });
+    const [staff, setStaff] = useState<Staff[]>([]);
+
+    useEffect(() => {
+        async function loadStaff() {
+            try {
+                const staffList = await getStaff();
+                setStaff(staffList);
+            } catch (error) {
+                console.error("Failed to fetch staff", error);
+            }
+        }
+        loadStaff();
+    }, []);
 
     const [selectedCompanies, setSelectedCompanies] = useState<string[]>(hospital?.assignedCompanies || []);
     const [selectedTPAs, setSelectedTPAs] = useState<string[]>(hospital?.assignedTPAs || []);
+    const [selectedStaff, setSelectedStaff] = useState<string[]>(hospital?.assignedStaff || []);
 
 
     if (!hospital) {
@@ -164,6 +178,44 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
                                         <Badge key={id} variant="secondary">{mockTPAs.find(t=>t.tpaId === id)?.name}</Badge>
                                     ))}
                                 </div>
+                            </div>
+                        </div>
+
+                         <div className="space-y-2">
+                            <Label>Assigned Staff</Label>
+                            <input type="hidden" name="assignedStaff" value={selectedStaff.join(',')} />
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" className="w-full justify-between">
+                                        <div className="flex-1 text-left font-normal">
+                                            {selectedStaff.length > 0
+                                                ? `${selectedStaff.length} staff selected`
+                                                : "Select staff"}
+                                        </div>
+                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+                                    {staff.map(s => (
+                                        <DropdownMenuCheckboxItem
+                                            key={s.id}
+                                            checked={selectedStaff.includes(String(s.id))}
+                                            onCheckedChange={(checked) => {
+                                                const staffId = String(s.id);
+                                                setSelectedStaff(prev =>
+                                                    checked ? [...prev, staffId] : prev.filter(id => id !== staffId)
+                                                );
+                                            }}
+                                        >
+                                            {s.name}
+                                        </DropdownMenuCheckboxItem>
+                                    ))}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                                {selectedStaff.map(id => (
+                                    <Badge key={id} variant="secondary">{staff.find(s => String(s.id) === id)?.name}</Badge>
+                                ))}
                             </div>
                         </div>
 

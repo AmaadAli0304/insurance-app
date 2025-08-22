@@ -31,6 +31,7 @@ export let mockHospitals: Hospital[] = [
     phone: '901-555-1234',
     email: 'contact@stjude.org',
     assignedTPAs: ['tpa-01'],
+    assignedStaff: ['1', '2'],
   },
   { 
     id: 'hosp-02', 
@@ -43,6 +44,7 @@ export let mockHospitals: Hospital[] = [
     phone: '916-555-5678',
     email: 'billing@mercygeneral.com',
     assignedTPAs: ['tpa-01', 'tpa-02'],
+    assignedStaff: ['2'],
   },
 ];
 
@@ -95,8 +97,8 @@ export let mockTPAs: TPA[] = [
 ];
 
 export let mockStaff: Staff[] = [
-    { id: 'staff-01', name: 'Eleanor Vance', designation: 'Claim Coordinator', department: 'Claims', number: '555-0101', email: 'eleanor@statamine.com', hospitalId: 'hosp-01', joiningDate: '2022-08-01', status: 'Active' },
-    { id: 'staff-02', name: 'Marcus Thorne', designation: 'Nurse', department: 'On-site Support', number: '555-0102', email: 'marcus@statamine.com', hospitalId: 'hosp-02', joiningDate: '2023-01-15', shiftTime: '9 AM - 6 PM', status: 'Active' },
+    { id: 1, name: 'Eleanor Vance', designation: 'Claim Coordinator', department: 'Claims', number: '555-0101', email: 'eleanor@statamine.com', joiningDate: '2022-08-01', status: 'Active' },
+    { id: 2, name: 'Marcus Thorne', designation: 'Nurse', department: 'On-site Support', number: '555-0102', email: 'marcus@statamine.com', joiningDate: '2023-01-15', shiftTime: '9 AM - 6 PM', status: 'Active' },
 ];
 
 

@@ -23,6 +23,7 @@ export interface Hospital {
   contact: string; // Keeping for backward compatibility with admin view for now
   assignedCompanies: string[];
   assignedTPAs?: string[];
+  assignedStaff?: string[];
   insuranceCoverageLimits?: Record<string, number>;
 }
 

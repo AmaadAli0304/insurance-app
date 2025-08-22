@@ -4,6 +4,20 @@
 import { mockHospitals } from "@/lib/mock-data";
 import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation';
+import pool, { poolConnect } from "@/lib/db";
+import type { Staff } from "@/lib/types";
+
+export async function getStaff(): Promise<Staff[]> {
+  try {
+    await poolConnect;
+    const result = await pool.request()
+      .query('SELECT * FROM staff');
+    return result.recordset as Staff[];
+  } catch (error) {
+      const dbError = error as Error;
+      throw new Error(`Error fetching staff: ${dbError.message}`);
+  }
+}
 
 export async function handleAddHospital(prevState: { message: string }, formData: FormData) {
     const companyId = formData.get("companyId") as string;
@@ -16,6 +30,7 @@ export async function handleAddHospital(prevState: { message: string }, formData
         address: formData.get("address") as string,
         assignedCompanies: (formData.get("assignedInsuranceCompanies") as string || '').split(',').map(s => s.trim()).filter(Boolean),
         assignedTPAs: (formData.get("assignedTPAs") as string || '').split(',').map(s => s.trim()).filter(Boolean),
+        assignedStaff: (formData.get("assignedStaff") as string || '').split(',').map(s => s.trim()).filter(Boolean),
     };
 
   // Basic validation
@@ -52,6 +67,7 @@ export async function handleUpdateHospital(prevState: { message: string }, formD
         address: formData.get("address") as string,
         assignedCompanies: (formData.get("assignedInsuranceCompanies") as string || '').split(',').map(s => s.trim()).filter(Boolean),
         assignedTPAs: (formData.get("assignedTPAs") as string || '').split(',').map(s => s.trim()).filter(Boolean),
+        assignedStaff: (formData.get("assignedStaff") as string || '').split(',').map(s => s.trim()).filter(Boolean),
     };
 
   if (!id) {
