@@ -59,7 +59,7 @@ export async function getTPAsForForm(): Promise<Pick<TPA, 'id' | 'name'>[]> {
 export async function getHospitals(): Promise<Hospital[]> {
     try {
         await poolConnect;
-        const result = await pool.request().query('SELECT * FROM hospitals');
+        const result = await pool.request().query('SELECT id, name, location, address, contact_person as contactPerson, email, phone FROM hospitals');
         return result.recordset as Hospital[];
     } catch (error) {
         const dbError = error as Error;
@@ -72,7 +72,7 @@ export async function getHospitalById(id: string): Promise<Hospital | null> {
         await poolConnect;
         const hospitalResult = await pool.request()
             .input('id', sql.NVarChar, id)
-            .query('SELECT * FROM hospitals WHERE id = @id');
+            .query('SELECT id, name, location, address, contact_person as contactPerson, email, phone FROM hospitals WHERE id = @id');
 
         if (hospitalResult.recordset.length === 0) {
             return null;
