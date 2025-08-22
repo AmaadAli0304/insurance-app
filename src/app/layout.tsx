@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/components/auth-provider';
 
 export const metadata: Metadata = {
-  title: 'MediChain Nexus',
+  title: 'One Stop Healthcare Solution',
   description: 'A Hospital-Insurance Management web app.',
 };
 
