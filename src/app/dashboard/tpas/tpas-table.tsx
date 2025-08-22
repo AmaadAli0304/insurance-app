@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useActionState, useEffect, useRef } from 'react';
@@ -72,49 +71,57 @@ export function TPAsTable({ tpas }: TPAsTableProps) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {tpas.map(tpa => (
-          <TableRow key={tpa.id}>
-            <TableCell className="font-medium">{tpa.name}</TableCell>
-            <TableCell>{tpa.email || 'N/A'}</TableCell>
-            <TableCell>{tpa.phone || 'N/A'}</TableCell>
-            <TableCell>
-              <AlertDialog>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem asChild>
-                      <Link href={`/dashboard/tpas/${tpa.id}/edit`} className="flex items-center gap-2 cursor-pointer">
-                        <Edit className="h-4 w-4" /> Edit
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                     <AlertDialogTrigger asChild>
-                       <DropdownMenuItem className="text-destructive flex items-center gap-2 cursor-pointer" onSelect={(e) => e.preventDefault()}>
-                         <Trash className="h-4 w-4" /> Delete
-                       </DropdownMenuItem>
-                     </AlertDialogTrigger>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete this TPA record.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                     <form action={formAction} ref={formRef}>
-                        <input type="hidden" name="id" value={tpa.id} />
-                        <DeleteButton />
-                     </form>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+        {tpas.length > 0 ? (
+          tpas.map(tpa => (
+            <TableRow key={tpa.id}>
+              <TableCell className="font-medium">{tpa.name}</TableCell>
+              <TableCell>{tpa.email || 'N/A'}</TableCell>
+              <TableCell>{tpa.phone || 'N/A'}</TableCell>
+              <TableCell>
+                <AlertDialog>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem asChild>
+                        <Link href={`/dashboard/tpas/${tpa.id}/edit`} className="flex items-center gap-2 cursor-pointer">
+                          <Edit className="h-4 w-4" /> Edit
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                       <AlertDialogTrigger asChild>
+                         <DropdownMenuItem className="text-destructive flex items-center gap-2 cursor-pointer" onSelect={(e) => e.preventDefault()}>
+                           <Trash className="h-4 w-4" /> Delete
+                         </DropdownMenuItem>
+                       </AlertDialogTrigger>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete this TPA record.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                       <form action={formAction} ref={formRef}>
+                          <input type="hidden" name="id" value={tpa.id} />
+                          <DeleteButton />
+                       </form>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </TableCell>
+            </TableRow>
+          ))
+        ) : (
+          <TableRow>
+            <TableCell colSpan={4} className="h-24 text-center">
+              No data found
             </TableCell>
           </TableRow>
-        ))}
+        )}
       </TableBody>
     </Table>
   );
