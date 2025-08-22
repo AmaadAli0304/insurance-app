@@ -76,11 +76,11 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
                                 <Input id="joiningDate" name="joiningDate" type="date" defaultValue={staff.joiningDate} />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="endDate">End Date (Optional)</Label>
+                                <Label htmlFor="endDate">End Date</Label>
                                 <Input id="endDate" name="endDate" type="date" defaultValue={staff.endDate} />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="shiftTiming">Shift Timing (Optional)</Label>
+                                <Label htmlFor="shiftTiming">Shift Timing</Label>
                                 <Input id="shiftTiming" name="shiftTiming" defaultValue={staff.shiftTiming} />
                             </div>
                             <div className="space-y-2">

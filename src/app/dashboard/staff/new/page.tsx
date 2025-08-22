@@ -72,11 +72,11 @@ export default function NewStaffPage() {
                                 <Input id="joiningDate" name="joiningDate" type="date" />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="endDate">End Date (Optional)</Label>
+                                <Label htmlFor="endDate">End Date</Label>
                                 <Input id="endDate" name="endDate" type="date" />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="shiftTiming">Shift Timing (Optional)</Label>
+                                <Label htmlFor="shiftTiming">Shift Timing</Label>
                                 <Input id="shiftTiming" name="shiftTiming" placeholder="e.g., 9 AM - 6 PM" />
                             </div>
                             <div className="space-y-2">
