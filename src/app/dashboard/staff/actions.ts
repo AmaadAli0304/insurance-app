@@ -21,8 +21,8 @@ export async function handleAddStaff(prevState: { message: string }, formData: F
     hospitalId: undefined, // No longer collected from form
   };
 
-  if (!newStaffData.fullName || !newStaffData.email || !newStaffData.companyId) {
-    return { message: "Please fill all required fields." };
+  if (!newStaffData.fullName) {
+    return { message: "Full Name is a required field." };
   }
 
   const newStaff: Staff = {
@@ -53,6 +53,10 @@ export async function handleUpdateStaff(prevState: { message: string }, formData
 
   if (!id) {
     return { message: "Staff ID is missing." };
+  }
+  
+  if (!updatedStaffData.fullName) {
+    return { message: "Full Name is a required field." };
   }
 
   const staffIndex = mockStaff.findIndex(s => s.id === id);

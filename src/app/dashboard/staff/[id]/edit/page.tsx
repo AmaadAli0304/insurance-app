@@ -57,23 +57,23 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email Address</Label>
-                                <Input id="email" name="email" type="email" defaultValue={staff.email} required />
+                                <Input id="email" name="email" type="email" defaultValue={staff.email} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="contactNumber">Contact Number</Label>
-                                <Input id="contactNumber" name="contactNumber" defaultValue={staff.contactNumber} required />
+                                <Input id="contactNumber" name="contactNumber" defaultValue={staff.contactNumber} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="designation">Designation</Label>
-                                <Input id="designation" name="designation" defaultValue={staff.designation} required />
+                                <Input id="designation" name="designation" defaultValue={staff.designation} />
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="department">Department</Label>
-                                <Input id="department" name="department" defaultValue={staff.department} required />
+                                <Input id="department" name="department" defaultValue={staff.department} />
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="joiningDate">Joining Date</Label>
-                                <Input id="joiningDate" name="joiningDate" type="date" defaultValue={staff.joiningDate} required />
+                                <Input id="joiningDate" name="joiningDate" type="date" defaultValue={staff.joiningDate} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="endDate">End Date (Optional)</Label>
@@ -85,7 +85,7 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="status">Status</Label>
-                                <Select name="status" required defaultValue={staff.status}>
+                                <Select name="status" defaultValue={staff.status}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select status" />
                                     </SelectTrigger>

@@ -53,23 +53,23 @@ export default function NewStaffPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email Address</Label>
-                                <Input id="email" name="email" type="email" placeholder="e.g., john.d@company.com" required />
+                                <Input id="email" name="email" type="email" placeholder="e.g., john.d@company.com" />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="contactNumber">Contact Number</Label>
-                                <Input id="contactNumber" name="contactNumber" placeholder="e.g., 555-123-4567" required />
+                                <Input id="contactNumber" name="contactNumber" placeholder="e.g., 555-123-4567" />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="designation">Designation</Label>
-                                <Input id="designation" name="designation" placeholder="e.g., Claim Coordinator" required />
+                                <Input id="designation" name="designation" placeholder="e.g., Claim Coordinator" />
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="department">Department</Label>
-                                <Input id="department" name="department" placeholder="e.g., Claims Processing" required />
+                                <Input id="department" name="department" placeholder="e.g., Claims Processing" />
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="joiningDate">Joining Date</Label>
-                                <Input id="joiningDate" name="joiningDate" type="date" required />
+                                <Input id="joiningDate" name="joiningDate" type="date" />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="endDate">End Date (Optional)</Label>
@@ -81,7 +81,7 @@ export default function NewStaffPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="status">Status</Label>
-                                <Select name="status" required defaultValue="Active">
+                                <Select name="status" defaultValue="Active">
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select status" />
                                     </SelectTrigger>
