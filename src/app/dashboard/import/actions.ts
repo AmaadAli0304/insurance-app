@@ -84,3 +84,29 @@ export async function handleImportCompanies(prevState: { message: string, type?:
     return { message: `Error importing companies: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
+
+export async function handleCreateTable(prevState: { message: string, type?: string }, formData: FormData) {
+  try {
+    await poolConnect;
+    const request = pool.request();
+    const createTpasTableQuery = `
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='tpas' and xtype='U')
+      BEGIN
+        CREATE TABLE tpas (
+          id INT IDENTITY(1,1) PRIMARY KEY,
+          name NVARCHAR(255) NOT NULL,
+          email NVARCHAR(255),
+          phone NVARCHAR(50),
+          portalLink NVARCHAR(MAX),
+          address NVARCHAR(MAX)
+        );
+      END
+    `;
+    await request.query(createTpasTableQuery);
+    return { message: "TPA table created successfully or already exists.", type: "success" };
+  } catch (error) {
+    const dbError = error as { message?: string };
+    console.error('Error creating TPA table:', dbError);
+    return { message: `Error creating TPA table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+  }
+}

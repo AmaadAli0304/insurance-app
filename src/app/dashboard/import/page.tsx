@@ -7,40 +7,69 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleImportCompanies } from "./actions";
+import { handleImportCompanies, handleCreateTable } from "./actions";
 import { useToast } from "@/hooks/use-toast";
-import { Upload } from "lucide-react";
+import { Upload, Database } from "lucide-react";
 
-function SubmitButton() {
+function SubmitImportButton() {
     const { pending } = useFormStatus();
     return (
         <Button type="submit" disabled={pending}>
+            <Upload className="mr-2 h-4 w-4" />
             {pending ? "Importing..." : "Import Companies"}
         </Button>
     );
 }
 
+function SubmitTableButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending} variant="secondary">
+             <Database className="mr-2 h-4 w-4" />
+            {pending ? "Creating..." : "Create TPA Table"}
+        </Button>
+    );
+}
+
 export default function ImportPage() {
-    const [state, formAction] = useActionState(handleImportCompanies, { message: "", type: undefined });
+    const [importState, importAction] = useActionState(handleImportCompanies, { message: "", type: undefined });
+    const [createTableState, createTableAction] = useActionState(handleCreateTable, { message: "", type: undefined });
+
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
 
     useEffect(() => {
-        if (state.type === 'success') {
+        if (importState.type === 'success') {
             toast({
                 title: "Import Successful",
-                description: state.message,
+                description: importState.message,
                 variant: "success",
             });
             formRef.current?.reset();
-        } else if (state.type === 'error') {
+        } else if (importState.type === 'error') {
             toast({
                 title: "Import Error",
-                description: state.message,
+                description: importState.message,
                 variant: "destructive"
             });
         }
-    }, [state, toast]);
+    }, [importState, toast]);
+
+     useEffect(() => {
+        if (createTableState.type === 'success') {
+            toast({
+                title: "Database Action",
+                description: createTableState.message,
+                variant: "success",
+            });
+        } else if (createTableState.type === 'error') {
+            toast({
+                title: "Database Error",
+                description: createTableState.message,
+                variant: "destructive"
+            });
+        }
+    }, [createTableState, toast]);
 
     return (
         <div className="space-y-6">
@@ -52,7 +81,7 @@ export default function ImportPage() {
                         for &quot;Name&quot; and &quot;Email&quot;.
                     </CardDescription>
                 </CardHeader>
-                <form action={formAction} ref={formRef}>
+                <form action={importAction} ref={formRef}>
                     <CardContent className="space-y-4">
                          <div className="space-y-2">
                             <Label htmlFor="file">XLSX File</Label>
@@ -61,8 +90,22 @@ export default function ImportPage() {
                             </div>
                         </div>
 
-                        {state.type === 'error' && <p className="text-sm text-destructive">{state.message}</p>}
-                        <SubmitButton />
+                        {importState.type === 'error' && <p className="text-sm text-destructive">{importState.message}</p>}
+                        <SubmitImportButton />
+                    </CardContent>
+                </form>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Database Management</CardTitle>
+                    <CardDescription>
+                       Perform database setup tasks. Use this to create necessary tables if they don't exist.
+                    </CardDescription>
+                </CardHeader>
+                <form action={createTableAction}>
+                    <CardContent>
+                         <SubmitTableButton />
                     </CardContent>
                 </form>
             </Card>
