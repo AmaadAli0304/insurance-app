@@ -7,9 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleImportCompanies, handleCreateTable, handleCreateRelationshipTables, handleCreateStaffTable } from "./actions";
+import { handleImportCompanies, handleCreateTable, handleCreateRelationshipTables, handleCreateStaffTable, handleCreateHospitalTable } from "./actions";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Database, GitMerge, UserPlus } from "lucide-react";
+import { Upload, Database, GitMerge, UserPlus, Building } from "lucide-react";
 
 function SubmitImportButton() {
     const { pending } = useFormStatus();
@@ -51,12 +51,23 @@ function SubmitStaffTableButton() {
     );
 }
 
+function SubmitHospitalTableButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending} variant="secondary">
+             <Building className="mr-2 h-4 w-4" />
+            {pending ? "Creating..." : "Create Hospital Table"}
+        </Button>
+    );
+}
+
 
 export default function ImportPage() {
     const [importState, importAction] = useActionState(handleImportCompanies, { message: "", type: undefined });
     const [createTableState, createTableAction] = useActionState(handleCreateTable, { message: "", type: undefined });
     const [createRelationshipTableState, createRelationshipTableAction] = useActionState(handleCreateRelationshipTables, { message: "", type: undefined });
     const [createStaffTableState, createStaffTableAction] = useActionState(handleCreateStaffTable, { message: "", type: undefined });
+    const [createHospitalTableState, createHospitalTableAction] = useActionState(handleCreateHospitalTable, { message: "", type: undefined });
 
 
     const { toast } = useToast();
@@ -127,6 +138,22 @@ export default function ImportPage() {
         }
     }, [createStaffTableState, toast]);
 
+    useEffect(() => {
+        if (createHospitalTableState.type === 'success') {
+            toast({
+                title: "Database Action",
+                description: createHospitalTableState.message,
+                variant: "success",
+            });
+        } else if (createHospitalTableState.type === 'error') {
+            toast({
+                title: "Database Error",
+                description: createHospitalTableState.message,
+                variant: "destructive"
+            });
+        }
+    }, [createHospitalTableState, toast]);
+
 
     return (
         <div className="space-y-6">
@@ -169,6 +196,9 @@ export default function ImportPage() {
                     </form>
                     <form action={createStaffTableAction}>
                         <SubmitStaffTableButton />
+                    </form>
+                     <form action={createHospitalTableAction}>
+                        <SubmitHospitalTableButton />
                     </form>
                 </CardContent>
             </Card>

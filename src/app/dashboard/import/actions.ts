@@ -190,3 +190,30 @@ export async function handleCreateStaffTable(prevState: { message: string, type?
     return { message: `Error creating Staff table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
+
+export async function handleCreateHospitalTable(prevState: { message: string, type?: string }, formData: FormData) {
+  try {
+    await poolConnect;
+    const request = pool.request();
+    const createHospitalTableQuery = `
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='hospitals' and xtype='U')
+      BEGIN
+        CREATE TABLE hospitals (
+          id NVARCHAR(255) PRIMARY KEY,
+          name NVARCHAR(255),
+          location NVARCHAR(255),
+          address NVARCHAR(MAX),
+          contact_person NVARCHAR(255),
+          email NVARCHAR(255),
+          phone NVARCHAR(50)
+        );
+      END
+    `;
+    await request.query(createHospitalTableQuery);
+    return { message: "Hospital table created successfully or already exists.", type: "success" };
+  } catch (error) {
+    const dbError = error as { message?: string };
+    console.error('Error creating Hospital table:', dbError);
+    return { message: `Error creating Hospital table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+  }
+}
