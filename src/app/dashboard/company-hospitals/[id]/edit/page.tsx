@@ -131,7 +131,7 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
                                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                         </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent className="w-full">
+                                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-60 overflow-y-auto">
                                         {companies.map(company => (
                                             <DropdownMenuCheckboxItem
                                                 key={company.id}
@@ -167,7 +167,7 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
                                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                         </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent className="w-full">
+                                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-60 overflow-y-auto">
                                         {tpas.map(tpa => (
                                             <DropdownMenuCheckboxItem
                                                 key={tpa.id}
@@ -206,7 +206,7 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
                                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+                                <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-60 overflow-y-auto">
                                     {staff.map(s => (
                                         <DropdownMenuCheckboxItem
                                             key={s.id}
