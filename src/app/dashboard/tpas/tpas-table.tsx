@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import type { TPA } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from 'next/navigation';
 
 interface TPAsTableProps {
   tpas: TPA[];
@@ -44,6 +45,7 @@ export function TPAsTable({ tpas }: TPAsTableProps) {
   const { toast } = useToast();
   const [state, formAction] = useActionState(handleDeleteTPA, { message: "", type: "initial" });
   const formRef = useRef<HTMLFormElement>(null);
+  const router = useRouter();
   
   useEffect(() => {
     if (state.type === 'success') {
@@ -61,6 +63,10 @@ export function TPAsTable({ tpas }: TPAsTableProps) {
     }
   }, [state, toast]);
 
+  const handleRowClick = (tpaId: number) => {
+    router.push(`/dashboard/tpas/${tpaId}/view`);
+  };
+
   return (
     <Table>
       <TableHeader>
@@ -74,11 +80,11 @@ export function TPAsTable({ tpas }: TPAsTableProps) {
       <TableBody>
         {tpas.length > 0 ? (
           tpas.map(tpa => (
-            <TableRow key={tpa.id}>
+            <TableRow key={tpa.id} onClick={() => handleRowClick(tpa.id!)} className="cursor-pointer">
               <TableCell className="font-medium">{tpa.name}</TableCell>
               <TableCell>{tpa.email || 'N/A'}</TableCell>
               <TableCell>{tpa.phone || 'N/A'}</TableCell>
-              <TableCell>
+              <TableCell onClick={(e) => e.stopPropagation()}>
                 <AlertDialog>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>

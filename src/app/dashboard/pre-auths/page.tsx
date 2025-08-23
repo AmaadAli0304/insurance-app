@@ -22,14 +22,20 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useAuth } from "@/components/auth-provider"
 import { Badge } from "@/components/ui/badge"
+import { useRouter } from "next/navigation"
 
 export default function PreAuthsPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const requests = mockStaffingRequests.filter(p => p.hospitalId === user?.hospitalId);
 
   const getPatientName = (patientId: string) => {
     return mockPatients.find(p => p.id === patientId)?.fullName || 'N/A';
   }
+  
+  const handleRowClick = (requestId: string) => {
+    router.push(`/dashboard/pre-auths/${requestId}/view`);
+  };
 
   return (
     <div className="space-y-6">
@@ -60,7 +66,7 @@ export default function PreAuthsPage() {
             </TableHeader>
             <TableBody>
               {requests.map(r => (
-                <TableRow key={r.id}>
+                <TableRow key={r.id} onClick={() => handleRowClick(r.id)} className="cursor-pointer">
                   <TableCell className="font-medium">{getPatientName(r.patientId)}</TableCell>
                   <TableCell>{r.subject}</TableCell>
                   <TableCell>{r.email}</TableCell>
@@ -68,7 +74,7 @@ export default function PreAuthsPage() {
                     <Badge variant={r.status === 'Approved' ? 'default' : r.status === 'Rejected' ? 'destructive' : 'secondary'} className={r.status === 'Approved' ? 'bg-accent text-accent-foreground' : ''}>{r.status}</Badge>
                   </TableCell>
                   <TableCell>{new Date(r.createdAt).toLocaleDateString()}</TableCell>
-                  <TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     <AlertDialog>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>

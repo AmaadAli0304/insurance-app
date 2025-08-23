@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import type { Hospital } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from 'next/navigation';
 
 interface HospitalsTableProps {
   hospitals: Hospital[];
@@ -44,6 +45,7 @@ export function HospitalsTable({ hospitals }: HospitalsTableProps) {
   const { toast } = useToast();
   const [state, formAction] = useActionState(handleDeleteHospital, { message: "", type: "initial" });
   const formRef = useRef<HTMLFormElement>(null);
+  const router = useRouter();
   
   useEffect(() => {
     if (state.type === 'success') {
@@ -61,6 +63,10 @@ export function HospitalsTable({ hospitals }: HospitalsTableProps) {
     }
   }, [state, toast]);
 
+  const handleRowClick = (hospitalId: string) => {
+    router.push(`/dashboard/company-hospitals/${hospitalId}/view`);
+  };
+
   return (
     <Table>
       <TableHeader>
@@ -74,12 +80,12 @@ export function HospitalsTable({ hospitals }: HospitalsTableProps) {
       </TableHeader>
       <TableBody>
         {hospitals.map(h => (
-          <TableRow key={h.id}>
+          <TableRow key={h.id} onClick={() => handleRowClick(h.id)} className="cursor-pointer">
             <TableCell className="font-medium">{h.name}</TableCell>
             <TableCell>{h.contactPerson || 'N/A'}</TableCell>
             <TableCell>{h.email || 'N/A'}</TableCell>
             <TableCell>{h.phone || 'N/A'}</TableCell>
-            <TableCell>
+            <TableCell onClick={(e) => e.stopPropagation()}>
               <AlertDialog>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>

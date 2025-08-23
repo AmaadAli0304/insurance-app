@@ -23,6 +23,7 @@ import {
 import type { Staff } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from '@/components/ui/badge';
+import { useRouter } from 'next/navigation';
 
 interface StaffTableProps {
   staff: Staff[];
@@ -46,6 +47,7 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
   const { toast } = useToast();
   const [state, formAction] = useActionState(handleDeleteStaff, { message: "", type: "initial" });
   const formRef = useRef<HTMLFormElement>(null);
+  const router = useRouter();
   
   useEffect(() => {
     if (state.type === 'success') {
@@ -64,6 +66,10 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
     }
   }, [state, toast, onStaffDeleted]);
 
+  const handleRowClick = (staffId: number) => {
+    router.push(`/dashboard/staff/${staffId}/view`);
+  };
+
   return (
     <Table>
       <TableHeader>
@@ -78,14 +84,14 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
       <TableBody>
         {staff.length > 0 ? (
           staff.map(s => (
-            <TableRow key={s.id}>
+            <TableRow key={s.id} onClick={() => handleRowClick(s.id)} className="cursor-pointer">
               <TableCell className="font-medium">{s.name}</TableCell>
               <TableCell>{s.designation}</TableCell>
               <TableCell>{s.email}</TableCell>
               <TableCell>
                 <Badge variant={s.status === 'Active' ? 'default' : 'destructive'} className={s.status === 'Active' ? 'bg-accent text-accent-foreground' : ''}>{s.status}</Badge>
               </TableCell>
-              <TableCell>
+              <TableCell onClick={(e) => e.stopPropagation()}>
                 <AlertDialog>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>

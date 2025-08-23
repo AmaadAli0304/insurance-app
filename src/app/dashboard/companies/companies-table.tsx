@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import type { Company } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from 'next/navigation';
 
 interface CompaniesTableProps {
   companies: Company[];
@@ -44,6 +45,7 @@ export function CompaniesTable({ companies }: CompaniesTableProps) {
   const { toast } = useToast();
   const [state, formAction] = useActionState(handleDeleteCompany, { message: "", type: "initial" });
   const formRef = useRef<HTMLFormElement>(null);
+  const router = useRouter();
   
   useEffect(() => {
     if (state.type === 'success') {
@@ -60,6 +62,10 @@ export function CompaniesTable({ companies }: CompaniesTableProps) {
       });
     }
   }, [state, toast]);
+  
+  const handleRowClick = (companyId: string) => {
+    router.push(`/dashboard/companies/${companyId}/view`);
+  };
 
   return (
     <Table>
@@ -73,11 +79,11 @@ export function CompaniesTable({ companies }: CompaniesTableProps) {
       </TableHeader>
       <TableBody>
         {companies.map(c => (
-          <TableRow key={c.id}>
+          <TableRow key={c.id} onClick={() => handleRowClick(c.id)} className="cursor-pointer">
             <TableCell className="font-medium">{c.name}</TableCell>
             <TableCell>{c.contactPerson || 'N/A'}</TableCell>
             <TableCell>{c.email || 'N/A'}</TableCell>
-            <TableCell>
+            <TableCell onClick={(e) => e.stopPropagation()}>
               <AlertDialog>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>

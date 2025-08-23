@@ -21,9 +21,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { useRouter } from "next/navigation"
 
 
 export default function HospitalsPage() {
+  const router = useRouter();
+
+  const handleRowClick = (hospitalId: string) => {
+    router.push(`/dashboard/hospitals/${hospitalId}/edit`);
+  };
+
   return (
     <div className="space-y-6">
        <Card>
@@ -51,13 +58,13 @@ export default function HospitalsPage() {
             </TableHeader>
             <TableBody>
               {mockHospitals.map(h => (
-                <TableRow key={h.id}>
+                <TableRow key={h.id} onClick={() => handleRowClick(h.id)} className="cursor-pointer">
                   <TableCell className="font-medium">{h.name}</TableCell>
                   <TableCell>{h.address}</TableCell>
                   <TableCell>
                     <Badge variant="secondary">{h.assignedCompanies.length}</Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     <AlertDialog>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>

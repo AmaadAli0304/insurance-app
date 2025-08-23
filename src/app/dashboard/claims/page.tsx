@@ -23,10 +23,12 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useAuth } from "@/components/auth-provider"
 import type { ClaimStatus } from "@/lib/types"
+import { useRouter } from "next/navigation"
 
 
 export default function ClaimsPage() {
   const { user, role } = useAuth();
+  const router = useRouter();
   const claims = role === 'Company Admin' 
     ? mockClaims.filter(c => c.companyId === user?.companyId)
     : mockClaims.filter(c => c.hospitalId === user?.hospitalId);
@@ -54,6 +56,11 @@ export default function ClaimsPage() {
         return 'secondary';
     }
   }
+
+  const handleRowClick = (claimId: string) => {
+    router.push(`/dashboard/claims/${claimId}/view`);
+  };
+
 
   return (
     <div className="space-y-6">
@@ -85,7 +92,7 @@ export default function ClaimsPage() {
             </TableHeader>
             <TableBody>
               {claims.map(c => (
-                <TableRow key={c.id}>
+                <TableRow key={c.id} onClick={() => handleRowClick(c.id)} className="cursor-pointer">
                   <TableCell className="font-mono">{c.id}</TableCell>
                   <TableCell className="font-medium">{getPatientName(c.patientId)}</TableCell>
                   <TableCell>{getHospitalName(c.hospitalId)}</TableCell>
@@ -94,7 +101,7 @@ export default function ClaimsPage() {
                     <Badge variant={getStatusVariant(c.status)} className={c.status === 'Paid' || c.status === 'Approved' ? 'bg-accent text-accent-foreground' : ''}>{c.status}</Badge>
                   </TableCell>
                   <TableCell>{new Date(c.updatedAt).toLocaleDateString()}</TableCell>
-                  <TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     <AlertDialog>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>

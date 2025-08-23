@@ -21,14 +21,20 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useAuth } from "@/components/auth-provider"
+import { useRouter } from "next/navigation"
 
 export default function PatientsPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const patients = mockPatients.filter(p => p.hospitalId === user?.hospitalId);
 
   const getCompanyName = (companyId: string) => {
     return mockCompanies.find(c => c.id === companyId)?.name || 'N/A';
   }
+
+  const handleRowClick = (patientId: string) => {
+    router.push(`/dashboard/patients/${patientId}/edit`);
+  };
 
   return (
     <div className="space-y-6">
@@ -58,12 +64,12 @@ export default function PatientsPage() {
             </TableHeader>
             <TableBody>
               {patients.map(p => (
-                <TableRow key={p.id}>
+                <TableRow key={p.id} onClick={() => handleRowClick(p.id)} className="cursor-pointer">
                   <TableCell className="font-medium">{p.fullName}</TableCell>
                   <TableCell>{p.doctorName}</TableCell>
                   <TableCell>{getCompanyName(p.companyId)}</TableCell>
                   <TableCell>{p.policyNumber}</TableCell>
-                  <TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     <AlertDialog>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
