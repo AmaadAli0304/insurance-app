@@ -24,30 +24,6 @@ const staffUpdateSchema = staffSchema.extend({
     password: z.string().optional(),
 });
 
-async function ensurePasswordColumnExists() {
-    try {
-        await poolConnect;
-        const request = pool.request();
-        const checkColumnQuery = `
-            IF NOT EXISTS (
-                SELECT * FROM sys.columns 
-                WHERE Name = N'password' 
-                AND Object_ID = Object_ID(N'staff')
-            )
-            BEGIN
-                ALTER TABLE staff ADD password NVARCHAR(255)
-            END
-        `;
-        await request.query(checkColumnQuery);
-    } catch (error) {
-        console.error("Failed to check or add 'password' column to 'staff' table:", error);
-        // We can throw here to prevent proceeding with a known-to-fail query,
-        // or let it proceed and fail, which is the current behavior.
-        // For robustness, we'll throw to make the issue clearer.
-        throw new Error("Database schema update for staff password failed.");
-    }
-}
-
 
 export async function getStaff(): Promise<Staff[]> {
   try {
@@ -116,8 +92,6 @@ export async function handleAddStaff(prevState: { message: string, type?: string
   const { data } = validatedFields;
 
   try {
-    await ensurePasswordColumnExists();
-
     await poolConnect;
     await pool.request()
       .input('name', sql.NVarChar, data.name)
@@ -169,7 +143,6 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
   const { id, ...data } = parsed.data;
 
   try {
-    await ensurePasswordColumnExists();
     await poolConnect;
     const request = pool.request();
     let setClauses = [
