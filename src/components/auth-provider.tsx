@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useMemo, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useMemo, useEffect, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
 import type { User } from '@/lib/types';
@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, loading, pathname, router]);
 
-  const login = (token: string, remember: boolean = false) => {
+  const login = useCallback((token: string, remember: boolean = false) => {
     try {
         const decodedUser: User = jwtDecode(token);
         setUser(decodedUser);
@@ -62,9 +62,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Failed to decode token or save to storage", error);
     }
-  };
+  }, []);
   
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null);
     try {
       localStorage.removeItem('token');
@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
        console.error("Failed to remove token from storage", error);
     }
     router.push('/login');
-  };
+  }, [router]);
 
   const value = useMemo(() => ({
     user,
@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     login,
     logout,
-  }), [user, loading]);
+  }), [user, loading, login, logout]);
 
   if (loading && !user && pathname !== '/login' && pathname !== '/signup') {
     return (
