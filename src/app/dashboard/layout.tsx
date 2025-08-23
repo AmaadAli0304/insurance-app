@@ -21,7 +21,7 @@ export default function DashboardLayout({
   }
 
   const SidebarLayout = ({ children }: { children: React.ReactNode }) => {
-    const { isMobile } = useSidebar();
+    const { isMobile, open } = useSidebar();
     return (
       <>
         <Sidebar collapsible={isMobile ? 'offcanvas' : 'icon'}>
