@@ -27,10 +27,17 @@ export default function DashboardLayout({
         <Sidebar collapsible={isMobile ? 'offcanvas' : 'icon'}>
           <SidebarHeader>
             <div className="flex h-14 items-center justify-between border-b border-sidebar-border px-4 lg:h-[60px] lg:px-6">
-                <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-sidebar-foreground">
-                    <Logo />
-                </Link>
-                <SidebarTrigger />
+                <div className="flex items-center gap-2 group-data-[state=expanded]:hidden">
+                    <SidebarTrigger />
+                </div>
+                <div className="flex items-center gap-2 group-data-[state=collapsed]:hidden">
+                    <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-sidebar-foreground">
+                        <Logo />
+                    </Link>
+                </div>
+                <div className="group-data-[state=collapsed]:hidden">
+                    <SidebarTrigger />
+                </div>
             </div>
           </SidebarHeader>
           <SidebarContent>
