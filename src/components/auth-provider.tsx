@@ -9,26 +9,37 @@ interface AuthContextType {
   user: User | null;
   role: User['role'] | null;
   loading: boolean;
-  login: (user: User) => void;
+  login: (user: User, remember?: boolean) => void;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// A simple in-memory session storage.
-let memoryUser: User | null = null;
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(memoryUser);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
 
-  // Simulate loading the user on initial mount
   useEffect(() => {
-    // In a real app, you might check a token from localStorage here.
-    // For this mock, we just use the in-memory user.
-    setUser(memoryUser);
+    let storedUser: User | null = null;
+    try {
+      const sessionUser = sessionStorage.getItem('user');
+      if (sessionUser) {
+        storedUser = JSON.parse(sessionUser);
+      } else {
+        const localUser = localStorage.getItem('user');
+        if (localUser) {
+          storedUser = JSON.parse(localUser);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to parse user from storage", error);
+      sessionStorage.removeItem('user');
+      localStorage.removeItem('user');
+    }
+    
+    setUser(storedUser);
     setLoading(false);
   }, []);
 
@@ -43,14 +54,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, loading, pathname, router]);
 
-  const login = (appUser: User) => {
-    memoryUser = appUser;
+  const login = (appUser: User, remember: boolean = false) => {
     setUser(appUser);
+    try {
+      if (remember) {
+        localStorage.setItem('user', JSON.stringify(appUser));
+      } else {
+        sessionStorage.setItem('user', JSON.stringify(appUser));
+      }
+    } catch (error) {
+      console.error("Failed to save user to storage", error);
+    }
   };
   
   const logout = () => {
-    memoryUser = null;
     setUser(null);
+    try {
+      localStorage.removeItem('user');
+      sessionStorage.removeItem('user');
+    } catch (error) {
+       console.error("Failed to remove user from storage", error);
+    }
     router.push('/login');
   };
 
@@ -84,5 +108,3 @@ export function useAuth() {
   }
   return context;
 }
-
-    

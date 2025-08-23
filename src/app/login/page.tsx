@@ -11,6 +11,7 @@ import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
 import { loginAction } from './actions';
 import { useFormStatus } from 'react-dom';
+import { Checkbox } from '@/components/ui/checkbox';
 
 function LoginButton() {
     const { pending } = useFormStatus();
@@ -39,7 +40,8 @@ export default function LoginPage() {
       });
     }
     if (state.user) {
-      login(state.user);
+      const rememberMe = state.rememberMe ?? false;
+      login(state.user, rememberMe);
     }
   }, [state, login, toast]);
 
@@ -63,6 +65,15 @@ export default function LoginPage() {
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input id="password" name="password" type="password" defaultValue="password" required />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="remember" name="remember" defaultChecked={true} />
+              <label
+                htmlFor="remember"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Remember me
+              </label>
             </div>
              <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">You can use any of the seeded users from the database.</p>

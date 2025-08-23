@@ -9,24 +9,28 @@ import type { User } from '@/lib/types';
 const loginSchema = z.object({
     email: z.string().email({ message: "Invalid email address." }),
     password: z.string().min(1, { message: "Password is required." }),
+    remember: z.string().optional(),
 });
 
 type LoginState = {
     error?: string;
     user?: User;
+    rememberMe?: boolean;
 };
 
 export async function loginAction(prevState: LoginState, formData: FormData): Promise<LoginState> {
     const parsed = loginSchema.safeParse({
         email: formData.get('email'),
         password: formData.get('password'),
+        remember: formData.get('remember'),
     });
 
     if (!parsed.success) {
         return { error: parsed.error.errors.map((e) => e.message).join(', ') };
     }
 
-    const { email, password } = parsed.data;
+    const { email, password, remember } = parsed.data;
+    const rememberMe = remember === 'on';
 
     try {
         await poolConnect;
@@ -49,7 +53,7 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
         // Do not return the password hash to the client
         const { password: _, ...userSafeToReturn } = user;
 
-        return { user: userSafeToReturn };
+        return { user: userSafeToReturn, rememberMe };
 
     } catch (error) {
         console.error("Login database error:", error);
