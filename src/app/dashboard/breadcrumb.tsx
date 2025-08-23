@@ -49,12 +49,14 @@ export function Breadcrumb() {
       const parentSegment = segments[index - 1];
       const singularParentLabel = breadcrumbNameMap[parentSegment] || capitalize(parentSegment).replace(/s$/, '');
       label = `Add New ${singularParentLabel}`;
+    } else if (isIdSegment(segment)) {
+        if (index > 0) {
+            const parentSegment = segments[index - 1];
+            const singularParentLabel = breadcrumbNameMap[parentSegment] || capitalize(parentSegment).replace(/s$/, '');
+            label = `${singularParentLabel} Details`;
+        }
     } else if (breadcrumbNameMap[segment]) {
         label = breadcrumbNameMap[segment]
-    } else if (isIdSegment(segment)) {
-        const parentSegment = segments[index-1];
-        const singularParentLabel = breadcrumbNameMap[parentSegment] || capitalize(parentSegment).replace(/s$/, '');
-        label = `${singularParentLabel} Details`;
     }
 
 
