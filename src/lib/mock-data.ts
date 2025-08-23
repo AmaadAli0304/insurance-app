@@ -1,6 +1,7 @@
 
 import type { User, Hospital, Company, Patient, StaffingRequest, Policy, Claim, TPA, Staff } from './types';
 
+// This is now only used for seeding the database
 export let mockUsers: User[] = [
   { uid: 'admin-01', name: 'Super Admin', email: 'admin@onestop.com', role: 'Admin' },
   { uid: 'hstaff-01', name: 'Bob', email: 'bob@stjude.com', role: 'Hospital Staff', hospitalId: 'hosp-01' },
@@ -100,8 +101,3 @@ export let mockStaff: Staff[] = [
     { id: 1, name: 'Eleanor Vance', designation: 'Claim Coordinator', department: 'Claims', number: '555-0101', email: 'eleanor@statamine.com', joiningDate: '2022-08-01', status: 'Active' },
     { id: 2, name: 'Marcus Thorne', designation: 'Nurse', department: 'On-site Support', number: '555-0102', email: 'marcus@statamine.com', joiningDate: '2023-01-15', shiftTime: '9 AM - 6 PM', status: 'Active' },
 ];
-
-
-export const getMockUserByEmail = (email: string): User | null => {
-  return mockUsers.find(u => u.email === email) ?? null;
-}
