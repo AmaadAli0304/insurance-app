@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useActionState, useCallback } from 'react';
@@ -45,7 +44,7 @@ export default function LoginPage() {
       const rememberMe = state.rememberMe ?? false;
       login(state.token, rememberMe);
     }
-  }, [state, login, toast]);
+  }, [state, login, toast, router]);
 
 
   return (
@@ -76,9 +75,6 @@ export default function LoginPage() {
               >
                 Remember me
               </label>
-            </div>
-             <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">You can use any of the seeded users from the database.</p>
             </div>
             {state.error && <p className="text-sm text-destructive text-center">{state.error}</p>}
           </CardContent>
