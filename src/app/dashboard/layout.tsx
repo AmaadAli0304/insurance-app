@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -8,6 +9,7 @@ import { MainNav } from "@/components/dashboard/main-nav";
 import { UserNav } from "@/components/dashboard/user-nav";
 import { useAuth } from "@/components/auth-provider";
 import { Logo } from "@/components/logo";
+import { Breadcrumb } from "@/components/dashboard/breadcrumb";
 
 export default function DashboardLayout({
   children,
@@ -57,8 +59,9 @@ export default function DashboardLayout({
             </SheetContent>
           </Sheet>
           <div className="w-full flex-1">
-            {/* Can add a search bar or other header elements here */}
+            <Breadcrumb />
           </div>
+          <UserNav />
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background">
           {children}

@@ -43,15 +43,6 @@ export default function EditPatientPage({ params }: { params: { id: string } }) 
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-4">
-                <Button asChild variant="outline" size="icon">
-                    <Link href="/dashboard/patients">
-                        <ArrowLeft className="h-4 w-4" />
-                        <span className="sr-only">Back</span>
-                    </Link>
-                </Button>
-                <h1 className="text-2xl font-bold">Edit Patient: {patient.fullName}</h1>
-            </div>
             <form action={formAction}>
                  <input type="hidden" name="id" value={patient.id} />
                 <div className="grid gap-6">

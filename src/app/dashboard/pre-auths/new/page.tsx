@@ -46,15 +46,6 @@ export default function NewRequestPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-4">
-                <Button asChild variant="outline" size="icon">
-                    <Link href="/dashboard/pre-auths">
-                        <ArrowLeft className="h-4 w-4" />
-                        <span className="sr-only">Back</span>
-                    </Link>
-                </Button>
-                <h1 className="text-2xl font-bold">New Pre-Authorization Request</h1>
-            </div>
             <form action={formAction}>
                  <input type="hidden" name="hospitalId" value={user?.hospitalId || ''} />
                  <input type="hidden" name="from" value={user?.email || ''} />

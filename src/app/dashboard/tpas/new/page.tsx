@@ -46,15 +46,6 @@ export default function NewTPAPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-4">
-                <Button asChild variant="outline" size="icon">
-                    <Link href="/dashboard/tpas">
-                        <ArrowLeft className="h-4 w-4" />
-                        <span className="sr-only">Back</span>
-                    </Link>
-                </Button>
-                <h1 className="text-2xl font-bold">Add New TPA</h1>
-            </div>
             <Card>
                 <CardHeader>
                     <CardTitle>TPA Details</CardTitle>

@@ -82,15 +82,6 @@ export default function EditCompanyPage({ params }: { params: { id: string } }) 
     
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-4">
-                <Button asChild variant="outline" size="icon">
-                    <Link href="/dashboard/companies">
-                        <ArrowLeft className="h-4 w-4" />
-                        <span className="sr-only">Back</span>
-                    </Link>
-                </Button>
-                <h1 className="text-2xl font-bold">Edit Company: {company.name}</h1>
-            </div>
             <Card>
                 <CardHeader>
                     <CardTitle>Update Company Details</CardTitle>
