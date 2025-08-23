@@ -54,7 +54,7 @@ export function Breadcrumb() {
     } else if (isIdSegment(segment)) {
         const parentSegment = segments[index-1];
         const singularParentLabel = breadcrumbNameMap[parentSegment] || capitalize(parentSegment).replace(/s$/, '');
-        label = `${singularParentLabel} ID`;
+        label = `${singularParentLabel} Details`;
     }
 
 
