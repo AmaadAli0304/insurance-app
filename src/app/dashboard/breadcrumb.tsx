@@ -24,11 +24,34 @@ export function Breadcrumb() {
   const pathname = usePathname();
   const segments = pathname.split('/').filter(Boolean);
 
+  const isUUID = (segment: string) => {
+    // A simple check for strings that look like IDs used in the app
+    const patterns = [
+        /^hosp-\d+$/,
+        /^comp-\d+$/,
+        /^pat-\d+$/,
+        /^claim-\d+$/,
+        /^req-\d+$/,
+        /^\d+$/ 
+    ];
+    return patterns.some(p => p.test(segment));
+  }
+
   const breadcrumbs = segments.map((segment, index) => {
     const href = '/' + segments.slice(0, index + 1).join('/');
     const isLast = index === segments.length - 1;
     
     let label = capitalize(segment);
+    let isClickable = true;
+
+    // Check if the current segment is a dynamic ID
+    const isIdSegment = isUUID(segment);
+    // Check if the *next* segment is 'view' or 'edit'
+    const isViewOrEditPage = index < segments.length - 1 && (segments[index + 1] === 'view' || segments[index + 1] === 'edit');
+
+    if (isIdSegment && isViewOrEditPage) {
+        isClickable = false;
+    }
 
     if (segment === 'new' && index > 0) {
       const parentSegment = segments[index - 1];
@@ -39,7 +62,7 @@ export function Breadcrumb() {
     }
 
 
-    return { href, label, isLast };
+    return { href, label, isLast, isClickable };
   });
 
   return (
@@ -47,16 +70,21 @@ export function Breadcrumb() {
       <ol className="flex items-center gap-1.5">
         {breadcrumbs.map((breadcrumb, index) => (
           <li key={breadcrumb.href} className="flex items-center gap-1.5">
-            <Link
-              href={breadcrumb.href}
-              className={cn(
-                "text-sm font-medium transition-colors hover:text-foreground",
-                breadcrumb.isLast ? "text-foreground" : "text-muted-foreground"
-              )}
-              aria-current={breadcrumb.isLast ? "page" : undefined}
-            >
-              {breadcrumb.label}
-            </Link>
+            {breadcrumb.isClickable ? (
+                <Link
+                href={breadcrumb.href}
+                className={cn(
+                    "text-sm font-medium transition-colors hover:text-foreground",
+                    breadcrumb.isLast ? "text-foreground" : "text-muted-foreground"
+                )}
+                aria-current={breadcrumb.isLast ? "page" : undefined}
+                >
+                {breadcrumb.label}
+                </Link>
+            ) : (
+                 <span className="text-sm font-medium text-muted-foreground">{breadcrumb.label}</span>
+            )}
+           
             {!breadcrumb.isLast && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
           </li>
         ))}
