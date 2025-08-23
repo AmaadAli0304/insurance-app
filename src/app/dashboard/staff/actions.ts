@@ -8,6 +8,7 @@ import { Staff } from "@/lib/types";
 
 const staffSchema = z.object({
   name: z.string().min(1, "Full Name is the only required field."),
+  password: z.string().min(6, "Password must be at least 6 characters"),
   designation: z.string().optional().nullable(),
   department: z.string().optional().nullable(),
   number: z.string().optional().nullable(),
@@ -20,6 +21,7 @@ const staffSchema = z.object({
 
 const staffUpdateSchema = staffSchema.extend({
     id: z.coerce.number().int().min(1),
+    password: z.string().optional(),
 });
 
 export async function getStaff(): Promise<Staff[]> {
@@ -67,6 +69,7 @@ export async function handleAddStaff(prevState: { message: string, type?: string
   
   const validatedFields = staffSchema.safeParse({
     name: formData.get("name"),
+    password: formData.get("password"),
     designation: formData.get("designation"),
     department: formData.get("department"),
     number: formData.get("number"),
@@ -91,6 +94,7 @@ export async function handleAddStaff(prevState: { message: string, type?: string
     await poolConnect;
     await pool.request()
       .input('name', sql.NVarChar, data.name)
+      .input('password', sql.NVarChar, data.password) // Add password
       .input('email', sql.NVarChar, data.email)
       .input('number', sql.NVarChar, data.number)
       .input('designation', sql.NVarChar, data.designation)
@@ -100,8 +104,8 @@ export async function handleAddStaff(prevState: { message: string, type?: string
       .input('shiftTime', sql.NVarChar, data.shiftTime)
       .input('status', sql.NVarChar, data.status)
       .query(`
-        INSERT INTO staff (name, email, number, designation, department, joiningDate, endDate, shiftTime, status) 
-        VALUES (@name, @email, @number, @designation, @department, @joiningDate, @endDate, @shiftTime, @status)
+        INSERT INTO staff (name, password, email, number, designation, department, joiningDate, endDate, shiftTime, status) 
+        VALUES (@name, @password, @email, @number, @designation, @department, @joiningDate, @endDate, @shiftTime, @status)
       `);
     
   } catch (error) {
@@ -119,6 +123,7 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
   const parsed = staffUpdateSchema.safeParse({
     id: formData.get("id"),
     name: formData.get("name"),
+    password: formData.get("password") || undefined,
     designation: formData.get("designation"),
     department: formData.get("department"),
     number: formData.get("number"),
@@ -139,7 +144,7 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
   try {
     await poolConnect;
     const request = pool.request();
-    const setClauses = [
+    let setClauses = [
         `name = @name`,
         `email = @email`,
         `number = @number`,
@@ -149,7 +154,13 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
         `endDate = @endDate`,
         `shiftTime = @shiftTime`,
         `status = @status`,
-    ].join(', ');
+    ];
+    
+    // Only add password to the update if it's provided
+    if (data.password) {
+        setClauses.push('password = @password');
+        request.input('password', sql.NVarChar, data.password);
+    }
     
     const result = await request
         .input('id', sql.Int, id)
@@ -162,7 +173,7 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
         .input('endDate', data.endDate ? sql.Date : sql.Date, data.endDate ? new Date(data.endDate) : null)
         .input('shiftTime', sql.NVarChar, data.shiftTime)
         .input('status', sql.NVarChar, data.status)
-        .query(`UPDATE staff SET ${setClauses} WHERE id = @id`);
+        .query(`UPDATE staff SET ${setClauses.join(', ')} WHERE id = @id`);
 
     if (result.rowsAffected[0] === 0) {
       return { message: "Staff member not found or data is the same.", type: 'error' };

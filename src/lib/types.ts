@@ -132,5 +132,6 @@ export interface Staff {
   endDate?: string | null;
   shiftTime?: string | null;
   status?: 'Active' | 'Inactive' | null;
+  password?: string;
   assignedHospitalsDetails?: { id: string | number, name: string }[];
 }

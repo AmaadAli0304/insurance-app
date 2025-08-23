@@ -173,6 +173,7 @@ export async function handleCreateStaffTable(prevState: { message: string, type?
           photo NVARCHAR(MAX),
           email NVARCHAR(255),
           number NVARCHAR(50),
+          password NVARCHAR(255),
           designation NVARCHAR(255),
           department NVARCHAR(255),
           joiningDate DATE,

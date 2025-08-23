@@ -120,6 +120,10 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
                                 <Label htmlFor="number">Contact Number</Label>
                                 <Input id="number" name="number" defaultValue={staff.number ?? ""} />
                             </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="password">Password</Label>
+                                <Input id="password" name="password" type="password" placeholder="Leave blank to keep current password" />
+                            </div>
                             <div className="space-y-2">
                                 <Label htmlFor="designation">Designation</Label>
                                 <Input id="designation" name="designation" defaultValue={staff.designation ?? ""} />
