@@ -145,6 +145,21 @@ async function setupDatabase() {
     await request.query(createStaffTableQuery);
     console.log('Staff table check/create complete.');
 
+    // Ensure password column exists in staff table for older setups
+    const alterStaffTableQuery = `
+        IF NOT EXISTS (
+            SELECT * FROM sys.columns 
+            WHERE Name = N'password' 
+            AND Object_ID = Object_ID(N'staff')
+        )
+        BEGIN
+            ALTER TABLE staff ADD password NVARCHAR(255)
+            PRINT 'Added password column to staff table.'
+        END
+    `;
+    await request.query(alterStaffTableQuery);
+    console.log('Staff table password column check complete.');
+
     console.log('Database setup complete!');
 
   } catch (err) {
