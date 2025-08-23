@@ -3,13 +3,14 @@
 
 import React, { createContext, useContext, useState, ReactNode, useMemo, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { jwtDecode } from 'jwt-decode';
 import type { User } from '@/lib/types';
 
 interface AuthContextType {
   user: User | null;
   role: User['role'] | null;
   loading: boolean;
-  login: (user: User, remember?: boolean) => void;
+  login: (token: string, remember?: boolean) => void;
   logout: () => void;
 }
 
@@ -22,30 +23,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    let storedUser: User | null = null;
+    let token: string | null = null;
     try {
-      const sessionUser = sessionStorage.getItem('user');
-      if (sessionUser) {
-        storedUser = JSON.parse(sessionUser);
-      } else {
-        const localUser = localStorage.getItem('user');
-        if (localUser) {
-          storedUser = JSON.parse(localUser);
-        }
+      token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      if (token) {
+        const decodedUser: User = jwtDecode(token);
+        setUser(decodedUser);
       }
     } catch (error) {
-      console.error("Failed to parse user from storage", error);
-      sessionStorage.removeItem('user');
-      localStorage.removeItem('user');
+      console.error("Failed to parse user from token", error);
+      sessionStorage.removeItem('token');
+      localStorage.removeItem('token');
     }
     
-    setUser(storedUser);
     setLoading(false);
   }, []);
 
   useEffect(() => {
     if (!loading) {
-      const isAuthPage = pathname === '/login';
+      const isAuthPage = pathname === '/login' || pathname === '/signup';
       if (user && isAuthPage) {
         router.push('/dashboard');
       } else if (!user && !isAuthPage) {
@@ -54,26 +50,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, loading, pathname, router]);
 
-  const login = (appUser: User, remember: boolean = false) => {
-    setUser(appUser);
+  const login = (token: string, remember: boolean = false) => {
     try {
-      if (remember) {
-        localStorage.setItem('user', JSON.stringify(appUser));
-      } else {
-        sessionStorage.setItem('user', JSON.stringify(appUser));
-      }
+        const decodedUser: User = jwtDecode(token);
+        setUser(decodedUser);
+        if (remember) {
+            localStorage.setItem('token', token);
+        } else {
+            sessionStorage.setItem('token', token);
+        }
     } catch (error) {
-      console.error("Failed to save user to storage", error);
+      console.error("Failed to decode token or save to storage", error);
     }
   };
   
   const logout = () => {
     setUser(null);
     try {
-      localStorage.removeItem('user');
-      sessionStorage.removeItem('user');
+      localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
     } catch (error) {
-       console.error("Failed to remove user from storage", error);
+       console.error("Failed to remove token from storage", error);
     }
     router.push('/login');
   };
@@ -86,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
   }), [user, loading]);
 
-  if (loading) {
+  if (loading && !user && pathname !== '/login' && pathname !== '/signup') {
     return (
         <div className="flex items-center justify-center h-screen bg-background">
             <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>

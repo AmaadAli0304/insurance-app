@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import pool, { sql, poolConnect } from '@/lib/db';
 import { z } from 'zod';
 import type { User } from '@/lib/types';
+import jwt from 'jsonwebtoken';
 
 const loginSchema = z.object({
     email: z.string().email({ message: "Invalid email address." }),
@@ -14,7 +15,7 @@ const loginSchema = z.object({
 
 type LoginState = {
     error?: string;
-    user?: User;
+    token?: string;
     rememberMe?: boolean;
 };
 
@@ -44,16 +45,21 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
 
         const user: User = result.recordset[0];
         
-        // In a real app, you MUST hash and compare passwords.
-        // For this project, we are comparing plain text.
         if (user.password !== password) {
             return { error: 'Invalid email or password.' };
         }
 
-        // Do not return the password hash to the client
-        const { password: _, ...userSafeToReturn } = user;
+        const { password: _, ...userPayload } = user;
 
-        return { user: userSafeToReturn, rememberMe };
+        if (!process.env.JWT_SECRET) {
+            throw new Error('JWT_SECRET is not defined in the environment variables.');
+        }
+
+        const token = jwt.sign(userPayload, process.env.JWT_SECRET, {
+            expiresIn: rememberMe ? '7d' : '1h',
+        });
+
+        return { token, rememberMe };
 
     } catch (error) {
         console.error("Login database error:", error);

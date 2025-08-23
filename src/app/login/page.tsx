@@ -29,7 +29,7 @@ function LoginButton() {
 export default function LoginPage() {
   const { login } = useAuth();
   const { toast } = useToast();
-  const [state, formAction] = useActionState(loginAction, { error: undefined, user: undefined });
+  const [state, formAction] = useActionState(loginAction, { error: undefined, token: undefined });
  
   useEffect(() => {
     if (state.error) {
@@ -39,9 +39,9 @@ export default function LoginPage() {
           variant: "destructive",
       });
     }
-    if (state.user) {
+    if (state.token) {
       const rememberMe = state.rememberMe ?? false;
-      login(state.user, rememberMe);
+      login(state.token, rememberMe);
     }
   }, [state, login, toast]);
 
