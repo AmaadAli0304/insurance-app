@@ -8,6 +8,18 @@ import { cn } from "@/lib/utils";
 
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).replace(/-/g, ' ');
 
+// Manual mapping for special cases
+const breadcrumbNameMap: Record<string, string> = {
+  "tpas": "TPA",
+  "pre-auths": "Pre-Auth",
+  "company-hospitals": "Hospital",
+  "companies": "Company",
+  "hospitals": "Hospital",
+  "staff": "Staff Member",
+  "claims": "Claim",
+  "patients": "Patient",
+};
+
 export function Breadcrumb() {
   const pathname = usePathname();
   const segments = pathname.split('/').filter(Boolean);
@@ -19,9 +31,8 @@ export function Breadcrumb() {
     let label = capitalize(segment);
 
     if (segment === 'new' && index > 0) {
-      const parentLabel = capitalize(segments[index - 1]);
-      // Remove plural 's' if it exists to make it singular
-      const singularParentLabel = parentLabel.endsWith('s') ? parentLabel.slice(0, -1) : parentLabel;
+      const parentSegment = segments[index - 1];
+      const singularParentLabel = breadcrumbNameMap[parentSegment] || capitalize(parentSegment).replace(/s$/, '');
       label = `Add New ${singularParentLabel}`;
     }
 
