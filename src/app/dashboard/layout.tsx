@@ -31,7 +31,9 @@ export default function DashboardLayout({
                     <Logo />
                 </Link>
                 <div className="ml-auto flex items-center gap-2">
-                    <SidebarTrigger className="group-data-[state=expanded]:hidden" />
+                    <div className="group-data-[state=expanded]:hidden">
+                        <SidebarTrigger className="ml-[5px]" />
+                    </div>
                     <div className="group-data-[state=collapsed]:hidden">
                          <SidebarTrigger />
                     </div>
