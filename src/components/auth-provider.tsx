@@ -5,6 +5,7 @@ import React, { createContext, useContext, useState, ReactNode, useMemo, useEffe
 import { useRouter, usePathname } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
 import type { User } from '@/lib/types';
+import Cookies from 'js-cookie';
 
 interface AuthContextType {
   user: User | null;
@@ -23,54 +24,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    let token: string | null = null;
+    let token: string | undefined;
     try {
-      token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      token = Cookies.get('token');
       if (token) {
         const decodedUser: User = jwtDecode(token);
         setUser(decodedUser);
       }
     } catch (error) {
       console.error("Failed to parse user from token", error);
-      sessionStorage.removeItem('token');
-      localStorage.removeItem('token');
+      Cookies.remove('token');
     }
     
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    if (!loading) {
-      const isAuthPage = pathname === '/login' || pathname === '/signup';
-      if (user && isAuthPage) {
-        router.push('/dashboard');
-      } else if (!user && !isAuthPage) {
-        router.push('/login');
-      }
-    }
-  }, [user, loading, pathname, router]);
-
   const login = useCallback((token: string, remember: boolean = false) => {
     try {
         const decodedUser: User = jwtDecode(token);
         setUser(decodedUser);
-        if (remember) {
-            localStorage.setItem('token', token);
-        } else {
-            sessionStorage.setItem('token', token);
-        }
+        Cookies.set('token', token, { 
+            expires: remember ? 7 : undefined,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict'
+        });
+        router.push('/dashboard');
     } catch (error) {
-      console.error("Failed to decode token or save to storage", error);
+      console.error("Failed to decode token or save to cookie", error);
     }
-  }, []);
+  }, [router]);
   
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    const token = Cookies.get('token');
     setUser(null);
     try {
-      localStorage.removeItem('token');
-      sessionStorage.removeItem('token');
+      if (token) {
+        await fetch('/api/logout', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+      }
+      Cookies.remove('token');
     } catch (error) {
-       console.error("Failed to remove token from storage", error);
+       console.error("Failed to logout", error);
     }
     router.push('/login');
   }, [router]);
@@ -83,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
   }), [user, loading, login, logout]);
 
-  if (loading && !user && pathname !== '/login' && pathname !== '/signup') {
+  if (loading) {
     return (
         <div className="flex items-center justify-center h-screen bg-background">
             <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>

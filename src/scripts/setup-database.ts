@@ -137,10 +137,6 @@ async function setupDatabase() {
         );
         PRINT '"staff" table created.';
       END
-      ELSE
-      BEGIN
-          PRINT '"staff" table already exists.';
-      END
     `;
     await request.query(createStaffTableQuery);
     console.log('Staff table check/create complete.');
@@ -159,6 +155,26 @@ async function setupDatabase() {
     `;
     await request.query(alterStaffTableQuery);
     console.log('Staff table password column check complete.');
+
+    // Create Token Blacklist Table
+    console.log('Checking for "token_blacklist" table...');
+    const createTokenBlacklistTableQuery = `
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='token_blacklist' and xtype='U')
+      BEGIN
+        CREATE TABLE token_blacklist (
+          id INT IDENTITY(1,1) PRIMARY KEY,
+          token NVARCHAR(MAX) NOT NULL,
+          expires_at DATETIME NOT NULL
+        );
+        PRINT '"token_blacklist" table created.';
+      END
+      ELSE
+      BEGIN
+          PRINT '"token_blacklist" table already exists.';
+      END
+    `;
+    await request.query(createTokenBlacklistTableQuery);
+    console.log('Token blacklist table check/create complete.');
 
     console.log('Database setup complete!');
 

@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import pool, { sql, poolConnect } from '@/lib/db';
 import { z } from 'zod';
 import type { User } from '@/lib/types';
-import jwt from 'jsonwebtoken';
+import * as jose from 'jose';
 
 const loginSchema = z.object({
     email: z.string().email({ message: "Invalid email address." }),
@@ -55,9 +55,12 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
             throw new Error('JWT_SECRET is not defined in the environment variables.');
         }
 
-        const token = jwt.sign(userPayload, process.env.JWT_SECRET, {
-            expiresIn: rememberMe ? '7d' : '1h',
-        });
+        const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+        const token = await new jose.SignJWT(userPayload)
+            .setProtectedHeader({ alg: 'HS256' })
+            .setIssuedAt()
+            .setExpirationTime(rememberMe ? '7d' : '1h')
+            .sign(secret);
 
         return { token, rememberMe };
 
