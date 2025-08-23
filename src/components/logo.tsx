@@ -4,10 +4,10 @@ export function Logo() {
   return (
     <div  className="flex items-center gap-2">
       <Image
-        src="https://placehold.co/40x40.png"
+        src="/images/logo.png"
         alt="One Stop Logo"
-        width={40}
-        height={40}
+        width={70}
+        height={70}
         priority
         data-ai-hint="logo"
       />
