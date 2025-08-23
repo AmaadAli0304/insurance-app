@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).replace(/-/g, ' ');
+
 export function Breadcrumb() {
   const pathname = usePathname();
   const segments = pathname.split('/').filter(Boolean);
@@ -13,9 +15,16 @@ export function Breadcrumb() {
   const breadcrumbs = segments.map((segment, index) => {
     const href = '/' + segments.slice(0, index + 1).join('/');
     const isLast = index === segments.length - 1;
+    
+    let label = capitalize(segment);
 
-    // Capitalize the first letter and replace hyphens with spaces
-    const label = segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ');
+    if (segment === 'new' && index > 0) {
+      const parentLabel = capitalize(segments[index - 1]);
+      // Remove plural 's' if it exists to make it singular
+      const singularParentLabel = parentLabel.endsWith('s') ? parentLabel.slice(0, -1) : parentLabel;
+      label = `Add New ${singularParentLabel}`;
+    }
+
 
     return { href, label, isLast };
   });
