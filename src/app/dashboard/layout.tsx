@@ -26,9 +26,9 @@ export default function DashboardLayout({
       <>
         <Sidebar collapsible={isMobile ? 'offcanvas' : 'icon'}>
           <SidebarHeader>
-            <div className="flex h-14 items-center justify-between border-b border-sidebar-border px-4 lg:h-[60px] lg:px-6">
-                <div className="flex items-center gap-2 group-data-[state=expanded]:hidden">
-                    <SidebarTrigger />
+            <div className="flex h-14 items-center border-b border-sidebar-border px-4 lg:h-[60px] lg:px-6 group-data-[state=expanded]:justify-between">
+                <div className="group-data-[state=collapsed]:w-full group-data-[state=collapsed]:flex group-data-[state=collapsed]:justify-center">
+                    <SidebarTrigger className="group-data-[state=expanded]:hidden" />
                 </div>
                 <div className="flex items-center gap-2 group-data-[state=collapsed]:hidden">
                     <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-sidebar-foreground">
