@@ -4,9 +4,8 @@
 import Link from "next/link";
 import { MainNav } from "@/components/dashboard/main-nav";
 import { UserNav } from "@/components/dashboard/user-nav";
-import { useAuth } from "@/components/auth-provider";
 import { Logo } from "@/components/logo";
-import { Breadcrumb } from "@/components/dashboard/breadcrumb";
+import { Breadcrumb } from "@/app/dashboard/breadcrumb";
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarTrigger, SidebarContent, SidebarInset, useSidebar } from "@/components/ui/sidebar";
 
 export default function DashboardLayout({
@@ -14,11 +13,6 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user } = useAuth();
-
-  if (!user) {
-    return null; // or a loading spinner, though AuthProvider handles this
-  }
 
   const SidebarLayout = ({ children }: { children: React.ReactNode }) => {
     const { isMobile, open } = useSidebar();
