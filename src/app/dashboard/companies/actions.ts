@@ -29,20 +29,21 @@ export async function getCompanies(): Promise<Company[]> {
 export async function getCompanyById(id: string): Promise<Company | null> {
   try {
     await poolConnect;
-    const companyResult = await pool.request()
-      .input('id', sql.NVarChar, id)
-      .query('SELECT * FROM companies WHERE id = @id');
+
+    const [companyResult, hospitalsResult] = await Promise.all([
+        pool.request()
+          .input('id', sql.NVarChar, id)
+          .query('SELECT * FROM companies WHERE id = @id'),
+        pool.request()
+          .input('company_id', sql.NVarChar, id)
+          .query('SELECT h.id, h.name FROM hospitals h JOIN hospital_companies hc ON h.id = hc.hospital_id WHERE hc.company_id = @company_id')
+    ]);
 
     if (companyResult.recordset.length === 0) {
       return null;
     }
     
     const company = companyResult.recordset[0] as Company;
-    
-    const hospitalsResult = await pool.request()
-        .input('company_id', sql.NVarChar, id)
-        .query('SELECT h.id, h.name FROM hospitals h JOIN hospital_companies hc ON h.id = hc.hospital_id WHERE hc.company_id = @company_id');
-
     company.assignedHospitalsDetails = hospitalsResult.recordset;
 
     return company;

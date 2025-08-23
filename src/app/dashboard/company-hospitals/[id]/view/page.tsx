@@ -31,17 +31,17 @@ const AssociationList = ({ title, items, icon }: { title: string, items: { id: s
 );
 
 export default async function ViewHospitalPage({ params }: { params: { id: string } }) {
-    const hospital = await getHospitalById(params.id);
-
-    if (!hospital) {
-        notFound();
-    }
-
-    const [allStaff, allCompanies, allTPAs] = await Promise.all([
+    const [hospital, allStaff, allCompanies, allTPAs] = await Promise.all([
+        getHospitalById(params.id),
         getStaff(),
         getCompaniesForForm(),
         getTPAsForForm()
     ]);
+
+
+    if (!hospital) {
+        notFound();
+    }
 
     const assignedStaff = allStaff.filter(s => hospital.assignedStaff?.includes(String(s.id)));
     const assignedCompanies = allCompanies.filter(c => hospital.assignedCompanies?.includes(c.id));
