@@ -45,6 +45,8 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
 
         const user: User = result.recordset[0];
         
+        // In a real app, you MUST hash and compare passwords.
+        // This is for demonstration purposes only.
         if (user.password !== password) {
             return { error: 'Invalid email or password.' };
         }
@@ -67,5 +69,27 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
     } catch (error) {
         console.error("Login database error:", error);
         return { error: 'A server error occurred. Please try again later.' };
+    }
+}
+
+export async function verifyToken(token: string): Promise<{ isValid: boolean; user: User | null }> {
+    if (!token) return { isValid: false, user: null };
+
+    try {
+        await poolConnect;
+        const blacklistCheck = await pool.request()
+            .input('token', sql.NVarChar, token)
+            .query('SELECT id FROM token_blacklist WHERE token = @token');
+        
+        if (blacklistCheck.recordset.length > 0) {
+            return { isValid: false, user: null }; // Token is blacklisted
+        }
+
+        const { payload } = await jose.jwtVerify(token, new TextEncoder().encode(process.env.JWT_SECRET));
+        return { isValid: true, user: payload as User };
+
+    } catch (error) {
+        console.error("Token verification failed", error);
+        return { isValid: false, user: null };
     }
 }

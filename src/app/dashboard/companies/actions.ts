@@ -15,45 +15,6 @@ const companySchema = z.object({
   portalLink: z.string().url().optional().or(z.literal('')),
 });
 
-export async function getCompanies(): Promise<Company[]> {
-  try {
-    await poolConnect;
-    const result = await pool.request().query('SELECT * FROM companies');
-    return result.recordset as Company[];
-  } catch (error) {
-      const dbError = error as Error;
-      throw new Error(`Error fetching companies: ${dbError.message}`);
-  }
-}
-
-export async function getCompanyById(id: string): Promise<Company | null> {
-  try {
-    await poolConnect;
-
-    const [companyResult, hospitalsResult] = await Promise.all([
-        pool.request()
-          .input('id', sql.NVarChar, id)
-          .query('SELECT * FROM companies WHERE id = @id'),
-        pool.request()
-          .input('company_id', sql.NVarChar, id)
-          .query('SELECT h.id, h.name FROM hospitals h JOIN hospital_companies hc ON h.id = hc.hospital_id WHERE hc.company_id = @company_id')
-    ]);
-
-    if (companyResult.recordset.length === 0) {
-      return null;
-    }
-    
-    const company = companyResult.recordset[0] as Company;
-    company.assignedHospitalsDetails = hospitalsResult.recordset;
-
-    return company;
-
-  } catch (error) {
-    console.error('Error fetching company by ID:', error);
-    throw new Error('Failed to fetch company details from the database.');
-  }
-}
-
 export async function handleAddCompany(prevState: { message: string, type?: string }, formData: FormData) {
   const validatedFields = companySchema.safeParse({
     name: formData.get("name"),

@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleUpdateCompany, getCompanyById } from "../../actions";
+import { handleUpdateCompany } from "../../actions";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { notFound, useRouter } from "next/navigation";
@@ -35,11 +35,14 @@ export default function EditCompanyPage({ params }: { params: { id: string } }) 
     useEffect(() => {
         async function fetchCompany() {
             try {
-                const fetchedCompany = await getCompanyById(params.id);
-                if (!fetchedCompany) {
-                    notFound();
-                    return;
+                const response = await fetch(`/api/companies/${params.id}`);
+                if (!response.ok) {
+                     if (response.status === 404) {
+                        notFound();
+                    }
+                    throw new Error('Failed to fetch company');
                 }
+                const fetchedCompany = await response.json();
                 setCompany(fetchedCompany);
             } catch (err) {
                 const dbError = err as Error;

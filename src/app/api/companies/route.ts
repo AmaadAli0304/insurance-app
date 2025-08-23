@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import pool, { sql, poolConnect } from '@/lib/db';
 import { z } from 'zod';
+import { Company } from '@/lib/types';
 
 const companySchema = z.object({
   name: z.string().min(1, { message: "Company name is required" }),
@@ -48,5 +49,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'Invalid request body', errors: error.errors }, { status: 400 });
     }
     return NextResponse.json({ message: 'Error creating company' }, { status: 500 });
+  }
+}
+
+export async function GET() {
+  try {
+    await poolConnect;
+    const result = await pool.request().query('SELECT * FROM companies');
+    return NextResponse.json(result.recordset as Company[]);
+  } catch (error) {
+      console.error('Error fetching companies:', error);
+      const dbError = error as Error;
+      return NextResponse.json({ message: `Error fetching companies: ${dbError.message}`}, { status: 500 });
   }
 }

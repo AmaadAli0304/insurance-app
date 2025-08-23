@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
 import type { User } from '@/lib/types';
 import Cookies from 'js-cookie';
+import { verifyToken } from '@/app/login/actions';
 
 interface AuthContextType {
   user: User | null;
@@ -23,21 +24,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => {
-    let token: string | undefined;
+  const handleLogout = useCallback(async () => {
+    const token = Cookies.get('token');
+    setUser(null);
+    Cookies.remove('token'); // Remove cookie immediately
+    
     try {
-      token = Cookies.get('token');
       if (token) {
-        const decodedUser: User = jwtDecode(token);
-        setUser(decodedUser);
+        await fetch('/api/logout', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
       }
     } catch (error) {
-      console.error("Failed to parse user from token", error);
-      Cookies.remove('token');
+       console.error("Failed to call logout API", error);
+    } finally {
+        // Ensure redirection happens even if API fails
+        if (pathname !== '/login') {
+            router.push('/login');
+        }
     }
-    
-    setLoading(false);
-  }, []);
+  }, [router, pathname]);
+
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = Cookies.get('token');
+      if (token) {
+        try {
+          const { isValid, user: validatedUser } = await verifyToken(token);
+          if (isValid && validatedUser) {
+            setUser(validatedUser);
+          } else {
+            await handleLogout();
+          }
+        } catch (error) {
+          console.error("Failed to verify token", error);
+          await handleLogout();
+        }
+      }
+      setLoading(false);
+    };
+    checkAuth();
+  }, [pathname, handleLogout]);
 
   const login = useCallback((token: string, remember: boolean = false) => {
     try {
@@ -53,31 +82,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error("Failed to decode token or save to cookie", error);
     }
   }, [router]);
-  
-  const logout = useCallback(async () => {
-    const token = Cookies.get('token');
-    setUser(null);
-    try {
-      if (token) {
-        await fetch('/api/logout', {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-      }
-      Cookies.remove('token');
-    } catch (error) {
-       console.error("Failed to logout", error);
-    }
-    router.push('/login');
-  }, [router]);
 
   const value = useMemo(() => ({
     user,
     role: user?.role ?? null,
     loading,
     login,
-    logout,
-  }), [user, loading, login, logout]);
+    logout: handleLogout,
+  }), [user, loading, login, handleLogout]);
 
   if (loading) {
     return (

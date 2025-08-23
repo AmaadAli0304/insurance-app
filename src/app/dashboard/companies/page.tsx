@@ -1,24 +1,39 @@
 
+"use client";
+
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { PlusCircle } from "lucide-react"
+import { PlusCircle, AlertTriangle } from "lucide-react"
 import Link from "next/link"
 import { CompaniesTable } from "./companies-table"
-import { getCompanies } from "./actions"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertTriangle } from "lucide-react"
 import type { Company } from "@/lib/types";
 
 
-export default async function CompaniesPage() {
-  let companies: Company[] = [];
-  let error: string | null = null;
+export default function CompaniesPage() {
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  try {
-    companies = await getCompanies();
-  } catch (e: any) {
-    error = e.message;
-  }
+  useEffect(() => {
+    async function fetchCompanies() {
+      try {
+        const response = await fetch('/api/companies');
+        if (!response.ok) {
+          throw new Error('Failed to fetch companies');
+        }
+        const data = await response.json();
+        setCompanies(data);
+      } catch (e: any) {
+        setError(e.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchCompanies();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -36,7 +51,9 @@ export default async function CompaniesPage() {
           </Button>
         </CardHeader>
         <CardContent>
-           {error ? (
+           {isLoading ? (
+            <p>Loading companies...</p>
+           ) : error ? (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>Error Fetching Companies</AlertTitle>

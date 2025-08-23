@@ -2,7 +2,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import * as jose from 'jose';
-import pool, { sql, poolConnect } from '@/lib/db';
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
@@ -11,7 +10,7 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup');
-  const isApiAuthRoute = pathname.startsWith('/api/login') || pathname.startsWith('/api/signup') || pathname.startsWith('/api/logout');
+  const isApiAuthRoute = pathname.startsWith('/api/login') || pathname.startsWith('/api/signup');
   
   if (!token) {
     if (isAuthPage || isApiAuthRoute || pathname === '/') {
@@ -26,21 +25,10 @@ export async function middleware(req: NextRequest) {
   try {
     await jose.jwtVerify(token, secret);
     
-    // Check if token is blacklisted
-    await poolConnect;
-    const result = await pool.request()
-        .input('token', sql.NVarChar, token)
-        .query('SELECT id FROM token_blacklist WHERE token = @token');
-        
-    if (result.recordset.length > 0) {
-        // Token is blacklisted, treat as logged out
-        const loginUrl = new URL('/login', req.url);
-        const response = NextResponse.redirect(loginUrl);
-        response.cookies.delete('token'); // Clear the invalid cookie
-        return response;
-    }
+    // The check against the blacklist will now be handled in the AuthProvider
+    // to avoid bundling server-side DB code in the middleware.
 
-    // If token is valid and not blacklisted, and user is on an auth page, redirect to dashboard
+    // If token is valid and user is on an auth page, redirect to dashboard
     if (isAuthPage) {
       return NextResponse.redirect(new URL('/dashboard', req.url));
     }
@@ -66,6 +54,7 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - images (image files)
      */
     '/((?!_next/static|_next/image|favicon.ico|images).*)',
   ],
