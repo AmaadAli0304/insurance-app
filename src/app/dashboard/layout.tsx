@@ -34,7 +34,7 @@ export default function DashboardLayout({
           <MainNav />
         </div>
         <div className="mt-auto p-4">
-          <UserNav />
+          {/* This UserNav is for the expanded sidebar. We can hide it or style it differently if needed */}
         </div>
       </div>
     </>
@@ -46,7 +46,7 @@ export default function DashboardLayout({
         <SidebarContent />
       </div>
       <div className="flex flex-col">
-        <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+        <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon" className="shrink-0 md:hidden">
