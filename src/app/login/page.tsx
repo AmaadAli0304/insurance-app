@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useActionState } from 'react';
+import { useEffect, useActionState, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { loginAction } from './actions';
 import { useFormStatus } from 'react-dom';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useRouter } from 'next/navigation';
 
 function LoginButton() {
     const { pending } = useFormStatus();
@@ -29,6 +30,7 @@ function LoginButton() {
 export default function LoginPage() {
   const { login } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
   const [state, formAction] = useActionState(loginAction, { error: undefined, token: undefined });
  
   useEffect(() => {
