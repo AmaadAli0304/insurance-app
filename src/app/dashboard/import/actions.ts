@@ -145,7 +145,7 @@ export async function handleCreateRelationshipTables(prevState: { message: strin
       BEGIN
         CREATE TABLE hospital_staff (
           id INT IDENTITY(1,1) PRIMARY KEY,
-          staff_id NVARCHAR(255),
+          staff_id INT,
           hospital_id NVARCHAR(255)
         );
       END

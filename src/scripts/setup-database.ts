@@ -122,18 +122,18 @@ async function setupDatabase() {
       IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='staff' and xtype='U')
       BEGIN
         CREATE TABLE staff (
-          id NVARCHAR(255) PRIMARY KEY,
+          id INT IDENTITY(1,1) PRIMARY KEY,
           name NVARCHAR(255) NOT NULL,
           photo NVARCHAR(MAX),
           email NVARCHAR(255),
           number NVARCHAR(50),
+          password NVARCHAR(255),
           designation NVARCHAR(255),
           department NVARCHAR(255),
           joiningDate DATE,
           endDate DATE,
           shiftTime NVARCHAR(100),
-          status NVARCHAR(50),
-          companyId NVARCHAR(255)
+          status NVARCHAR(50)
         );
         PRINT '"staff" table created.';
       END
