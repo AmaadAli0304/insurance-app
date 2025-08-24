@@ -23,21 +23,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const handleLogout = useCallback(async () => {
+  const handleLogout = useCallback(() => {
     const token = Cookies.get('token');
     setUser(null);
-    Cookies.remove('token'); // Remove cookie immediately
+    Cookies.remove('token');
     
-    try {
-      if (token) {
-        await fetch('/api/logout', {
+    if (token) {
+        fetch('/api/logout', {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` }
-        });
-      }
-    } catch (error) {
-       console.error("Failed to call logout API", error);
+        }).catch(error => console.error("Failed to call logout API", error));
     }
+    // Hard reload to ensure server-side state is cleared
+    window.location.href = '/login';
   }, []);
 
 
@@ -50,7 +48,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (isValid && validatedUser) {
             setUser(validatedUser);
           } else {
-            // Token is invalid or blacklisted
             setUser(null);
             Cookies.remove('token');
           }
@@ -65,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkAuthStatus();
   }, []);
 
-  const login = useCallback((token: string, user: User, remember: boolean = false) => {
+  const login = (token: string, user: User, remember: boolean = false) => {
     const cookieOptions: Cookies.CookieAttributes = {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
@@ -74,8 +71,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         cookieOptions.expires = 7; // Expires in 7 days
     }
     Cookies.set('token', token, cookieOptions);
-    setUser(user); // This will trigger the redirect effect
-  }, []);
+    setUser(user);
+    // Redirection is now handled by the login page via window.location.href
+  };
 
   const value = useMemo(() => ({
     user,
@@ -85,7 +83,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout: handleLogout,
   }), [user, loading, login, handleLogout]);
 
-  // This effect handles redirection logic based on authentication state
+  
+  // This effect handles redirection logic for already authenticated users
   useEffect(() => {
     if (loading) {
       return; // Do nothing while loading
@@ -93,14 +92,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup');
 
-    if (user && isAuthPage) {
-      router.push('/dashboard');
-    }
-
     if (!user && !isAuthPage) {
+      // User is not logged in and not on an auth page, redirect to login
+      // This is handled by middleware, but as a fallback:
       router.push('/login');
     }
+    
+    if (user && isAuthPage) {
+        // User is logged in and on an auth page, redirect to dashboard
+        router.push('/dashboard');
+    }
+
   }, [user, loading, pathname, router]);
+
 
   if (loading) {
     return (
