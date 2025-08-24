@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, FormEvent, useActionState, useEffect } from 'react';
+import { useState, FormEvent } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,13 +10,10 @@ import { useAuth } from '@/components/auth-provider';
 import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useRouter } from 'next/navigation';
-
 
 export default function LoginPage() {
   const { login } = useAuth();
   const { toast } = useToast();
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,9 +44,9 @@ export default function LoginPage() {
 
       if (data.token && data.user) {
         login(data.token, data.user, remember);
-        // The redirection is now handled inside the login function in AuthProvider
+        // Redirection is handled by AuthProvider
       } else {
-        throw new Error('No token received.');
+        throw new Error('No token or user data received.');
       }
 
     } catch (err: any) {

@@ -51,34 +51,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const { isValid, user: validatedUser } = await verifyToken(token);
           if (isValid && validatedUser) {
             setUser(validatedUser);
-             if (pathname.startsWith('/login') || pathname.startsWith('/signup')) {
-              router.push('/dashboard');
-            }
           } else {
-            // Invalid token, logout
             setUser(null);
             Cookies.remove('token');
-            if (!pathname.startsWith('/login') && !pathname.startsWith('/signup')) {
-              router.push('/login');
-            }
           }
         } catch (error) {
           console.error("Failed to verify token", error);
           setUser(null);
           Cookies.remove('token');
-          if (!pathname.startsWith('/login') && !pathname.startsWith('/signup')) {
-            router.push('/login');
-          }
-        }
-      } else {
-         if (!pathname.startsWith('/login') && !pathname.startsWith('/signup')) {
-          router.push('/login');
         }
       }
       setLoading(false);
     };
     checkAuthStatus();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const login = useCallback((token: string, user: User, remember: boolean = false) => {
@@ -95,6 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         router.push('/dashboard');
     } catch (error) {
       console.error("Failed to set user or save to cookie", error);
+      // Fallback to login page if something goes wrong
       router.push('/login');
     }
   }, [router]);
@@ -106,6 +92,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     logout: handleLogout,
   }), [user, loading, login, handleLogout]);
+
+  // If we are not loading and there's no user, and we are not on an auth page, redirect to login
+  useEffect(() => {
+      if (!loading && !user) {
+        const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup');
+        if (!isAuthPage) {
+            router.push('/login');
+        }
+      }
+      if (!loading && user) {
+        const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup');
+        if (isAuthPage) {
+          router.push('/dashboard');
+        }
+      }
+  }, [loading, user, pathname, router]);
 
   if (loading) {
     return (
