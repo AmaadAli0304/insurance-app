@@ -53,7 +53,7 @@ export async function POST(request: Request) {
             .setExpirationTime('7d') 
             .sign(secret);
 
-        return NextResponse.json({ token });
+        return NextResponse.json({ token, user: userPayload });
 
     } catch (error) {
         console.error("Login API error:", error);

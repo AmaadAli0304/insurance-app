@@ -3,7 +3,6 @@
 
 import React, { createContext, useContext, useState, ReactNode, useMemo, useEffect, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { jwtDecode } from 'jwt-decode';
 import type { User } from '@/lib/types';
 import Cookies from 'js-cookie';
 import { verifyToken } from '@/app/login/actions';
@@ -12,7 +11,7 @@ interface AuthContextType {
   user: User | null;
   role: User['role'] | null;
   loading: boolean;
-  login: (token: string, remember?: boolean) => void;
+  login: (token: string, user: User, remember?: boolean) => void;
   logout: () => void;
 }
 
@@ -41,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
         // Ensure redirection happens even if API fails
         if (pathname !== '/login') {
-            router.push('/login');
+            window.location.href = '/login';
         }
     }
   }, [router, pathname]);
@@ -76,10 +75,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const login = useCallback((token: string, remember: boolean = false) => {
+  const login = useCallback((token: string, user: User, remember: boolean = false) => {
     try {
-        const decodedUser: User = jwtDecode(token);
-        setUser(decodedUser);
+        setUser(user);
         const cookieOptions: Cookies.CookieAttributes = {
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
@@ -88,9 +86,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             cookieOptions.expires = 7; // Expires in 7 days
         }
         Cookies.set('token', token, cookieOptions);
-        router.push('/dashboard');
+        // We let the page reload handle the redirect
+        // router.push('/dashboard');
     } catch (error) {
-      console.error("Failed to decode token or save to cookie", error);
+      console.error("Failed to set user or save to cookie", error);
       // If login fails, ensure user is redirected to login page
       router.push('/login');
     }
