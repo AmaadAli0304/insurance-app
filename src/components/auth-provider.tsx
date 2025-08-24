@@ -48,13 +48,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuthStatus = async () => {
       const token = Cookies.get('token');
       if (token) {
         try {
           const { isValid, user: validatedUser } = await verifyToken(token);
           if (isValid && validatedUser) {
             setUser(validatedUser);
+             if (pathname.startsWith('/login') || pathname.startsWith('/signup')) {
+              router.push('/dashboard');
+            }
           } else {
             await handleLogout();
           }
@@ -62,24 +65,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.error("Failed to verify token", error);
           await handleLogout();
         }
+      } else {
+         if (!pathname.startsWith('/login') && !pathname.startsWith('/signup')) {
+          router.push('/login');
+        }
       }
       setLoading(false);
     };
-    checkAuth();
-  }, [pathname, handleLogout]);
+    checkAuthStatus();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const login = useCallback((token: string, remember: boolean = false) => {
     try {
         const decodedUser: User = jwtDecode(token);
         setUser(decodedUser);
-        Cookies.set('token', token, { 
-            expires: remember ? 7 : undefined,
+        const cookieOptions: Cookies.CookieAttributes = {
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict'
-        });
+            sameSite: 'strict',
+        };
+        if (remember) {
+            cookieOptions.expires = 7; // Expires in 7 days
+        }
+        Cookies.set('token', token, cookieOptions);
         router.push('/dashboard');
     } catch (error) {
       console.error("Failed to decode token or save to cookie", error);
+      // If login fails, ensure user is redirected to login page
+      router.push('/login');
     }
   }, [router]);
 
