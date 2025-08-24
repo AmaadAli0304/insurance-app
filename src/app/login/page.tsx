@@ -39,7 +39,7 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'An error occurred.');
+        throw new Error(data.error || 'An unexpected error occurred.');
       }
 
       if (data.token && data.user) {
@@ -47,7 +47,7 @@ export default function LoginPage() {
         // Force a hard reload to ensure the cookie is set before middleware runs
         window.location.href = '/dashboard';
       } else {
-        throw new Error('No token or user data received.');
+        throw new Error('No token or user data received from server.');
       }
 
     } catch (err: any) {
