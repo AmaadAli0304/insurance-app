@@ -47,7 +47,7 @@ export default function LoginPage() {
 
       if (data.token && data.user) {
         login(data.token, data.user, remember);
-        router.push('/dashboard');
+        // The redirection is now handled inside the login function in AuthProvider
       } else {
         throw new Error('No token received.');
       }

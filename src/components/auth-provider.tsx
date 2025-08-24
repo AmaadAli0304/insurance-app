@@ -38,12 +38,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
        console.error("Failed to call logout API", error);
     } finally {
-        // Ensure redirection happens even if API fails
-        if (pathname !== '/login') {
-            router.push('/login');
-        }
+      router.push('/login');
     }
-  }, [router, pathname]);
+  }, [router]);
 
 
   useEffect(() => {
@@ -58,11 +55,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               router.push('/dashboard');
             }
           } else {
-            await handleLogout();
+            // Invalid token, logout
+            setUser(null);
+            Cookies.remove('token');
+            if (!pathname.startsWith('/login') && !pathname.startsWith('/signup')) {
+              router.push('/login');
+            }
           }
         } catch (error) {
           console.error("Failed to verify token", error);
-          await handleLogout();
+          setUser(null);
+          Cookies.remove('token');
+          if (!pathname.startsWith('/login') && !pathname.startsWith('/signup')) {
+            router.push('/login');
+          }
         }
       } else {
          if (!pathname.startsWith('/login') && !pathname.startsWith('/signup')) {
@@ -72,7 +78,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     };
     checkAuthStatus();
-  }, [pathname, handleLogout, router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const login = useCallback((token: string, user: User, remember: boolean = false) => {
     try {
@@ -85,9 +92,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             cookieOptions.expires = 7; // Expires in 7 days
         }
         Cookies.set('token', token, cookieOptions);
+        router.push('/dashboard');
     } catch (error) {
       console.error("Failed to set user or save to cookie", error);
-      // If login fails, ensure user is redirected to login page
       router.push('/login');
     }
   }, [router]);
