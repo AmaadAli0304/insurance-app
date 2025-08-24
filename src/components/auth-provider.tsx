@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
         // Ensure redirection happens even if API fails
         if (pathname !== '/login') {
-            window.location.href = '/login';
+            router.push('/login');
         }
     }
   }, [router, pathname]);
@@ -72,8 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     };
     checkAuthStatus();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [pathname, handleLogout, router]);
 
   const login = useCallback((token: string, user: User, remember: boolean = false) => {
     try {
@@ -86,8 +85,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             cookieOptions.expires = 7; // Expires in 7 days
         }
         Cookies.set('token', token, cookieOptions);
-        // We let the page reload handle the redirect
-        // router.push('/dashboard');
     } catch (error) {
       console.error("Failed to set user or save to cookie", error);
       // If login fails, ensure user is redirected to login page
