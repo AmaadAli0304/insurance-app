@@ -47,7 +47,8 @@ export default function LoginPage() {
 
       if (data.token) {
         login(data.token, remember);
-        router.push('/dashboard');
+        // Force a full page reload to ensure the cookie is set before middleware runs
+        window.location.href = '/dashboard';
       } else {
         throw new Error('No token received.');
       }
