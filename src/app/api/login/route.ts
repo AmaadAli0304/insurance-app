@@ -32,10 +32,13 @@ export async function POST(request: Request) {
 
         const user: User = result.recordset[0];
         
+        // IMPORTANT: In a real app, you would compare a hashed password.
+        // This is a simplified check for demonstration purposes.
         if (user.password !== password) {
             return NextResponse.json({ error: 'Invalid email or password.' }, { status: 401 });
         }
 
+        // Remove password from the object that will be encoded in the token
         const { password: _, ...userPayload } = user;
 
         if (!process.env.JWT_SECRET) {
@@ -43,8 +46,7 @@ export async function POST(request: Request) {
         }
 
         const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-        // The remember me functionality will be handled by the client on how it stores the cookie.
-        // The token expiry should be the maximum validity period (e.g., 7 days for 'remember me').
+        
         const token = await new jose.SignJWT(userPayload)
             .setProtectedHeader({ alg: 'HS256' })
             .setIssuedAt()
