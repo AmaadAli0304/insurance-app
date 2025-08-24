@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useEffect, useActionState, useCallback } from 'react';
+import { useState, FormEvent } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,44 +9,60 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from '@/components/auth-provider';
 import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
-import { loginAction } from './actions';
-import { useFormStatus } from 'react-dom';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useRouter } from 'next/navigation';
-
-function LoginButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button className="w-full" type="submit" disabled={pending}>
-          {pending ? (
-            <div className="w-5 h-5 border-2 border-background border-t-transparent rounded-full animate-spin"></div>
-          ) : (
-            'Sign In'
-          )}
-        </Button>
-    );
-}
 
 export default function LoginPage() {
   const { login } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
-  const [state, formAction] = useActionState(loginAction, { error: undefined, token: undefined });
- 
-  useEffect(() => {
-    if (state.error) {
-       toast({
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    const formData = new FormData(event.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const remember = formData.get("remember") === "on";
+
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'An error occurred.');
+      }
+
+      if (data.token) {
+        login(data.token, remember);
+        router.push('/dashboard');
+      } else {
+        throw new Error('No token received.');
+      }
+
+    } catch (err: any) {
+      const errorMessage = err.message || "Failed to sign in. Please check your credentials.";
+      setError(errorMessage);
+      toast({
           title: "Authentication Error",
-          description: state.error,
+          description: errorMessage,
           variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
-    if (state.token) {
-      const rememberMe = state.rememberMe ?? false;
-      login(state.token, rememberMe);
-    }
-  }, [state, login, toast, router]);
-
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
@@ -57,7 +74,7 @@ export default function LoginPage() {
           <CardTitle className="text-2xl">Welcome Back</CardTitle>
           <CardDescription>Enter your credentials to access your account.</CardDescription>
         </CardHeader>
-        <form action={formAction}>
+        <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -76,10 +93,16 @@ export default function LoginPage() {
                 Remember me
               </label>
             </div>
-            {state.error && <p className="text-sm text-destructive text-center">{state.error}</p>}
+            {error && <p className="text-sm text-destructive text-center">{error}</p>}
           </CardContent>
           <CardFooter>
-             <LoginButton />
+             <Button className="w-full" type="submit" disabled={isLoading}>
+              {isLoading ? (
+                <div className="w-5 h-5 border-2 border-background border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                'Sign In'
+              )}
+            </Button>
           </CardFooter>
         </form>
       </Card>
