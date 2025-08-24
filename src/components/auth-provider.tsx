@@ -37,10 +37,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
        console.error("Failed to call logout API", error);
-    } finally {
-      router.push('/login');
     }
-  }, [router]);
+  }, []);
 
 
   useEffect(() => {
@@ -52,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (isValid && validatedUser) {
             setUser(validatedUser);
           } else {
+            // Token is invalid or blacklisted
             setUser(null);
             Cookies.remove('token');
           }
@@ -67,23 +66,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback((token: string, user: User, remember: boolean = false) => {
-    try {
-        setUser(user);
-        const cookieOptions: Cookies.CookieAttributes = {
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-        };
-        if (remember) {
-            cookieOptions.expires = 7; // Expires in 7 days
-        }
-        Cookies.set('token', token, cookieOptions);
-        router.push('/dashboard');
-    } catch (error) {
-      console.error("Failed to set user or save to cookie", error);
-      // Fallback to login page if something goes wrong
-      router.push('/login');
+    const cookieOptions: Cookies.CookieAttributes = {
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+    };
+    if (remember) {
+        cookieOptions.expires = 7; // Expires in 7 days
     }
-  }, [router]);
+    Cookies.set('token', token, cookieOptions);
+    setUser(user); // This will trigger the redirect effect
+  }, []);
 
   const value = useMemo(() => ({
     user,
@@ -93,21 +85,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout: handleLogout,
   }), [user, loading, login, handleLogout]);
 
-  // If we are not loading and there's no user, and we are not on an auth page, redirect to login
+  // This effect handles redirection logic based on authentication state
   useEffect(() => {
-      if (!loading && !user) {
-        const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup');
-        if (!isAuthPage) {
-            router.push('/login');
-        }
-      }
-      if (!loading && user) {
-        const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup');
-        if (isAuthPage) {
-          router.push('/dashboard');
-        }
-      }
-  }, [loading, user, pathname, router]);
+    if (loading) {
+      return; // Do nothing while loading
+    }
+    
+    const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup');
+
+    if (user && isAuthPage) {
+      router.push('/dashboard');
+    }
+
+    if (!user && !isAuthPage) {
+      router.push('/login');
+    }
+  }, [user, loading, pathname, router]);
 
   if (loading) {
     return (
