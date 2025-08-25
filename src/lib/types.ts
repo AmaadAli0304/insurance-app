@@ -10,6 +10,12 @@ export interface User {
   hospitalId?: string;
   companyId?: string;
   password?: string;
+  designation?: string | null;
+  department?: string | null;
+  joiningDate?: string | null;
+  endDate?: string | null;
+  shiftTime?: string | null;
+  status?: 'Active' | 'Inactive' | null;
 }
 
 export interface Hospital {

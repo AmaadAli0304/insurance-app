@@ -3,10 +3,49 @@ import type { User, Hospital, Company, Patient, StaffingRequest, Policy, Claim, 
 
 // This is now only used for seeding the database
 export let mockUsers: User[] = [
-  { uid: 'admin-01', name: 'Super Admin', email: 'admin@onestop.com', role: 'Admin' },
-  { uid: 'hstaff-01', name: 'Bob', email: 'bob@stjude.com', role: 'Hospital Staff', hospitalId: 'hosp-01' },
-  { uid: 'cadmin-01', name: 'Charlie', email: 'charlie@statamine.com', role: 'Company Admin', companyId: 'comp-01' },
-  { uid: 'cadmin-02', name: 'Company Admin', email: 'companyadmin@yopmail.com', role: 'Company Admin', companyId: 'comp-01' },
+  { 
+    uid: 'admin-01', 
+    name: 'Super Admin', 
+    email: 'admin@onestop.com', 
+    role: 'Admin',
+    designation: 'System Administrator',
+    department: 'IT',
+    status: 'Active'
+  },
+  { 
+    uid: 'hstaff-01', 
+    name: 'Bob', 
+    email: 'bob@stjude.com', 
+    role: 'Hospital Staff', 
+    hospitalId: 'hosp-01',
+    designation: 'Front Desk',
+    department: 'Patient Services',
+    joiningDate: '2023-01-15',
+    shiftTime: '9 AM - 5 PM',
+    status: 'Active'
+  },
+  { 
+    uid: 'cadmin-01', 
+    name: 'Charlie', 
+    email: 'charlie@statamine.com', 
+    role: 'Company Admin', 
+    companyId: 'comp-01',
+    designation: 'Claims Manager',
+    department: 'Claims',
+    joiningDate: '2022-06-01',
+    status: 'Active'
+  },
+  { 
+    uid: 'cadmin-02', 
+    name: 'Company Admin', 
+    email: 'companyadmin@yopmail.com', 
+    role: 'Company Admin', 
+    companyId: 'comp-01',
+    designation: 'Lead Adjudicator',
+    department: 'Approvals',
+    joiningDate: '2021-11-20',
+    status: 'Active'
+  },
 ];
 
 export const mockPolicies: Record<string, Policy[]> = {

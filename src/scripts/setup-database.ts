@@ -21,7 +21,13 @@ async function setupDatabase() {
         role NVARCHAR(50) NOT NULL,
         hospitalId NVARCHAR(255),
         companyId NVARCHAR(255),
-        password NVARCHAR(255)
+        password NVARCHAR(255),
+        designation NVARCHAR(255),
+        department NVARCHAR(255),
+        joiningDate DATE,
+        endDate DATE,
+        shiftTime NVARCHAR(100),
+        status NVARCHAR(50)
       );
     `;
     await request.query(createUsersTableQuery);
@@ -29,7 +35,6 @@ async function setupDatabase() {
 
     // Seed Users Table
     console.log('Seeding users table...');
-    mockUsers[0].email = "admin@onestop.com"; // Ensure admin email is updated before seeding
     for (const user of mockUsers) {
       const password = user.password || 'password'; 
 
@@ -48,21 +53,18 @@ async function setupDatabase() {
           .input('hospitalId', sql.NVarChar, user.hospitalId)
           .input('companyId', sql.NVarChar, user.companyId)
           .input('password', sql.NVarChar, password)
+          .input('designation', sql.NVarChar, user.designation)
+          .input('department', sql.NVarChar, user.department)
+          .input('joiningDate', user.joiningDate ? sql.Date : sql.Date, user.joiningDate ? new Date(user.joiningDate) : null)
+          .input('endDate', user.endDate ? sql.Date : sql.Date, user.endDate ? new Date(user.endDate) : null)
+          .input('shiftTime', sql.NVarChar, user.shiftTime)
+          .input('status', sql.NVarChar, user.status)
           .query(`
-              INSERT INTO users (uid, name, email, role, hospitalId, companyId, password) 
-              VALUES (@uid, @name, @email, @role, @hospitalId, @companyId, @password)
+              INSERT INTO users (uid, name, email, role, hospitalId, companyId, password, designation, department, joiningDate, endDate, shiftTime, status) 
+              VALUES (@uid, @name, @email, @role, @hospitalId, @companyId, @password, @designation, @department, @joiningDate, @endDate, @shiftTime, @status)
           `);
         console.log(`Inserted user: ${user.email}`);
-      } else if (user.email === "admin@onestop.com") {
-        // Special case to update the admin email if it was medichain before
-         const updateAdminEmailRequest = pool.request();
-         await updateAdminEmailRequest
-          .input('new_email', sql.NVarChar, "admin@onestop.com")
-          .input('old_email', sql.NVarChar, "admin@medichain.com")
-          .query('UPDATE users SET email = @new_email WHERE email = @old_email');
-        console.log('Updated admin user email to admin@onestop.com');
-      }
-      else {
+      } else {
         console.log(`User already exists: ${user.email}`);
       }
     }
