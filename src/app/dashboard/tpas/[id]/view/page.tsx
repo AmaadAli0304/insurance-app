@@ -1,9 +1,13 @@
 
+"use client";
+
+import { useState, useEffect } from "react";
 import { getTPAById } from "../../actions";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import type { TPA } from "@/lib/types";
 
 const DetailItem = ({ label, value }: { label: string, value?: string | null }) => (
     <div>
@@ -30,15 +34,50 @@ const AssociationList = ({ title, items, icon }: { title: string, items: { id: s
     </Card>
 );
 
-export default async function ViewTPAPage({ params }: { params: { id: string } }) {
-    const tpaId = Number(params.id);
-    if (isNaN(tpaId)) {
-        notFound();
+export default function ViewTPAPage({ params }: { params: { id: string } }) {
+    const [tpa, setTpa] = useState<TPA | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        async function loadData() {
+            try {
+                setIsLoading(true);
+                const tpaId = Number(params.id);
+                if (isNaN(tpaId)) {
+                    notFound();
+                    return;
+                }
+                const tpaData = await getTPAById(tpaId);
+                if (!tpaData) {
+                    notFound();
+                    return;
+                }
+                setTpa(tpaData);
+            } catch (err) {
+                const dbError = err as Error;
+                setError(dbError.message);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        loadData();
+    }, [params.id]);
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                 <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
     }
-    const tpa = await getTPAById(tpaId);
+    
+    if (error) {
+        return <div className="text-destructive">Error: {error}</div>;
+    }
 
     if (!tpa) {
-        notFound();
+        return <div>TPA not found.</div>;
     }
     
     return (

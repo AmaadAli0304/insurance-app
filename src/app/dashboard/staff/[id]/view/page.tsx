@@ -1,9 +1,13 @@
 
+"use client";
+
+import { useState, useEffect } from "react";
 import { getStaffById } from "../../actions";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns';
+import type { Staff } from "@/lib/types";
 
 
 const DetailItem = ({ label, value }: { label: string, value?: string | null }) => (
@@ -13,13 +17,31 @@ const DetailItem = ({ label, value }: { label: string, value?: string | null }) 
     </div>
 );
 
-export default async function ViewStaffPage({ params }: { params: { id: string } }) {
-    const staff = await getStaffById(params.id);
+export default function ViewStaffPage({ params }: { params: { id: string } }) {
+    const [staff, setStaff] = useState<Staff | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    if (!staff) {
-        notFound();
-    }
-    
+    useEffect(() => {
+        async function loadData() {
+            try {
+                setIsLoading(true);
+                const staffData = await getStaffById(params.id);
+                if (!staffData) {
+                    notFound();
+                    return;
+                }
+                setStaff(staffData);
+            } catch (err) {
+                const dbError = err as Error;
+                setError(dbError.message);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        loadData();
+    }, [params.id]);
+
     const formatDate = (dateString?: string | null) => {
         if (!dateString) return "N/A";
         try {
@@ -28,6 +50,22 @@ export default async function ViewStaffPage({ params }: { params: { id: string }
             return "Invalid Date";
         }
     };
+    
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                 <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
+    
+    if (error) {
+        return <div className="text-destructive">Error: {error}</div>;
+    }
+
+    if (!staff) {
+        return <div>Staff not found.</div>;
+    }
 
     return (
         <div className="space-y-6">
