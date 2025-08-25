@@ -32,6 +32,9 @@ export default function NewStaffPage() {
     const { toast } = useToast();
     const router = useRouter();
     const [preview, setPreview] = useState<string | null>(null);
+    const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+
 
     useEffect(() => {
         if (state.type === 'success') {
@@ -50,16 +53,39 @@ export default function NewStaffPage() {
         }
     }, [state, toast, router]);
 
-    const handlePhotoChange = (e: ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        } else {
+    const handlePhotoChange = async (e: ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Set preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setPreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+
+        // Upload file
+        setIsUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            const res = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+            });
+            const data = await res.json();
+            if (data.success) {
+                setPhotoUrl(data.url);
+                toast({ title: "Success", description: "Photo uploaded successfully."});
+            } else {
+                throw new Error(data.error || 'Upload failed');
+            }
+        } catch (error) {
+            const uploadError = error as Error;
+            toast({ title: "Upload Error", description: uploadError.message, variant: "destructive" });
             setPreview(null);
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -71,18 +97,23 @@ export default function NewStaffPage() {
                     <CardTitle>Staff Details</CardTitle>
                     <CardDescription>Fill in the form to add a new staff member.</CardDescription>
                 </CardHeader>
-                <form action={formAction} encType="multipart/form-data">
+                <form action={formAction}>
                     <CardContent className="space-y-4">
+                        <input type="hidden" name="photo" value={photoUrl || ''} />
                         <div className="flex items-center gap-4">
                             <Avatar className="h-24 w-24">
                                 <AvatarImage src={preview ?? undefined} alt="Staff photo" />
                                 <AvatarFallback>
-                                    <UserIcon className="h-10 w-10" />
+                                    {isUploading ? (
+                                        <div className="w-8 h-8 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin"></div>
+                                    ) : (
+                                        <UserIcon className="h-10 w-10" />
+                                    )}
                                 </AvatarFallback>
                             </Avatar>
                             <div className="space-y-2">
-                                <Label htmlFor="photo">Staff Photo</Label>
-                                <Input id="photo" name="photo" type="file" accept="image/*" onChange={handlePhotoChange} />
+                                <Label htmlFor="photo-upload">Staff Photo</Label>
+                                <Input id="photo-upload" name="photo-file" type="file" accept="image/*" onChange={handlePhotoChange} disabled={isUploading} />
                                 <p className="text-xs text-muted-foreground">Upload a square photo for best results.</p>
                             </div>
                         </div>
