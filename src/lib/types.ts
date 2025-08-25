@@ -128,7 +128,7 @@ export interface TPA {
 }
 
 export interface Staff {
-  id: number;
+  id: string; // Now maps to uid from users table
   name: string;
   designation?: string | null;
   department?: string | null;

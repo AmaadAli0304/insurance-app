@@ -20,7 +20,7 @@ const staffSchema = z.object({
 });
 
 const staffUpdateSchema = staffSchema.extend({
-    id: z.coerce.number().int().min(1),
+    id: z.coerce.string(),
     password: z.string().optional(),
 });
 
@@ -29,7 +29,7 @@ export async function getStaff(): Promise<Staff[]> {
   try {
     await poolConnect;
     const result = await pool.request()
-      .query('SELECT * FROM staff');
+      .query("SELECT uid as id, name, email, designation, department, status FROM users WHERE role = 'Hospital Staff'");
     return result.recordset as Staff[];
   } catch (error) {
       const dbError = error as Error;
@@ -37,25 +37,19 @@ export async function getStaff(): Promise<Staff[]> {
   }
 }
 
-export async function getStaffById(id: number): Promise<Staff | null> {
+export async function getStaffById(id: string): Promise<Staff | null> {
   try {
     await poolConnect;
     
-    const [staffResult, hospitalsResult] = await Promise.all([
-        pool.request()
-          .input('id', sql.Int, id)
-          .query('SELECT * FROM staff WHERE id = @id'),
-        pool.request()
-          .input('staff_id', sql.Int, id)
-          .query('SELECT h.id, h.name FROM hospitals h JOIN hospital_staff hs ON h.id = hs.hospital_id WHERE hs.staff_id = @staff_id')
-    ]);
+    const staffResult = await pool.request()
+          .input('uid', sql.NVarChar, id)
+          .query('SELECT *, uid as id FROM users WHERE uid = @uid');
 
     if (staffResult.recordset.length === 0) {
       return null;
     }
     
     const staff = staffResult.recordset[0] as Staff;
-    staff.assignedHospitalsDetails = hospitalsResult.recordset;
     
     return staff;
 
@@ -90,14 +84,17 @@ export async function handleAddStaff(prevState: { message: string, type?: string
   }
 
   const { data } = validatedFields;
+  const uid = `user-${Date.now()}`;
+  const role = 'Hospital Staff';
 
   try {
     await poolConnect;
     await pool.request()
+      .input('uid', sql.NVarChar, uid)
       .input('name', sql.NVarChar, data.name)
-      .input('password', sql.NVarChar, data.password) // Add password
       .input('email', sql.NVarChar, data.email)
-      .input('number', sql.NVarChar, data.number)
+      .input('role', sql.NVarChar, role)
+      .input('password', sql.NVarChar, data.password)
       .input('designation', sql.NVarChar, data.designation)
       .input('department', sql.NVarChar, data.department)
       .input('joiningDate', data.joiningDate ? sql.Date : sql.Date, data.joiningDate ? new Date(data.joiningDate) : null)
@@ -105,8 +102,8 @@ export async function handleAddStaff(prevState: { message: string, type?: string
       .input('shiftTime', sql.NVarChar, data.shiftTime)
       .input('status', sql.NVarChar, data.status)
       .query(`
-        INSERT INTO staff (name, password, email, number, designation, department, joiningDate, endDate, shiftTime, status) 
-        VALUES (@name, @password, @email, @number, @designation, @department, @joiningDate, @endDate, @shiftTime, @status)
+        INSERT INTO users (uid, name, email, role, password, designation, department, joiningDate, endDate, shiftTime, status) 
+        VALUES (@uid, @name, @email, @role, @password, @designation, @department, @joiningDate, @endDate, @shiftTime, @status)
       `);
     
   } catch (error) {
@@ -164,7 +161,7 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
     }
     
     const result = await request
-        .input('id', sql.Int, id)
+        .input('uid', sql.NVarChar, id)
         .input('name', sql.NVarChar, data.name)
         .input('email', sql.NVarChar, data.email)
         .input('number', sql.NVarChar, data.number)
@@ -174,7 +171,7 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
         .input('endDate', data.endDate ? sql.Date : sql.Date, data.endDate ? new Date(data.endDate) : null)
         .input('shiftTime', sql.NVarChar, data.shiftTime)
         .input('status', sql.NVarChar, data.status)
-        .query(`UPDATE staff SET ${setClauses.join(', ')} WHERE id = @id`);
+        .query(`UPDATE users SET ${setClauses.join(', ')} WHERE uid = @uid`);
 
     if (result.rowsAffected[0] === 0) {
       return { message: "Staff member not found or data is the same.", type: 'error' };
@@ -198,8 +195,8 @@ export async function handleDeleteStaff(prevState: { message: string, type?: str
     try {
         await poolConnect;
         const result = await pool.request()
-            .input('id', sql.Int, Number(id))
-            .query('DELETE FROM staff WHERE id = @id');
+            .input('uid', sql.NVarChar, id)
+            .query("DELETE FROM users WHERE uid = @uid AND role = 'Hospital Staff'");
 
         if (result.rowsAffected[0] === 0) {
             return { message: "Staff member not found.", type: 'error' };

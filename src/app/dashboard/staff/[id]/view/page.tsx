@@ -32,11 +32,7 @@ const AssociationList = ({ title, items, icon }: { title: string, items: { id: s
 );
 
 export default async function ViewStaffPage({ params }: { params: { id: string } }) {
-    const staffId = Number(params.id);
-    if (isNaN(staffId)) {
-        notFound();
-    }
-    const staff = await getStaffById(staffId);
+    const staff = await getStaffById(params.id);
 
     if (!staff) {
         notFound();
@@ -72,15 +68,6 @@ export default async function ViewStaffPage({ params }: { params: { id: string }
                     <DetailItem label="End Date" value={formatDate(staff.endDate)} />
                 </CardContent>
             </Card>
-
-            <div className="grid lg:grid-cols-1 gap-6">
-                 <AssociationList 
-                    title="Assigned Hospital" 
-                    items={staff.assignedHospitalsDetails || []} 
-                    icon={<Building className="h-6 w-6 text-primary" />} 
-                />
-            </div>
-
         </div>
     );
 }

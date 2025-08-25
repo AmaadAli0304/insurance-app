@@ -37,12 +37,7 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
     useEffect(() => {
         async function fetchStaff() {
             try {
-                const staffId = Number(params.id);
-                 if (isNaN(staffId)) {
-                    notFound();
-                    return;
-                }
-                const fetchedStaff = await getStaffById(staffId);
+                const fetchedStaff = await getStaffById(params.id);
                 if (!fetchedStaff) {
                     notFound();
                     return;

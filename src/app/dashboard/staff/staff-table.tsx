@@ -66,7 +66,7 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
     }
   }, [state, toast, onStaffDeleted]);
 
-  const handleRowClick = (staffId: number) => {
+  const handleRowClick = (staffId: string) => {
     router.push(`/dashboard/staff/${staffId}/view`);
   };
 
