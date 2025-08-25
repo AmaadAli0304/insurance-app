@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { Staff } from "@/lib/types";
 
 const phoneRegex = new RegExp(
-  /^d{10}$/
+  /^\d{10}$/
 );
 
 
@@ -17,7 +17,7 @@ const staffSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters."),
   designation: z.string().optional().nullable(),
   department: z.string().optional().nullable(),
-  number: z.string().optional().nullable().refine((val) => !val || phoneRegex.test(val), {
+  number: z.string().optional().nullable().refine((val) => !val || val === '' || phoneRegex.test(val), {
     message: "Phone number must be exactly 10 digits.",
   }),
   joiningDate: z.string().optional().nullable(),
