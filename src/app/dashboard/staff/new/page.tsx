@@ -30,6 +30,7 @@ export default function NewStaffPage() {
     const router = useRouter();
 
      useEffect(() => {
+        console.log("State-----------",state)
         if (state.type === 'success') {
             toast({
                 title: "Staff",
