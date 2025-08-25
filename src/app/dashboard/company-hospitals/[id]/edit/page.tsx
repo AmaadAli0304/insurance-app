@@ -10,7 +10,7 @@ import { useFormStatus } from "react-dom";
 import { handleUpdateHospital, getStaff, getCompaniesForForm, getTPAsForForm, getHospitalById } from "../../actions";
 import Link from "next/link";
 import { ArrowLeft, ChevronsUpDown, X } from "lucide-react";
-import { notFound, useRouter } from "next/navigation";
+import { notFound, useRouter, useParams } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
 import {
   DropdownMenu,
@@ -31,7 +31,9 @@ function SubmitButton() {
     );
 }
 
-export default function EditCompanyHospitalPage({ params }: { params: { id: string } }) {
+export default function EditCompanyHospitalPage() {
+    const params = useParams();
+    const id = params.id as string;
     const [hospital, setHospital] = useState<Hospital | null>(null);
     const [state, formAction] = useActionState(handleUpdateHospital, { message: "", type: 'initial' });
     const router = useRouter();
@@ -51,7 +53,7 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
             try {
                 setIsLoading(true);
                 const [hospitalData, staffList, companiesList, tpasList] = await Promise.all([
-                    getHospitalById(params.id),
+                    getHospitalById(id),
                     getStaff(),
                     getCompaniesForForm(),
                     getTPAsForForm()
@@ -79,7 +81,7 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
             }
         }
         loadData();
-    }, [params.id, toast]);
+    }, [id, toast]);
 
 
     useEffect(() => {

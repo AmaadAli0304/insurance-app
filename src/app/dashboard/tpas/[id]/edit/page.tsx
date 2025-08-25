@@ -11,7 +11,7 @@ import { useFormStatus } from "react-dom";
 import { handleUpdateTPA, getTPAById } from "../../actions";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { notFound, useRouter } from "next/navigation";
+import { notFound, useRouter, useParams } from "next/navigation";
 import type { TPA } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 
@@ -24,7 +24,9 @@ function SubmitButton() {
     );
 }
 
-export default function EditTPAPage({ params }: { params: { id: string } }) {
+export default function EditTPAPage() {
+    const params = useParams();
+    const id = params.id as string;
     const [tpa, setTpa] = React.useState<TPA | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
     const [error, setError] = React.useState<string | null>(null);
@@ -35,7 +37,7 @@ export default function EditTPAPage({ params }: { params: { id: string } }) {
     useEffect(() => {
         async function fetchTpa() {
             try {
-                const tpaId = Number(params.id);
+                const tpaId = Number(id);
                 if (isNaN(tpaId)) {
                     notFound();
                     return;
@@ -54,7 +56,7 @@ export default function EditTPAPage({ params }: { params: { id: string } }) {
             }
         }
         fetchTpa();
-    }, [params.id]);
+    }, [id]);
 
     useEffect(() => {
         if (state.type === 'success') {

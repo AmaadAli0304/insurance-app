@@ -11,7 +11,7 @@ import { handleUpdateHospital } from "../../actions";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { mockHospitals } from "@/lib/mock-data";
-import { notFound } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -22,8 +22,10 @@ function SubmitButton() {
     );
 }
 
-export default function EditHospitalPage({ params }: { params: { id: string } }) {
-    const hospital = mockHospitals.find(h => h.id === params.id);
+export default function EditHospitalPage() {
+    const params = useParams();
+    const id = params.id as string;
+    const hospital = mockHospitals.find(h => h.id === id);
     const [state, formAction] = useActionState(handleUpdateHospital, { message: "" });
 
     if (!hospital) {

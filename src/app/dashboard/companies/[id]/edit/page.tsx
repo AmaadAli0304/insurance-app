@@ -11,7 +11,7 @@ import { useFormStatus } from "react-dom";
 import { handleUpdateCompany } from "../../actions";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { notFound, useRouter } from "next/navigation";
+import { notFound, useRouter, useParams } from "next/navigation";
 import type { Company } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 
@@ -24,7 +24,9 @@ function SubmitButton() {
     );
 }
 
-export default function EditCompanyPage({ params }: { params: { id: string } }) {
+export default function EditCompanyPage() {
+    const params = useParams();
+    const id = params.id as string;
     const [company, setCompany] = React.useState<Company | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
     const [error, setError] = React.useState<string | null>(null);
@@ -35,7 +37,7 @@ export default function EditCompanyPage({ params }: { params: { id: string } }) 
     useEffect(() => {
         async function fetchCompany() {
             try {
-                const response = await fetch(`/api/companies/${params.id}`);
+                const response = await fetch(`/api/companies/${id}`);
                 if (!response.ok) {
                      if (response.status === 404) {
                         notFound();
@@ -52,7 +54,7 @@ export default function EditCompanyPage({ params }: { params: { id: string } }) 
             }
         }
         fetchCompany();
-    }, [params.id]);
+    }, [id]);
 
     useEffect(() => {
         if (state.type === 'success') {

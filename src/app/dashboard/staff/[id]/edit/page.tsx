@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
 import { handleUpdateStaff, getStaffById, getHospitalsForForm } from "../../actions";
-import { notFound, useRouter } from "next/navigation";
+import { notFound, useRouter, useParams } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Staff, Hospital } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
@@ -25,7 +25,9 @@ function SubmitButton() {
     );
 }
 
-export default function EditStaffPage({ params }: { params: { id: string } }) {
+export default function EditStaffPage() {
+    const params = useParams();
+    const id = params.id as string;
     const [staff, setStaff] = useState<Staff | null>(null);
     const [hospitals, setHospitals] = useState<Pick<Hospital, 'id' | 'name'>[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -39,7 +41,7 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
         async function fetchData() {
             try {
                 const [fetchedStaff, hospitalList] = await Promise.all([
-                    getStaffById(params.id),
+                    getStaffById(id),
                     getHospitalsForForm()
                 ]);
                 
@@ -57,7 +59,7 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
             }
         }
         fetchData();
-    }, [params.id]);
+    }, [id]);
 
 
     useEffect(() => {

@@ -12,7 +12,7 @@ import { handleUpdatePatient } from "../../actions";
 import Link from "next/link";
 import { ArrowLeft, Upload } from "lucide-react";
 import { mockPatients, mockCompanies, mockHospitals } from "@/lib/mock-data";
-import { notFound } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 import { useAuth } from "@/components/auth-provider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMemo } from "react";
@@ -26,9 +26,11 @@ function SubmitButton() {
     );
 }
 
-export default function EditPatientPage({ params }: { params: { id: string } }) {
+export default function EditPatientPage() {
+    const params = useParams();
+    const id = params.id as string;
     const { user } = useAuth();
-    const patient = mockPatients.find(p => p.id === params.id);
+    const patient = mockPatients.find(p => p.id === id);
     const [state, formAction] = useActionState(handleUpdatePatient, { message: "" });
     const hospital = mockHospitals.find(h => h.id === patient?.hospitalId);
 

@@ -12,7 +12,7 @@ import { handleUpdateClaim } from "../../actions";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { mockClaims, mockPatients } from "@/lib/mock-data";
-import { notFound } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { ClaimStatus } from "@/lib/types";
 
@@ -25,8 +25,10 @@ function SubmitButton() {
     );
 }
 
-export default function EditClaimPage({ params }: { params: { id: string } }) {
-    const claim = mockClaims.find(c => c.id === params.id);
+export default function EditClaimPage() {
+    const params = useParams();
+    const id = params.id as string;
+    const claim = mockClaims.find(c => c.id === id);
     const [state, formAction] = useActionState(handleUpdateClaim, { message: "" });
 
     if (!claim) {
