@@ -115,7 +115,6 @@ export async function handleAddStaff(prevState: { message: string, type?: string
       return { message: `Database Error: ${dbError.message || 'Unknown error'}`, type: "error" };
   }
   
-  revalidatePath('/dashboard/staff');
   return { message: "Staff member added successfully.", type: "success" };
 }
 
