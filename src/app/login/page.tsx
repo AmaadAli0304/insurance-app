@@ -44,8 +44,7 @@ export default function LoginPage() {
 
       if (data.token && data.user) {
         login(data.token, data.user, remember);
-        // Force a hard reload to ensure the cookie is set before middleware runs
-        window.location.href = '/dashboard';
+        // Redirection is now handled by the AuthProvider's effect
       } else {
         throw new Error('No token or user data received from server.');
       }

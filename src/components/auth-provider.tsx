@@ -48,6 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (isValid && validatedUser) {
             setUser(validatedUser);
           } else {
+            // Token is invalid or blacklisted, clear it
             setUser(null);
             Cookies.remove('token');
           }
@@ -72,8 +73,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     Cookies.set('token', token, cookieOptions);
     setUser(user);
-    // Redirection is now handled by the login page via window.location.href
+    // Let the effect handle redirection
   };
+  
+  // This effect handles all redirection logic based on auth state
+  useEffect(() => {
+    if (loading) {
+      return; // Don't do anything while auth status is being checked
+    }
+
+    const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup');
+
+    if (user && isAuthPage) {
+      // User is logged in and on an auth page, redirect to dashboard
+      router.push('/dashboard');
+    }
+
+    if (!user && !isAuthPage) {
+      // User is not logged in and not on an auth page, redirect to login
+      // This is primarily handled by middleware, but this is a client-side failsafe.
+      router.push('/login');
+    }
+
+  }, [user, loading, pathname, router]);
 
   const value = useMemo(() => ({
     user,
@@ -81,29 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     login,
     logout: handleLogout,
-  }), [user, loading, login, handleLogout]);
-
-  
-  // This effect handles redirection logic for already authenticated users
-  useEffect(() => {
-    if (loading) {
-      return; // Do nothing while loading
-    }
-    
-    const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup');
-
-    if (!user && !isAuthPage) {
-      // User is not logged in and not on an auth page, redirect to login
-      // This is handled by middleware, but as a fallback:
-      router.push('/login');
-    }
-    
-    if (user && isAuthPage) {
-        // User is logged in and on an auth page, redirect to dashboard
-        router.push('/dashboard');
-    }
-
-  }, [user, loading, pathname, router]);
+  }), [user, loading, handleLogout]);
 
 
   if (loading) {
