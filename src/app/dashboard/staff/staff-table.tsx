@@ -53,7 +53,7 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
     if (state.type === 'success') {
       toast({
         title: "Staff Management",
-        description: "Staff member deleted successfully",
+        description: state.message,
         variant: "success",
       });
       onStaffDeleted();
