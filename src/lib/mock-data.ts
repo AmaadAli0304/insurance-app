@@ -46,6 +46,29 @@ export let mockUsers: User[] = [
     joiningDate: '2021-11-20',
     status: 'Active'
   },
+  { 
+    uid: 'staff-01',
+    name: 'Eleanor Vance', 
+    email: 'eleanor@statamine.com', 
+    role: 'Hospital Staff',
+    companyId: 'comp-01',
+    designation: 'Claim Coordinator', 
+    department: 'Claims', 
+    joiningDate: '2022-08-01', 
+    status: 'Active' 
+  },
+  { 
+    uid: 'staff-02',
+    name: 'Marcus Thorne', 
+    email: 'marcus@statamine.com', 
+    role: 'Hospital Staff',
+    companyId: 'comp-01',
+    designation: 'Nurse', 
+    department: 'On-site Support', 
+    joiningDate: '2023-01-15', 
+    shiftTime: '9 AM - 6 PM', 
+    status: 'Active' 
+  },
 ];
 
 export const mockPolicies: Record<string, Policy[]> = {
