@@ -18,6 +18,7 @@ const breadcrumbNameMap: Record<string, string> = {
   "staff": "Staff Member",
   "claims": "Claim",
   "patients": "Patient",
+  "profile": "Profile",
 };
 
 const isIdSegment = (segment: string) => {

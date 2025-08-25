@@ -16,12 +16,14 @@ export function MainNav() {
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/dashboard/hospitals', label: 'Hospitals', icon: Building },
       { href: '/dashboard/companies', label: 'Companies', icon: Factory },
+      { href: '/dashboard/profile', label: 'Profile', icon: User },
     ],
     'Hospital Staff': [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/dashboard/patients', label: 'Patients', icon: Users },
       { href: '/dashboard/pre-auths', label: 'Pre-Auth Requests', icon: FileText },
       { href: '/dashboard/claims', label: 'Claim Tracker', icon: HandCoins },
+      { href: '/dashboard/profile', label: 'Profile', icon: User },
     ],
     'Company Admin': [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -29,6 +31,7 @@ export function MainNav() {
       { href: '/dashboard/companies', label: 'Companies', icon: Factory },
       { href: '/dashboard/tpas', label: 'TPAs', icon: Briefcase },
       { href: '/dashboard/staff', label: 'Staff', icon: Users },
+      { href: '/dashboard/profile', label: 'Profile', icon: User },
     ],
   };
 
