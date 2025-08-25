@@ -32,7 +32,6 @@ export default function EditStaffPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [state, formAction] = useActionState(handleUpdateStaff, { message: "", type: "initial" });
-    const [selectedHospitalId, setSelectedHospitalId] = useState("");
     const { toast } = useToast();
     const router = useRouter();
 
@@ -51,7 +50,6 @@ export default function EditStaffPage() {
                 }
                 setStaff(fetchedStaff);
                 setHospitals(hospitalList);
-                setSelectedHospitalId(fetchedStaff.hospitalId || "");
             } catch (err) {
                 const dbError = err as Error;
                 setError(dbError.message);
@@ -140,8 +138,7 @@ export default function EditStaffPage() {
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="hospitalId">Assign Hospital</Label>
-                                <input type="hidden" name="hospitalId" value={selectedHospitalId} />
-                                <Select value={selectedHospitalId} onValueChange={setSelectedHospitalId}>
+                                <Select name="hospitalId" defaultValue={staff.hospitalId ?? ""}>
                                     <SelectTrigger disabled={isLoading}>
                                         <SelectValue placeholder="Select a hospital" />
                                     </SelectTrigger>
