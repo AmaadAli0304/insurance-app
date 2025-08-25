@@ -9,14 +9,11 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from '@/components/auth-provider';
 import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
-import { Checkbox } from '@/components/ui/checkbox';
 import { mockUsers } from '@/lib/mock-data';
-import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const { login } = useAuth();
   const { toast } = useToast();
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,16 +25,12 @@ export default function LoginPage() {
     const formData = new FormData(event.currentTarget);
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
-    const remember = formData.get("remember") === "on";
 
     // Mock Login Logic
     const user = mockUsers.find(u => u.email === email && (u.password === password || u.password === undefined));
 
     if (user) {
-        // Simulate token creation for the AuthProvider
-        const mockToken = `mock-token-for-${user.uid}`;
-        login(mockToken, user, remember);
-        router.push('/dashboard');
+        login(user);
     } else {
         const errorMessage = "Invalid email or password. Please try again.";
         setError(errorMessage);
@@ -70,15 +63,6 @@ export default function LoginPage() {
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input id="password" name="password" type="password" defaultValue="password" required />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox id="remember" name="remember" defaultChecked={true} />
-              <label
-                htmlFor="remember"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Remember me
-              </label>
             </div>
             {error && <p className="text-sm text-destructive text-center">{error}</p>}
           </CardContent>

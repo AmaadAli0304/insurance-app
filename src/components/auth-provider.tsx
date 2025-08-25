@@ -4,28 +4,17 @@
 import React, { createContext, useContext, useState, ReactNode, useMemo, useEffect, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import type { User } from '@/lib/types';
-import Cookies from 'js-cookie';
 import { mockUsers } from '@/lib/mock-data';
 
 interface AuthContextType {
   user: User | null;
   role: User['role'] | null;
   loading: boolean;
-  login: (token: string, user: User, remember?: boolean) => void;
+  login: (user: User) => void;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Mock function to "verify" the mock token
-const verifyMockToken = (token: string): User | null => {
-    if (!token || !token.startsWith('mock-token-for-')) {
-        return null;
-    }
-    const userId = token.replace('mock-token-for-', '');
-    const user = mockUsers.find(u => u.uid === userId);
-    return user || null;
-}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -35,22 +24,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const handleLogout = useCallback(() => {
     setUser(null);
-    Cookies.remove('token');
     router.push('/login');
   }, [router]);
 
   useEffect(() => {
-    const token = Cookies.get('token');
-    if (token) {
-        const validatedUser = verifyMockToken(token);
-        if (validatedUser) {
-            setUser(validatedUser);
-        } else {
-            // Token is invalid, clear it
-            setUser(null);
-            Cookies.remove('token');
-        }
-    }
+    // Since we have no cookie, we are always unauthenticated on load.
     setLoading(false);
   }, []);
   
@@ -70,16 +48,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, loading, pathname, router]);
 
-  const login = (token: string, userData: User, remember: boolean = false) => {
-    const cookieOptions: Cookies.CookieAttributes = {
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-    };
-    if (remember) {
-        cookieOptions.expires = 7; 
-    }
-    Cookies.set('token', token, cookieOptions);
+  const login = (userData: User) => {
     setUser(userData);
+    router.push('/dashboard');
   };
   
   const value = useMemo(() => ({
@@ -88,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     login,
     logout: handleLogout,
-  }), [user, loading, handleLogout, login]);
+  }), [user, loading, handleLogout]);
 
   if (loading && !pathname.startsWith('/login')) {
     return (
