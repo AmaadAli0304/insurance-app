@@ -32,7 +32,13 @@ export async function getStaff(): Promise<Staff[]> {
   try {
     await poolConnect;
     const result = await pool.request()
-      .query("SELECT uid as id, name, email, designation, department, status FROM users WHERE role = 'Hospital Staff'");
+      .query(`
+        SELECT u.uid as id, u.name, u.email, u.designation, u.department, u.status, h.name as hospitalName
+        FROM users u
+        LEFT JOIN hospital_staff hs ON u.uid = hs.staff_id
+        LEFT JOIN hospitals h ON hs.hospital_id = h.id
+        WHERE u.role = 'Hospital Staff'
+      `);
     return result.recordset as Staff[];
   } catch (error) {
       const dbError = error as Error;
@@ -57,24 +63,19 @@ export async function getStaffById(id: string): Promise<Staff | null> {
     
     const staffResult = await pool.request()
           .input('uid', sql.NVarChar, id)
-          .query('SELECT *, uid as id FROM users WHERE uid = @uid');
+          .query(`
+            SELECT u.*, u.uid as id, h.id as hospitalId, h.name as hospitalName
+            FROM users u
+            LEFT JOIN hospital_staff hs ON u.uid = hs.staff_id
+            LEFT JOIN hospitals h ON hs.hospital_id = h.id
+            WHERE u.uid = @uid
+          `);
 
     if (staffResult.recordset.length === 0) {
       return null;
     }
     
-    const staff = staffResult.recordset[0] as Staff;
-
-    if (staff.hospitalId) {
-        const hospitalResult = await pool.request()
-            .input('hospitalId', sql.NVarChar, staff.hospitalId)
-            .query('SELECT name FROM hospitals WHERE id = @hospitalId');
-        if (hospitalResult.recordset.length > 0) {
-            staff.hospitalName = hospitalResult.recordset[0].name;
-        }
-    }
-    
-    return staff;
+    return staffResult.recordset[0] as Staff;
 
   } catch (error) {
     console.error('Error fetching staff by ID:', error);
@@ -83,7 +84,6 @@ export async function getStaffById(id: string): Promise<Staff | null> {
 }
 
 export async function handleAddStaff(prevState: { message: string, type?: string }, formData: FormData) {
-  
   const validatedFields = staffSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
@@ -109,16 +109,20 @@ export async function handleAddStaff(prevState: { message: string, type?: string
   const { data } = validatedFields;
   const uid = `user-${Date.now()}`;
   const role = 'Hospital Staff';
+  let transaction;
 
   try {
     await poolConnect;
-    await pool.request()
+    transaction = new sql.Transaction(pool);
+    await transaction.begin();
+
+    const userRequest = new sql.Request(transaction);
+    await userRequest
       .input('uid', sql.NVarChar, uid)
       .input('name', sql.NVarChar, data.name)
       .input('email', sql.NVarChar, data.email)
       .input('role', sql.NVarChar, role)
       .input('password', sql.NVarChar, data.password)
-      .input('hospitalId', sql.NVarChar, data.hospitalId)
       .input('designation', sql.NVarChar, data.designation)
       .input('department', sql.NVarChar, data.department)
       .input('joiningDate', data.joiningDate ? sql.Date : sql.Date, data.joiningDate ? new Date(data.joiningDate) : null)
@@ -127,11 +131,22 @@ export async function handleAddStaff(prevState: { message: string, type?: string
       .input('status', sql.NVarChar, data.status)
       .input('number', sql.NVarChar, data.number)
       .query(`
-        INSERT INTO users (uid, name, email, role, password, hospitalId, designation, department, joiningDate, endDate, shiftTime, status, number) 
-        VALUES (@uid, @name, @email, @role, @password, @hospitalId, @designation, @department, @joiningDate, @endDate, @shiftTime, @status, @number)
+        INSERT INTO users (uid, name, email, role, password, designation, department, joiningDate, endDate, shiftTime, status, number) 
+        VALUES (@uid, @name, @email, @role, @password, @designation, @department, @joiningDate, @endDate, @shiftTime, @status, @number)
       `);
     
+    if (data.hospitalId) {
+      const assignmentRequest = new sql.Request(transaction);
+      await assignmentRequest
+        .input('staff_id', sql.NVarChar, uid)
+        .input('hospital_id', sql.NVarChar, data.hospitalId)
+        .query('INSERT INTO hospital_staff (staff_id, hospital_id) VALUES (@staff_id, @hospital_id)');
+    }
+
+    await transaction.commit();
+    
   } catch (error) {
+      if (transaction) await transaction.rollback();
       console.error('Error adding staff:', error);
       const dbError = error as { message?: string };
       return { message: `Database Error: ${dbError.message || 'Unknown error'}`, type: "error" };
@@ -162,16 +177,19 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
       return { message: `Invalid data: ${errorMessages}`, type: 'error' };
   }
   
-  const { id, ...data } = parsed.data;
+  const { id: staffId, hospitalId, ...data } = parsed.data;
+  let transaction;
 
   try {
     await poolConnect;
-    const request = pool.request();
+    transaction = new sql.Transaction(pool);
+    await transaction.begin();
+
+    const request = new sql.Request(transaction);
     let setClauses = [
         `name = @name`,
         `email = @email`,
         `number = @number`,
-        `hospitalId = @hospitalId`,
         `designation = @designation`,
         `department = @department`,
         `joiningDate = @joiningDate`,
@@ -186,11 +204,10 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
     }
     
     const result = await request
-        .input('uid', sql.NVarChar, id)
+        .input('uid', sql.NVarChar, staffId)
         .input('name', sql.NVarChar, data.name)
         .input('email', sql.NVarChar, data.email)
         .input('number', sql.NVarChar, data.number)
-        .input('hospitalId', sql.NVarChar, data.hospitalId)
         .input('designation', sql.NVarChar, data.designation)
         .input('department', sql.NVarChar, data.department)
         .input('joiningDate', data.joiningDate ? sql.Date : sql.Date, data.joiningDate ? new Date(data.joiningDate) : null)
@@ -200,9 +217,26 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
         .query(`UPDATE users SET ${setClauses.join(', ')} WHERE uid = @uid`);
 
     if (result.rowsAffected[0] === 0) {
+      await transaction.rollback();
       return { message: "Staff member not found or data is the same.", type: 'error' };
     }
+
+    // Handle hospital assignment
+    const assignmentRequest = new sql.Request(transaction);
+    await assignmentRequest.input('staff_id', sql.NVarChar, staffId).query('DELETE FROM hospital_staff WHERE staff_id = @staff_id');
+    
+    if (hospitalId) {
+      const newAssignmentRequest = new sql.Request(transaction);
+      await newAssignmentRequest
+        .input('staff_id', sql.NVarChar, staffId)
+        .input('hospital_id', sql.NVarChar, hospitalId)
+        .query('INSERT INTO hospital_staff (staff_id, hospital_id) VALUES (@staff_id, @hospital_id)');
+    }
+
+    await transaction.commit();
+
   } catch (error) {
+    if (transaction) await transaction.rollback();
     console.error('Database error:', error);
     return { message: "Failed to update staff member in the database.", type: 'error' };
   }
@@ -216,17 +250,30 @@ export async function handleDeleteStaff(prevState: { message: string, type?: str
     if (!id) {
       return { message: "Delete error: ID is missing", type: 'error' };
     }
+    let transaction;
 
     try {
         await poolConnect;
-        const result = await pool.request()
+        transaction = new sql.Transaction(pool);
+        await transaction.begin();
+
+        // Delete from hospital_staff first
+        await new sql.Request(transaction).input('staff_id', sql.NVarChar, id).query('DELETE FROM hospital_staff WHERE staff_id = @staff_id');
+        
+        // Then delete from users
+        const result = await new sql.Request(transaction)
             .input('uid', sql.NVarChar, id)
             .query("DELETE FROM users WHERE uid = @uid AND role = 'Hospital Staff'");
 
         if (result.rowsAffected[0] === 0) {
+            await transaction.rollback();
             return { message: "Staff member not found.", type: 'error' };
         }
+
+        await transaction.commit();
+
     } catch (error) {
+        if(transaction) await transaction.rollback();
         console.error('Database error:', error);
         return { message: "Database error during deletion.", type: 'error' };
     }

@@ -107,7 +107,7 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
                         <span className="sr-only">Back</span>
                     </Link>
                 </Button>
-                <h1 className="text-lg font-semibold md:text-2xl">Edit Staff</h1>
+                <h1 className="text-lg font-semibold md:text-2xl">Edit Staff Member</h1>
             </div>
             <Card>
                 <CardHeader>
@@ -142,6 +142,7 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
                                         <SelectValue placeholder="Select a hospital" />
                                     </SelectTrigger>
                                     <SelectContent>
+                                        <SelectItem value="">None</SelectItem>
                                         {hospitals.map(hospital => (
                                             <SelectItem key={hospital.id} value={hospital.id}>
                                                 {hospital.name}

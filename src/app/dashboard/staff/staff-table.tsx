@@ -76,7 +76,7 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
       <TableHeader>
         <TableRow>
           <TableHead>Full Name</TableHead>
-          <TableHead>Designation</TableHead>
+          <TableHead>Assigned Hospital</TableHead>
           <TableHead>Email</TableHead>
           <TableHead>Status</TableHead>
           <TableHead><span className="sr-only">Actions</span></TableHead>
@@ -87,7 +87,7 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
           staff.map(s => (
             <TableRow key={s.id} onClick={() => handleRowClick(s.id)} className="cursor-pointer">
               <TableCell className="font-medium">{s.name}</TableCell>
-              <TableCell>{s.designation}</TableCell>
+              <TableCell>{s.hospitalName || 'N/A'}</TableCell>
               <TableCell>{s.email}</TableCell>
               <TableCell>
                 <Badge variant={s.status === 'Active' ? 'default' : 'destructive'} className={s.status === 'Active' ? 'bg-accent text-accent-foreground' : ''}>{s.status}</Badge>

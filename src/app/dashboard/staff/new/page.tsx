@@ -78,7 +78,7 @@ export default function NewStaffPage() {
                         <span className="sr-only">Back</span>
                     </Link>
                 </Button>
-                <h1 className="text-lg font-semibold md:text-2xl">New Staff</h1>
+                <h1 className="text-lg font-semibold md:text-2xl">New Staff Member</h1>
             </div>
             <Card>
                 <CardHeader>

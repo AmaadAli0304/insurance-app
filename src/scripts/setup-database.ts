@@ -19,7 +19,6 @@ async function setupDatabase() {
         name NVARCHAR(255) NOT NULL,
         email NVARCHAR(255) NOT NULL UNIQUE,
         role NVARCHAR(50) NOT NULL,
-        hospitalId NVARCHAR(255),
         companyId NVARCHAR(255),
         password NVARCHAR(255),
         designation NVARCHAR(255),
@@ -51,7 +50,6 @@ async function setupDatabase() {
           .input('name', sql.NVarChar, user.name)
           .input('email', sql.NVarChar, user.email)
           .input('role', sql.NVarChar, user.role)
-          .input('hospitalId', sql.NVarChar, user.hospitalId)
           .input('companyId', sql.NVarChar, user.companyId)
           .input('password', sql.NVarChar, password)
           .input('designation', sql.NVarChar, user.designation)
@@ -62,8 +60,8 @@ async function setupDatabase() {
           .input('status', sql.NVarChar, user.status)
           .input('number', sql.NVarChar, user.number)
           .query(`
-              INSERT INTO users (uid, name, email, role, hospitalId, companyId, password, designation, department, joiningDate, endDate, shiftTime, status, number) 
-              VALUES (@uid, @name, @email, @role, @hospitalId, @companyId, @password, @designation, @department, @joiningDate, @endDate, @shiftTime, @status, @number)
+              INSERT INTO users (uid, name, email, role, companyId, password, designation, department, joiningDate, endDate, shiftTime, status, number) 
+              VALUES (@uid, @name, @email, @role, @companyId, @password, @designation, @department, @joiningDate, @endDate, @shiftTime, @status, @number)
           `);
         console.log(`Inserted user: ${user.email}`);
       } else {
