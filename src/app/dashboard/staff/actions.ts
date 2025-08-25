@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { Staff } from "@/lib/types";
 
 const phoneRegex = new RegExp(
-  /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/
+  /^\d{10}$/
 );
 
 
@@ -18,7 +18,7 @@ const staffSchema = z.object({
   designation: z.string().optional().nullable(),
   department: z.string().optional().nullable(),
   number: z.string().optional().nullable().refine((val) => !val || phoneRegex.test(val), {
-    message: "Invalid phone number format.",
+    message: "Phone number must be exactly 10 digits.",
   }),
   joiningDate: z.string().optional().nullable(),
   endDate: z.string().optional().nullable(),
