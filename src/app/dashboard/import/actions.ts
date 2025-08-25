@@ -65,7 +65,6 @@ export async function handleImportCompanies(prevState: { message: string, type?:
     const companiesProcessed = result.rowsAffected;
 
     if (companiesProcessed > 0) {
-      revalidatePath('/dashboard/companies');
       return { message: `${companiesProcessed} new companies imported successfully.`, type: "success" };
     } else {
       return { message: "No new companies were imported. This may be due to processing errors or empty rows.", type: "error" };
@@ -145,7 +144,7 @@ export async function handleCreateRelationshipTables(prevState: { message: strin
       BEGIN
         CREATE TABLE hospital_staff (
           id INT IDENTITY(1,1) PRIMARY KEY,
-          staff_id INT,
+          staff_id NVARCHAR(255),
           hospital_id NVARCHAR(255)
         );
       END
@@ -157,38 +156,6 @@ export async function handleCreateRelationshipTables(prevState: { message: strin
     const dbError = error as { message?: string };
     console.error('Error creating relationship tables:', dbError);
     return { message: `Error creating relationship tables: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
-  }
-}
-
-export async function handleCreateStaffTable(prevState: { message: string, type?: string }, formData: FormData) {
-  try {
-    await poolConnect;
-    const request = pool.request();
-    const createStaffTableQuery = `
-      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='staff' and xtype='U')
-      BEGIN
-        CREATE TABLE staff (
-          id INT IDENTITY(1,1) PRIMARY KEY,
-          name NVARCHAR(255) NOT NULL,
-          photo NVARCHAR(MAX),
-          email NVARCHAR(255),
-          number NVARCHAR(50),
-          password NVARCHAR(255),
-          designation NVARCHAR(255),
-          department NVARCHAR(255),
-          joiningDate DATE,
-          endDate DATE,
-          shiftTime NVARCHAR(100),
-          status NVARCHAR(50)
-        );
-      END
-    `;
-    await request.query(createStaffTableQuery);
-    return { message: "Staff table created successfully or already exists.", type: "success" };
-  } catch (error) {
-    const dbError = error as { message?: string };
-    console.error('Error creating Staff table:', dbError);
-    return { message: `Error creating Staff table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
 

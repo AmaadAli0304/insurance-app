@@ -39,7 +39,7 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
     
     const [companies, setCompanies] = useState<Pick<Company, 'id' | 'name'>[]>([]);
     const [tpas, setTpas] = useState<Pick<TPA, 'id' | 'name'>[]>([]);
-    const [staff, setStaff] = useState<Staff[]>([]);
+    const [staff, setStaff] = useState<Pick<Staff, 'id' | 'name'>[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
@@ -253,9 +253,9 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
                                     {staff.map(s => (
                                         <DropdownMenuCheckboxItem
                                             key={s.id}
-                                            checked={selectedStaff.includes(String(s.id))}
+                                            checked={selectedStaff.includes(s.id)}
                                             onCheckedChange={(checked) => {
-                                                const staffId = String(s.id);
+                                                const staffId = s.id;
                                                 setSelectedStaff(prev =>
                                                     checked ? [...prev, staffId] : prev.filter(id => id !== staffId)
                                                 );
@@ -269,7 +269,7 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
                             <div className="flex flex-wrap gap-1 mt-1">
                                 {selectedStaff.map(id => (
                                      <Badge key={id} variant="secondary" className="flex items-center gap-1">
-                                        {staff.find(s => String(s.id) === id)?.name}
+                                        {staff.find(s => s.id === id)?.name}
                                         <button type="button" onClick={() => setSelectedStaff(prev => prev.filter(staffId => staffId !== id))} className="rounded-full hover:bg-muted-foreground/20 p-0.5">
                                             <X className="h-3 w-3" />
                                         </button>

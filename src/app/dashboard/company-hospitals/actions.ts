@@ -1,7 +1,6 @@
 
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation';
 import pool, { sql, poolConnect } from "@/lib/db";
 import type { Staff, Company, TPA, Hospital } from "@/lib/types";
@@ -23,11 +22,11 @@ const hospitalUpdateSchema = hospitalSchema.extend({
 
 
 // Data fetching functions
-export async function getStaff(): Promise<Staff[]> {
+export async function getStaff(): Promise<Pick<Staff, 'id' | 'name'>[]> {
   try {
     await poolConnect;
-    const result = await pool.request().query('SELECT id, name FROM staff');
-    return result.recordset as Staff[];
+    const result = await pool.request().query("SELECT uid as id, name FROM users WHERE role = 'Hospital Staff'");
+    return result.recordset as Pick<Staff, 'id' | 'name'>[];
   } catch (error) {
     const dbError = error as Error;
     throw new Error(`Error fetching staff: ${dbError.message}`);
@@ -88,7 +87,7 @@ export async function getHospitalById(id: string): Promise<Hospital | null> {
         
         hospital.assignedCompanies = companiesResult.recordset.map(r => r.company_id);
         hospital.assignedTPAs = tpasResult.recordset.map(r => String(r.tpa_id));
-        hospital.assignedStaff = staffResult.recordset.map(r => String(r.staff_id));
+        hospital.assignedStaff = staffResult.recordset.map(r => r.staff_id);
 
         return hospital;
     } catch (error) {
@@ -145,7 +144,7 @@ export async function handleAddHospital(prevState: { message: string, type?:stri
             await new sql.Request(transaction).input('hospital_id', sql.NVarChar, hospitalId).input('tpa_id', sql.Int, Number(tpaId)).query('INSERT INTO hospital_tpas (hospital_id, tpa_id) VALUES (@hospital_id, @tpa_id)');
         }
         for (const staffId of assignedStaff) {
-            await new sql.Request(transaction).input('hospital_id', sql.NVarChar, hospitalId).input('staff_id', sql.Int, Number(staffId)).query('INSERT INTO hospital_staff (hospital_id, staff_id) VALUES (@hospital_id, @staff_id)');
+            await new sql.Request(transaction).input('hospital_id', sql.NVarChar, hospitalId).input('staff_id', sql.NVarChar, staffId).query('INSERT INTO hospital_staff (hospital_id, staff_id) VALUES (@hospital_id, @staff_id)');
         }
 
         await transaction.commit();
@@ -209,7 +208,7 @@ export async function handleUpdateHospital(prevState: { message: string, type?:s
             await new sql.Request(transaction).input('hospital_id', sql.NVarChar, hospitalId).input('tpa_id', sql.Int, Number(tpaId)).query('INSERT INTO hospital_tpas (hospital_id, tpa_id) VALUES (@hospital_id, @tpa_id)');
         }
         for (const staffId of assignedStaff) {
-            await new sql.Request(transaction).input('hospital_id', sql.NVarChar, hospitalId).input('staff_id', sql.Int, Number(staffId)).query('INSERT INTO hospital_staff (hospital_id, staff_id) VALUES (@hospital_id, @staff_id)');
+            await new sql.Request(transaction).input('hospital_id', sql.NVarChar, hospitalId).input('staff_id', sql.NVarChar, staffId).query('INSERT INTO hospital_staff (hospital_id, staff_id) VALUES (@hospital_id, @staff_id)');
         }
         
         await transaction.commit();
@@ -255,6 +254,5 @@ export async function handleDeleteHospital(prevState: { message: string, type?:s
         return { message: "Database error during deletion.", type: 'error' };
     }
     
-    revalidatePath('/dashboard/company-hospitals');
     return { message: "Hospital deleted successfully.", type: 'success' };
 }

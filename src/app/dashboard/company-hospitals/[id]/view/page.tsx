@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -60,7 +61,7 @@ export default function ViewHospitalPage({ params }: { params: { id: string } })
                 ]);
 
                 // Filter to find the assigned items
-                setAssignedStaff(allStaff.filter(s => hospitalData.assignedStaff?.includes(String(s.id))).map(s => ({id: s.id, name: s.name})));
+                setAssignedStaff(allStaff.filter(s => hospitalData.assignedStaff?.includes(s.id)));
                 setAssignedCompanies(allCompanies.filter(c => hospitalData.assignedCompanies?.includes(c.id)));
                 setAssignedTPAs(allTPAs.filter(t => hospitalData.assignedTPAs?.includes(String(t.id))).map(t => ({id: t.id, name: t.name!})));
 

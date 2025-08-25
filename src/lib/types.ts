@@ -128,17 +128,7 @@ export interface TPA {
   assignedHospitalsDetails?: { id: string, name: string }[];
 }
 
-export interface Staff {
-  id: string; // Now maps to uid from users table
-  name: string;
-  designation?: string | null;
-  department?: string | null;
-  number?: string | null;
-  email?: string | null;
-  joiningDate?: string | null;
-  endDate?: string | null;
-  shiftTime?: string | null;
-  status?: 'Active' | 'Inactive' | null;
-  password?: string;
+export interface Staff extends Omit<User, 'uid' | 'role' | 'hospitalId' | 'companyId'> {
+  id: string; // This will map to the 'uid' from the User object
   assignedHospitalsDetails?: { id: string | number, name: string }[];
 }

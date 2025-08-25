@@ -120,45 +120,6 @@ async function setupDatabase() {
     await request.query(createTpasTableQuery);
     console.log('TPAs table check/create complete.');
     
-    // Create Staff Table
-    console.log('Checking for "staff" table...');
-    const createStaffTableQuery = `
-      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='staff' and xtype='U')
-      BEGIN
-        CREATE TABLE staff (
-          id INT IDENTITY(1,1) PRIMARY KEY,
-          name NVARCHAR(255) NOT NULL,
-          email NVARCHAR(255),
-          number NVARCHAR(50),
-          password NVARCHAR(255),
-          designation NVARCHAR(255),
-          department NVARCHAR(255),
-          joiningDate DATE,
-          endDate DATE,
-          shiftTime NVARCHAR(100),
-          status NVARCHAR(50)
-        );
-        PRINT '"staff" table created.';
-      END
-    `;
-    await request.query(createStaffTableQuery);
-    console.log('Staff table check/create complete.');
-
-    // Ensure password column exists in staff table for older setups
-    const alterStaffTableQuery = `
-        IF NOT EXISTS (
-            SELECT * FROM sys.columns 
-            WHERE Name = N'password' 
-            AND Object_ID = Object_ID(N'staff')
-        )
-        BEGIN
-            ALTER TABLE staff ADD password NVARCHAR(255)
-            PRINT 'Added password column to staff table.'
-        END
-    `;
-    await request.query(alterStaffTableQuery);
-    console.log('Staff table password column check complete.');
-
     // Create Token Blacklist Table
     console.log('Checking for "token_blacklist" table...');
     const createTokenBlacklistTableQuery = `
