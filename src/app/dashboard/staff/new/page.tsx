@@ -59,8 +59,8 @@ export default function NewStaffPage() {
                                 <Input id="name" name="name" placeholder="e.g., John Doe" required />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="email">Email Address</Label>
-                                <Input id="email" name="email" type="email" placeholder="e.g., john.d@company.com" />
+                                <Label htmlFor="email">Email Address <span className="text-destructive">*</span></Label>
+                                <Input id="email" name="email" type="email" placeholder="e.g., john.d@company.com" required />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="number">Contact Number</Label>
