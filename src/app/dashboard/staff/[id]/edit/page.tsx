@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
 import { handleUpdateStaff, getStaffById, getHospitalsForForm } from "../../actions";
-import { notFound, useRouter, useParams } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Staff, Hospital } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
@@ -45,9 +45,7 @@ export default function EditStaffPage() {
                     getHospitalsForForm()
                 ]);
                 
-                if (!fetchedStaff) {
-                    setError("Staff member not found.");
-                } else {
+                if (fetchedStaff) {
                     // Check if the assigned hospital still exists
                     if (fetchedStaff.hospitalId && !hospitalList.some(h => h.id === fetchedStaff.hospitalId)) {
                         toast({
@@ -56,10 +54,13 @@ export default function EditStaffPage() {
                             variant: "destructive"
                         });
                         // Un-assign the non-existent hospital
-                        fetchedStaff.hospitalId = null;
+                        fetchedStaff.hospitalId = "";
                     }
                     setStaff(fetchedStaff);
+                } else {
+                    setError("Staff member not found.");
                 }
+
                 setHospitals(hospitalList);
             } catch (err) {
                 const dbError = err as Error;

@@ -107,12 +107,11 @@ export default function NewStaffPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="hospitalId">Assign Hospital</Label>
-                                <Select name="hospitalId" defaultValue="">
+                                <Select name="hospitalId">
                                     <SelectTrigger disabled={isLoading}>
                                         <SelectValue placeholder="Select a hospital" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="">None</SelectItem>
                                         {hospitals.map(hospital => (
                                             <SelectItem key={hospital.id} value={hospital.id}>
                                                 {hospital.name}
