@@ -36,7 +36,6 @@ export async function handleAddClaim(prevState: { message: string }, formData: F
 
   mockClaims.push(newClaim);
   
-  revalidatePath('/dashboard/claims');
   redirect('/dashboard/claims');
 }
 
@@ -64,7 +63,6 @@ export async function handleUpdateClaim(prevState: { message: string }, formData
     updatedAt: new Date().toISOString(),
   };
 
-  revalidatePath('/dashboard/claims');
   redirect('/dashboard/claims');
 }
 

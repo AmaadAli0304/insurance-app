@@ -1,7 +1,6 @@
 
 "use server";
 
-import { revalidatePath } from "next/cache";
 import pool, { sql, poolConnect } from "@/lib/db";
 import { z } from 'zod';
 import { TPA } from "@/lib/types";
@@ -91,7 +90,6 @@ export async function handleAddTPA(prevState: { message: string, type?: string }
     return { message: `Database Error: ${dbError.message || 'Unknown error'}`, type: "error" };
   }
 
-  revalidatePath('/dashboard/tpas');
   return { message: "TPA added successfully.", type: "success" };
 }
 
@@ -142,7 +140,6 @@ export async function handleUpdateTPA(prevState: { message: string, type?: strin
     return { message: "Failed to update TPA in the database.", type: 'error' };
   }
 
-  revalidatePath('/dashboard/tpas');
   return { message: "TPA updated successfully.", type: "success" };
 }
 
@@ -166,6 +163,5 @@ export async function handleDeleteTPA(prevState: { message: string, type?: strin
         return { message: "Database error during deletion.", type: 'error' };
     }
     
-    revalidatePath('/dashboard/tpas');
     return { message: "TPA deleted successfully.", type: 'success' };
 }

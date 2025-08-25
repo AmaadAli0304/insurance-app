@@ -3,7 +3,6 @@
 
 import { mockPatients } from "@/lib/mock-data";
 import { Patient } from "@/lib/types";
-import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation';
 
 export async function handleAddPatient(prevState: { message: string }, formData: FormData) {
@@ -51,7 +50,6 @@ export async function handleAddPatient(prevState: { message: string }, formData:
 
   mockPatients.push(newPatient);
   
-  revalidatePath('/dashboard/patients');
   redirect('/dashboard/patients');
 }
 
@@ -105,7 +103,6 @@ export async function handleUpdatePatient(prevState: { message: string }, formDa
     estimatedCost: Number(updatedPatientData.estimatedCost),
   };
 
-  revalidatePath('/dashboard/patients');
   redirect('/dashboard/patients');
 }
 

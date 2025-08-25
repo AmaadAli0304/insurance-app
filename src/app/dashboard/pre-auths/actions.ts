@@ -44,7 +44,6 @@ export async function handleAddRequest(prevState: { message: string }, formData:
 
   mockStaffingRequests.push(newRequest);
   
-  revalidatePath('/dashboard/pre-auths');
   redirect('/dashboard/pre-auths');
 }
 
