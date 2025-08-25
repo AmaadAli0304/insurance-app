@@ -24,6 +24,8 @@ import type { Staff } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
 
 interface StaffTableProps {
   staff: Staff[];
@@ -69,6 +71,11 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
   const handleRowClick = (staffId: string) => {
     router.push(`/dashboard/staff/${staffId}/view`);
   };
+  
+  const getInitials = (name: string) => {
+    if (!name) return 'U';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  }
 
   return (
     <Table>
@@ -85,7 +92,13 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
         {staff.length > 0 ? (
           staff.map(s => (
             <TableRow key={s.id} onClick={() => handleRowClick(s.id)} className="cursor-pointer">
-              <TableCell className="font-medium">{s.name}</TableCell>
+              <TableCell className="font-medium flex items-center gap-3">
+                <Avatar className="h-9 w-9">
+                    <AvatarImage src={s.photo ?? undefined} alt={s.name} />
+                    <AvatarFallback>{getInitials(s.name)}</AvatarFallback>
+                </Avatar>
+                {s.name}
+              </TableCell>
               <TableCell>{s.designation}</TableCell>
               <TableCell>{s.email}</TableCell>
               <TableCell>

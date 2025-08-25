@@ -17,6 +17,7 @@ export interface User {
   shiftTime?: string | null;
   status?: 'Active' | 'Inactive' | null;
   number?: string | null;
+  photo?: string | null;
 }
 
 export interface Hospital {
@@ -140,5 +141,6 @@ export interface Staff {
   shiftTime?: string | null;
   status?: 'Active' | 'Inactive' | null;
   password?: string;
+  photo?: string | null;
   assignedHospitalsDetails?: { id: string | number, name: string }[];
 }

@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState, ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,8 @@ import { handleAddStaff } from "../actions";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { User as UserIcon, Upload } from "lucide-react";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -28,13 +31,13 @@ export default function NewStaffPage() {
     const [state, formAction] = useActionState(handleAddStaff, { message: "", type: "initial" });
     const { toast } = useToast();
     const router = useRouter();
+    const [preview, setPreview] = useState<string | null>(null);
 
-     useEffect(() => {
-        console.log("State-----------",state)
+    useEffect(() => {
         if (state.type === 'success') {
             toast({
                 title: "Staff",
-                description: "staff created successfully",
+                description: state.message,
                 variant: "success",
             });
             router.push('/dashboard/staff');
@@ -47,6 +50,19 @@ export default function NewStaffPage() {
         }
     }, [state, toast, router]);
 
+    const handlePhotoChange = (e: ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            setPreview(null);
+        }
+    };
+
 
     return (
         <div className="space-y-6">
@@ -55,8 +71,22 @@ export default function NewStaffPage() {
                     <CardTitle>Staff Details</CardTitle>
                     <CardDescription>Fill in the form to add a new staff member.</CardDescription>
                 </CardHeader>
-                <form action={formAction}>
+                <form action={formAction} encType="multipart/form-data">
                     <CardContent className="space-y-4">
+                        <div className="flex items-center gap-4">
+                            <Avatar className="h-24 w-24">
+                                <AvatarImage src={preview ?? undefined} alt="Staff photo" />
+                                <AvatarFallback>
+                                    <UserIcon className="h-10 w-10" />
+                                </AvatarFallback>
+                            </Avatar>
+                            <div className="space-y-2">
+                                <Label htmlFor="photo">Staff Photo</Label>
+                                <Input id="photo" name="photo" type="file" accept="image/*" onChange={handlePhotoChange} />
+                                <p className="text-xs text-muted-foreground">Upload a square photo for best results.</p>
+                            </div>
+                        </div>
+
                         <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Full Name <span className="text-destructive">*</span></Label>

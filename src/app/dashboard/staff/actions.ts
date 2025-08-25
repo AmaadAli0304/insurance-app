@@ -5,6 +5,16 @@ import { revalidatePath } from "next/cache";
 import pool, { sql, poolConnect } from "@/lib/db";
 import { z } from 'zod';
 import { Staff } from "@/lib/types";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { v4 as uuidv4 } from 'uuid';
+
+const s3Client = new S3Client({
+    region: process.env.AWS_REGION!,
+    credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    },
+});
 
 const staffSchema = z.object({
   name: z.string().min(1, "Full Name is required."),
@@ -31,7 +41,7 @@ export async function getStaff(): Promise<Staff[]> {
   try {
     await poolConnect;
     const result = await pool.request()
-      .query("SELECT uid as id, name, email, designation, department, status FROM users WHERE role = 'Hospital Staff'");
+      .query("SELECT uid as id, name, email, designation, department, status, photo FROM users WHERE role = 'Hospital Staff'");
     return result.recordset as Staff[];
   } catch (error) {
       const dbError = error as Error;
@@ -61,6 +71,21 @@ export async function getStaffById(id: string): Promise<Staff | null> {
   }
 }
 
+async function uploadFileToS3(file: Buffer, fileName: string, contentType: string): Promise<string> {
+    const params = {
+        Bucket: process.env.AWS_S3_BUCKET_NAME!,
+        Key: `${Date.now()}-${fileName}`,
+        Body: file,
+        ContentType: contentType,
+        ACL: 'public-read' as const,
+    };
+
+    const command = new PutObjectCommand(params);
+    await s3Client.send(command);
+
+    return `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${params.Key}`;
+}
+
 
 export async function handleAddStaff(prevState: { message: string, type?: string }, formData: FormData) {
   
@@ -84,6 +109,19 @@ export async function handleAddStaff(prevState: { message: string, type?: string
           type: 'error'
       };
   }
+  
+  const photoFile = formData.get('photo') as File | null;
+  let photoUrl: string | null = null;
+  
+  if (photoFile && photoFile.size > 0) {
+    try {
+        const buffer = Buffer.from(await photoFile.arrayBuffer());
+        photoUrl = await uploadFileToS3(buffer, photoFile.name, photoFile.type);
+    } catch (error) {
+        return { message: "Failed to upload photo to S3.", type: 'error' };
+    }
+  }
+
 
   const { data } = validatedFields;
   const uid = `user-${Date.now()}`;
@@ -104,9 +142,10 @@ export async function handleAddStaff(prevState: { message: string, type?: string
       .input('shiftTime', sql.NVarChar, data.shiftTime)
       .input('status', sql.NVarChar, data.status)
       .input('number', sql.NVarChar, data.number)
+      .input('photo', sql.NVarChar, photoUrl)
       .query(`
-        INSERT INTO users (uid, name, email, role, password, designation, department, joiningDate, endDate, shiftTime, status, number) 
-        VALUES (@uid, @name, @email, @role, @password, @designation, @department, @joiningDate, @endDate, @shiftTime, @status, @number)
+        INSERT INTO users (uid, name, email, role, password, designation, department, joiningDate, endDate, shiftTime, status, number, photo) 
+        VALUES (@uid, @name, @email, @role, @password, @designation, @department, @joiningDate, @endDate, @shiftTime, @status, @number, @photo)
       `);
     
   } catch (error) {
@@ -141,6 +180,18 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
   }
   
   const { id, ...data } = parsed.data;
+  const photoFile = formData.get('photo') as File | null;
+  let photoUrl: string | undefined = undefined;
+
+  if (photoFile && photoFile.size > 0) {
+    try {
+        const buffer = Buffer.from(await photoFile.arrayBuffer());
+        photoUrl = await uploadFileToS3(buffer, photoFile.name, photoFile.type);
+    } catch (error) {
+        return { message: "Failed to upload photo to S3.", type: 'error' };
+    }
+  }
+
 
   try {
     await poolConnect;
@@ -157,10 +208,14 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
         `status = @status`,
     ];
     
-    // Only add password to the update if it's provided
     if (data.password) {
         setClauses.push('password = @password');
         request.input('password', sql.NVarChar, data.password);
+    }
+
+    if (photoUrl) {
+        setClauses.push('photo = @photo');
+        request.input('photo', sql.NVarChar, photoUrl);
     }
     
     const result = await request
@@ -183,7 +238,7 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
     console.error('Database error:', error);
     return { message: "Failed to update staff member in the database.", type: 'error' };
   }
-
+  
   revalidatePath('/dashboard/staff');
   return { message: "Staff member updated successfully.", type: "success" };
 }

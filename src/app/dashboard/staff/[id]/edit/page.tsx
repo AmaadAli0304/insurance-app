@@ -1,20 +1,20 @@
 
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState, ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
 import { handleUpdateStaff, getStaffById } from "../../actions";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { notFound, useRouter } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Staff } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { format } from 'date-fns';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { User as UserIcon } from "lucide-react";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -32,6 +32,7 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
     const [state, formAction] = useActionState(handleUpdateStaff, { message: "", type: "initial" });
     const { toast } = useToast();
     const router = useRouter();
+    const [preview, setPreview] = useState<string | null>(null);
 
 
     useEffect(() => {
@@ -43,6 +44,9 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
                     return;
                 }
                 setStaff(fetchedStaff);
+                if (fetchedStaff.photo) {
+                    setPreview(fetchedStaff.photo);
+                }
             } catch (err) {
                 const dbError = err as Error;
                 setError(dbError.message);
@@ -79,6 +83,19 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
             return '';
         }
     };
+    
+    const handlePhotoChange = (e: ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            setPreview(staff?.photo || null);
+        }
+    };
 
     if (isLoading) {
         return <div>Loading...</div>;
@@ -99,9 +116,24 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
                     <CardTitle>Update Staff Details</CardTitle>
                     <CardDescription>Modify the form to update the staff member's information.</CardDescription>
                 </CardHeader>
-                <form action={formAction}>
+                <form action={formAction} encType="multipart/form-data">
                     <CardContent className="space-y-4">
                         <input type="hidden" name="id" value={staff.id} />
+                        
+                        <div className="flex items-center gap-4">
+                            <Avatar className="h-24 w-24">
+                                <AvatarImage src={preview ?? undefined} alt="Staff photo" />
+                                <AvatarFallback>
+                                    <UserIcon className="h-10 w-10" />
+                                </AvatarFallback>
+                            </Avatar>
+                            <div className="space-y-2">
+                                <Label htmlFor="photo">Staff Photo</Label>
+                                <Input id="photo" name="photo" type="file" accept="image/*" onChange={handlePhotoChange} />
+                                <p className="text-xs text-muted-foreground">Upload a new photo to replace the existing one.</p>
+                            </div>
+                        </div>
+
                          <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Full Name <span className="text-destructive">*</span></Label>
