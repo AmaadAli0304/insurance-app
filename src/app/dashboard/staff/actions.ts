@@ -7,8 +7,8 @@ import { z } from 'zod';
 import { Staff } from "@/lib/types";
 
 const staffSchema = z.object({
-  name: z.string().min(1, "Full Name is the only required field."),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  name: z.string().min(1, "Full Name is required."),
+  password: z.string().min(6, "Password must be at least 6 characters."),
   designation: z.string().optional().nullable(),
   department: z.string().optional().nullable(),
   number: z.string().optional().nullable(),
