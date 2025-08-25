@@ -1,11 +1,12 @@
 
 import { NextResponse } from 'next/server';
-import { mockUsers } from '@/lib/mock-data';
+import pool, { sql, poolConnect } from '@/lib/db';
 import type { User } from '@/lib/types';
 import * as jose from 'jose';
 
 export async function POST(request: Request) {
     try {
+        await poolConnect;
         const body = await request.json();
         const { email, password } = body;
 
@@ -13,13 +14,19 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Email and password are required.' }, { status: 400 });
         }
 
-        const user = mockUsers.find(u => u.email === email && (u.password === password || u.password === undefined));
+        const result = await pool.request()
+            .input('email', sql.NVarChar, email)
+            .query('SELECT * FROM users WHERE email = @email');
+
+        if (result.recordset.length === 0) {
+            return NextResponse.json({ error: 'No user found with this email.' }, { status: 404 });
+        }
         
-        if (!user) {
-             const userExists = mockUsers.find(u => u.email === email);
-             if (!userExists) {
-                return NextResponse.json({ error: 'No user found with this email.' }, { status: 404 });
-             }
+        const user: User = result.recordset[0];
+
+        // In a real app, you'd use a hashing library like bcrypt to compare passwords.
+        // For this project, we are comparing plain text.
+        if (user.password !== password) {
             return NextResponse.json({ error: 'Invalid password.' }, { status: 401 });
         }
 
