@@ -1,9 +1,13 @@
 
+"use client";
+
+import { useState, useEffect } from "react";
 import { getCompanyById } from "../../actions";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import type { Company } from "@/lib/types";
 
 const DetailItem = ({ label, value }: { label: string, value?: string | null }) => (
     <div>
@@ -30,11 +34,46 @@ const AssociationList = ({ title, items, icon }: { title: string, items: { id: s
     </Card>
 );
 
-export default async function ViewCompanyPage({ params }: { params: { id: string } }) {
-    const company = await getCompanyById(params.id);
+export default function ViewCompanyPage({ params }: { params: { id: string } }) {
+    const [company, setCompany] = useState<Company | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        async function loadData() {
+            try {
+                setIsLoading(true);
+                const companyData = await getCompanyById(params.id);
+                if (!companyData) {
+                    notFound();
+                    return;
+                }
+                setCompany(companyData);
+            } catch (err) {
+                const dbError = err as Error;
+                setError(dbError.message);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        loadData();
+    }, [params.id]);
+
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                 <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
+    
+    if (error) {
+        return <div className="text-destructive">Error: {error}</div>;
+    }
 
     if (!company) {
-        notFound();
+        return <div>Company not found.</div>;
     }
     
     return (
