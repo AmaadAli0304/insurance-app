@@ -16,6 +16,7 @@ export interface User {
   endDate?: string | null;
   shiftTime?: string | null;
   status?: 'Active' | 'Inactive' | null;
+  number?: string | null;
 }
 
 export interface Hospital {

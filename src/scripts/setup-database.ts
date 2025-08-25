@@ -27,7 +27,8 @@ async function setupDatabase() {
         joiningDate DATE,
         endDate DATE,
         shiftTime NVARCHAR(100),
-        status NVARCHAR(50)
+        status NVARCHAR(50),
+        number NVARCHAR(50)
       );
     `;
     await request.query(createUsersTableQuery);
@@ -59,9 +60,10 @@ async function setupDatabase() {
           .input('endDate', user.endDate ? sql.Date : sql.Date, user.endDate ? new Date(user.endDate) : null)
           .input('shiftTime', sql.NVarChar, user.shiftTime)
           .input('status', sql.NVarChar, user.status)
+          .input('number', sql.NVarChar, user.number)
           .query(`
-              INSERT INTO users (uid, name, email, role, hospitalId, companyId, password, designation, department, joiningDate, endDate, shiftTime, status) 
-              VALUES (@uid, @name, @email, @role, @hospitalId, @companyId, @password, @designation, @department, @joiningDate, @endDate, @shiftTime, @status)
+              INSERT INTO users (uid, name, email, role, hospitalId, companyId, password, designation, department, joiningDate, endDate, shiftTime, status, number) 
+              VALUES (@uid, @name, @email, @role, @hospitalId, @companyId, @password, @designation, @department, @joiningDate, @endDate, @shiftTime, @status, @number)
           `);
         console.log(`Inserted user: ${user.email}`);
       } else {

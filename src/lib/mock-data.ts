@@ -55,7 +55,8 @@ export let mockUsers: User[] = [
     designation: 'Claim Coordinator', 
     department: 'Claims', 
     joiningDate: '2022-08-01', 
-    status: 'Active' 
+    status: 'Active',
+    number: '5550101'
   },
   { 
     uid: 'staff-02',
@@ -67,7 +68,8 @@ export let mockUsers: User[] = [
     department: 'On-site Support', 
     joiningDate: '2023-01-15', 
     shiftTime: '9 AM - 6 PM', 
-    status: 'Active' 
+    status: 'Active',
+    number: '5550102'
   },
 ];
 
@@ -160,6 +162,6 @@ export let mockTPAs: TPA[] = [
 ];
 
 export let mockStaff: Staff[] = [
-    { id: 1, name: 'Eleanor Vance', designation: 'Claim Coordinator', department: 'Claims', number: '555-0101', email: 'eleanor@statamine.com', joiningDate: '2022-08-01', status: 'Active' },
-    { id: 2, name: 'Marcus Thorne', designation: 'Nurse', department: 'On-site Support', number: '555-0102', email: 'marcus@statamine.com', joiningDate: '2023-01-15', shiftTime: '9 AM - 6 PM', status: 'Active' },
+    { id: '1', name: 'Eleanor Vance', designation: 'Claim Coordinator', department: 'Claims', number: '555-0101', email: 'eleanor@statamine.com', joiningDate: '2022-08-01', status: 'Active' },
+    { id: '2', name: 'Marcus Thorne', designation: 'Nurse', department: 'On-site Support', number: '555-0102', email: 'marcus@statamine.com', joiningDate: '2023-01-15', shiftTime: '9 AM - 6 PM', status: 'Active' },
 ];
