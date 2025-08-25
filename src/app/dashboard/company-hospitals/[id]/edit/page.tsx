@@ -110,6 +110,15 @@ export default function EditCompanyHospitalPage({ params }: { params: { id: stri
 
     return (
         <div className="space-y-6">
+            <div className="flex items-center gap-4">
+                <Button variant="outline" size="icon" asChild>
+                    <Link href="/dashboard/company-hospitals">
+                        <ArrowLeft className="h-4 w-4" />
+                        <span className="sr-only">Back</span>
+                    </Link>
+                </Button>
+                <h1 className="text-lg font-semibold md:text-2xl">Edit Hospital</h1>
+            </div>
             <Card>
                 <CardHeader>
                     <CardTitle>Update Hospital Details</CardTitle>

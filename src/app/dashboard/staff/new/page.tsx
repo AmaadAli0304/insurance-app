@@ -11,6 +11,8 @@ import { handleAddStaff } from "../actions";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -50,6 +52,15 @@ export default function NewStaffPage() {
 
     return (
         <div className="space-y-6">
+            <div className="flex items-center gap-4">
+                <Button variant="outline" size="icon" asChild>
+                    <Link href="/dashboard/staff">
+                        <ArrowLeft className="h-4 w-4" />
+                        <span className="sr-only">Back</span>
+                    </Link>
+                </Button>
+                <h1 className="text-lg font-semibold md:text-2xl">New Staff</h1>
+            </div>
             <Card>
                 <CardHeader>
                     <CardTitle>Staff Details</CardTitle>

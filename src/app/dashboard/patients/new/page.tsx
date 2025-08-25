@@ -31,6 +31,15 @@ export default function NewPatientPage() {
 
     return (
         <div className="space-y-6">
+            <div className="flex items-center gap-4">
+                <Button variant="outline" size="icon" asChild>
+                    <Link href="/dashboard/patients">
+                        <ArrowLeft className="h-4 w-4" />
+                        <span className="sr-only">Back</span>
+                    </Link>
+                </Button>
+                <h1 className="text-lg font-semibold md:text-2xl">New Patient</h1>
+            </div>
             <form action={formAction}>
                 <div className="grid gap-6">
                     {/* Patient Details */}
