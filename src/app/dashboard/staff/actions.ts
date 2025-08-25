@@ -19,7 +19,6 @@ const staffSchema = z.object({
   endDate: z.string().optional().nullable(),
   shiftTime: z.string().optional().nullable(),
   status: z.enum(["Active", "Inactive"]).optional().nullable(),
-  photo: z.string().url().optional().nullable(),
 });
 
 const staffUpdateSchema = staffSchema.extend({
@@ -32,7 +31,7 @@ export async function getStaff(): Promise<Staff[]> {
   try {
     await poolConnect;
     const result = await pool.request()
-      .query("SELECT uid as id, name, email, designation, department, status, photo FROM users WHERE role = 'Hospital Staff'");
+      .query("SELECT uid as id, name, email, designation, department, status FROM users WHERE role = 'Hospital Staff'");
     return result.recordset as Staff[];
   } catch (error) {
       const dbError = error as Error;
@@ -75,7 +74,6 @@ export async function handleAddStaff(prevState: { message: string, type?: string
     endDate: formData.get("endDate") || null,
     shiftTime: formData.get("shiftTime"),
     status: formData.get("status"),
-    photo: formData.get("photo"),
   });
   
   if (!validatedFields.success) {
@@ -105,10 +103,9 @@ export async function handleAddStaff(prevState: { message: string, type?: string
       .input('shiftTime', sql.NVarChar, data.shiftTime)
       .input('status', sql.NVarChar, data.status)
       .input('number', sql.NVarChar, data.number)
-      .input('photo', sql.NVarChar, data.photo)
       .query(`
-        INSERT INTO users (uid, name, email, role, password, designation, department, joiningDate, endDate, shiftTime, status, number, photo) 
-        VALUES (@uid, @name, @email, @role, @password, @designation, @department, @joiningDate, @endDate, @shiftTime, @status, @number, @photo)
+        INSERT INTO users (uid, name, email, role, password, designation, department, joiningDate, endDate, shiftTime, status, number) 
+        VALUES (@uid, @name, @email, @role, @password, @designation, @department, @joiningDate, @endDate, @shiftTime, @status, @number)
       `);
     
   } catch (error) {
@@ -135,7 +132,6 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
     endDate: formData.get("endDate") || null,
     shiftTime: formData.get("shiftTime"),
     status: formData.get("status"),
-    photo: formData.get("photo"),
   });
 
   if (!parsed.success) {
@@ -157,8 +153,7 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
         `joiningDate = @joiningDate`,
         `endDate = @endDate`,
         `shiftTime = @shiftTime`,
-        `status = @status`,
-        `photo = @photo`
+        `status = @status`
     ];
     
     if (data.password) {
@@ -177,7 +172,6 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
         .input('endDate', data.endDate ? sql.Date : sql.Date, data.endDate ? new Date(data.endDate) : null)
         .input('shiftTime', sql.NVarChar, data.shiftTime)
         .input('status', sql.NVarChar, data.status)
-        .input('photo', sql.NVarChar, data.photo)
         .query(`UPDATE users SET ${setClauses.join(', ')} WHERE uid = @uid`);
 
     if (result.rowsAffected[0] === 0) {

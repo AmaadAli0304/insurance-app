@@ -13,8 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { Staff } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { format } from 'date-fns';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User as UserIcon } from "lucide-react";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -32,9 +30,6 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
     const [state, formAction] = useActionState(handleUpdateStaff, { message: "", type: "initial" });
     const { toast } = useToast();
     const router = useRouter();
-    const [preview, setPreview] = useState<string | null>(null);
-    const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-    const [isUploading, setIsUploading] = useState(false);
 
 
     useEffect(() => {
@@ -46,10 +41,6 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
                     return;
                 }
                 setStaff(fetchedStaff);
-                if (fetchedStaff.photo) {
-                    setPreview(fetchedStaff.photo);
-                    setPhotoUrl(fetchedStaff.photo);
-                }
             } catch (err) {
                 const dbError = err as Error;
                 setError(dbError.message);
@@ -86,35 +77,6 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
             return '';
         }
     };
-    
-    const handlePhotoChange = async (e: ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onloadend = () => setPreview(reader.result as string);
-        reader.readAsDataURL(file);
-
-        setIsUploading(true);
-        try {
-            const formData = new FormData();
-            formData.append('file', file);
-            const res = await fetch('/api/upload', { method: 'POST', body: formData });
-            const data = await res.json();
-            if (data.success) {
-                setPhotoUrl(data.url);
-                toast({ title: "Success", description: "Photo uploaded." });
-            } else {
-                throw new Error(data.error || "Upload failed");
-            }
-        } catch (error) {
-            const uploadError = error as Error;
-            toast({ title: "Upload Error", description: uploadError.message, variant: "destructive" });
-            setPreview(staff?.photo || null);
-        } finally {
-            setIsUploading(false);
-        }
-    };
 
     if (isLoading) {
         return <div>Loading...</div>;
@@ -138,26 +100,7 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
                 <form action={formAction}>
                     <CardContent className="space-y-4">
                         <input type="hidden" name="id" value={staff.id} />
-                        <input type="hidden" name="photo" value={photoUrl || ''} />
                         
-                        <div className="flex items-center gap-4">
-                            <Avatar className="h-24 w-24">
-                                <AvatarImage src={preview ?? undefined} alt="Staff photo" />
-                                <AvatarFallback>
-                                    {isUploading ? (
-                                        <div className="w-8 h-8 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin"></div>
-                                    ) : (
-                                        <UserIcon className="h-10 w-10" />
-                                    )}
-                                </AvatarFallback>
-                            </Avatar>
-                            <div className="space-y-2">
-                                <Label htmlFor="photo-upload">Staff Photo</Label>
-                                <Input id="photo-upload" name="photo-file" type="file" accept="image/*" onChange={handlePhotoChange} disabled={isUploading} />
-                                <p className="text-xs text-muted-foreground">Upload a new photo to replace the existing one.</p>
-                            </div>
-                        </div>
-
                          <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Full Name <span className="text-destructive">*</span></Label>

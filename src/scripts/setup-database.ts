@@ -28,8 +28,7 @@ async function setupDatabase() {
         endDate DATE,
         shiftTime NVARCHAR(100),
         status NVARCHAR(50),
-        number NVARCHAR(50),
-        photo NVARCHAR(MAX)
+        number NVARCHAR(50)
       );
     `;
     await request.query(createUsersTableQuery);
@@ -62,10 +61,9 @@ async function setupDatabase() {
           .input('shiftTime', sql.NVarChar, user.shiftTime)
           .input('status', sql.NVarChar, user.status)
           .input('number', sql.NVarChar, user.number)
-          .input('photo', sql.NVarChar, user.photo)
           .query(`
-              INSERT INTO users (uid, name, email, role, hospitalId, companyId, password, designation, department, joiningDate, endDate, shiftTime, status, number, photo) 
-              VALUES (@uid, @name, @email, @role, @hospitalId, @companyId, @password, @designation, @department, @joiningDate, @endDate, @shiftTime, @status, @number, @photo)
+              INSERT INTO users (uid, name, email, role, hospitalId, companyId, password, designation, department, joiningDate, endDate, shiftTime, status, number) 
+              VALUES (@uid, @name, @email, @role, @hospitalId, @companyId, @password, @designation, @department, @joiningDate, @endDate, @shiftTime, @status, @number)
           `);
         console.log(`Inserted user: ${user.email}`);
       } else {
@@ -130,7 +128,6 @@ async function setupDatabase() {
         CREATE TABLE staff (
           id INT IDENTITY(1,1) PRIMARY KEY,
           name NVARCHAR(255) NOT NULL,
-          photo NVARCHAR(MAX),
           email NVARCHAR(255),
           number NVARCHAR(50),
           password NVARCHAR(255),

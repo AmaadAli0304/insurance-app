@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useActionState, useEffect, useState, ChangeEvent } from "react";
+import { useActionState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,8 +11,6 @@ import { handleAddStaff } from "../actions";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User as UserIcon, Upload } from "lucide-react";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -31,9 +29,6 @@ export default function NewStaffPage() {
     const [state, formAction] = useActionState(handleAddStaff, { message: "", type: "initial" });
     const { toast } = useToast();
     const router = useRouter();
-    const [preview, setPreview] = useState<string | null>(null);
-    const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-    const [isUploading, setIsUploading] = useState(false);
 
 
     useEffect(() => {
@@ -53,43 +48,6 @@ export default function NewStaffPage() {
         }
     }, [state, toast, router]);
 
-    const handlePhotoChange = async (e: ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        // Set preview
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setPreview(reader.result as string);
-        };
-        reader.readAsDataURL(file);
-
-        // Upload file
-        setIsUploading(true);
-        try {
-            const formData = new FormData();
-            formData.append('file', file);
-            const res = await fetch('/api/upload', {
-                method: 'POST',
-                body: formData,
-            });
-            const data = await res.json();
-            if (data.success) {
-                setPhotoUrl(data.url);
-                toast({ title: "Success", description: "Photo uploaded successfully."});
-            } else {
-                throw new Error(data.error || 'Upload failed');
-            }
-        } catch (error) {
-            const uploadError = error as Error;
-            toast({ title: "Upload Error", description: uploadError.message, variant: "destructive" });
-            setPreview(null);
-        } finally {
-            setIsUploading(false);
-        }
-    };
-
-
     return (
         <div className="space-y-6">
             <Card>
@@ -99,24 +57,6 @@ export default function NewStaffPage() {
                 </CardHeader>
                 <form action={formAction}>
                     <CardContent className="space-y-4">
-                        <input type="hidden" name="photo" value={photoUrl || ''} />
-                        <div className="flex items-center gap-4">
-                            <Avatar className="h-24 w-24">
-                                <AvatarImage src={preview ?? undefined} alt="Staff photo" />
-                                <AvatarFallback>
-                                    {isUploading ? (
-                                        <div className="w-8 h-8 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin"></div>
-                                    ) : (
-                                        <UserIcon className="h-10 w-10" />
-                                    )}
-                                </AvatarFallback>
-                            </Avatar>
-                            <div className="space-y-2">
-                                <Label htmlFor="photo-upload">Staff Photo</Label>
-                                <Input id="photo-upload" name="photo-file" type="file" accept="image/*" onChange={handlePhotoChange} disabled={isUploading} />
-                                <p className="text-xs text-muted-foreground">Upload a square photo for best results.</p>
-                            </div>
-                        </div>
 
                         <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
