@@ -1,18 +1,19 @@
 
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleAddStaff } from "../actions";
+import { handleAddStaff, getHospitalsForForm } from "../actions";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import type { Hospital } from "@/lib/types";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -31,6 +32,24 @@ export default function NewStaffPage() {
     const [state, formAction] = useActionState(handleAddStaff, { message: "", type: "initial" });
     const { toast } = useToast();
     const router = useRouter();
+    const [hospitals, setHospitals] = useState<Pick<Hospital, 'id' | 'name'>[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+     useEffect(() => {
+        async function loadHospitals() {
+            try {
+                setIsLoading(true);
+                const hospitalList = await getHospitalsForForm();
+                setHospitals(hospitalList);
+            } catch (error) {
+                console.error("Failed to fetch hospitals", error);
+                toast({ title: "Error", description: "Failed to load hospitals.", variant: "destructive" });
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        loadHospitals();
+    }, [toast]);
 
 
     useEffect(() => {
@@ -85,6 +104,21 @@ export default function NewStaffPage() {
                              <div className="space-y-2">
                                 <Label htmlFor="password">Password <span className="text-destructive">*</span></Label>
                                 <Input id="password" name="password" type="password" required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="hospitalId">Assign Hospital</Label>
+                                <Select name="hospitalId">
+                                    <SelectTrigger disabled={isLoading}>
+                                        <SelectValue placeholder="Select a hospital" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {hospitals.map(hospital => (
+                                            <SelectItem key={hospital.id} value={hospital.id}>
+                                                {hospital.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="designation">Designation</Label>

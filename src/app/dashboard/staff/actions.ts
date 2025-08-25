@@ -4,12 +4,13 @@
 import { revalidatePath } from "next/cache";
 import pool, { sql, poolConnect } from "@/lib/db";
 import { z } from 'zod';
-import { Staff } from "@/lib/types";
+import { Staff, Hospital } from "@/lib/types";
 
 const staffSchema = z.object({
   name: z.string().min(1, "Full Name is required."),
   email: z.string().email("Invalid email address.").min(1, "Email is required."),
   password: z.string().min(6, "Password must be at least 6 characters."),
+  hospitalId: z.string().optional().nullable(),
   designation: z.string().optional().nullable(),
   department: z.string().optional().nullable(),
   number: z.string().optional().nullable().refine((val) => !val || val === '' || /^\d{10}$/.test(val), {
@@ -39,6 +40,17 @@ export async function getStaff(): Promise<Staff[]> {
   }
 }
 
+export async function getHospitalsForForm(): Promise<Pick<Hospital, 'id' | 'name'>[]> {
+  try {
+    await poolConnect;
+    const result = await pool.request().query('SELECT id, name FROM hospitals');
+    return result.recordset;
+  } catch (error) {
+    const dbError = error as Error;
+    throw new Error(`Error fetching hospitals for form: ${dbError.message}`);
+  }
+}
+
 export async function getStaffById(id: string): Promise<Staff | null> {
   try {
     await poolConnect;
@@ -52,6 +64,15 @@ export async function getStaffById(id: string): Promise<Staff | null> {
     }
     
     const staff = staffResult.recordset[0] as Staff;
+
+    if (staff.hospitalId) {
+        const hospitalResult = await pool.request()
+            .input('hospitalId', sql.NVarChar, staff.hospitalId)
+            .query('SELECT name FROM hospitals WHERE id = @hospitalId');
+        if (hospitalResult.recordset.length > 0) {
+            staff.hospitalName = hospitalResult.recordset[0].name;
+        }
+    }
     
     return staff;
 
@@ -67,6 +88,7 @@ export async function handleAddStaff(prevState: { message: string, type?: string
     name: formData.get("name"),
     email: formData.get("email"),
     password: formData.get("password"),
+    hospitalId: formData.get("hospitalId"),
     designation: formData.get("designation"),
     department: formData.get("department"),
     number: formData.get("number"),
@@ -96,6 +118,7 @@ export async function handleAddStaff(prevState: { message: string, type?: string
       .input('email', sql.NVarChar, data.email)
       .input('role', sql.NVarChar, role)
       .input('password', sql.NVarChar, data.password)
+      .input('hospitalId', sql.NVarChar, data.hospitalId)
       .input('designation', sql.NVarChar, data.designation)
       .input('department', sql.NVarChar, data.department)
       .input('joiningDate', data.joiningDate ? sql.Date : sql.Date, data.joiningDate ? new Date(data.joiningDate) : null)
@@ -104,8 +127,8 @@ export async function handleAddStaff(prevState: { message: string, type?: string
       .input('status', sql.NVarChar, data.status)
       .input('number', sql.NVarChar, data.number)
       .query(`
-        INSERT INTO users (uid, name, email, role, password, designation, department, joiningDate, endDate, shiftTime, status, number) 
-        VALUES (@uid, @name, @email, @role, @password, @designation, @department, @joiningDate, @endDate, @shiftTime, @status, @number)
+        INSERT INTO users (uid, name, email, role, password, hospitalId, designation, department, joiningDate, endDate, shiftTime, status, number) 
+        VALUES (@uid, @name, @email, @role, @password, @hospitalId, @designation, @department, @joiningDate, @endDate, @shiftTime, @status, @number)
       `);
     
   } catch (error) {
@@ -123,6 +146,7 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
     id: formData.get("id"),
     name: formData.get("name"),
     password: formData.get("password") || undefined,
+    hospitalId: formData.get("hospitalId"),
     designation: formData.get("designation"),
     department: formData.get("department"),
     number: formData.get("number"),
@@ -147,6 +171,7 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
         `name = @name`,
         `email = @email`,
         `number = @number`,
+        `hospitalId = @hospitalId`,
         `designation = @designation`,
         `department = @department`,
         `joiningDate = @joiningDate`,
@@ -165,6 +190,7 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
         .input('name', sql.NVarChar, data.name)
         .input('email', sql.NVarChar, data.email)
         .input('number', sql.NVarChar, data.number)
+        .input('hospitalId', sql.NVarChar, data.hospitalId)
         .input('designation', sql.NVarChar, data.designation)
         .input('department', sql.NVarChar, data.department)
         .input('joiningDate', data.joiningDate ? sql.Date : sql.Date, data.joiningDate ? new Date(data.joiningDate) : null)

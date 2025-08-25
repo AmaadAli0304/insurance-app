@@ -1,16 +1,16 @@
 
 "use client";
 
-import { useActionState, useEffect, useState, ChangeEvent } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleUpdateStaff, getStaffById } from "../../actions";
+import { handleUpdateStaff, getStaffById, getHospitalsForForm } from "../../actions";
 import { notFound, useRouter } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { Staff } from "@/lib/types";
+import type { Staff, Hospital } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { format } from 'date-fns';
 import Link from "next/link";
@@ -27,6 +27,7 @@ function SubmitButton() {
 
 export default function EditStaffPage({ params }: { params: { id: string } }) {
     const [staff, setStaff] = useState<Staff | null>(null);
+    const [hospitals, setHospitals] = useState<Pick<Hospital, 'id' | 'name'>[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [state, formAction] = useActionState(handleUpdateStaff, { message: "", type: "initial" });
@@ -35,14 +36,19 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
 
 
     useEffect(() => {
-        async function fetchStaff() {
+        async function fetchData() {
             try {
-                const fetchedStaff = await getStaffById(params.id);
+                const [fetchedStaff, hospitalList] = await Promise.all([
+                    getStaffById(params.id),
+                    getHospitalsForForm()
+                ]);
+                
                 if (!fetchedStaff) {
                     notFound();
                     return;
                 }
                 setStaff(fetchedStaff);
+                setHospitals(hospitalList);
             } catch (err) {
                 const dbError = err as Error;
                 setError(dbError.message);
@@ -50,7 +56,7 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
                 setIsLoading(false);
             }
         }
-        fetchStaff();
+        fetchData();
     }, [params.id]);
 
 
@@ -128,6 +134,21 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
                              <div className="space-y-2">
                                 <Label htmlFor="password">Password</Label>
                                 <Input id="password" name="password" type="password" placeholder="Leave blank to keep current password" />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="hospitalId">Assign Hospital</Label>
+                                <Select name="hospitalId" defaultValue={staff.hospitalId ?? undefined}>
+                                    <SelectTrigger disabled={isLoading}>
+                                        <SelectValue placeholder="Select a hospital" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {hospitals.map(hospital => (
+                                            <SelectItem key={hospital.id} value={hospital.id}>
+                                                {hospital.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="designation">Designation</Label>

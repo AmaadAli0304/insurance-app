@@ -7,7 +7,7 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
-  hospitalId?: string;
+  hospitalId?: string | null;
   companyId?: string;
   password?: string;
   designation?: string | null;
@@ -128,7 +128,8 @@ export interface TPA {
   assignedHospitalsDetails?: { id: string, name: string }[];
 }
 
-export interface Staff extends Omit<User, 'uid' | 'role' | 'hospitalId' | 'companyId'> {
+export interface Staff extends Omit<User, 'uid' | 'role' | 'companyId'> {
   id: string; // This will map to the 'uid' from the User object
+  hospitalName?: string;
   assignedHospitalsDetails?: { id: string | number, name: string }[];
 }
