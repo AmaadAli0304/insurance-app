@@ -1,27 +1,23 @@
 
 'use server';
 
-import pool, { sql, poolConnect } from '@/lib/db';
 import type { User } from '@/lib/types';
 import * as jose from 'jose';
 
+// This is a mock verification
 export async function verifyToken(token: string): Promise<{ isValid: boolean; user: User | null }> {
     if (!token) return { isValid: false, user: null };
 
     try {
-        await poolConnect;
-        const blacklistCheck = await pool.request()
-            .input('token', sql.NVarChar, token)
-            .query('SELECT id FROM token_blacklist WHERE token = @token');
+        // In a real scenario, the secret would be in env variables.
+        const secret = new TextEncoder().encode('your-super-secret-jwt-key-that-is-at-least-32-bytes-long');
+        const { payload } = await jose.jwtVerify(token, secret);
         
-        if (blacklistCheck.recordset.length > 0) {
-            return { isValid: false, user: null }; // Token is blacklisted
-        }
-
-        const { payload } = await jose.jwtVerify(token, new TextEncoder().encode(process.env.JWT_SECRET));
+        // This is a mock implementation, so we assume the payload is a valid user
         return { isValid: true, user: payload as User };
 
     } catch (error) {
+        // This will catch expired tokens or invalid signatures
         console.error("Token verification failed", error);
         return { isValid: false, user: null };
     }

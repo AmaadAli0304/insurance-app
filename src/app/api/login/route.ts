@@ -1,62 +1,44 @@
 
 import { NextResponse } from 'next/server';
-import pool, { sql, poolConnect } from '@/lib/db';
-import { z } from 'zod';
+import { mockUsers } from '@/lib/mock-data';
 import type { User } from '@/lib/types';
 import * as jose from 'jose';
 
-const loginSchema = z.object({
-    email: z.string().email({ message: "Invalid email address." }),
-    password: z.string().min(1, { message: "Password is required." }),
-});
-
+// This is a mock API route.
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const parsed = loginSchema.safeParse(body);
+        const { email, password } = body;
 
-        if (!parsed.success) {
-            return NextResponse.json({ error: parsed.error.errors.map((e) => e.message).join(', ') }, { status: 400 });
+        if (!email || !password) {
+            return NextResponse.json({ error: 'Email and password are required.' }, { status: 400 });
         }
 
-        const { email, password } = parsed.data;
-
-        await poolConnect;
-        const result = await pool.request()
-            .input('email', sql.NVarChar, email)
-            .query('SELECT * FROM users WHERE email = @email');
-
-        if (result.recordset.length === 0) {
-            return NextResponse.json({ error: 'Invalid email or password.' }, { status: 401 });
-        }
-
-        const user: User = result.recordset[0];
+        const user = mockUsers.find(u => u.email === email && u.password === password);
         
-        // IMPORTANT: In a real app, you would compare a hashed password.
-        // This is a simplified check for demonstration purposes.
-        if (user.password !== password) {
-            return NextResponse.json({ error: 'Invalid email or password.' }, { status: 401 });
+        if (!user) {
+             const userExists = mockUsers.find(u => u.email === email);
+             if (!userExists) {
+                return NextResponse.json({ error: 'No user found with this email.' }, { status: 404 });
+             }
+            return NextResponse.json({ error: 'Invalid password.' }, { status: 401 });
         }
 
-        // Remove password from the object that will be encoded in the token
         const { password: _, ...userPayload } = user;
 
-        if (!process.env.JWT_SECRET) {
-            throw new Error('JWT_SECRET is not defined in the environment variables.');
-        }
-
-        const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+        // In a real scenario, the secret would be in env variables.
+        const secret = new TextEncoder().encode('your-super-secret-jwt-key-that-is-at-least-32-bytes-long');
         
         const token = await new jose.SignJWT(userPayload)
             .setProtectedHeader({ alg: 'HS256' })
             .setIssuedAt()
-            .setExpirationTime('7d') 
+            .setExpirationTime('1h') // Token expires in 1 hour
             .sign(secret);
 
         return NextResponse.json({ token, user: userPayload });
 
     } catch (error) {
         console.error("Login API error:", error);
-        return NextResponse.json({ error: 'A server error occurred. Please try again later.' }, { status: 500 });
+        return NextResponse.json({ error: 'A server error occurred.' }, { status: 500 });
     }
 }

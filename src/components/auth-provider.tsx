@@ -5,7 +5,7 @@ import React, { createContext, useContext, useState, ReactNode, useMemo, useEffe
 import { useRouter, usePathname } from 'next/navigation';
 import type { User } from '@/lib/types';
 import Cookies from 'js-cookie';
-import { verifyToken } from '@/app/login/actions';
+import { mockUsers } from '@/lib/mock-data';
 
 interface AuthContextType {
   user: User | null;
@@ -17,91 +17,69 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Mock function to "verify" the mock token
+const verifyMockToken = (token: string): User | null => {
+    if (!token || !token.startsWith('mock-token-for-')) {
+        return null;
+    }
+    const userId = token.replace('mock-token-for-', '');
+    const user = mockUsers.find(u => u.uid === userId);
+    return user || null;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
 
-  const handleLogout = useCallback(async () => {
-    const token = Cookies.get('token');
-    
-    // Optimistically update UI
+  const handleLogout = useCallback(() => {
     setUser(null);
     Cookies.remove('token');
-
-    // Inform the server to blacklist the token
-    if (token) {
-        try {
-            await fetch('/api/logout', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-        } catch (error) {
-            console.error("Failed to call logout API", error);
-        }
-    }
-    
-    // Redirect to login page
     router.push('/login');
   }, [router]);
 
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      const token = Cookies.get('token');
-      if (token) {
-        try {
-          const { isValid, user: validatedUser } = await verifyToken(token);
-          if (isValid && validatedUser) {
+    const token = Cookies.get('token');
+    if (token) {
+        const validatedUser = verifyMockToken(token);
+        if (validatedUser) {
             setUser(validatedUser);
-          } else {
-            // Token is invalid or blacklisted, clear it
+        } else {
+            // Token is invalid, clear it
             setUser(null);
             Cookies.remove('token');
-          }
-        } catch (error) {
-          console.error("Failed to verify token", error);
-          setUser(null);
-          Cookies.remove('token');
         }
-      }
-      setLoading(false);
-    };
-    checkAuthStatus();
+    }
+    setLoading(false);
   }, []);
   
-  // This effect handles redirection after the initial auth check is complete.
   useEffect(() => {
     if (loading) {
-      return; // Don't do anything while auth status is being checked
+      return; 
     }
 
     const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup');
-    const isPublicPage = isAuthPage || pathname === '/';
 
     if (user && isAuthPage) {
-      // User is logged in and on an auth page, redirect to dashboard
       router.push('/dashboard');
     }
 
-    if (!user && !isPublicPage) {
-      // User is not logged in and not on a public page, redirect to login
+    if (!user && !isAuthPage) {
       router.push('/login');
     }
   }, [user, loading, pathname, router]);
 
-
-  const login = (token: string, user: User, remember: boolean = false) => {
+  const login = (token: string, userData: User, remember: boolean = false) => {
     const cookieOptions: Cookies.CookieAttributes = {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
     };
     if (remember) {
-        cookieOptions.expires = 7; // Expires in 7 days
+        cookieOptions.expires = 7; 
     }
     Cookies.set('token', token, cookieOptions);
-    setUser(user);
-    router.push('/dashboard');
+    setUser(userData);
   };
   
   const value = useMemo(() => ({
@@ -112,8 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout: handleLogout,
   }), [user, loading, handleLogout, login]);
 
-
-  if (loading) {
+  if (loading && !pathname.startsWith('/login')) {
     return (
         <div className="flex items-center justify-center h-screen bg-background">
             <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>

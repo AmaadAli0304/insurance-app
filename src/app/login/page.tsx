@@ -10,10 +10,13 @@ import { useAuth } from '@/components/auth-provider';
 import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
+import { mockUsers } from '@/lib/mock-data';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const { login } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,38 +30,25 @@ export default function LoginPage() {
     const password = formData.get("password") as string;
     const remember = formData.get("remember") === "on";
 
-    try {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+    // Mock Login Logic
+    const user = mockUsers.find(u => u.email === email && (u.password === password || u.password === undefined));
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'An unexpected error occurred.');
-      }
-
-      if (data.token && data.user) {
-        login(data.token, data.user, remember);
-      } else {
-        throw new Error('No token or user data received from server.');
-      }
-
-    } catch (err: any) {
-      const errorMessage = err.message || "Failed to sign in. Please check your credentials.";
-      setError(errorMessage);
-      toast({
-          title: "Authentication Error",
-          description: errorMessage,
-          variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+    if (user) {
+        // Simulate token creation for the AuthProvider
+        const mockToken = `mock-token-for-${user.uid}`;
+        login(mockToken, user, remember);
+        router.push('/dashboard');
+    } else {
+        const errorMessage = "Invalid email or password. Please try again.";
+        setError(errorMessage);
+        toast({
+            title: "Authentication Error",
+            description: errorMessage,
+            variant: "destructive",
+        });
     }
+
+    setIsLoading(false);
   };
 
   return (
