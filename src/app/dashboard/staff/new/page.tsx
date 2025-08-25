@@ -16,7 +16,11 @@ function SubmitButton() {
     const { pending } = useFormStatus();
     return (
         <Button type="submit" disabled={pending}>
-            {pending ? "Adding..." : "Add Staff Member"}
+            {pending ? (
+                <div className="w-5 h-5 border-2 border-background border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+                "Add Staff Member"
+            )}
         </Button>
     );
 }
