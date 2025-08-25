@@ -6,13 +6,20 @@ import pool, { sql, poolConnect } from "@/lib/db";
 import { z } from 'zod';
 import { Staff } from "@/lib/types";
 
+const phoneRegex = new RegExp(
+  /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/
+);
+
+
 const staffSchema = z.object({
   name: z.string().min(1, "Full Name is required."),
   email: z.string().email("Invalid email address."),
   password: z.string().min(6, "Password must be at least 6 characters."),
   designation: z.string().optional().nullable(),
   department: z.string().optional().nullable(),
-  number: z.string().optional().nullable(),
+  number: z.string().optional().nullable().refine((val) => !val || phoneRegex.test(val), {
+    message: "Invalid phone number format.",
+  }),
   joiningDate: z.string().optional().nullable(),
   endDate: z.string().optional().nullable(),
   shiftTime: z.string().optional().nullable(),
@@ -101,9 +108,10 @@ export async function handleAddStaff(prevState: { message: string, type?: string
       .input('endDate', data.endDate ? sql.Date : sql.Date, data.endDate ? new Date(data.endDate) : null)
       .input('shiftTime', sql.NVarChar, data.shiftTime)
       .input('status', sql.NVarChar, data.status)
+      .input('number', sql.NVarChar, data.number)
       .query(`
-        INSERT INTO users (uid, name, email, role, password, designation, department, joiningDate, endDate, shiftTime, status) 
-        VALUES (@uid, @name, @email, @role, @password, @designation, @department, @joiningDate, @endDate, @shiftTime, @status)
+        INSERT INTO users (uid, name, email, role, password, designation, department, joiningDate, endDate, shiftTime, status, number) 
+        VALUES (@uid, @name, @email, @role, @password, @designation, @department, @joiningDate, @endDate, @shiftTime, @status, @number)
       `);
     
   } catch (error) {
