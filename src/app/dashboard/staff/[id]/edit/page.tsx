@@ -45,10 +45,10 @@ export default function EditStaffPage() {
                 ]);
                 
                 if (!fetchedStaff) {
-                    notFound();
-                    return;
+                    setError("Staff member not found.");
+                } else {
+                    setStaff(fetchedStaff);
                 }
-                setStaff(fetchedStaff);
                 setHospitals(hospitalList);
             } catch (err) {
                 const dbError = err as Error;
@@ -99,9 +99,18 @@ export default function EditStaffPage() {
                 <h1 className="text-lg font-semibold md:text-2xl">Edit Staff Member</h1>
             </div>
             {isLoading ? (
-                <div>Loading...</div>
+                <div className="flex items-center justify-center h-full">
+                     <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                </div>
             ) : error ? (
-                <div>Error: {error}</div>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Error</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-destructive">{error}</p>
+                    </CardContent>
+                </Card>
             ) : staff ? (
                 <Card>
                     <CardHeader>
