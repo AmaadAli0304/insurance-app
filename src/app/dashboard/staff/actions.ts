@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { Staff } from "@/lib/types";
 
 const phoneRegex = new RegExp(
-  /^\\d{10}$/
+  /^d{10}$/
 );
 
 
