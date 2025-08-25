@@ -16,7 +16,6 @@ async function uploadFileToS3(file: Buffer, fileName: string, contentType: strin
         Key: `${Date.now()}-${fileName}`,
         Body: file,
         ContentType: contentType,
-        ACL: 'public-read' as const,
     };
 
     const command = new PutObjectCommand(params);
