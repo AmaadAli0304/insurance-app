@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
@@ -47,6 +48,16 @@ export default function EditStaffPage() {
                 if (!fetchedStaff) {
                     setError("Staff member not found.");
                 } else {
+                    // Check if the assigned hospital still exists
+                    if (fetchedStaff.hospitalId && !hospitalList.some(h => h.id === fetchedStaff.hospitalId)) {
+                        toast({
+                            title: "Data Inconsistency",
+                            description: "The previously assigned hospital could not be found and has been unassigned.",
+                            variant: "destructive"
+                        });
+                        // Un-assign the non-existent hospital
+                        fetchedStaff.hospitalId = null;
+                    }
                     setStaff(fetchedStaff);
                 }
                 setHospitals(hospitalList);
@@ -58,7 +69,7 @@ export default function EditStaffPage() {
             }
         }
         fetchData();
-    }, [id]);
+    }, [id, toast]);
 
 
     useEffect(() => {
