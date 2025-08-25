@@ -4,7 +4,6 @@ import { mockUsers } from '@/lib/mock-data';
 import type { User } from '@/lib/types';
 import * as jose from 'jose';
 
-// This is a mock API route.
 export async function POST(request: Request) {
     try {
         const body = await request.json();
@@ -14,7 +13,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Email and password are required.' }, { status: 400 });
         }
 
-        const user = mockUsers.find(u => u.email === email && u.password === password);
+        const user = mockUsers.find(u => u.email === email && (u.password === password || u.password === undefined));
         
         if (!user) {
              const userExists = mockUsers.find(u => u.email === email);

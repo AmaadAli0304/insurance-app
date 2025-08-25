@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from '@/components/auth-provider';
 import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
-import { mockUsers } from '@/lib/mock-data';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -26,22 +25,34 @@ export default function LoginPage() {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    // Mock Login Logic
-    const user = mockUsers.find(u => u.email === email && (u.password === password || u.password === undefined));
+    try {
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, password }),
+        });
 
-    if (user) {
-        login(user);
-    } else {
-        const errorMessage = "Invalid email or password. Please try again.";
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Login failed');
+        }
+
+        login(data.user, data.token);
+
+    } catch (err: any) {
+        const errorMessage = err.message || "An unknown error occurred.";
         setError(errorMessage);
         toast({
             title: "Authentication Error",
             description: errorMessage,
             variant: "destructive",
         });
+    } finally {
+        setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   return (

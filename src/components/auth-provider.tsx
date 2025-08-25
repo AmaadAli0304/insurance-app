@@ -4,13 +4,12 @@
 import React, { createContext, useContext, useState, ReactNode, useMemo, useEffect, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import type { User } from '@/lib/types';
-import { mockUsers } from '@/lib/mock-data';
 
 interface AuthContextType {
   user: User | null;
   role: User['role'] | null;
   loading: boolean;
-  login: (user: User) => void;
+  login: (user: User, token: string) => void;
   logout: () => void;
 }
 
@@ -22,46 +21,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const handleLogout = useCallback(() => {
-    setUser(null);
-    router.push('/login');
-  }, [router]);
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem('user');
+      const storedToken = localStorage.getItem('token');
+      if (storedUser && storedToken) {
+        setUser(JSON.parse(storedUser));
+      }
+    } catch (error) {
+      console.error("Failed to parse user from localStorage", error);
+      // Clear potentially corrupted storage
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    // Since we have no cookie, we are always unauthenticated on load.
-    setLoading(false);
-  }, []);
-  
-  useEffect(() => {
     if (loading) {
-      return; 
+      return;
     }
 
     const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup');
 
-    if (user && isAuthPage) {
-      router.push('/dashboard');
-    }
-
     if (!user && !isAuthPage) {
       router.push('/login');
+    } else if (user && isAuthPage) {
+      router.push('/dashboard');
     }
   }, [user, loading, pathname, router]);
 
-  const login = (userData: User) => {
+
+  const login = (userData: User, token: string) => {
+    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('token', token);
     setUser(userData);
     router.push('/dashboard');
   };
+  
+  const logout = useCallback(() => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    setUser(null);
+    router.push('/login');
+  }, [router]);
   
   const value = useMemo(() => ({
     user,
     role: user?.role ?? null,
     loading,
     login,
-    logout: handleLogout,
-  }), [user, loading, handleLogout]);
+    logout,
+  }), [user, loading, logout]);
 
-  if (loading && !pathname.startsWith('/login')) {
+  if (loading) {
     return (
         <div className="flex items-center justify-center h-screen bg-background">
             <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
