@@ -162,6 +162,5 @@ export async function handleDeleteTPA(prevState: { message: string, type?: strin
         console.error('Database error:', error);
         return { message: "Database error during deletion.", type: 'error' };
     }
-    
     return { message: "TPA deleted successfully.", type: 'success' };
 }

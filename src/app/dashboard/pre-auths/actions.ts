@@ -3,7 +3,6 @@
 
 import { mockStaffingRequests, mockPatients } from "@/lib/mock-data";
 import { StaffingRequest } from "@/lib/types";
-import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation';
 
 export async function handleAddRequest(prevState: { message: string }, formData: FormData) {
@@ -54,5 +53,4 @@ export async function handleDeleteRequest(formData: FormData) {
     if (index > -1) {
         mockStaffingRequests.splice(index, 1);
     }
-    revalidatePath('/dashboard/pre-auths');
 }

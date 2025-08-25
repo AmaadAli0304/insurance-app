@@ -1,6 +1,7 @@
 
 "use client"
 
+import { useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
@@ -29,9 +30,22 @@ import { useRouter } from "next/navigation"
 export default function ClaimsPage() {
   const { user, role } = useAuth();
   const router = useRouter();
-  const claims = role === 'Company Admin' 
-    ? mockClaims.filter(c => c.companyId === user?.companyId)
-    : mockClaims.filter(c => c.hospitalId === user?.hospitalId);
+
+  const filterClaims = useCallback(() => {
+    return role === 'Company Admin' 
+      ? mockClaims.filter(c => c.companyId === user?.companyId)
+      : mockClaims.filter(c => c.hospitalId === user?.hospitalId);
+  }, [role, user]);
+
+  const [claims, setClaims] = useState(filterClaims);
+  
+  const refreshClaims = useCallback(() => {
+    setClaims(filterClaims());
+  }, [filterClaims]);
+
+  useEffect(() => {
+    refreshClaims();
+  }, [refreshClaims]);
 
   const getPatientName = (patientId: string) => {
     return mockPatients.find(p => p.id === patientId)?.fullName || 'N/A';
@@ -134,7 +148,10 @@ export default function ClaimsPage() {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-                           <form action={handleDeleteClaim}>
+                           <form action={async (formData) => {
+                             await handleDeleteClaim(formData);
+                             refreshClaims();
+                           }}>
                               <input type="hidden" name="id" value={c.id} />
                               <AlertDialogAction type="submit">Continue</AlertDialogAction>
                            </form>

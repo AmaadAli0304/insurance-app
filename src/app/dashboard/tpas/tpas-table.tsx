@@ -26,6 +26,7 @@ import { useRouter } from 'next/navigation';
 
 interface TPAsTableProps {
   tpas: TPA[];
+  onTPADeleted: () => void;
 }
 
 function DeleteButton() {
@@ -41,7 +42,7 @@ function DeleteButton() {
     );
 }
 
-export function TPAsTable({ tpas }: TPAsTableProps) {
+export function TPAsTable({ tpas, onTPADeleted }: TPAsTableProps) {
   const { toast } = useToast();
   const [state, formAction] = useActionState(handleDeleteTPA, { message: "", type: "initial" });
   const formRef = useRef<HTMLFormElement>(null);
@@ -54,6 +55,7 @@ export function TPAsTable({ tpas }: TPAsTableProps) {
         description: "TPA deleted successfully",
         variant: "success",
       });
+      onTPADeleted();
     } else if (state.type === 'error') {
       toast({
         title: "Error",
@@ -61,7 +63,7 @@ export function TPAsTable({ tpas }: TPAsTableProps) {
         variant: "destructive"
       });
     }
-  }, [state, toast]);
+  }, [state, toast, onTPADeleted]);
 
   const handleRowClick = (tpaId: number) => {
     router.push(`/dashboard/tpas/${tpaId}/view`);

@@ -26,6 +26,7 @@ import { useRouter } from 'next/navigation';
 
 interface CompaniesTableProps {
   companies: Company[];
+  onCompanyDeleted: () => void;
 }
 
 function DeleteButton() {
@@ -41,7 +42,7 @@ function DeleteButton() {
     );
 }
 
-export function CompaniesTable({ companies }: CompaniesTableProps) {
+export function CompaniesTable({ companies, onCompanyDeleted }: CompaniesTableProps) {
   const { toast } = useToast();
   const [state, formAction] = useActionState(handleDeleteCompany, { message: "", type: "initial" });
   const formRef = useRef<HTMLFormElement>(null);
@@ -54,6 +55,7 @@ export function CompaniesTable({ companies }: CompaniesTableProps) {
         description: "company deleted successfully",
         variant: "success",
       });
+      onCompanyDeleted();
     } else if (state.type === 'error') {
       toast({
         title: "Error",
@@ -61,7 +63,7 @@ export function CompaniesTable({ companies }: CompaniesTableProps) {
         variant: "destructive"
       });
     }
-  }, [state, toast]);
+  }, [state, toast, onCompanyDeleted]);
   
   const handleRowClick = (companyId: string) => {
     router.push(`/dashboard/companies/${companyId}/view`);

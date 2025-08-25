@@ -1,6 +1,7 @@
 
 "use client"
 
+import { useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
@@ -26,7 +27,20 @@ import { useRouter } from "next/navigation"
 export default function PatientsPage() {
   const { user } = useAuth();
   const router = useRouter();
-  const patients = mockPatients.filter(p => p.hospitalId === user?.hospitalId);
+  
+  // Use state to manage patients to allow for refresh
+  const [patients, setPatients] = useState(() => mockPatients.filter(p => p.hospitalId === user?.hospitalId));
+
+  const refreshPatients = useCallback(() => {
+    // This will re-filter the original mock data array.
+    // In a real app, this would be an API call.
+    setPatients(mockPatients.filter(p => p.hospitalId === user?.hospitalId));
+  }, [user?.hospitalId]);
+
+  useEffect(() => {
+    refreshPatients();
+  }, [refreshPatients]);
+
 
   const getCompanyName = (companyId: string) => {
     return mockCompanies.find(c => c.id === companyId)?.name || 'N/A';
@@ -97,7 +111,10 @@ export default function PatientsPage() {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-                           <form action={handleDeletePatient}>
+                           <form action={async (formData) => {
+                             await handleDeletePatient(formData);
+                             refreshPatients();
+                           }}>
                               <input type="hidden" name="id" value={p.id} />
                               <AlertDialogAction type="submit">Continue</AlertDialogAction>
                            </form>

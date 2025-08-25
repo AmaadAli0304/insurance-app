@@ -1,6 +1,7 @@
 
 "use client"
 
+import { useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
@@ -27,7 +28,17 @@ import { useRouter } from "next/navigation"
 export default function PreAuthsPage() {
   const { user } = useAuth();
   const router = useRouter();
-  const requests = mockStaffingRequests.filter(p => p.hospitalId === user?.hospitalId);
+  
+  const [requests, setRequests] = useState(() => mockStaffingRequests.filter(p => p.hospitalId === user?.hospitalId));
+
+  const refreshRequests = useCallback(() => {
+    setRequests(mockStaffingRequests.filter(p => p.hospitalId === user?.hospitalId));
+  }, [user?.hospitalId]);
+
+  useEffect(() => {
+    refreshRequests();
+  }, [refreshRequests]);
+
 
   const getPatientName = (patientId: string) => {
     return mockPatients.find(p => p.id === patientId)?.fullName || 'N/A';
@@ -102,7 +113,10 @@ export default function PreAuthsPage() {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-                           <form action={handleDeleteRequest}>
+                           <form action={async (formData) => {
+                             await handleDeleteRequest(formData);
+                             refreshRequests();
+                           }}>
                               <input type="hidden" name="id" value={r.id} />
                               <AlertDialogAction type="submit">Continue</AlertDialogAction>
                            </form>

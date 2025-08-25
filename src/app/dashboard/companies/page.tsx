@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { PlusCircle, AlertTriangle } from "lucide-react"
@@ -16,24 +16,25 @@ export default function CompaniesPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchCompanies() {
-      try {
-        const response = await fetch('/api/companies');
-        if (!response.ok) {
-          throw new Error('Failed to fetch companies');
-        }
-        const data = await response.json();
-        setCompanies(data);
-      } catch (e: any) {
-        setError(e.message);
-      } finally {
-        setIsLoading(false);
+  const fetchCompanies = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/companies');
+      if (!response.ok) {
+        throw new Error('Failed to fetch companies');
       }
+      const data = await response.json();
+      setCompanies(data);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setIsLoading(false);
     }
-
-    fetchCompanies();
   }, []);
+
+  useEffect(() => {
+    fetchCompanies();
+  }, [fetchCompanies]);
 
   return (
     <div className="space-y-6">
@@ -63,7 +64,7 @@ export default function CompaniesPage() {
                 </AlertDescription>
               </Alert>
            ) : (
-            <CompaniesTable companies={companies} />
+            <CompaniesTable companies={companies} onCompanyDeleted={fetchCompanies} />
            )}
         </CardContent>
       </Card>

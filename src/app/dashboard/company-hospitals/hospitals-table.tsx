@@ -26,6 +26,7 @@ import { useRouter } from 'next/navigation';
 
 interface HospitalsTableProps {
   hospitals: Hospital[];
+  onHospitalDeleted: () => void;
 }
 
 function DeleteButton() {
@@ -41,7 +42,7 @@ function DeleteButton() {
     );
 }
 
-export function HospitalsTable({ hospitals }: HospitalsTableProps) {
+export function HospitalsTable({ hospitals, onHospitalDeleted }: HospitalsTableProps) {
   const { toast } = useToast();
   const [state, formAction] = useActionState(handleDeleteHospital, { message: "", type: "initial" });
   const formRef = useRef<HTMLFormElement>(null);
@@ -54,6 +55,7 @@ export function HospitalsTable({ hospitals }: HospitalsTableProps) {
         description: state.message,
         variant: "success",
       });
+      onHospitalDeleted();
     } else if (state.type === 'error') {
       toast({
         title: "Error",
@@ -61,7 +63,7 @@ export function HospitalsTable({ hospitals }: HospitalsTableProps) {
         variant: "destructive"
       });
     }
-  }, [state, toast]);
+  }, [state, toast, onHospitalDeleted]);
 
   const handleRowClick = (hospitalId: string) => {
     router.push(`/dashboard/company-hospitals/${hospitalId}/view`);

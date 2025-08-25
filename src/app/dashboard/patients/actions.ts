@@ -112,5 +112,4 @@ export async function handleDeletePatient(formData: FormData) {
     if (index > -1) {
         mockPatients.splice(index, 1);
     }
-    revalidatePath('/dashboard/patients');
 }

@@ -1,4 +1,7 @@
 
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { PlusCircle, AlertTriangle } from "lucide-react"
@@ -8,15 +11,26 @@ import { TPAsTable } from "./tpas-table"
 import type { TPA } from "@/lib/types"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
-export default async function TPAsPage() {
-  let tpas: TPA[] = [];
-  let error: string | null = null;
+export default function TPAsPage() {
+  const [tpas, setTpas] = useState<TPA[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  try {
-    tpas = await getTPAs();
-  } catch (e: any) {
-    error = e.message;
-  }
+  const loadTPAs = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const tpaData = await getTPAs();
+      setTpas(tpaData);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadTPAs();
+  }, [loadTPAs]);
 
   return (
     <div className="space-y-6">
@@ -34,7 +48,9 @@ export default async function TPAsPage() {
           </Button>
         </CardHeader>
         <CardContent>
-          {error ? (
+          {isLoading ? (
+            <p>Loading TPAs...</p>
+          ) : error ? (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>Error Fetching TPAs</AlertTitle>
@@ -44,7 +60,7 @@ export default async function TPAsPage() {
                 </AlertDescription>
               </Alert>
            ) : (
-            <TPAsTable tpas={tpas} />
+            <TPAsTable tpas={tpas} onTPADeleted={loadTPAs} />
            )}
         </CardContent>
       </Card>

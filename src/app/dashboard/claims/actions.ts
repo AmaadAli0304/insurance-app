@@ -3,7 +3,6 @@
 
 import { mockClaims, mockPatients } from "@/lib/mock-data";
 import { Claim, ClaimStatus } from "@/lib/types";
-import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation';
 
 export async function handleAddClaim(prevState: { message: string }, formData: FormData) {
@@ -72,5 +71,4 @@ export async function handleDeleteClaim(formData: FormData) {
     if (index > -1) {
         mockClaims.splice(index, 1);
     }
-    revalidatePath('/dashboard/claims');
 }
