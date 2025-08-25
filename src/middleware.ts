@@ -1,9 +1,6 @@
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import * as jose from 'jose';
-
-const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
 export async function middleware(req: NextRequest) {
   const token = req.cookies.get('token')?.value;
@@ -11,39 +8,21 @@ export async function middleware(req: NextRequest) {
 
   const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup');
   const isApiAuthRoute = pathname.startsWith('/api/login') || pathname.startsWith('/api/signup');
-  
-  if (!token) {
-    if (isAuthPage || isApiAuthRoute || pathname === '/') {
-        return NextResponse.next();
-    }
+
+  // If there's no token and the user is trying to access a protected page
+  if (!token && !isAuthPage && !isApiAuthRoute && pathname !== '/') {
     const loginUrl = new URL('/login', req.url);
     loginUrl.searchParams.set('from', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // If there's a token, verify it
-  try {
-    await jose.jwtVerify(token, secret);
-    
-    // The check against the blacklist will now be handled in the AuthProvider
-    // to avoid bundling server-side DB code in the middleware.
-
-    // If token is valid and user is on an auth page, redirect to dashboard
-    if (isAuthPage) {
-      return NextResponse.redirect(new URL('/dashboard', req.url));
-    }
-
-  } catch (error) {
-    // Token is invalid (expired or bad signature)
-    if (isAuthPage || isApiAuthRoute || pathname === '/') {
-        return NextResponse.next();
-    }
-    const loginUrl = new URL('/login', req.url);
-    const response = NextResponse.redirect(loginUrl);
-    response.cookies.delete('token'); // Clear the invalid cookie
-    return response;
+  // If there is a token and the user is on an auth page
+  if (token && isAuthPage) {
+    // Let the client-side AuthProvider handle the redirect to dashboard
+    // This prevents middleware from redirecting before the client can validate the token
+    return NextResponse.next();
   }
-  
+
   return NextResponse.next();
 }
 

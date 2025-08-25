@@ -23,21 +23,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const handleLogout = useCallback(() => {
+  const handleLogout = useCallback(async () => {
     const token = Cookies.get('token');
+    
+    // Optimistically update UI
     setUser(null);
     Cookies.remove('token');
-    
-    if (token) {
-        fetch('/api/logout', {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` }
-        }).catch(error => console.error("Failed to call logout API", error));
-    }
-    // Hard reload to ensure server-side state is cleared
-    window.location.href = '/login';
-  }, []);
 
+    // Inform the server to blacklist the token
+    if (token) {
+        try {
+            await fetch('/api/logout', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+        } catch (error) {
+            console.error("Failed to call logout API", error);
+        }
+    }
+    
+    // Redirect to login page
+    router.push('/login');
+  }, [router]);
 
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -62,6 +69,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     checkAuthStatus();
   }, []);
+  
+  // This effect handles redirection after the initial auth check is complete.
+  useEffect(() => {
+    if (loading) {
+      return; // Don't do anything while auth status is being checked
+    }
+
+    const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup');
+    const isPublicPage = isAuthPage || pathname === '/';
+
+    if (user && isAuthPage) {
+      // User is logged in and on an auth page, redirect to dashboard
+      router.push('/dashboard');
+    }
+
+    if (!user && !isPublicPage) {
+      // User is not logged in and not on a public page, redirect to login
+      router.push('/login');
+    }
+  }, [user, loading, pathname, router]);
+
 
   const login = (token: string, user: User, remember: boolean = false) => {
     const cookieOptions: Cookies.CookieAttributes = {
@@ -73,39 +101,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     Cookies.set('token', token, cookieOptions);
     setUser(user);
-    // Force a hard reload to ensure middleware gets the new cookie.
-    // This is a robust way to solve the redirection race condition.
-    window.location.href = '/dashboard';
+    router.push('/dashboard');
   };
   
-  // This effect handles redirection for users who are already logged in or logged out.
-  useEffect(() => {
-    if (loading) {
-      return; // Don't do anything while auth status is being checked
-    }
-
-    const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup');
-
-    if (user && isAuthPage) {
-      // User is logged in and on an auth page, redirect to dashboard
-      router.push('/dashboard');
-    }
-
-    if (!user && !isAuthPage) {
-      // User is not logged in and not on an auth page, redirect to login
-      // This is primarily handled by middleware, but this is a client-side failsafe.
-      router.push('/login');
-    }
-
-  }, [user, loading, pathname, router]);
-
   const value = useMemo(() => ({
     user,
     role: user?.role ?? null,
     loading,
     login,
     logout: handleLogout,
-  }), [user, loading, handleLogout]);
+  }), [user, loading, handleLogout, login]);
 
 
   if (loading) {
