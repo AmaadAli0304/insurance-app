@@ -82,7 +82,7 @@ export default function ViewStaffPage() {
                 <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6">
                     <DetailItem label="Email Address" value={staff.email} />
                     <DetailItem label="Contact Number" value={staff.number} />
-                    <DetailItem label="Assigned Hospital" value={staff.hospitalName} />
+                    <DetailItem label="Assigned Hospital" value={staff.hospitalName || "N/A"} />
                     <DetailItem label="Designation" value={staff.designation} />
                     <DetailItem label="Department" value={staff.department} />
                     <DetailItem label="Shift Timing" value={staff.shiftTime} />
