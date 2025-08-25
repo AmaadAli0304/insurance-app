@@ -139,7 +139,7 @@ export default function EditStaffPage() {
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="hospitalId">Assign Hospital</Label>
-                                <Select name="hospitalId" defaultValue={staff.hospitalId ?? undefined}>
+                                <Select name="hospitalId" defaultValue={staff.hospitalId || ''}>
                                     <SelectTrigger disabled={isLoading}>
                                         <SelectValue placeholder="Select a hospital" />
                                     </SelectTrigger>
