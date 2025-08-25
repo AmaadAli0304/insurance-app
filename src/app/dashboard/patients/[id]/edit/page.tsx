@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -33,6 +32,14 @@ export default function EditPatientPage() {
     const patient = mockPatients.find(p => p.id === id);
     const [state, formAction] = useActionState(handleUpdatePatient, { message: "" });
     const hospital = mockHospitals.find(h => h.id === patient?.hospitalId);
+    
+    const [selectedCompanyId, setSelectedCompanyId] = useState("");
+
+    useEffect(() => {
+        if (patient) {
+            setSelectedCompanyId(patient.companyId || "");
+        }
+    }, [patient]);
 
     const assignedCompanies = useMemo(() => {
         if (!hospital) return [];
@@ -103,7 +110,8 @@ export default function EditPatientPage() {
                         <CardContent className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="insuranceCompany">Insurance Company</Label>
-                                <Select name="insuranceCompany" required defaultValue={patient.companyId}>
+                                <input type="hidden" name="insuranceCompany" value={selectedCompanyId} />
+                                <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select a company" />
                                     </SelectTrigger>

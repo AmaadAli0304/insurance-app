@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
@@ -33,7 +32,7 @@ export default function EditStaffPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [state, formAction] = useActionState(handleUpdateStaff, { message: "", type: "initial" });
-    const [selectedHospitalId, setSelectedHospitalId] = useState<string>("");
+    const [selectedHospitalId, setSelectedHospitalId] = useState("");
     const { toast } = useToast();
     const router = useRouter();
 
