@@ -26,7 +26,7 @@ export default function DashboardLayout({
                 </Link>
                 <div className="ml-auto flex items-center gap-2">
                     <div className="group-data-[state=expanded]:hidden hidden md:block">
-                        <SidebarTrigger className="ml-[5px]" />
+                        <SidebarTrigger />
                     </div>
                     <div className="group-data-[state=collapsed]:hidden">
                          <SidebarTrigger />
