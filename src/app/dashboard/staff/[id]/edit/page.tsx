@@ -86,19 +86,7 @@ export default function EditStaffPage() {
             return '';
         }
     };
-
-    if (isLoading) {
-        return <div>Loading...</div>;
-    }
-
-    if (error) {
-        return <div>Error: {error}</div>;
-    }
-
-    if (!staff) {
-        notFound();
-    }
-
+    
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-4">
@@ -110,86 +98,94 @@ export default function EditStaffPage() {
                 </Button>
                 <h1 className="text-lg font-semibold md:text-2xl">Edit Staff Member</h1>
             </div>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Update Staff Details</CardTitle>
-                    <CardDescription>Modify the form to update the staff member's information.</CardDescription>
-                </CardHeader>
-                <form action={formAction}>
-                    <CardContent className="space-y-4">
-                        <input type="hidden" name="id" value={staff.id} />
-                        
-                         <div className="grid md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="name">Full Name <span className="text-destructive">*</span></Label>
-                                <Input id="name" name="name" defaultValue={staff.name} required />
+            {isLoading ? (
+                <div>Loading...</div>
+            ) : error ? (
+                <div>Error: {error}</div>
+            ) : staff ? (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Update Staff Details</CardTitle>
+                        <CardDescription>Modify the form to update the staff member's information.</CardDescription>
+                    </CardHeader>
+                    <form action={formAction}>
+                        <CardContent className="space-y-4">
+                            <input type="hidden" name="id" value={staff.id} />
+                            
+                             <div className="grid md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="name">Full Name <span className="text-destructive">*</span></Label>
+                                    <Input id="name" name="name" defaultValue={staff.name} required />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="email">Email Address</Label>
+                                    <Input id="email" name="email" type="email" defaultValue={staff.email ?? ""} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="number">Contact Number</Label>
+                                    <Input id="number" name="number" defaultValue={staff.number ?? ""} maxLength={10} />
+                                </div>
+                                 <div className="space-y-2">
+                                    <Label htmlFor="password">Password</Label>
+                                    <Input id="password" name="password" type="password" placeholder="Leave blank to keep current password" />
+                                </div>
+                                 <div className="space-y-2">
+                                    <Label htmlFor="hospitalId">Assign Hospital</Label>
+                                    <Select name="hospitalId" defaultValue={staff.hospitalId ?? ""}>
+                                        <SelectTrigger disabled={isLoading}>
+                                            <SelectValue placeholder="Select a hospital" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="">None</SelectItem>
+                                            {hospitals.map(hospital => (
+                                                <SelectItem key={hospital.id} value={hospital.id}>
+                                                    {hospital.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="designation">Designation</Label>
+                                    <Input id="designation" name="designation" defaultValue={staff.designation ?? ""} />
+                                </div>
+                                 <div className="space-y-2">
+                                    <Label htmlFor="department">Department</Label>
+                                    <Input id="department" name="department" defaultValue={staff.department ?? ""} />
+                                </div>
+                                 <div className="space-y-2">
+                                    <Label htmlFor="joiningDate">Joining Date</Label>
+                                    <Input id="joiningDate" name="joiningDate" type="date" defaultValue={formatDateForInput(staff.joiningDate)} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="endDate">End Date</Label>
+                                    <Input id="endDate" name="endDate" type="date" defaultValue={formatDateForInput(staff.endDate)} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="shiftTime">Shift Timing</Label>
+                                    <Input id="shiftTime" name="shiftTime" defaultValue={staff.shiftTime ?? ""} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="status">Status</Label>
+                                    <Select name="status" defaultValue={staff.status ?? undefined}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select status" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Active">Active</SelectItem>
+                                            <SelectItem value="Inactive">Inactive</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="email">Email Address</Label>
-                                <Input id="email" name="email" type="email" defaultValue={staff.email ?? ""} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="number">Contact Number</Label>
-                                <Input id="number" name="number" defaultValue={staff.number ?? ""} maxLength={10} />
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="password">Password</Label>
-                                <Input id="password" name="password" type="password" placeholder="Leave blank to keep current password" />
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="hospitalId">Assign Hospital</Label>
-                                <Select name="hospitalId" defaultValue={staff.hospitalId ?? ""}>
-                                    <SelectTrigger disabled={isLoading}>
-                                        <SelectValue placeholder="Select a hospital" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="">None</SelectItem>
-                                        {hospitals.map(hospital => (
-                                            <SelectItem key={hospital.id} value={hospital.id}>
-                                                {hospital.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="designation">Designation</Label>
-                                <Input id="designation" name="designation" defaultValue={staff.designation ?? ""} />
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="department">Department</Label>
-                                <Input id="department" name="department" defaultValue={staff.department ?? ""} />
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="joiningDate">Joining Date</Label>
-                                <Input id="joiningDate" name="joiningDate" type="date" defaultValue={formatDateForInput(staff.joiningDate)} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="endDate">End Date</Label>
-                                <Input id="endDate" name="endDate" type="date" defaultValue={formatDateForInput(staff.endDate)} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="shiftTime">Shift Timing</Label>
-                                <Input id="shiftTime" name="shiftTime" defaultValue={staff.shiftTime ?? ""} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="status">Status</Label>
-                                <Select name="status" defaultValue={staff.status ?? undefined}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select status" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Active">Active</SelectItem>
-                                        <SelectItem value="Inactive">Inactive</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                        {state.type === 'error' && <p className="text-sm text-destructive">{state.message}</p>}
-                         <SubmitButton />
-                    </CardContent>
-                </form>
-            </Card>
+                            {state.type === 'error' && <p className="text-sm text-destructive">{state.message}</p>}
+                             <SubmitButton />
+                        </CardContent>
+                    </form>
+                </Card>
+            ) : (
+                 <p>Staff member not found.</p>
+            )}
         </div>
     );
 }
