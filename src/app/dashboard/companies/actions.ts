@@ -55,7 +55,7 @@ export async function handleAddCompany(prevState: { message: string, type?: stri
       return { message: `Database Error: ${dbError.message || 'Unknown error'}`, type: "error" };
   }
   
-  revalidatePath('/dashboard/companies');
+ 
   return { message: "Company added successfully.", type: "success" };
 }
 
@@ -119,7 +119,6 @@ export async function handleUpdateCompany(prevState: { message: string, type?: s
     return { message: "Failed to update company in the database.", type: 'error' };
   }
 
-  revalidatePath('/dashboard/companies');
   return { message: "Company updated successfully.", type: "success" };
 }
 

@@ -1,9 +1,12 @@
+"use client";
 
+import { useState, useEffect } from "react";
 import { getHospitalById, getStaff, getCompaniesForForm, getTPAsForForm } from "../../actions";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building, Factory, Briefcase, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import type { Hospital, Staff, Company, TPA } from "@/lib/types";
 
 const DetailItem = ({ label, value }: { label: string, value?: string | null }) => (
     <div>
@@ -30,22 +33,65 @@ const AssociationList = ({ title, items, icon }: { title: string, items: { id: s
     </Card>
 );
 
-export default async function ViewHospitalPage({ params }: { params: { id: string } }) {
-    const [hospital, allStaff, allCompanies, allTPAs] = await Promise.all([
-        getHospitalById(params.id),
-        getStaff(),
-        getCompaniesForForm(),
-        getTPAsForForm()
-    ]);
+export default function ViewHospitalPage({ params }: { params: { id: string } }) {
+    const [hospital, setHospital] = useState<Hospital | null>(null);
+    const [assignedStaff, setAssignedStaff] = useState<{ id: string | number; name: string; }[]>([]);
+    const [assignedCompanies, setAssignedCompanies] = useState<{ id: string | number; name: string; }[]>([]);
+    const [assignedTPAs, setAssignedTPAs] = useState<{ id: string | number; name: string; }[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        async function loadData() {
+            try {
+                setIsLoading(true);
+                const hospitalData = await getHospitalById(params.id);
+                if (!hospitalData) {
+                    notFound();
+                    return;
+                }
+                setHospital(hospitalData);
+
+                // Fetch all related data in parallel for efficiency
+                const [allStaff, allCompanies, allTPAs] = await Promise.all([
+                    getStaff(),
+                    getCompaniesForForm(),
+                    getTPAsForForm()
+                ]);
+
+                // Filter to find the assigned items
+                setAssignedStaff(allStaff.filter(s => hospitalData.assignedStaff?.includes(String(s.id))).map(s => ({id: s.id, name: s.name})));
+                setAssignedCompanies(allCompanies.filter(c => hospitalData.assignedCompanies?.includes(c.id)));
+                setAssignedTPAs(allTPAs.filter(t => hospitalData.assignedTPAs?.includes(String(t.id))).map(t => ({id: t.id, name: t.name!})));
+
+            } catch (err) {
+                const dbError = err as Error;
+                setError(dbError.message);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        loadData();
+    }, [params.id]);
 
 
-    if (!hospital) {
-        notFound();
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                 <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
+    
+    if (error) {
+        return <div className="text-destructive">Error: {error}</div>;
     }
 
-    const assignedStaff = allStaff.filter(s => hospital.assignedStaff?.includes(String(s.id)));
-    const assignedCompanies = allCompanies.filter(c => hospital.assignedCompanies?.includes(c.id));
-    const assignedTPAs = allTPAs.filter(t => hospital.assignedTPAs?.includes(String(t.id)));
+    if (!hospital) {
+        // This case should be handled by notFound() inside useEffect, but as a fallback:
+        return <div>Hospital not found.</div>;
+    }
 
     return (
         <div className="space-y-6">
@@ -72,12 +118,12 @@ export default async function ViewHospitalPage({ params }: { params: { id: strin
                 />
                  <AssociationList 
                     title="Assigned TPAs" 
-                    items={assignedTPAs.map(t => ({ id: t.id, name: t.name! }))}
+                    items={assignedTPAs}
                     icon={<Briefcase className="h-6 w-6 text-primary" />} 
                 />
                  <AssociationList 
                     title="Assigned Staff" 
-                    items={assignedStaff.map(s => ({ id: s.id, name: s.name! }))}
+                    items={assignedStaff}
                     icon={<Users className="h-6 w-6 text-primary" />} 
                 />
             </div>

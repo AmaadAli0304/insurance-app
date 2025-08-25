@@ -51,7 +51,6 @@ export async function handleUpdateHospital(prevState: { message: string }, formD
     contact,
   };
 
-  revalidatePath('/dashboard/hospitals');
   redirect('/dashboard/hospitals');
 }
 

@@ -155,7 +155,6 @@ export async function handleAddHospital(prevState: { message: string, type?:stri
         return { message: "Failed to add hospital to the database.", type: 'error' };
     }
 
-    revalidatePath('/dashboard/company-hospitals');
     return { message: "Hospital added successfully", type: 'success' };
 }
 
@@ -220,7 +219,6 @@ export async function handleUpdateHospital(prevState: { message: string, type?:s
         return { message: "Failed to update hospital in the database.", type: 'error' };
     }
 
-    revalidatePath('/dashboard/company-hospitals');
     return { message: "Hospital updated successfully.", type: "success" };
 }
 
