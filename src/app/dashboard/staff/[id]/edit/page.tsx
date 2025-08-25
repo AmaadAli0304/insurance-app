@@ -113,7 +113,7 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="number">Contact Number</Label>
-                                <Input id="number" name="number" defaultValue={staff.number ?? ""} />
+                                <Input id="number" name="number" defaultValue={staff.number ?? ""} maxLength={10} />
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="password">Password</Label>

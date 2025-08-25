@@ -64,7 +64,7 @@ export default function NewStaffPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="number">Contact Number</Label>
-                                <Input id="number" name="number" placeholder="e.g., 555-123-4567" />
+                                <Input id="number" name="number" placeholder="e.g., 9876543210" maxLength={10} />
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="password">Password <span className="text-destructive">*</span></Label>
