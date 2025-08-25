@@ -73,10 +73,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     Cookies.set('token', token, cookieOptions);
     setUser(user);
-    // Let the effect handle redirection
+    // Force a hard reload to ensure middleware gets the new cookie.
+    // This is a robust way to solve the redirection race condition.
+    window.location.href = '/dashboard';
   };
   
-  // This effect handles all redirection logic based on auth state
+  // This effect handles redirection for users who are already logged in or logged out.
   useEffect(() => {
     if (loading) {
       return; // Don't do anything while auth status is being checked

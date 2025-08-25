@@ -43,8 +43,8 @@ export default function LoginPage() {
       }
 
       if (data.token && data.user) {
+        // AuthProvider will now handle the redirection after setting the state.
         login(data.token, data.user, remember);
-        // Redirection is now handled by the AuthProvider's effect
       } else {
         throw new Error('No token or user data received from server.');
       }
