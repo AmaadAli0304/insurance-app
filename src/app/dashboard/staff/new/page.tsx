@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
@@ -107,7 +106,7 @@ export default function NewStaffPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="hospitalId">Assign Hospital</Label>
-                                <Select name="hospitalId">
+                                <Select name="hospitalId" defaultValue="">
                                     <SelectTrigger disabled={isLoading}>
                                         <SelectValue placeholder="Select a hospital" />
                                     </SelectTrigger>

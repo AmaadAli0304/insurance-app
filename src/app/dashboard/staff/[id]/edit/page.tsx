@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
@@ -35,6 +34,7 @@ export default function EditStaffPage() {
     const [state, formAction] = useActionState(handleUpdateStaff, { message: "", type: "initial" });
     const { toast } = useToast();
     const router = useRouter();
+    const [selectedHospitalId, setSelectedHospitalId] = useState('');
 
 
     useEffect(() => {
@@ -46,17 +46,16 @@ export default function EditStaffPage() {
                 ]);
                 
                 if (fetchedStaff) {
-                    // Check if the assigned hospital still exists
                     if (fetchedStaff.hospitalId && !hospitalList.some(h => h.id === fetchedStaff.hospitalId)) {
                         toast({
                             title: "Data Inconsistency",
                             description: "The previously assigned hospital could not be found and has been unassigned.",
                             variant: "destructive"
                         });
-                        // Un-assign the non-existent hospital
-                        fetchedStaff.hospitalId = "";
+                        fetchedStaff.hospitalId = ""; 
                     }
                     setStaff(fetchedStaff);
+                    setSelectedHospitalId(fetchedStaff.hospitalId || '');
                 } else {
                     setError("Staff member not found.");
                 }
@@ -152,7 +151,8 @@ export default function EditStaffPage() {
                                 </div>
                                  <div className="space-y-2">
                                     <Label htmlFor="hospitalId">Assign Hospital</Label>
-                                    <Select name="hospitalId" defaultValue={staff.hospitalId ?? ""}>
+                                    <input type="hidden" name="hospitalId" value={selectedHospitalId} />
+                                    <Select value={selectedHospitalId} onValueChange={setSelectedHospitalId}>
                                         <SelectTrigger disabled={isLoading}>
                                             <SelectValue placeholder="Select a hospital" />
                                         </SelectTrigger>
