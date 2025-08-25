@@ -1,9 +1,9 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { getTPAById } from "../../actions";
-import { notFound } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -34,7 +34,9 @@ const AssociationList = ({ title, items, icon }: { title: string, items: { id: s
     </Card>
 );
 
-export default function ViewTPAPage({ params }: { params: { id: string } }) {
+export default function ViewTPAPage() {
+    const params = useParams();
+    const id = params.id as string;
     const [tpa, setTpa] = useState<TPA | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -43,7 +45,7 @@ export default function ViewTPAPage({ params }: { params: { id: string } }) {
         async function loadData() {
             try {
                 setIsLoading(true);
-                const tpaId = Number(params.id);
+                const tpaId = Number(id);
                 if (isNaN(tpaId)) {
                     notFound();
                     return;
@@ -62,7 +64,7 @@ export default function ViewTPAPage({ params }: { params: { id: string } }) {
             }
         }
         loadData();
-    }, [params.id]);
+    }, [id]);
 
     if (isLoading) {
         return (

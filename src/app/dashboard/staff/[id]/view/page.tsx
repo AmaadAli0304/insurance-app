@@ -1,9 +1,9 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { getStaffById } from "../../actions";
-import { notFound } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns';
@@ -17,7 +17,9 @@ const DetailItem = ({ label, value }: { label: string, value?: string | null }) 
     </div>
 );
 
-export default function ViewStaffPage({ params }: { params: { id: string } }) {
+export default function ViewStaffPage() {
+    const params = useParams();
+    const id = params.id as string;
     const [staff, setStaff] = useState<Staff | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -26,7 +28,7 @@ export default function ViewStaffPage({ params }: { params: { id: string } }) {
         async function loadData() {
             try {
                 setIsLoading(true);
-                const staffData = await getStaffById(params.id);
+                const staffData = await getStaffById(id);
                 if (!staffData) {
                     notFound();
                     return;
@@ -40,7 +42,7 @@ export default function ViewStaffPage({ params }: { params: { id: string } }) {
             }
         }
         loadData();
-    }, [params.id]);
+    }, [id]);
 
     const formatDate = (dateString?: string | null) => {
         if (!dateString) return "N/A";

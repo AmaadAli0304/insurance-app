@@ -1,13 +1,15 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { getHospitalById, getStaff, getCompaniesForForm, getTPAsForForm } from "../../actions";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building, Factory, Briefcase, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Hospital, Staff, Company, TPA } from "@/lib/types";
+import { useParams } from 'next/navigation'
+
 
 const DetailItem = ({ label, value }: { label: string, value?: string | null }) => (
     <div>
@@ -34,7 +36,9 @@ const AssociationList = ({ title, items, icon }: { title: string, items: { id: s
     </Card>
 );
 
-export default function ViewHospitalPage({ params }: { params: { id: string } }) {
+export default function ViewHospitalPage() {
+    const params = useParams();
+    const id = params.id as string;
     const [hospital, setHospital] = useState<Hospital | null>(null);
     const [assignedStaff, setAssignedStaff] = useState<{ id: string | number; name: string; }[]>([]);
     const [assignedCompanies, setAssignedCompanies] = useState<{ id: string | number; name: string; }[]>([]);
@@ -46,7 +50,7 @@ export default function ViewHospitalPage({ params }: { params: { id: string } })
         async function loadData() {
             try {
                 setIsLoading(true);
-                const hospitalData = await getHospitalById(params.id);
+                const hospitalData = await getHospitalById(id);
                 if (!hospitalData) {
                     notFound();
                     return;
@@ -74,7 +78,7 @@ export default function ViewHospitalPage({ params }: { params: { id: string } })
         }
 
         loadData();
-    }, [params.id]);
+    }, [id]);
 
 
     if (isLoading) {

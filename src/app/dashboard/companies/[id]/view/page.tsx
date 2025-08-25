@@ -1,9 +1,9 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { getCompanyById } from "../../actions";
-import { notFound } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -34,7 +34,9 @@ const AssociationList = ({ title, items, icon }: { title: string, items: { id: s
     </Card>
 );
 
-export default function ViewCompanyPage({ params }: { params: { id: string } }) {
+export default function ViewCompanyPage() {
+    const params = useParams();
+    const id = params.id as string;
     const [company, setCompany] = useState<Company | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -43,7 +45,7 @@ export default function ViewCompanyPage({ params }: { params: { id: string } }) 
         async function loadData() {
             try {
                 setIsLoading(true);
-                const companyData = await getCompanyById(params.id);
+                const companyData = await getCompanyById(id);
                 if (!companyData) {
                     notFound();
                     return;
@@ -57,7 +59,7 @@ export default function ViewCompanyPage({ params }: { params: { id: string } }) 
             }
         }
         loadData();
-    }, [params.id]);
+    }, [id]);
 
 
     if (isLoading) {
