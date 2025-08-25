@@ -6,11 +6,6 @@ import pool, { sql, poolConnect } from "@/lib/db";
 import { z } from 'zod';
 import { Staff } from "@/lib/types";
 
-const phoneRegex = new RegExp(
-  /^d{10}$/
-);
-
-
 const staffSchema = z.object({
   name: z.string().min(1, "Full Name is required."),
   email: z.string().email("Invalid email address.").min(1, "Email is required."),
