@@ -146,3 +146,31 @@ export async function handleDeleteCompany(prevState: { message: string, type?: s
     revalidatePath('/dashboard/companies');
     return { message: "Company deleted successfully.", type: 'success' };
 }
+
+export async function getCompanyById(id: string): Promise<Company | null> {
+  try {
+    await poolConnect;
+
+    const [companyResult, hospitalsResult] = await Promise.all([
+        pool.request()
+          .input('id', sql.NVarChar, id)
+          .query('SELECT * FROM companies WHERE id = @id'),
+        pool.request()
+          .input('company_id', sql.NVarChar, id)
+          .query('SELECT h.id, h.name FROM hospitals h JOIN hospital_companies hc ON h.id = hc.hospital_id WHERE hc.company_id = @company_id')
+    ]);
+
+    if (companyResult.recordset.length === 0) {
+      return null
+    }
+    
+    const company = companyResult.recordset[0] as Company;
+    company.assignedHospitalsDetails = hospitalsResult.recordset;
+
+    return company;
+
+  } catch (error) {
+    console.error('Error fetching company by ID:', error);
+    throw new Error('Failed to fetch company details from the database.');
+  }
+}
