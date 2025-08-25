@@ -33,8 +33,8 @@ export default function NewStaffPage() {
      useEffect(() => {
         if (state.type === 'success') {
             toast({
-                title: "Staff Management",
-                description: state.message,
+                title: "Staff",
+                description: "staff created successfully",
                 variant: "success",
             });
             router.push('/dashboard/staff');
