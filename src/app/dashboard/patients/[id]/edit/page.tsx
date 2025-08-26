@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
@@ -101,16 +102,16 @@ export default function EditPatientPage() {
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-2 gap-4">
                              <div className="space-y-2">
-                                <Label htmlFor="name">Full Name</Label>
+                                <Label htmlFor="name">Full Name <span className="text-destructive">*</span></Label>
                                 <Input id="name" name="name" defaultValue={patient.fullName} required />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="birth_date">Date of Birth</Label>
-                                <Input id="birth_date" name="birth_date" type="date" defaultValue={patient.dateOfBirth} required />
+                                <Input id="birth_date" name="birth_date" type="date" defaultValue={patient.dateOfBirth ?? ""} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="gender">Gender</Label>
-                                <Select name="gender" required defaultValue={patient.gender}>
+                                <Select name="gender" defaultValue={patient.gender ?? undefined}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select gender" />
                                     </SelectTrigger>
@@ -122,16 +123,16 @@ export default function EditPatientPage() {
                                 </Select>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="email">Email</Label>
-                                <Input id="email" name="email" type="email" defaultValue={patient.email ?? ""} />
+                                <Label htmlFor="email">Email <span className="text-destructive">*</span></Label>
+                                <Input id="email" name="email" type="email" defaultValue={patient.email ?? ""} required />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="phone">Contact Phone</Label>
-                                <Input id="phone" name="phone" defaultValue={patient.phoneNumber} required />
+                                <Input id="phone" name="phone" defaultValue={patient.phoneNumber ?? ""} />
                             </div>
                             <div className="md:col-span-2 space-y-2">
                                 <Label htmlFor="address">Full Address</Label>
-                                <Input id="address" name="address" defaultValue={patient.address} required />
+                                <Input id="address" name="address" defaultValue={patient.address ?? ""} />
                             </div>
                         </CardContent>
                     </Card>
@@ -143,7 +144,7 @@ export default function EditPatientPage() {
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="company_id">Insurance Company</Label>
+                                <Label htmlFor="company_id">Insurance Company <span className="text-destructive">*</span></Label>
                                 <Select name="company_id" required defaultValue={patient.companyId}>
                                     <SelectTrigger disabled={isLoading}>
                                         <SelectValue placeholder="Select a company" />
@@ -157,26 +158,26 @@ export default function EditPatientPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="policy_number">Policy Number</Label>
-                                <Input id="policy_number" name="policy_number" defaultValue={patient.policyNumber} required />
+                                <Input id="policy_number" name="policy_number" defaultValue={patient.policyNumber ?? ""} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="member_id">Member ID</Label>
-                                <Input id="member_id" name="member_id" defaultValue={patient.memberId} required />
+                                <Input id="member_id" name="member_id" defaultValue={patient.memberId ?? ""} />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="policy_start_date">Policy Start Date</Label>
-                                    <Input id="policy_start_date" name="policy_start_date" type="date" defaultValue={patient.policyStartDate} required />
+                                    <Input id="policy_start_date" name="policy_start_date" type="date" defaultValue={patient.policyStartDate ?? ""} />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="policy_end_date">Policy End Date</Label>
-                                    <Input id="policy_end_date" name="policy_end_date" type="date" defaultValue={patient.policyEndDate} required />
+                                    <Input id="policy_end_date" name="policy_end_date" type="date" defaultValue={patient.policyEndDate ?? ""} />
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    {state.message && <p className="text-sm text-destructive">{state.message}</p>}
+                    {state.type === 'error' && <p className="text-sm text-destructive">{state.message}</p>}
                     <SubmitButton />
                 </div>
             </form>

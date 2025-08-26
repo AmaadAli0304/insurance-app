@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
@@ -76,16 +77,16 @@ export default function NewPatientPage() {
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-2 gap-4">
                              <div className="space-y-2">
-                                <Label htmlFor="name">Full Name</Label>
+                                <Label htmlFor="name">Full Name <span className="text-destructive">*</span></Label>
                                 <Input id="name" name="name" placeholder="Full legal name" required />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="birth_date">Date of Birth</Label>
-                                <Input id="birth_date" name="birth_date" type="date" required />
+                                <Input id="birth_date" name="birth_date" type="date" />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="gender">Gender</Label>
-                                <Select name="gender" required>
+                                <Select name="gender">
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select gender" />
                                     </SelectTrigger>
@@ -97,16 +98,16 @@ export default function NewPatientPage() {
                                 </Select>
                             </div>
                              <div className="space-y-2">
-                                <Label htmlFor="email">Email Address</Label>
-                                <Input id="email" name="email" type="email" placeholder="patient@example.com" />
+                                <Label htmlFor="email">Email Address <span className="text-destructive">*</span></Label>
+                                <Input id="email" name="email" type="email" placeholder="patient@example.com" required />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="phone">Contact Phone</Label>
-                                <Input id="phone" name="phone" placeholder="Phone or email" required />
+                                <Input id="phone" name="phone" placeholder="Phone or email" />
                             </div>
                             <div className="md:col-span-2 space-y-2">
                                 <Label htmlFor="address">Full Address</Label>
-                                <Input id="address" name="address" placeholder="123 Main St, Anytown, USA" required />
+                                <Input id="address" name="address" placeholder="123 Main St, Anytown, USA" />
                             </div>
                         </CardContent>
                     </Card>
@@ -118,7 +119,7 @@ export default function NewPatientPage() {
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="company_id">Insurance Company</Label>
+                                <Label htmlFor="company_id">Insurance Company <span className="text-destructive">*</span></Label>
                                 <Select name="company_id" required disabled={isLoading}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select a company" />
@@ -132,26 +133,26 @@ export default function NewPatientPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="policy_number">Policy Number</Label>
-                                <Input id="policy_number" name="policy_number" placeholder="Insurance policy number" required />
+                                <Input id="policy_number" name="policy_number" placeholder="Insurance policy number" />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="member_id">Member ID</Label>
-                                <Input id="member_id" name="member_id" placeholder="Member/insured person's ID" required />
+                                <Input id="member_id" name="member_id" placeholder="Member/insured person's ID" />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="policy_start_date">Policy Start Date</Label>
-                                    <Input id="policy_start_date" name="policy_start_date" type="date" required />
+                                    <Input id="policy_start_date" name="policy_start_date" type="date" />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="policy_end_date">Policy End Date</Label>
-                                    <Input id="policy_end_date" name="policy_end_date" type="date" required />
+                                    <Input id="policy_end_date" name="policy_end_date" type="date" />
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    {state.message && <p className="text-sm text-destructive">{state.message}</p>}
+                    {state.type === 'error' && <p className="text-sm text-destructive">{state.message}</p>}
                     <SubmitButton />
                 </div>
             </form>

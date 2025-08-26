@@ -1,5 +1,4 @@
 
-
 export type UserRole = 'Admin' | 'Hospital Staff' | 'Company Admin';
 
 export interface User {
@@ -57,17 +56,17 @@ export interface Company {
 export interface Patient {
   id: string;
   fullName: string;
-  dateOfBirth: string;
-  gender: 'Male' | 'Female' | 'Other';
-  email: string | null;
-  phoneNumber: string; 
-  address: string;
+  dateOfBirth?: string | null;
+  gender?: 'Male' | 'Female' | 'Other' | null;
+  email: string;
+  phoneNumber?: string | null; 
+  address?: string | null;
   companyId: string;
   companyName?: string; 
-  policyNumber: string; 
-  memberId: string;
-  policyStartDate: string;
-  policyEndDate: string;
+  policyNumber?: string | null; 
+  memberId?: string | null;
+  policyStartDate?: string | null;
+  policyEndDate?: string | null;
   report_path?: string | null;
   id_path?: string | null;
   card_path?: string | null;

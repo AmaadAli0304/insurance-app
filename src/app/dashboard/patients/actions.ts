@@ -1,3 +1,4 @@
+
 "use server";
 
 import pool, { sql, poolConnect } from "@/lib/db";
@@ -8,16 +9,16 @@ import { z } from 'zod';
 
 const patientSchema = z.object({
   name: z.string().min(1, "Full Name is required."),
-  birth_date: z.string().min(1, "Date of Birth is required."),
-  gender: z.enum(["Male", "Female", "Other"]),
-  email: z.string().email("Invalid email address.").optional().or(z.literal('')),
-  phone: z.string().min(1, "Phone number is required."),
-  address: z.string().min(1, "Address is required."),
+  birth_date: z.string().optional().nullable(),
+  gender: z.enum(["Male", "Female", "Other"]).optional().nullable(),
+  email: z.string().email("Invalid email address.").min(1, "Email is required."),
+  phone: z.string().optional().nullable(),
+  address: z.string().optional().nullable(),
   company_id: z.string().min(1, "Insurance Company is required."),
-  policy_number: z.string().min(1, "Policy Number is required."),
-  member_id: z.string().min(1, "Member ID is required."),
-  policy_start_date: z.string().min(1, "Policy Start Date is required."),
-  policy_end_date: z.string().min(1, "Policy End Date is required."),
+  policy_number: z.string().optional().nullable(),
+  member_id: z.string().optional().nullable(),
+  policy_start_date: z.string().optional().nullable(),
+  policy_end_date: z.string().optional().nullable(),
 });
 
 const patientUpdateSchema = patientSchema.extend({
@@ -29,11 +30,11 @@ export async function getPatients(): Promise<Patient[]> {
     await poolConnect;
     const result = await pool.request()
       .query(`
-        SELECT p.id, p.name, p.email, p.phone, p.policy_number, c.name as companyName
+        SELECT p.id, p.name as fullName, p.email, p.phone as phoneNumber, p.policy_number as policyNumber, c.name as companyName
         FROM patients p
         LEFT JOIN companies c ON p.company_id = c.id
       `);
-    return result.recordset.map(p => ({ ...p, fullName: p.name }));
+    return result.recordset as Patient[];
   } catch (error) {
     const dbError = error as Error;
     throw new Error(`Error fetching patients: ${dbError.message}`);
@@ -66,16 +67,16 @@ export async function getPatientById(id: string): Promise<Patient | null> {
 export async function handleAddPatient(prevState: { message: string, type?: string }, formData: FormData) {
   const validatedFields = patientSchema.safeParse({
     name: formData.get("name"),
-    birth_date: formData.get("birth_date"),
-    gender: formData.get("gender"),
+    birth_date: formData.get("birth_date") || null,
+    gender: formData.get("gender") || null,
     email: formData.get("email"),
-    phone: formData.get("phone"),
-    address: formData.get("address"),
+    phone: formData.get("phone") || null,
+    address: formData.get("address") || null,
     company_id: formData.get("company_id"),
-    policy_number: formData.get("policy_number"),
-    member_id: formData.get("member_id"),
-    policy_start_date: formData.get("policy_start_date"),
-    policy_end_date: formData.get("policy_end_date"),
+    policy_number: formData.get("policy_number") || null,
+    member_id: formData.get("member_id") || null,
+    policy_start_date: formData.get("policy_start_date") || null,
+    policy_end_date: formData.get("policy_end_date") || null,
   });
   
   if (!validatedFields.success) {
@@ -92,7 +93,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
     request
       .input('id', sql.NVarChar, id)
       .input('name', sql.NVarChar, data.name)
-      .input('birth_date', sql.Date, data.birth_date)
+      .input('birth_date', data.birth_date ? sql.Date : sql.Date, data.birth_date ? new Date(data.birth_date) : null)
       .input('gender', sql.NVarChar, data.gender)
       .input('email', sql.NVarChar, data.email)
       .input('phone', sql.NVarChar, data.phone)
@@ -100,8 +101,8 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('company_id', sql.NVarChar, data.company_id)
       .input('policy_number', sql.NVarChar, data.policy_number)
       .input('member_id', sql.NVarChar, data.member_id)
-      .input('policy_start_date', sql.Date, data.policy_start_date)
-      .input('policy_end_date', sql.Date, data.policy_end_date)
+      .input('policy_start_date', data.policy_start_date ? sql.Date : sql.Date, data.policy_start_date ? new Date(data.policy_start_date) : null)
+      .input('policy_end_date', data.policy_end_date ? sql.Date : sql.Date, data.policy_end_date ? new Date(data.policy_end_date) : null)
 
     await request.query(`
       INSERT INTO patients (id, name, birth_date, gender, email, phone, address, company_id, policy_number, member_id, policy_start_date, policy_end_date)
@@ -122,16 +123,16 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
   const validatedFields = patientUpdateSchema.safeParse({
     id: formData.get("id"),
     name: formData.get("name"),
-    birth_date: formData.get("birth_date"),
-    gender: formData.get("gender"),
+    birth_date: formData.get("birth_date") || null,
+    gender: formData.get("gender") || null,
     email: formData.get("email"),
-    phone: formData.get("phone"),
-    address: formData.get("address"),
+    phone: formData.get("phone") || null,
+    address: formData.get("address") || null,
     company_id: formData.get("company_id"),
-    policy_number: formData.get("policy_number"),
-    member_id: formData.get("member_id"),
-    policy_start_date: formData.get("policy_start_date"),
-    policy_end_date: formData.get("policy_end_date"),
+    policy_number: formData.get("policy_number") || null,
+    member_id: formData.get("member_id") || null,
+    policy_start_date: formData.get("policy_start_date") || null,
+    policy_end_date: formData.get("policy_end_date") || null,
   });
   
   if (!validatedFields.success) {
@@ -147,7 +148,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
     request
       .input('id', sql.NVarChar, id)
       .input('name', sql.NVarChar, data.name)
-      .input('birth_date', sql.Date, data.birth_date)
+      .input('birth_date', data.birth_date ? sql.Date : sql.Date, data.birth_date ? new Date(data.birth_date) : null)
       .input('gender', sql.NVarChar, data.gender)
       .input('email', sql.NVarChar, data.email)
       .input('phone', sql.NVarChar, data.phone)
@@ -155,8 +156,8 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
       .input('company_id', sql.NVarChar, data.company_id)
       .input('policy_number', sql.NVarChar, data.policy_number)
       .input('member_id', sql.NVarChar, data.member_id)
-      .input('policy_start_date', sql.Date, data.policy_start_date)
-      .input('policy_end_date', sql.Date, data.policy_end_date)
+      .input('policy_start_date', data.policy_start_date ? sql.Date : sql.Date, data.policy_start_date ? new Date(data.policy_start_date) : null)
+      .input('policy_end_date', data.policy_end_date ? sql.Date : sql.Date, data.policy_end_date ? new Date(data.policy_end_date) : null)
 
     await request.query(`
       UPDATE patients 
