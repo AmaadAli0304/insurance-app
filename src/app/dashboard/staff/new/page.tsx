@@ -18,7 +18,7 @@ import type { Hospital } from "@/lib/types";
 function SubmitButton() {
     const { pending } = useFormStatus();
     return (
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending} className="w-full md:w-auto">
             {pending ? (
                 <div className="w-5 h-5 border-2 border-background border-t-transparent rounded-full animate-spin"></div>
             ) : (
@@ -80,15 +80,15 @@ export default function NewStaffPage() {
                 </Button>
                 <h1 className="text-lg font-semibold md:text-2xl">New Staff Member</h1>
             </div>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Staff Details</CardTitle>
-                    <CardDescription>Fill in the form to add a new staff member.</CardDescription>
-                </CardHeader>
-                <form action={formAction}>
-                    <CardContent className="space-y-4">
-
-                        <div className="grid md:grid-cols-2 gap-4">
+            
+             <form action={formAction}>
+                 <div className="space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Personal & Contact Info</CardTitle>
+                             <CardDescription>Enter the basic details for the new staff member.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid md:grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Full Name <span className="text-destructive">*</span></Label>
                                 <Input id="name" name="name" placeholder="e.g., John Doe" required />
@@ -105,7 +105,16 @@ export default function NewStaffPage() {
                                 <Label htmlFor="password">Password <span className="text-destructive">*</span></Label>
                                 <Input id="password" name="password" type="password" required />
                             </div>
-                            <div className="space-y-2">
+                        </CardContent>
+                    </Card>
+
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Professional Details</CardTitle>
+                             <CardDescription>Assign roles and departments.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid md:grid-cols-2 gap-6">
+                             <div className="space-y-2">
                                 <Label htmlFor="hospitalId">Assign Hospital</Label>
                                 <Select name="hospitalId" defaultValue="none">
                                     <SelectTrigger disabled={isLoading}>
@@ -130,6 +139,19 @@ export default function NewStaffPage() {
                                 <Input id="department" name="department" placeholder="e.g., Claims Processing" />
                             </div>
                              <div className="space-y-2">
+                                <Label htmlFor="shiftTime">Shift Timing</Label>
+                                <Input id="shiftTime" name="shiftTime" placeholder="e.g., 9 AM - 6 PM" />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Employment Details</CardTitle>
+                             <CardDescription>Manage employment status and dates.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid md:grid-cols-3 gap-6">
+                            <div className="space-y-2">
                                 <Label htmlFor="joiningDate">Joining Date</Label>
                                 <Input id="joiningDate" name="joiningDate" type="date" />
                             </div>
@@ -137,11 +159,7 @@ export default function NewStaffPage() {
                                 <Label htmlFor="endDate">End Date</Label>
                                 <Input id="endDate" name="endDate" type="date" />
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="shiftTime">Shift Timing</Label>
-                                <Input id="shiftTime" name="shiftTime" placeholder="e.g., 9 AM - 6 PM" />
-                            </div>
-                            <div className="space-y-2">
+                             <div className="space-y-2">
                                 <Label htmlFor="status">Status</Label>
                                 <Select name="status" defaultValue="Active">
                                     <SelectTrigger>
@@ -153,13 +171,16 @@ export default function NewStaffPage() {
                                     </SelectContent>
                                 </Select>
                             </div>
-                        </div>
+                        </CardContent>
+                    </Card>
 
-                        {state.type === 'error' && <p className="text-sm text-destructive">{state.message}</p>}
-                         <SubmitButton />
-                    </CardContent>
-                </form>
-            </Card>
+                    <div className="flex justify-end gap-2">
+                        {state.type === 'error' && <p className="text-sm text-destructive self-center">{state.message}</p>}
+                        <Button variant="outline" asChild><Link href="/dashboard/staff">Cancel</Link></Button>
+                        <SubmitButton />
+                    </div>
+                </div>
+            </form>
         </div>
     );
 }
