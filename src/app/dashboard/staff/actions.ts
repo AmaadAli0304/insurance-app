@@ -50,7 +50,7 @@ export async function getHospitalsForForm(): Promise<Pick<Hospital, 'id' | 'name
   try {
     await poolConnect;
     const result = await pool.request().query('SELECT id, name FROM hospitals');
-    return result.recordset.filter(h => h.id);
+    return result.recordset.filter(h => h.id && h.id.trim() !== '');
   } catch (error) {
     const dbError = error as Error;
     throw new Error(`Error fetching hospitals for form: ${dbError.message}`);
@@ -144,7 +144,7 @@ export async function handleAddStaff(prevState: { message: string, type?: string
         VALUES (@uid, @name, @email, @role, @password, @designation, @department, @joiningDate, @endDate, @shiftTime, @status, @number)
       `);
     
-    if (data.hospitalId) {
+    if (data.hospitalId && data.hospitalId !== 'none') {
       const assignmentRequest = new sql.Request(transaction);
       await assignmentRequest
         .input('staff_id', sql.NVarChar, uid)
@@ -226,16 +226,11 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
     
     const result = await request.query(`UPDATE users SET ${setClauses.join(', ')} WHERE uid = @uid`);
 
-    if (result.rowsAffected[0] === 0) {
-      await transaction.rollback();
-      return { message: "Staff member not found or data is the same.", type: 'error' };
-    }
-
     // Handle hospital assignment
     const assignmentRequest = new sql.Request(transaction);
     await assignmentRequest.input('staff_id', sql.NVarChar, staffId).query('DELETE FROM hospital_staff WHERE staff_id = @staff_id');
     
-    if (hospitalId) {
+    if (hospitalId && hospitalId !== 'none') {
       const newAssignmentRequest = new sql.Request(transaction);
       await newAssignmentRequest
         .input('staff_id', sql.NVarChar, staffId)

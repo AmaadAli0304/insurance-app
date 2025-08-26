@@ -35,7 +35,7 @@ export default function EditStaffPage() {
     const [state, formAction] = useActionState(handleUpdateStaff, { message: "", type: "initial" });
     const { toast } = useToast();
     const router = useRouter();
-    const [selectedHospitalId, setSelectedHospitalId] = useState('');
+    const [selectedHospitalId, setSelectedHospitalId] = useState('none');
 
 
     useEffect(() => {
@@ -48,14 +48,12 @@ export default function EditStaffPage() {
                 
                 if (fetchedStaff) {
                     setStaff(fetchedStaff);
-                    setSelectedHospitalId(fetchedStaff.hospitalId || '');
+                    setSelectedHospitalId(fetchedStaff.hospitalId || 'none');
                 } else {
                     setError("Staff member not found.");
                 }
                 
-                const validHospitals = hospitalList.filter(h => h.id);
-                setHospitals(validHospitals);
-
+                setHospitals(hospitalList);
 
             } catch (err) {
                 const dbError = err as Error;
@@ -153,7 +151,7 @@ export default function EditStaffPage() {
                                             <SelectValue placeholder="Select a hospital" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="">None</SelectItem>
+                                            <SelectItem value="none">None</SelectItem>
                                             {hospitals?.map(hospital => (
                                                 <SelectItem key={hospital.id} value={hospital.id}>
                                                     {hospital.name}
