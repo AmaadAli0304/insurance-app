@@ -64,9 +64,11 @@ export async function getStaffById(id: string): Promise<Staff | null> {
     const staffResult = await pool.request()
           .input('uid', sql.NVarChar, id)
           .query(`
-            SELECT *, uid as id
-            FROM users
-            WHERE uid = @uid AND role = 'Hospital Staff'
+            SELECT u.*, u.uid as id, h.name as hospitalName
+            FROM users u
+            LEFT JOIN hospital_staff hs ON u.uid = hs.staff_id
+            LEFT JOIN hospitals h ON hs.hospital_id = h.id
+            WHERE u.uid = @uid AND u.role = 'Hospital Staff'
           `);
 
     if (staffResult.recordset.length === 0) {
@@ -75,13 +77,15 @@ export async function getStaffById(id: string): Promise<Staff | null> {
     
     const staff = staffResult.recordset[0] as Staff;
     
-    // Fetch hospital assignment separately
+    // Fetch hospital assignment separately to get the ID for the edit form
     const hospitalAssignmentResult = await pool.request()
         .input('staff_id', sql.NVarChar, id)
         .query('SELECT hospital_id FROM hospital_staff WHERE staff_id = @staff_id');
         
     if (hospitalAssignmentResult.recordset.length > 0) {
         staff.hospitalId = hospitalAssignmentResult.recordset[0].hospital_id;
+    } else {
+        staff.hospitalId = null; // Ensure hospitalId is null if not assigned
     }
 
     return staff;
