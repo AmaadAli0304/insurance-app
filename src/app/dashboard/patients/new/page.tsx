@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { useFormStatus } from "react-dom";
 import { handleAddPatient } from "../actions";
 import Link from "next/link";
@@ -41,6 +40,7 @@ export default function NewPatientPage() {
                 <h1 className="text-lg font-semibold md:text-2xl">New Patient</h1>
             </div>
             <form action={formAction}>
+                <input type="hidden" name="hospitalId" value={user?.hospitalId || ''} />
                 <div className="grid gap-6">
                     {/* Patient Details */}
                     <Card>
@@ -120,65 +120,10 @@ export default function NewPatientPage() {
                         </CardContent>
                     </Card>
                     
-                    {/* Admission & Hospital Details */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>3. Admission & Hospital Details</CardTitle>
-                        </CardHeader>
-                        <CardContent className="grid md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="hospitalName">Hospital Name</Label>
-                                <Input id="hospitalName" name="hospitalName" defaultValue={hospital?.name} readOnly />
-                                <input type="hidden" name="hospitalId" value={user?.hospitalId || ''} />
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="doctorName">Doctor Name</Label>
-                                <Input id="doctorName" name="doctorName" placeholder="Treating doctor's full name" required />
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="doctorSpeciality">Doctor Speciality</Label>
-                                <Input id="doctorSpeciality" name="doctorSpeciality" placeholder="e.g., Cardiologist" required />
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="admissionDate">Planned Admission Date</Label>
-                                <Input id="admissionDate" name="admissionDate" type="date" required />
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Medical Details */}
-                     <Card>
-                        <CardHeader>
-                            <CardTitle>4. Medical Details</CardTitle>
-                        </CardHeader>
-                        <CardContent className="grid md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="diagnosis">Diagnosis</Label>
-                                <Input id="diagnosis" name="diagnosis" placeholder="Primary diagnosis (ICD code if possible)" required />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="proposedTreatment">Proposed Treatment</Label>
-                                <Input id="proposedTreatment" name="proposedTreatment" placeholder="e.g., Knee Replacement Surgery" required />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="procedureCode">Procedure Code (optional)</Label>
-                                <Input id="procedureCode" name="procedureCode" placeholder="CPT/HCPCS code" />
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="estimatedCost">Estimated Cost ($)</Label>
-                                <Input id="estimatedCost" name="estimatedCost" type="number" placeholder="e.g. 15000" required />
-                            </div>
-                             <div className="md:col-span-2 space-y-2">
-                                <Label htmlFor="clinicalNotes">Clinical Notes (optional)</Label>
-                                <Textarea id="clinicalNotes" name="clinicalNotes" placeholder="Doctor's summary of why treatment is needed" />
-                            </div>
-                        </CardContent>
-                    </Card>
-
                     {/* Supporting Documents */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>5. Supporting Documents (Optional)</CardTitle>
+                            <CardTitle>3. Supporting Documents (Optional)</CardTitle>
                             <CardDescription>Attach relevant medical reports, ID proofs, and insurance cards.</CardDescription>
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-3 gap-4">

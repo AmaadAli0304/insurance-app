@@ -18,23 +18,10 @@ export async function handleAddPatient(prevState: { message: string }, formData:
     policyStartDate: formData.get("policyStartDate") as string,
     policyEndDate: formData.get("policyEndDate") as string,
     hospitalId: formData.get("hospitalId") as string,
-    hospitalCode: formData.get("hospitalCode") as string,
-    doctorName: formData.get("doctorName") as string,
-    doctorSpeciality: formData.get("doctorSpeciality") as string,
-    admissionDate: formData.get("admissionDate") as string,
-    diagnosis: formData.get("diagnosis") as string,
-    proposedTreatment: formData.get("proposedTreatment") as string,
-    procedureCode: formData.get("procedureCode") as string,
-    estimatedCost: formData.get("estimatedCost") as string,
-    clinicalNotes: formData.get("clinicalNotes") as string,
   };
 
   // Basic validation
   for (const [key, value] of Object.entries(newPatientData)) {
-    // Optional fields
-    const optionalFields = ['hospitalCode', 'procedureCode', 'clinicalNotes'];
-    if (optionalFields.includes(key)) continue;
-
     if (!value) {
       return { message: `Please fill all required fields. Missing: ${key}` };
     }
@@ -43,9 +30,12 @@ export async function handleAddPatient(prevState: { message: string }, formData:
   const newPatient: Patient = {
     id: `pat-${Date.now()}`,
     ...newPatientData,
-    estimatedCost: Number(newPatientData.estimatedCost),
-    // Fields not in this form but in type
-    doctorRegistrationNumber: `DN-${Math.floor(Math.random() * 90000) + 10000}`,
+    // Fields not in this form but in type, providing default values
+    doctorName: "N/A",
+    admissionDate: new Date().toISOString(),
+    diagnosis: "N/A",
+    proposedTreatment: "N/A",
+    estimatedCost: 0,
   };
 
   mockPatients.push(newPatient);
@@ -67,15 +57,6 @@ export async function handleUpdatePatient(prevState: { message: string }, formDa
     policyStartDate: formData.get("policyStartDate") as string,
     policyEndDate: formData.get("policyEndDate") as string,
     hospitalId: formData.get("hospitalId") as string,
-    hospitalCode: formData.get("hospitalCode") as string,
-    doctorName: formData.get("doctorName") as string,
-    doctorSpeciality: formData.get("doctorSpeciality") as string,
-    admissionDate: formData.get("admissionDate") as string,
-    diagnosis: formData.get("diagnosis") as string,
-    proposedTreatment: formData.get("proposedTreatment") as string,
-    procedureCode: formData.get("procedureCode") as string,
-    estimatedCost: formData.get("estimatedCost") as string,
-    clinicalNotes: formData.get("clinicalNotes") as string,
   };
   
   if (!id) {
@@ -84,8 +65,6 @@ export async function handleUpdatePatient(prevState: { message: string }, formDa
 
   // Basic validation
     for (const [key, value] of Object.entries(updatedPatientData)) {
-    const optionalFields = ['hospitalCode', 'procedureCode', 'clinicalNotes'];
-    if (optionalFields.includes(key)) continue;
     if (!value) {
       return { message: `Please fill all required fields. Missing: ${key}` };
     }
@@ -100,7 +79,6 @@ export async function handleUpdatePatient(prevState: { message: string }, formDa
   mockPatients[patientIndex] = {
     ...mockPatients[patientIndex],
     ...updatedPatientData,
-    estimatedCost: Number(updatedPatientData.estimatedCost),
   };
 
   redirect('/dashboard/patients');
