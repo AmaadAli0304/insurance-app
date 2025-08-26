@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,7 +11,10 @@ import Link from "next/link";
 import { ArrowLeft, Upload } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { mockHospitals, mockCompanies } from "@/lib/mock-data";
+import { getCompaniesForForm } from "../../company-hospitals/actions";
+import type { Company } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -24,9 +26,35 @@ function SubmitButton() {
 }
 
 export default function NewPatientPage() {
-    const { user } = useAuth();
-    const [state, formAction] = useActionState(handleAddPatient, { message: "" });
-    const hospital = mockHospitals.find(h => h.id === user?.hospitalId);
+    const [state, formAction] = useActionState(handleAddPatient, { message: "", type: "initial" });
+    const { toast } = useToast();
+    const router = useRouter();
+    const [companies, setCompanies] = useState<Pick<Company, "id" | "name">[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    
+    useEffect(() => {
+        async function loadCompanies() {
+            try {
+                const companyList = await getCompaniesForForm();
+                setCompanies(companyList);
+            } catch (error) {
+                toast({ title: "Error", description: "Failed to load companies.", variant: "destructive" });
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        loadCompanies();
+    }, [toast]);
+    
+    useEffect(() => {
+        if (state.type === 'success') {
+            toast({ title: "Patient", description: state.message, variant: "success" });
+            router.push('/dashboard/patients');
+        } else if (state.type === 'error') {
+            toast({ title: "Error", description: state.message, variant: "destructive" });
+        }
+    }, [state, toast, router]);
+
 
     return (
         <div className="space-y-6">
@@ -40,7 +68,6 @@ export default function NewPatientPage() {
                 <h1 className="text-lg font-semibold md:text-2xl">New Patient</h1>
             </div>
             <form action={formAction}>
-                <input type="hidden" name="hospitalId" value={user?.hospitalId || ''} />
                 <div className="grid gap-6">
                     {/* Patient Details */}
                     <Card>
@@ -49,12 +76,12 @@ export default function NewPatientPage() {
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-2 gap-4">
                              <div className="space-y-2">
-                                <Label htmlFor="fullName">Full Name</Label>
-                                <Input id="fullName" name="fullName" placeholder="Full legal name" required />
+                                <Label htmlFor="name">Full Name</Label>
+                                <Input id="name" name="name" placeholder="Full legal name" required />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                                <Input id="dateOfBirth" name="dateOfBirth" type="date" required />
+                                <Label htmlFor="birth_date">Date of Birth</Label>
+                                <Input id="birth_date" name="birth_date" type="date" required />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="gender">Gender</Label>
@@ -69,13 +96,17 @@ export default function NewPatientPage() {
                                     </SelectContent>
                                 </Select>
                             </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="email">Email Address</Label>
+                                <Input id="email" name="email" type="email" placeholder="patient@example.com" />
+                            </div>
                             <div className="space-y-2">
-                                <Label htmlFor="patientContact">Contact (Phone/Email)</Label>
-                                <Input id="patientContact" name="patientContact" placeholder="Phone or email" required />
+                                <Label htmlFor="phone">Contact Phone</Label>
+                                <Input id="phone" name="phone" placeholder="Phone or email" required />
                             </div>
                             <div className="md:col-span-2 space-y-2">
-                                <Label htmlFor="patientAddress">Full Address</Label>
-                                <Input id="patientAddress" name="patientAddress" placeholder="123 Main St, Anytown, USA" required />
+                                <Label htmlFor="address">Full Address</Label>
+                                <Input id="address" name="address" placeholder="123 Main St, Anytown, USA" required />
                             </div>
                         </CardContent>
                     </Card>
@@ -87,60 +118,35 @@ export default function NewPatientPage() {
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="insuranceCompany">Insurance Company</Label>
-                                <Select name="insuranceCompany" required>
+                                <Label htmlFor="company_id">Insurance Company</Label>
+                                <Select name="company_id" required disabled={isLoading}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select a company" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {mockCompanies.map(c => (
+                                        {companies.map(c => (
                                             <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="policyNumber">Policy Number</Label>
-                                <Input id="policyNumber" name="policyNumber" placeholder="Insurance policy number" required />
+                                <Label htmlFor="policy_number">Policy Number</Label>
+                                <Input id="policy_number" name="policy_number" placeholder="Insurance policy number" required />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="memberId">Member ID</Label>
-                                <Input id="memberId" name="memberId" placeholder="Member/insured person's ID" required />
+                                <Label htmlFor="member_id">Member ID</Label>
+                                <Input id="member_id" name="member_id" placeholder="Member/insured person's ID" required />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="policyStartDate">Policy Start Date</Label>
-                                    <Input id="policyStartDate" name="policyStartDate" type="date" required />
+                                    <Label htmlFor="policy_start_date">Policy Start Date</Label>
+                                    <Input id="policy_start_date" name="policy_start_date" type="date" required />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="policyEndDate">Policy End Date</Label>
-                                    <Input id="policyEndDate" name="policyEndDate" type="date" required />
+                                    <Label htmlFor="policy_end_date">Policy End Date</Label>
+                                    <Input id="policy_end_date" name="policy_end_date" type="date" required />
                                 </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    
-                    {/* Supporting Documents */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>3. Supporting Documents (Optional)</CardTitle>
-                            <CardDescription>Attach relevant medical reports, ID proofs, and insurance cards.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="grid md:grid-cols-3 gap-4">
-                             <div className="space-y-2">
-                                <Label htmlFor="medicalReports">Medical Reports</Label>
-                                <Button variant="outline" className="w-full justify-start gap-2" asChild><label htmlFor="medicalReports-upload" className="cursor-pointer w-full"><Upload /> Upload File</label></Button>
-                                <Input id="medicalReports-upload" name="medicalReports" type="file" className="hidden" />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="patientIdProof">Patient ID Proof</Label>
-                                <Button variant="outline" className="w-full justify-start gap-2" asChild><label htmlFor="patientIdProof-upload" className="cursor-pointer w-full"><Upload /> Upload File</label></Button>
-                                <Input id="patientIdProof-upload" name="patientIdProof" type="file" className="hidden" />
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="insuranceCard">Insurance Card Scan</Label>
-                                <Button variant="outline" className="w-full justify-start gap-2" asChild><label htmlFor="insuranceCard-upload" className="cursor-pointer w-full"><Upload /> Upload File</label></Button>
-                                <Input id="insuranceCard-upload" name="insuranceCard" type="file" className="hidden" />
                             </div>
                         </CardContent>
                     </Card>

@@ -59,21 +59,28 @@ export interface Patient {
   fullName: string;
   dateOfBirth: string;
   gender: 'Male' | 'Female' | 'Other';
+  email: string | null;
   phoneNumber: string; 
   address: string;
-  companyId: string; 
+  companyId: string;
+  companyName?: string; 
   policyNumber: string; 
   memberId: string;
   policyStartDate: string;
   policyEndDate: string;
-  hospitalId: string;
+  report_path?: string | null;
+  id_path?: string | null;
+  card_path?: string | null;
+  package_path?: string | null;
+  // Deprecated fields, kept for mock data compatibility
+  hospitalId?: string;
   hospitalCode?: string;
-  doctorName: string;
+  doctorName?: string;
   doctorRegistrationNumber?: string;
-  admissionDate: string;
-  diagnosis: string;
-  proposedTreatment: string;
-  estimatedCost: number;
+  admissionDate?: string;
+  diagnosis?: string;
+  proposedTreatment?: string;
+  estimatedCost?: number;
   expectedLengthOfStay?: number; // in days
   doctorSpeciality?: string;
   expectedDischargeDate?: string;

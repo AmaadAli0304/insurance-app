@@ -44,7 +44,7 @@ export function Breadcrumb() {
     const isLast = index === segments.length - 1;
     
     let label = capitalize(segment);
-    let isClickable = !isLast && !isIdSegment(segment);
+    let isClickable = !isLast;
 
     if (segment === 'new' && index > 0) {
       const parentSegment = segments[index - 1];
@@ -54,7 +54,12 @@ export function Breadcrumb() {
         if (index > 0) {
             const parentSegment = segments[index - 1];
             const singularParentLabel = breadcrumbNameMap[parentSegment] || capitalize(parentSegment).replace(/s$/, '');
-            label = `${singularParentLabel} Details`;
+            // Check if there is a view/edit segment after ID
+            if (segments[index + 1] === 'view' || segments[index + 1] === 'edit') {
+                 label = `${singularParentLabel} Details`;
+            } else {
+                label = `${singularParentLabel} Details`;
+            }
         }
     } else if (breadcrumbNameMap[segment]) {
         label = breadcrumbNameMap[segment]
