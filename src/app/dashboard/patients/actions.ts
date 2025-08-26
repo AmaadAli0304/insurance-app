@@ -130,6 +130,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
     const dbError = error as { message?: string };
     return { message: `Database Error: ${dbError.message || 'Unknown error'}`, type: "error" };
   }
+  revalidatePath('/dashboard/patients');
   return { message: "Patient added successfully.", type: "success" };
 }
 
@@ -188,7 +189,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
   }
   
   revalidatePath('/dashboard/patients');
-  redirect('/dashboard/patients');
+  return { message: "Patient updated successfully.", type: "success" };
 }
 
 

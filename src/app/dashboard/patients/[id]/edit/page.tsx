@@ -63,6 +63,7 @@ export default function EditPatientPage() {
      useEffect(() => {
         if (state.type === 'success') {
             toast({ title: "Patient", description: state.message, variant: "success" });
+            router.push('/dashboard/patients');
         } else if (state.type === 'error') {
             toast({ title: "Error", description: state.message, variant: "destructive" });
         }
