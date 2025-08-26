@@ -53,9 +53,9 @@ export async function getPatientById(id: string): Promise<Patient | null> {
     const patientData = result.recordset[0];
     
     // Format dates to 'yyyy-MM-dd'
-    if (patientData.birth_date) patientData.birth_date = new Date(patientData.birth_date).toISOString().split('T')[0];
-    if (patientData.policy_start_date) patientData.policy_start_date = new Date(patientData.policy_start_date).toISOString().split('T')[0];
-    if (patientData.policy_end_date) patientData.policy_end_date = new Date(patientData.policy_end_date).toISOString().split('T')[0];
+    if (patientData.dateOfBirth) patientData.dateOfBirth = new Date(patientData.dateOfBirth).toISOString().split('T')[0];
+    if (patientData.policyStartDate) patientData.policyStartDate = new Date(patientData.policyStartDate).toISOString().split('T')[0];
+    if (patientData.policyEndDate) patientData.policyEndDate = new Date(patientData.policyEndDate).toISOString().split('T')[0];
 
     return patientData as Patient;
   } catch (error) {
@@ -116,7 +116,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
   }
 
   revalidatePath('/dashboard/patients');
-  return { message: "Patient added successfully", type: "success" };
+  return { message: "Patient added successfully.", type: "success" };
 }
 
 export async function handleUpdatePatient(prevState: { message: string, type?: string }, formData: FormData) {
