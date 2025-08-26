@@ -52,7 +52,10 @@ export default function EditStaffPage() {
                 } else {
                     setError("Staff member not found.");
                 }
-                setHospitals(hospitalList);
+                
+                const validHospitals = hospitalList.filter(h => h.id);
+                setHospitals(validHospitals);
+
 
             } catch (err) {
                 const dbError = err as Error;
@@ -144,15 +147,16 @@ export default function EditStaffPage() {
                                 </div>
                                  <div className="space-y-2">
                                     <Label htmlFor="hospitalId">Assign Hospital</Label>
-                                    <Select name="hospitalId" value={selectedHospitalId} onValueChange={setSelectedHospitalId}>
+                                     <input type="hidden" name="hospitalId" value={selectedHospitalId} />
+                                     <Select value={selectedHospitalId} onValueChange={setSelectedHospitalId}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select a hospital" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="">None</SelectItem>
                                             {hospitals?.map(hospital => (
-                                                <SelectItem key={hospital?.id} value={hospital?.id}>
-                                                    {hospital?.name}
+                                                <SelectItem key={hospital.id} value={hospital.id}>
+                                                    {hospital.name}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
