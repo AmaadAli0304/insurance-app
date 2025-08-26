@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
@@ -28,7 +29,7 @@ export default function EditStaffPage() {
     const params = useParams();
     const id = params.id as string;
     const [staff, setStaff] = useState<Staff | null>(null);
-    const [hospitals, setHospitals] = useState<Pick<Hospital, 'id' | 'name'>[]>([]);
+    const [hospitals, setHospitals] = useState<Pick<Hospital, 'id' | 'name'>[] | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [state, formAction] = useActionState(handleUpdateStaff, { message: "", type: "initial" });
@@ -46,8 +47,7 @@ export default function EditStaffPage() {
                 ]);
                 
                 if (fetchedStaff) {
-                     const validHospitals = hospitalList.filter(h => h.id);
-                     if (fetchedStaff.hospitalId && !validHospitals.some(h => h.id === fetchedStaff.hospitalId)) {
+                     if (fetchedStaff.hospitalId && !hospitalList.some(h => h.id === fetchedStaff.hospitalId)) {
                         toast({
                             title: "Data Inconsistency",
                             description: "The previously assigned hospital could not be found and has been unassigned.",
@@ -57,7 +57,7 @@ export default function EditStaffPage() {
                     }
                     setStaff(fetchedStaff);
                     setSelectedHospitalId(fetchedStaff.hospitalId || '');
-                    setHospitals(validHospitals);
+                    setHospitals(hospitalList);
                 } else {
                     setError("Staff member not found.");
                 }
@@ -122,7 +122,7 @@ export default function EditStaffPage() {
                         <p className="text-destructive">{error}</p>
                     </CardContent>
                 </Card>
-            ) : staff ? (
+            ) : staff && hospitals ? (
                 <Card>
                     <CardHeader>
                         <CardTitle>Update Staff Details</CardTitle>
@@ -153,7 +153,7 @@ export default function EditStaffPage() {
                                     <Label htmlFor="hospitalId">Assign Hospital</Label>
                                     <input type="hidden" name="hospitalId" value={selectedHospitalId} />
                                     <Select value={selectedHospitalId} onValueChange={setSelectedHospitalId}>
-                                        <SelectTrigger disabled={isLoading}>
+                                        <SelectTrigger>
                                             <SelectValue placeholder="Select a hospital" />
                                         </SelectTrigger>
                                         <SelectContent>

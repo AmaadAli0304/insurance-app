@@ -50,7 +50,7 @@ export async function getHospitalsForForm(): Promise<Pick<Hospital, 'id' | 'name
   try {
     await poolConnect;
     const result = await pool.request().query('SELECT id, name FROM hospitals');
-    return result.recordset;
+    return result.recordset.filter(h => h.id);
   } catch (error) {
     const dbError = error as Error;
     throw new Error(`Error fetching hospitals for form: ${dbError.message}`);
