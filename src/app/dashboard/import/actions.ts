@@ -185,3 +185,39 @@ export async function handleCreateHospitalTable(prevState: { message: string, ty
     return { message: `Error creating Hospital table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
+
+export async function handleCreatePatientsTable(prevState: { message: string, type?: string }, formData: FormData) {
+  try {
+    await poolConnect;
+    const request = pool.request();
+    const createPatientsTableQuery = `
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='patients' and xtype='U')
+      BEGIN
+        CREATE TABLE patients (
+          id NVARCHAR(255) PRIMARY KEY,
+          name NVARCHAR(255),
+          birth_date DATE,
+          gender NVARCHAR(50),
+          email NVARCHAR(255),
+          phone NVARCHAR(50),
+          address NVARCHAR(MAX),
+          company_id NVARCHAR(255),
+          policy_number NVARCHAR(255),
+          member_id NVARCHAR(255),
+          policy_start_date DATE,
+          policy_end_date DATE,
+          report_path NVARCHAR(MAX),
+          id_path NVARCHAR(MAX),
+          card_path NVARCHAR(MAX),
+          package_path NVARCHAR(MAX)
+        );
+      END
+    `;
+    await request.query(createPatientsTableQuery);
+    return { message: "Patients table created successfully or already exists.", type: "success" };
+  } catch (error) {
+    const dbError = error as { message?: string };
+    console.error('Error creating Patients table:', dbError);
+    return { message: `Error creating Patients table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+  }
+}
