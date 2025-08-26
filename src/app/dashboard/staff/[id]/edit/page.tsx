@@ -47,20 +47,13 @@ export default function EditStaffPage() {
                 ]);
                 
                 if (fetchedStaff) {
-                     if (fetchedStaff.hospitalId && !hospitalList.some(h => h.id === fetchedStaff.hospitalId)) {
-                        toast({
-                            title: "Data Inconsistency",
-                            description: "The previously assigned hospital could not be found and has been unassigned.",
-                            variant: "destructive"
-                        });
-                        fetchedStaff.hospitalId = ""; 
-                    }
                     setStaff(fetchedStaff);
                     setSelectedHospitalId(fetchedStaff.hospitalId || '');
-                    setHospitals(hospitalList);
                 } else {
                     setError("Staff member not found.");
                 }
+                setHospitals(hospitalList);
+
             } catch (err) {
                 const dbError = err as Error;
                 setError(dbError.message);
@@ -69,7 +62,7 @@ export default function EditStaffPage() {
             }
         }
         fetchData();
-    }, [id, toast]);
+    }, [id]);
 
 
     useEffect(() => {
@@ -151,16 +144,15 @@ export default function EditStaffPage() {
                                 </div>
                                  <div className="space-y-2">
                                     <Label htmlFor="hospitalId">Assign Hospital</Label>
-                                    <input type="hidden" name="hospitalId" value={selectedHospitalId} />
-                                    <Select value={selectedHospitalId} onValueChange={setSelectedHospitalId}>
+                                    <Select name="hospitalId" value={selectedHospitalId} onValueChange={setSelectedHospitalId}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select a hospital" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="">None</SelectItem>
-                                            {hospitals.map(hospital => (
-                                                <SelectItem key={hospital.id} value={hospital.id}>
-                                                    {hospital.name}
+                                            {hospitals?.map(hospital => (
+                                                <SelectItem key={hospital?.id} value={hospital?.id}>
+                                                    {hospital?.name}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>

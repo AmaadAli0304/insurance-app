@@ -64,18 +64,27 @@ export async function getStaffById(id: string): Promise<Staff | null> {
     const staffResult = await pool.request()
           .input('uid', sql.NVarChar, id)
           .query(`
-            SELECT u.*, u.uid as id, h.id as hospitalId, h.name as hospitalName
-            FROM users u
-            LEFT JOIN hospital_staff hs ON u.uid = hs.staff_id
-            LEFT JOIN hospitals h ON hs.hospital_id = h.id
-            WHERE u.uid = @uid
+            SELECT *, uid as id
+            FROM users
+            WHERE uid = @uid AND role = 'Hospital Staff'
           `);
 
     if (staffResult.recordset.length === 0) {
       return null;
     }
     
-    return staffResult.recordset[0] as Staff;
+    const staff = staffResult.recordset[0] as Staff;
+    
+    // Fetch hospital assignment separately
+    const hospitalAssignmentResult = await pool.request()
+        .input('staff_id', sql.NVarChar, id)
+        .query('SELECT hospital_id FROM hospital_staff WHERE staff_id = @staff_id');
+        
+    if (hospitalAssignmentResult.recordset.length > 0) {
+        staff.hospitalId = hospitalAssignmentResult.recordset[0].hospital_id;
+    }
+
+    return staff;
 
   } catch (error) {
     console.error('Error fetching staff by ID:', error);
@@ -196,25 +205,26 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
         `endDate = @endDate`,
         `shiftTime = @shiftTime`,
         `status = @status`
-    ];
+    ].filter(Boolean);
     
+    request
+      .input('uid', sql.NVarChar, staffId)
+      .input('name', sql.NVarChar, data.name)
+      .input('email', sql.NVarChar, data.email)
+      .input('number', sql.NVarChar, data.number)
+      .input('designation', sql.NVarChar, data.designation)
+      .input('department', sql.NVarChar, data.department)
+      .input('joiningDate', data.joiningDate ? sql.Date : sql.Date, data.joiningDate ? new Date(data.joiningDate) : null)
+      .input('endDate', data.endDate ? sql.Date : sql.Date, data.endDate ? new Date(data.endDate) : null)
+      .input('shiftTime', sql.NVarChar, data.shiftTime)
+      .input('status', sql.NVarChar, data.status);
+
     if (data.password) {
         setClauses.push('password = @password');
         request.input('password', sql.NVarChar, data.password);
     }
     
-    const result = await request
-        .input('uid', sql.NVarChar, staffId)
-        .input('name', sql.NVarChar, data.name)
-        .input('email', sql.NVarChar, data.email)
-        .input('number', sql.NVarChar, data.number)
-        .input('designation', sql.NVarChar, data.designation)
-        .input('department', sql.NVarChar, data.department)
-        .input('joiningDate', data.joiningDate ? sql.Date : sql.Date, data.joiningDate ? new Date(data.joiningDate) : null)
-        .input('endDate', data.endDate ? sql.Date : sql.Date, data.endDate ? new Date(data.endDate) : null)
-        .input('shiftTime', sql.NVarChar, data.shiftTime)
-        .input('status', sql.NVarChar, data.status)
-        .query(`UPDATE users SET ${setClauses.join(', ')} WHERE uid = @uid`);
+    const result = await request.query(`UPDATE users SET ${setClauses.join(', ')} WHERE uid = @uid`);
 
     if (result.rowsAffected[0] === 0) {
       await transaction.rollback();
