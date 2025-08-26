@@ -46,7 +46,23 @@ export async function getPatientById(id: string): Promise<Patient | null> {
     await poolConnect;
     const result = await pool.request()
       .input('id', sql.NVarChar, id)
-      .query(`SELECT *, name as fullName, phone as phoneNumber, company_id as companyId, birth_date as dateOfBirth, policy_number as policyNumber, member_id as memberId, policy_start_date as policyStartDate, policy_end_date as policyEndDate FROM patients WHERE id = @id`);
+      .query(`
+        SELECT 
+          p.*, 
+          p.name as fullName, 
+          p.phone as phoneNumber, 
+          p.company_id as companyId,
+          c.name as companyName,
+          p.birth_date as dateOfBirth, 
+          p.policy_number as policyNumber, 
+          p.member_id as memberId, 
+          p.policy_start_date as policyStartDate, 
+          p.policy_end_date as policyEndDate 
+        FROM patients p
+        LEFT JOIN companies c ON p.company_id = c.id
+        WHERE p.id = @id
+      `);
+      
     if (result.recordset.length === 0) {
       return null;
     }
@@ -114,7 +130,6 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
     const dbError = error as { message?: string };
     return { message: `Database Error: ${dbError.message || 'Unknown error'}`, type: "error" };
   }
-
   revalidatePath('/dashboard/patients');
   return { message: "Patient added successfully.", type: "success" };
 }
@@ -172,8 +187,6 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
     const dbError = error as { message?: string };
     return { message: `Database Error: ${dbError.message || 'Unknown error'}`, type: "error" };
   }
-  
-  revalidatePath('/dashboard/patients');
   redirect(`/dashboard/patients/${id}/view`);
 }
 

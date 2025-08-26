@@ -90,7 +90,7 @@ export default function ViewPatientPage() {
                     <CardTitle>Insurance Information</CardTitle>
                 </CardHeader>
                 <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6">
-                    <DetailItem label="Insurance Company ID" value={patient.companyId} />
+                    <DetailItem label="Insurance Company" value={patient.companyName} />
                     <DetailItem label="Policy Number" value={patient.policyNumber} />
                     <DetailItem label="Member ID" value={patient.memberId} />
                     <DetailItem label="Policy Start Date" value={formatDate(patient.policyStartDate)} />
