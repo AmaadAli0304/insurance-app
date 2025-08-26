@@ -63,7 +63,6 @@ export default function EditPatientPage() {
      useEffect(() => {
         if (state.type === 'success') {
             toast({ title: "Patient", description: state.message, variant: "success" });
-            // router.push is handled by redirect in server action
         } else if (state.type === 'error') {
             toast({ title: "Error", description: state.message, variant: "destructive" });
         }
