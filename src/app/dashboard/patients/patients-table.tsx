@@ -81,55 +81,63 @@ export function PatientsTable({ patients, onPatientDeleted }: PatientsTableProps
         </TableRow>
       </TableHeader>
       <TableBody>
-        {patients.map(p => (
-          <TableRow key={p.id} onClick={() => handleRowClick(p.id)} className="cursor-pointer">
-            <TableCell className="font-medium">{p.fullName}</TableCell>
-            <TableCell>{p.companyName || 'N/A'}</TableCell>
-            <TableCell>{p.email}</TableCell>
-            <TableCell>{p.phoneNumber}</TableCell>
-            <TableCell onClick={(e) => e.stopPropagation()}>
-              <AlertDialog>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/patients/${p.id}/view`} className="flex items-center gap-2 cursor-pointer">
-                            <Eye className="h-4 w-4" /> View Details
+        {patients.length > 0 ? (
+          patients.map(p => (
+            <TableRow key={p.id} onClick={() => handleRowClick(p.id)} className="cursor-pointer">
+              <TableCell className="font-medium">{p.fullName}</TableCell>
+              <TableCell>{p.companyName || 'N/A'}</TableCell>
+              <TableCell>{p.email}</TableCell>
+              <TableCell>{p.phoneNumber}</TableCell>
+              <TableCell onClick={(e) => e.stopPropagation()}>
+                <AlertDialog>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem asChild>
+                          <Link href={`/dashboard/patients/${p.id}/view`} className="flex items-center gap-2 cursor-pointer">
+                              <Eye className="h-4 w-4" /> View Details
+                          </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href={`/dashboard/patients/${p.id}/edit`} className="flex items-center gap-2 cursor-pointer">
+                          <Edit className="h-4 w-4" /> Edit
                         </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href={`/dashboard/patients/${p.id}/edit`} className="flex items-center gap-2 cursor-pointer">
-                        <Edit className="h-4 w-4" /> Edit
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                     <AlertDialogTrigger asChild>
-                       <DropdownMenuItem className="text-destructive flex items-center gap-2 cursor-pointer" onSelect={(e) => e.preventDefault()}>
-                         <Trash className="h-4 w-4" /> Delete
-                       </DropdownMenuItem>
-                     </AlertDialogTrigger>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete the patient's record.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                     <form action={formAction} ref={formRef}>
-                        <input type="hidden" name="id" value={p.id} />
-                        <DeleteButton />
-                     </form>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                       <AlertDialogTrigger asChild>
+                         <DropdownMenuItem className="text-destructive flex items-center gap-2 cursor-pointer" onSelect={(e) => e.preventDefault()}>
+                           <Trash className="h-4 w-4" /> Delete
+                         </DropdownMenuItem>
+                       </AlertDialogTrigger>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the patient's record.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                       <form action={formAction} ref={formRef}>
+                          <input type="hidden" name="id" value={p.id} />
+                          <DeleteButton />
+                       </form>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </TableCell>
+            </TableRow>
+          ))
+        ) : (
+          <TableRow>
+            <TableCell colSpan={5} className="h-24 text-center">
+              No data found
             </TableCell>
           </TableRow>
-        ))}
+        )}
       </TableBody>
     </Table>
   );
