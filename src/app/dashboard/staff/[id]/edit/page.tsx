@@ -46,7 +46,8 @@ export default function EditStaffPage() {
                 ]);
                 
                 if (fetchedStaff) {
-                    if (fetchedStaff.hospitalId && !hospitalList.some(h => h.id === fetchedStaff.hospitalId)) {
+                     const validHospitals = hospitalList.filter(h => h.id);
+                     if (fetchedStaff.hospitalId && !validHospitals.some(h => h.id === fetchedStaff.hospitalId)) {
                         toast({
                             title: "Data Inconsistency",
                             description: "The previously assigned hospital could not be found and has been unassigned.",
@@ -56,11 +57,10 @@ export default function EditStaffPage() {
                     }
                     setStaff(fetchedStaff);
                     setSelectedHospitalId(fetchedStaff.hospitalId || '');
+                    setHospitals(validHospitals);
                 } else {
                     setError("Staff member not found.");
                 }
-
-                setHospitals(hospitalList);
             } catch (err) {
                 const dbError = err as Error;
                 setError(dbError.message);
