@@ -8,7 +8,6 @@ import { AlertTriangle, FilePlus2 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { getFields, handleAddField, getCompaniesForForm } from "./actions"
 import type { Field } from './actions'
-import { CompaniesTable } from "../companies/companies-table";
 import { FieldsTable } from "./fields-table"
 import { useFormStatus } from "react-dom"
 import { Label } from "@/components/ui/label"
