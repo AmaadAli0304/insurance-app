@@ -33,9 +33,7 @@ export function MainNav() {
       { href: '/dashboard/companies', label: 'Companies', icon: Factory },
       { href: '/dashboard/staff', label: 'Staff', icon: Users },
       { href: '/dashboard/patients', label: 'Patients', icon: Users },
-      { href: '/dashboard/claims', label: 'Claims', icon: HandCoins },
       { href: '/dashboard/fields', label: 'Fields', icon: FilePlus2 },
-      { href: '/dashboard/import', label: 'Import', icon: Upload },
     ],
   };
 
