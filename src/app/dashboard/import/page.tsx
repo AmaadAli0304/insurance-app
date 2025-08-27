@@ -7,9 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleImportCompanies, handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable } from "./actions";
+import { handleImportCompanies, handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable } from "./actions";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2 } from "lucide-react";
+import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus } from "lucide-react";
 
 function SubmitImportButton() {
     const { pending } = useFormStatus();
@@ -71,6 +71,16 @@ function SubmitFieldsTableButton() {
     );
 }
 
+function SubmitFieldOptionsTableButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending} variant="secondary">
+             <ListPlus className="mr-2 h-4 w-4" />
+            {pending ? "Creating..." : "Create Field Options Table"}
+        </Button>
+    );
+}
+
 
 export default function ImportPage() {
     const [importState, importAction] = useActionState(handleImportCompanies, { message: "", type: undefined });
@@ -79,6 +89,7 @@ export default function ImportPage() {
     const [createHospitalTableState, createHospitalTableAction] = useActionState(handleCreateHospitalTable, { message: "", type: undefined });
     const [createPatientsTableState, createPatientsTableAction] = useActionState(handleCreatePatientsTable, { message: "", type: undefined });
     const [createFieldsTableState, createFieldsTableAction] = useActionState(handleCreateFieldsTable, { message: "", type: undefined });
+    const [createFieldOptionsTableState, createFieldOptionsTableAction] = useActionState(handleCreateFieldOptionsTable, { message: "", type: undefined });
 
 
     const { toast } = useToast();
@@ -181,6 +192,22 @@ export default function ImportPage() {
         }
     }, [createFieldsTableState, toast]);
 
+    useEffect(() => {
+        if (createFieldOptionsTableState.type === 'success') {
+            toast({
+                title: "Database Action",
+                description: createFieldOptionsTableState.message,
+                variant: "success",
+            });
+        } else if (createFieldOptionsTableState.type === 'error') {
+            toast({
+                title: "Database Error",
+                description: createFieldOptionsTableState.message,
+                variant: "destructive"
+            });
+        }
+    }, [createFieldOptionsTableState, toast]);
+
 
     return (
         <div className="space-y-6">
@@ -229,6 +256,9 @@ export default function ImportPage() {
                     </form>
                     <form action={createFieldsTableAction}>
                         <SubmitFieldsTableButton />
+                    </form>
+                     <form action={createFieldOptionsTableAction}>
+                        <SubmitFieldOptionsTableButton />
                     </form>
                 </CardContent>
             </Card>

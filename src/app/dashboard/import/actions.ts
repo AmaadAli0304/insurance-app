@@ -248,3 +248,28 @@ export async function handleCreateFieldsTable(prevState: { message: string, type
     return { message: `Error creating Fields table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
+
+export async function handleCreateFieldOptionsTable(prevState: { message: string, type?: string }, formData: FormData) {
+  try {
+    await poolConnect;
+    const request = pool.request();
+    const createFieldOptionsTableQuery = `
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='field_options' and xtype='U')
+      BEGIN
+        CREATE TABLE field_options (
+          id INT PRIMARY KEY IDENTITY,
+          field_id INT NOT NULL,
+          option_label VARCHAR(255) NOT NULL,
+          option_value VARCHAR(255) NOT NULL,
+          option_order INT NOT NULL
+        );
+      END
+    `;
+    await request.query(createFieldOptionsTableQuery);
+    return { message: "Field options table created successfully or already exists.", type: "success" };
+  } catch (error) {
+    const dbError = error as { message?: string };
+    console.error('Error creating Field Options table:', dbError);
+    return { message: `Error creating Field Options table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+  }
+}
