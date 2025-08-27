@@ -232,10 +232,11 @@ export async function handleCreateFieldsTable(prevState: { message: string, type
         CREATE TABLE fields (
           id INT IDENTITY(1,1) PRIMARY KEY,
           name NVARCHAR(255) NOT NULL,
-          required BIT NOT NULL,
           type NVARCHAR(50) NOT NULL,
+          required BIT NOT NULL,
+          "order" INT NOT NULL,
           company_id NVARCHAR(255) NOT NULL,
-          CONSTRAINT UQ_field_name_company_id UNIQUE (name, company_id)
+          parent_id INT
         );
       END
     `;
