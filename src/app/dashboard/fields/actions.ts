@@ -20,6 +20,7 @@ export type Field = {
     type: string,
     required: boolean,
     companyId: string,
+    companyName?: string;
 }
 
 

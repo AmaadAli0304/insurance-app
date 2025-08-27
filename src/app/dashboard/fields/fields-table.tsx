@@ -24,7 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/components/auth-provider';
 
 interface FieldsTableProps {
-  fields: (Field & { companyName?: string })[];
+  fields: Field[];
   onFieldDeleted: () => void;
 }
 
@@ -79,7 +79,7 @@ export function FieldsTable({ fields, onFieldDeleted }: FieldsTableProps) {
         {fields.length > 0 ? (
           fields.map(field => (
             <TableRow key={field.id}>
-              {role === 'Admin' && <TableCell>{(field as any).companyName}</TableCell>}
+              {role === 'Admin' && <TableCell>{field.companyName}</TableCell>}
               <TableCell className="font-medium">{field.name}</TableCell>
               <TableCell>
                 <Badge variant="secondary">{field.type}</Badge>
@@ -103,7 +103,7 @@ export function FieldsTable({ fields, onFieldDeleted }: FieldsTableProps) {
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                        <form action={formAction} ref={formRef}>
-                          <input type="hidden" name="id" value={field.id} />
+                          <input type="hidden" name="id" value={String(field.id)} />
                           <DeleteButton />
                        </form>
                     </AlertDialogFooter>

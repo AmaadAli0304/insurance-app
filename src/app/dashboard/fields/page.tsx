@@ -1,6 +1,7 @@
+
 "use client"
 
-import { useState, useEffect, useCallback, useActionState } from "react";
+import { useState, useEffect, useCallback, useActionState, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, FilePlus2 } from "lucide-react"
@@ -37,6 +38,8 @@ export default function FieldsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [state, formAction] = useActionState(handleAddField, { message: "", type: "initial" });
   const { toast } = useToast();
+  const formRef = useRef<HTMLFormElement>(null);
+
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -66,6 +69,7 @@ export default function FieldsPage() {
   useEffect(() => {
       if (state.type === 'success') {
           toast({ title: "Field", description: state.message, variant: "success" });
+          formRef.current?.reset();
           loadData(); // Refresh the list
       } else if (state.type === 'error') {
           toast({ title: "Error", description: state.message, variant: "destructive" });
@@ -81,7 +85,7 @@ export default function FieldsPage() {
                     <CardDescription>Define a new field for use in your forms.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form action={formAction} className="space-y-4">
+                    <form action={formAction} ref={formRef} className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="name">Field Name <span className="text-destructive">*</span></Label>
                             <Input id="name" name="name" placeholder="e.g., Clinical Notes" required />
@@ -117,7 +121,7 @@ export default function FieldsPage() {
                                 </Select>
                             </div>
                         ) : (
-                             <input type="hidden" name="companyId" value={user?.companyId} />
+                             <input type="hidden" name="companyId" value={user?.companyId || ''} />
                         )}
                         <div className="flex items-center space-x-2 pt-2">
                              <Switch id="required" name="required" />
