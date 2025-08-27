@@ -68,6 +68,7 @@ export function FieldsTable({ fields, onFieldDeleted }: FieldsTableProps) {
     <Table>
       <TableHeader>
         <TableRow>
+          <TableHead>ID</TableHead>
           <TableHead>Company</TableHead>
           <TableHead>Name</TableHead>
           <TableHead>Type</TableHead>
@@ -79,6 +80,7 @@ export function FieldsTable({ fields, onFieldDeleted }: FieldsTableProps) {
         {fields.length > 0 ? (
           fields.map(field => (
             <TableRow key={field.id}>
+              <TableCell>{field.id}</TableCell>
               <TableCell>{field.companyName}</TableCell>
               <TableCell className="font-medium">{field.name}</TableCell>
               <TableCell>
@@ -114,7 +116,7 @@ export function FieldsTable({ fields, onFieldDeleted }: FieldsTableProps) {
           ))
         ) : (
           <TableRow>
-            <TableCell colSpan={5} className="h-24 text-center">
+            <TableCell colSpan={6} className="h-24 text-center">
               No fields defined yet.
             </TableCell>
           </TableRow>
