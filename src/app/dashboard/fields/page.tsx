@@ -61,14 +61,7 @@ export default function FieldsPage() {
         ]);
         
         setFields(fieldData);
-
-        if (role === 'Admin') {
-            setCompanies(companyList);
-        } else if (role === 'Company Admin') {
-            // For Company Admin, filter the full list to find their company.
-            const userCompany = companyList.find(c => c.id === user.companyId);
-            setCompanies(userCompany ? [userCompany] : []);
-        }
+        setCompanies(companyList);
 
     } catch (e: any) {
         setError(e.message);
@@ -131,7 +124,7 @@ export default function FieldsPage() {
                                 name="companyId" 
                                 required 
                                 defaultValue={role === 'Company Admin' ? user?.companyId : undefined}
-                                disabled={isLoading || (role === 'Company Admin' && companies.length === 1)}
+                                disabled={isLoading}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select a company" />
