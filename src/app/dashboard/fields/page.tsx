@@ -105,6 +105,7 @@ export default function FieldsPage() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="Text">Text</SelectItem>
+                                    <SelectItem value="Date">Date</SelectItem>
                                     <SelectItem value="Dropdown">Dropdown</SelectItem>
                                     <SelectItem value="Radio">Radio</SelectItem>
                                     <SelectItem value="Checkbox">Checkbox</SelectItem>
