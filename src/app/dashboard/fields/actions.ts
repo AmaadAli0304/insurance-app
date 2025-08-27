@@ -14,6 +14,7 @@ const fieldSchema = z.object({
   companyId: z.string().min(1, "Company ID is required."),
   order: z.coerce.number().int("Order must be a whole number."),
   parent_id: z.coerce.number().int("Parent ID must be a number").optional().nullable(),
+  options: z.string().optional(),
 });
 
 export type Field = {
@@ -60,6 +61,7 @@ export async function handleAddField(prevState: { message: string, type?: string
     companyId: formData.get("companyId"),
     order: formData.get("order"),
     parent_id: formData.get("parent_id") || null,
+    options: formData.get("options") as string,
   });
   
   if (!validatedFields.success) {
@@ -68,25 +70,57 @@ export async function handleAddField(prevState: { message: string, type?: string
   }
   
   const { data } = validatedFields;
+  let transaction;
 
   try {
     await poolConnect;
-    const request = pool.request()
+    transaction = new sql.Transaction(pool);
+    await transaction.begin();
+
+    const fieldRequest = new sql.Request(transaction)
       .input('name', sql.NVarChar, data.name)
       .input('type', sql.NVarChar, data.type)
       .input('required', sql.Bit, data.required)
       .input('company_id', sql.NVarChar, data.companyId)
-      .input('order', sql.Int, data.order)
+      .input('order', sql.Int, data.order);
       
     if (data.parent_id) {
-        request.input('parent_id', sql.Int, data.parent_id)
+        fieldRequest.input('parent_id', sql.Int, data.parent_id);
     } else {
-        request.input('parent_id', sql.Int, null)
+        fieldRequest.input('parent_id', sql.Int, null);
     }
       
-    await request.query(`INSERT INTO fields (name, type, required, company_id, "order", parent_id) VALUES (@name, @type, @required, @company_id, @order, @parent_id)`);
+    const result = await fieldRequest.query(`
+        INSERT INTO fields (name, type, required, company_id, "order", parent_id) 
+        OUTPUT INSERTED.id
+        VALUES (@name, @type, @required, @company_id, @order, @parent_id)
+    `);
+
+    const fieldId = result.recordset[0].id;
+
+    if (data.options && (data.type === 'Dropdown' || data.type === 'Radio' || data.type === 'Checkbox')) {
+        const options = JSON.parse(data.options);
+        if (Array.isArray(options) && options.length > 0) {
+            for (const [index, option] of options.entries()) {
+                if (option.label && option.value) {
+                    const optionRequest = new sql.Request(transaction);
+                    await optionRequest
+                        .input('field_id', sql.Int, fieldId)
+                        .input('option_label', sql.NVarChar, option.label)
+                        .input('option_value', sql.NVarChar, option.value)
+                        .input('option_order', sql.Int, index)
+                        .query(`INSERT INTO field_options (field_id, option_label, option_value, option_order) VALUES (@field_id, @option_label, @option_value, @option_order)`);
+                }
+            }
+        }
+    }
+
+    await transaction.commit();
 
   } catch (error) {
+    if (transaction) {
+      await transaction.rollback();
+    }
     console.error('Error adding field:', error);
     const dbError = error as { message?: string };
     if (dbError.message?.includes('Violation of UNIQUE KEY')) {

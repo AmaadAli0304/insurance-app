@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback, useActionState, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { AlertTriangle, FilePlus2 } from "lucide-react"
+import { AlertTriangle, FilePlus2, Trash2 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { getFields, handleAddField, getCompaniesForForm } from "./actions"
 import type { Field } from './actions'
@@ -39,7 +39,24 @@ export default function FieldsPage() {
   const [state, formAction] = useActionState(handleAddField, { message: "", type: "initial" });
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
+  
+  const [fieldType, setFieldType] = useState("Text");
+  const [options, setOptions] = useState([{ label: '', value: '' }]);
 
+  const handleAddOption = () => {
+    setOptions([...options, { label: '', value: '' }]);
+  };
+
+  const handleRemoveOption = (index: number) => {
+    const newOptions = options.filter((_, i) => i !== index);
+    setOptions(newOptions);
+  };
+
+  const handleOptionChange = (index: number, key: 'label' | 'value', value: string) => {
+    const newOptions = [...options];
+    newOptions[index][key] = value;
+    setOptions(newOptions);
+  };
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -69,6 +86,8 @@ export default function FieldsPage() {
       if (state.type === 'success') {
           toast({ title: "Field", description: state.message, variant: "success" });
           formRef.current?.reset();
+          setOptions([{ label: '', value: '' }]);
+          setFieldType("Text");
           loadData(); // Refresh the list
       } else if (state.type === 'error') {
           toast({ title: "Error", description: state.message, variant: "destructive" });
@@ -85,13 +104,14 @@ export default function FieldsPage() {
                 </CardHeader>
                 <CardContent>
                     <form action={formAction} ref={formRef} className="space-y-4">
+                        <input type="hidden" name="options" value={JSON.stringify(options)} />
                         <div className="space-y-2">
                             <Label htmlFor="name">Field Name <span className="text-destructive">*</span></Label>
                             <Input id="name" name="name" placeholder="e.g., Clinical Notes" required />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="type">Field Type <span className="text-destructive">*</span></Label>
-                             <Select name="type" required defaultValue="Text">
+                             <Select name="type" required defaultValue={fieldType} onValueChange={setFieldType}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select a type" />
                                 </SelectTrigger>
@@ -106,6 +126,35 @@ export default function FieldsPage() {
                                 </SelectContent>
                             </Select>
                         </div>
+                        
+                         {['Dropdown', 'Radio', 'Checkbox'].includes(fieldType) && (
+                            <div className="space-y-2 rounded-md border p-4">
+                                <Label className="font-semibold">Options</Label>
+                                {options.map((option, index) => (
+                                    <div key={index} className="flex items-center gap-2">
+                                        <Input
+                                            placeholder="Label"
+                                            value={option.label}
+                                            onChange={(e) => handleOptionChange(index, 'label', e.target.value)}
+                                            className="h-9"
+                                        />
+                                        <Input
+                                            placeholder="Value"
+                                            value={option.value}
+                                            onChange={(e) => handleOptionChange(index, 'value', e.target.value)}
+                                            className="h-9"
+                                        />
+                                        <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => handleRemoveOption(index)}>
+                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                        </Button>
+                                    </div>
+                                ))}
+                                <Button type="button" variant="outline" size="sm" onClick={handleAddOption} className="mt-2">
+                                    Add Option
+                                </Button>
+                            </div>
+                        )}
+
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="order">Order <span className="text-destructive">*</span></Label>
