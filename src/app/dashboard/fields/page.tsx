@@ -82,10 +82,8 @@ export default function FieldsPage() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="Text">Text</SelectItem>
-                                    <SelectItem value="Textarea">Textarea</SelectItem>
-                                    <SelectItem value="Number">Number</SelectItem>
-                                    <SelectItem value="Date">Date</SelectItem>
-                                    <SelectItem value="Switch">Switch</SelectItem>
+                                    <SelectItem value="Radio">Radio</SelectItem>
+                                    <SelectItem value="Checkbox">Checkbox</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
