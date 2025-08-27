@@ -31,7 +31,7 @@ function SubmitButton() {
 
 
 export default function FieldsPage() {
-  const { user, role } = useAuth();
+  const { user } = useAuth();
   const [fields, setFields] = useState<Field[]>([]);
   const [companies, setCompanies] = useState<Pick<Company, "id" | "name">[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -45,12 +45,6 @@ export default function FieldsPage() {
     setIsLoading(true);
     setError(null);
     try {
-        if (!user) {
-            setError("User context not available.");
-            setIsLoading(false);
-            return;
-        }
-
         const [fieldData, companyList] = await Promise.all([
             getFields(),
             getCompaniesForForm()
@@ -64,14 +58,12 @@ export default function FieldsPage() {
     } finally {
         setIsLoading(false);
     }
-  }, [user]);
+  }, []);
 
 
   useEffect(() => {
-    if (user) {
-        loadData();
-    }
-  }, [user, loadData]);
+    loadData();
+  }, [loadData]);
 
   useEffect(() => {
       if (state.type === 'success') {
@@ -114,9 +106,15 @@ export default function FieldsPage() {
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="order">Order <span className="text-destructive">*</span></Label>
-                            <Input id="order" name="order" type="number" placeholder="e.g., 1" required />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="order">Order <span className="text-destructive">*</span></Label>
+                                <Input id="order" name="order" type="number" placeholder="e.g., 1" required />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="parent_id">Parent ID</Label>
+                                <Input id="parent_id" name="parent_id" type="number" placeholder="e.g., 5" />
+                            </div>
                         </div>
                         
                         <div className="space-y-2">
@@ -124,7 +122,6 @@ export default function FieldsPage() {
                             <Select 
                                 name="companyId" 
                                 required 
-                                defaultValue={role === 'Company Admin' ? user?.companyId : undefined}
                                 disabled={isLoading}
                             >
                                 <SelectTrigger>

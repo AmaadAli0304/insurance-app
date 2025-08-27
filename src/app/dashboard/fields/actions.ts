@@ -13,6 +13,7 @@ const fieldSchema = z.object({
   required: z.boolean(),
   companyId: z.string().min(1, "Company ID is required."),
   order: z.coerce.number().int("Order must be a whole number."),
+  parent_id: z.coerce.number().int("Parent ID must be a number").optional().nullable(),
 });
 
 export type Field = {
@@ -58,6 +59,7 @@ export async function handleAddField(prevState: { message: string, type?: string
     required: formData.get("required") === "on",
     companyId: formData.get("companyId"),
     order: formData.get("order"),
+    parent_id: formData.get("parent_id") || null,
   });
   
   if (!validatedFields.success) {
@@ -69,13 +71,20 @@ export async function handleAddField(prevState: { message: string, type?: string
 
   try {
     await poolConnect;
-    await pool.request()
+    const request = pool.request()
       .input('name', sql.NVarChar, data.name)
       .input('type', sql.NVarChar, data.type)
       .input('required', sql.Bit, data.required)
       .input('company_id', sql.NVarChar, data.companyId)
       .input('order', sql.Int, data.order)
-      .query(`INSERT INTO fields (name, type, required, company_id, "order") VALUES (@name, @type, @required, @company_id, @order)`);
+      
+    if (data.parent_id) {
+        request.input('parent_id', sql.Int, data.parent_id)
+    } else {
+        request.input('parent_id', sql.Int, null)
+    }
+      
+    await request.query(`INSERT INTO fields (name, type, required, company_id, "order", parent_id) VALUES (@name, @type, @required, @company_id, @order, @parent_id)`);
 
   } catch (error) {
     console.error('Error adding field:', error);
