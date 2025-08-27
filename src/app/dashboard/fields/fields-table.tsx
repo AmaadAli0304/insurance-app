@@ -21,9 +21,10 @@ import {
 import type { Field } from "./actions";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/components/auth-provider';
 
 interface FieldsTableProps {
-  fields: Field[];
+  fields: (Field & { companyName?: string })[];
   onFieldDeleted: () => void;
 }
 
@@ -44,6 +45,7 @@ export function FieldsTable({ fields, onFieldDeleted }: FieldsTableProps) {
   const { toast } = useToast();
   const [state, formAction] = useActionState(handleDeleteField, { message: "", type: "initial" });
   const formRef = useRef<HTMLFormElement>(null);
+  const { role } = useAuth();
   
   useEffect(() => {
     if (state.type === 'success') {
@@ -66,6 +68,7 @@ export function FieldsTable({ fields, onFieldDeleted }: FieldsTableProps) {
     <Table>
       <TableHeader>
         <TableRow>
+          {role === 'Admin' && <TableHead>Company</TableHead>}
           <TableHead>Name</TableHead>
           <TableHead>Type</TableHead>
           <TableHead>Required</TableHead>
@@ -76,6 +79,7 @@ export function FieldsTable({ fields, onFieldDeleted }: FieldsTableProps) {
         {fields.length > 0 ? (
           fields.map(field => (
             <TableRow key={field.id}>
+              {role === 'Admin' && <TableCell>{(field as any).companyName}</TableCell>}
               <TableCell className="font-medium">{field.name}</TableCell>
               <TableCell>
                 <Badge variant="secondary">{field.type}</Badge>
@@ -110,7 +114,7 @@ export function FieldsTable({ fields, onFieldDeleted }: FieldsTableProps) {
           ))
         ) : (
           <TableRow>
-            <TableCell colSpan={4} className="h-24 text-center">
+            <TableCell colSpan={role === 'Admin' ? 5 : 4} className="h-24 text-center">
               No fields defined yet.
             </TableCell>
           </TableRow>

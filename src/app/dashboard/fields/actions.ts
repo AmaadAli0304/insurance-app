@@ -4,6 +4,8 @@
 import pool, { sql, poolConnect } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { z } from 'zod';
+import { Company } from "@/lib/types";
+
 
 const fieldSchema = z.object({
   name: z.string().min(1, "Field name is required."),
@@ -24,13 +26,34 @@ export type Field = {
 export async function getFields(companyId: string): Promise<Field[]> {
   try {
     await poolConnect;
-    const result = await pool.request()
-        .input('company_id', sql.NVarChar, companyId)
-        .query('SELECT * FROM fields WHERE company_id = @company_id ORDER BY name');
+    const request = pool.request();
+    let query = 'SELECT f.*, c.name as companyName FROM fields f JOIN companies c ON f.company_id = c.id';
+
+    // If a specific companyId is provided (for Company Admin), filter by it.
+    // If companyId is 'all' (for Admin), fetch all fields.
+    if (companyId !== 'all') {
+      query += ' WHERE f.company_id = @company_id';
+      request.input('company_id', sql.NVarChar, companyId);
+    }
+    
+    query += ' ORDER BY c.name, f.name';
+    
+    const result = await request.query(query);
     return result.recordset as Field[];
   } catch (error) {
     const dbError = error as Error;
     throw new Error(`Error fetching fields: ${dbError.message}`);
+  }
+}
+
+export async function getCompaniesForForm(): Promise<Pick<Company, 'id' | 'name'>[]> {
+  try {
+    await poolConnect;
+    const result = await pool.request().query('SELECT id, name FROM companies ORDER BY name');
+    return result.recordset;
+  } catch (error) {
+    const dbError = error as Error;
+    throw new Error(`Error fetching companies for form: ${dbError.message}`);
   }
 }
 

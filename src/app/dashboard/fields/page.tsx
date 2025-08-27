@@ -6,8 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, FilePlus2 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { getFields, handleAddField } from "./actions"
+import { getFields, handleAddField, getCompaniesForForm } from "./actions"
 import type { Field } from './actions'
+import { CompaniesTable } from "../companies/companies-table";
 import { FieldsTable } from "./fields-table"
 import { useFormStatus } from "react-dom"
 import { Label } from "@/components/ui/label"
@@ -16,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth-provider";
+import type { Company } from "@/lib/types";
 
 
 function SubmitButton() {
@@ -30,38 +32,47 @@ function SubmitButton() {
 
 
 export default function FieldsPage() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const [fields, setFields] = useState<Field[]>([]);
+  const [companies, setCompanies] = useState<Pick<Company, "id" | "name">[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [state, formAction] = useActionState(handleAddField, { message: "", type: "initial" });
   const { toast } = useToast();
 
-  const loadFields = useCallback(async () => {
-    if (!user?.companyId) return;
+  const loadData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const fieldData = await getFields(user.companyId);
-      setFields(fieldData);
+        const companyIdForFilter = role === 'Admin' ? 'all' : user?.companyId;
+        if (!companyIdForFilter) return;
+
+        const fieldData = await getFields(companyIdForFilter);
+        setFields(fieldData);
+
+        if (role === 'Admin') {
+            const companyList = await getCompaniesForForm();
+            setCompanies(companyList);
+        }
     } catch (e: any) {
-      setError(e.message);
+        setError(e.message);
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
-  }, [user?.companyId]);
+  }, [user?.companyId, role]);
+
 
   useEffect(() => {
-    loadFields();
-  }, [loadFields]);
+    loadData();
+  }, [loadData]);
 
   useEffect(() => {
       if (state.type === 'success') {
           toast({ title: "Field", description: state.message, variant: "success" });
-          loadFields(); // Refresh the list
+          loadData(); // Refresh the list
       } else if (state.type === 'error') {
           toast({ title: "Error", description: state.message, variant: "destructive" });
       }
-  }, [state, toast, loadFields]);
+  }, [state, toast, loadData]);
 
   return (
     <div className="grid md:grid-cols-3 gap-6">
@@ -73,7 +84,23 @@ export default function FieldsPage() {
                 </CardHeader>
                 <CardContent>
                     <form action={formAction} className="space-y-4">
-                        <input type="hidden" name="companyId" value={user?.companyId} />
+                        {role === 'Admin' ? (
+                            <div className="space-y-2">
+                                <Label htmlFor="companyId">Company <span className="text-destructive">*</span></Label>
+                                <Select name="companyId" required>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a company" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {companies.map(c => (
+                                            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        ) : (
+                             <input type="hidden" name="companyId" value={user?.companyId} />
+                        )}
                         <div className="space-y-2">
                             <Label htmlFor="name">Field Name <span className="text-destructive">*</span></Label>
                             <Input id="name" name="name" placeholder="e.g., Clinical Notes" required />
@@ -120,7 +147,7 @@ export default function FieldsPage() {
                             <AlertDescription>{error}</AlertDescription>
                         </Alert>
                     ) : (
-                        <FieldsTable fields={fields} onFieldDeleted={loadFields} />
+                        <FieldsTable fields={fields} onFieldDeleted={loadData} />
                     )}
                 </CardContent>
             </Card>
