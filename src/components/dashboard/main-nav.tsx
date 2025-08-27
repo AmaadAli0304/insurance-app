@@ -30,6 +30,7 @@ export function MainNav() {
     'Company Admin': [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/dashboard/company-hospitals', label: 'Hospitals', icon: Building },
+      { href: '/dashboard/companies', label: 'Companies', icon: Factory },
       { href: '/dashboard/staff', label: 'Staff', icon: Users },
       { href: '/dashboard/patients', label: 'Patients', icon: Users },
       { href: '/dashboard/claims', label: 'Claims', icon: HandCoins },
