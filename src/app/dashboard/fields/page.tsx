@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useCallback, useActionState } from "react";
@@ -83,23 +82,6 @@ export default function FieldsPage() {
                 </CardHeader>
                 <CardContent>
                     <form action={formAction} className="space-y-4">
-                        {role === 'Admin' ? (
-                            <div className="space-y-2">
-                                <Label htmlFor="companyId">Company <span className="text-destructive">*</span></Label>
-                                <Select name="companyId" required>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select a company" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {companies.map(c => (
-                                            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        ) : (
-                             <input type="hidden" name="companyId" value={user?.companyId} />
-                        )}
                         <div className="space-y-2">
                             <Label htmlFor="name">Field Name <span className="text-destructive">*</span></Label>
                             <Input id="name" name="name" placeholder="e.g., Clinical Notes" required />
@@ -120,6 +102,23 @@ export default function FieldsPage() {
                                 </SelectContent>
                             </Select>
                         </div>
+                        {role === 'Admin' ? (
+                            <div className="space-y-2">
+                                <Label htmlFor="companyId">Company <span className="text-destructive">*</span></Label>
+                                <Select name="companyId" required>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a company" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {companies.map(c => (
+                                            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        ) : (
+                             <input type="hidden" name="companyId" value={user?.companyId} />
+                        )}
                         <div className="flex items-center space-x-2 pt-2">
                              <Switch id="required" name="required" />
                              <Label htmlFor="required">Is this field required?</Label>
