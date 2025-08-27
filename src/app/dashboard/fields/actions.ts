@@ -9,20 +9,24 @@ const fieldSchema = z.object({
   name: z.string().min(1, "Field name is required."),
   type: z.enum(["Text", "Dropdown", "Radio", "Checkbox", "Number", "Textarea"]),
   required: z.boolean(),
+  companyId: z.string().min(1, "Company ID is required."),
 });
 
 export type Field = {
     id: number,
     name: string,
     type: string,
-    required: boolean
+    required: boolean,
+    companyId: string,
 }
 
 
-export async function getFields(): Promise<Field[]> {
+export async function getFields(companyId: string): Promise<Field[]> {
   try {
     await poolConnect;
-    const result = await pool.request().query('SELECT * FROM fields ORDER BY name');
+    const result = await pool.request()
+        .input('company_id', sql.NVarChar, companyId)
+        .query('SELECT * FROM fields WHERE company_id = @company_id ORDER BY name');
     return result.recordset as Field[];
   } catch (error) {
     const dbError = error as Error;
@@ -36,6 +40,7 @@ export async function handleAddField(prevState: { message: string, type?: string
     name: formData.get("name"),
     type: formData.get("type"),
     required: formData.get("required") === "on",
+    companyId: formData.get("companyId"),
   });
   
   if (!validatedFields.success) {
@@ -51,13 +56,14 @@ export async function handleAddField(prevState: { message: string, type?: string
       .input('name', sql.NVarChar, data.name)
       .input('type', sql.NVarChar, data.type)
       .input('required', sql.Bit, data.required)
-      .query(`INSERT INTO fields (name, type, required) VALUES (@name, @type, @required)`);
+      .input('company_id', sql.NVarChar, data.companyId)
+      .query(`INSERT INTO fields (name, type, required, company_id) VALUES (@name, @type, @required, @company_id)`);
 
   } catch (error) {
     console.error('Error adding field:', error);
     const dbError = error as { message?: string };
     if (dbError.message?.includes('Violation of UNIQUE KEY')) {
-        return { message: `A field with the name "${data.name}" already exists.`, type: 'error'};
+        return { message: `A field with the name "${data.name}" already exists for this company.`, type: 'error'};
     }
     return { message: `Database Error: ${dbError.message || 'Unknown error'}`, type: "error" };
   }

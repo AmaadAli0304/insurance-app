@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/components/auth-provider";
 
 
 function SubmitButton() {
@@ -29,6 +30,7 @@ function SubmitButton() {
 
 
 export default function FieldsPage() {
+  const { user } = useAuth();
   const [fields, setFields] = useState<Field[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,16 +38,17 @@ export default function FieldsPage() {
   const { toast } = useToast();
 
   const loadFields = useCallback(async () => {
+    if (!user?.companyId) return;
     setIsLoading(true);
     try {
-      const fieldData = await getFields();
+      const fieldData = await getFields(user.companyId);
       setFields(fieldData);
     } catch (e: any) {
       setError(e.message);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user?.companyId]);
 
   useEffect(() => {
     loadFields();
@@ -70,6 +73,7 @@ export default function FieldsPage() {
                 </CardHeader>
                 <CardContent>
                     <form action={formAction} className="space-y-4">
+                        <input type="hidden" name="companyId" value={user?.companyId} />
                         <div className="space-y-2">
                             <Label htmlFor="name">Field Name <span className="text-destructive">*</span></Label>
                             <Input id="name" name="name" placeholder="e.g., Clinical Notes" required />
