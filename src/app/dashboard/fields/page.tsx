@@ -46,13 +46,14 @@ export default function FieldsPage() {
     try {
         if (!user) {
             setError("User context not available.");
+            setIsLoading(false);
             return;
         }
 
-        const companyIdForFilter = role === 'Admin' ? undefined : user.companyId;
-        
+        const companyIdToFilter = role === 'Admin' ? null : user.companyId;
+
         const [fieldData, companyList] = await Promise.all([
-            getFields(companyIdForFilter),
+            getFields(companyIdToFilter),
             getCompaniesForForm()
         ]);
         
@@ -120,7 +121,7 @@ export default function FieldsPage() {
                                 name="companyId" 
                                 required 
                                 defaultValue={role === 'Company Admin' ? user?.companyId : undefined}
-                                disabled={isLoading || role === 'Company Admin'}
+                                disabled={isLoading}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select a company" />
