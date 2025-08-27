@@ -121,7 +121,7 @@ export default function FieldsPage() {
                                 name="companyId" 
                                 required 
                                 defaultValue={role === 'Company Admin' ? user?.companyId : undefined}
-                                disabled={isLoading}
+                                disabled={isLoading || (role === 'Company Admin' && companies.length === 1)}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select a company" />
