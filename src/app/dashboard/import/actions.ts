@@ -221,3 +221,27 @@ export async function handleCreatePatientsTable(prevState: { message: string, ty
     return { message: `Error creating Patients table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
+
+export async function handleCreateFieldsTable(prevState: { message: string, type?: string }, formData: FormData) {
+  try {
+    await poolConnect;
+    const request = pool.request();
+    const createFieldsTableQuery = `
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='fields' and xtype='U')
+      BEGIN
+        CREATE TABLE fields (
+          id INT IDENTITY(1,1) PRIMARY KEY,
+          name NVARCHAR(255) NOT NULL,
+          required BIT NOT NULL,
+          type NVARCHAR(50) NOT NULL
+        );
+      END
+    `;
+    await request.query(createFieldsTableQuery);
+    return { message: "Fields table created successfully or already exists.", type: "success" };
+  } catch (error) {
+    const dbError = error as { message?: string };
+    console.error('Error creating Fields table:', dbError);
+    return { message: `Error creating Fields table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+  }
+}
