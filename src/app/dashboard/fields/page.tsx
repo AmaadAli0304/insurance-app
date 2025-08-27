@@ -49,12 +49,8 @@ export default function FieldsPage() {
             return;
         }
 
-        const companyIdForFilter = role === 'Admin' ? 'all' : user.companyId;
-        if (!companyIdForFilter) {
-            setError("Could not determine company context.");
-            return;
-        }
-
+        const companyIdForFilter = role === 'Admin' ? undefined : user.companyId;
+        
         const [fieldData, companyList] = await Promise.all([
             getFields(companyIdForFilter),
             getCompaniesForForm()
@@ -124,7 +120,7 @@ export default function FieldsPage() {
                                 name="companyId" 
                                 required 
                                 defaultValue={role === 'Company Admin' ? user?.companyId : undefined}
-                                disabled={isLoading}
+                                disabled={isLoading || role === 'Company Admin'}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select a company" />

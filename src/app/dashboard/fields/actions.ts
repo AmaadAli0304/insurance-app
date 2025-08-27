@@ -24,15 +24,15 @@ export type Field = {
 }
 
 
-export async function getFields(companyId: string): Promise<Field[]> {
+export async function getFields(companyId?: string | null): Promise<Field[]> {
   try {
     await poolConnect;
     const request = pool.request();
     let query = 'SELECT f.*, c.name as companyName FROM fields f JOIN companies c ON f.company_id = c.id';
 
-    // If a specific companyId is provided (for Company Admin), filter by it.
-    // If companyId is 'all' (for Admin), fetch all fields.
-    if (companyId !== 'all') {
+    // If a specific companyId is provided, filter by it.
+    // Otherwise, fetch all fields (for Admin).
+    if (companyId) {
       query += ' WHERE f.company_id = @company_id';
       request.input('company_id', sql.NVarChar, companyId);
     }
