@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useCallback, useActionState, useRef } from "react";
@@ -63,7 +64,7 @@ export default function FieldsPage() {
     } finally {
         setIsLoading(false);
     }
-  }, [user, role]);
+  }, [user]);
 
 
   useEffect(() => {

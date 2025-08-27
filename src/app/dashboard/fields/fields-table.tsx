@@ -68,7 +68,7 @@ export function FieldsTable({ fields, onFieldDeleted }: FieldsTableProps) {
     <Table>
       <TableHeader>
         <TableRow>
-          {role === 'Admin' && <TableHead>Company</TableHead>}
+          <TableHead>Company</TableHead>
           <TableHead>Name</TableHead>
           <TableHead>Type</TableHead>
           <TableHead>Required</TableHead>
@@ -79,7 +79,7 @@ export function FieldsTable({ fields, onFieldDeleted }: FieldsTableProps) {
         {fields.length > 0 ? (
           fields.map(field => (
             <TableRow key={field.id}>
-              {role === 'Admin' && <TableCell>{field.companyName}</TableCell>}
+              <TableCell>{field.companyName}</TableCell>
               <TableCell className="font-medium">{field.name}</TableCell>
               <TableCell>
                 <Badge variant="secondary">{field.type}</Badge>
@@ -114,7 +114,7 @@ export function FieldsTable({ fields, onFieldDeleted }: FieldsTableProps) {
           ))
         ) : (
           <TableRow>
-            <TableCell colSpan={role === 'Admin' ? 5 : 4} className="h-24 text-center">
+            <TableCell colSpan={5} className="h-24 text-center">
               No fields defined yet.
             </TableCell>
           </TableRow>
