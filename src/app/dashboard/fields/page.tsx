@@ -49,10 +49,13 @@ export default function FieldsPage() {
         const fieldData = await getFields(companyIdForFilter || 'all');
         setFields(fieldData);
 
-        if (role === 'Admin' || role === 'Company Admin') {
-            const companyList = await getCompaniesForForm();
+        const companyList = await getCompaniesForForm();
+        if (role === 'Admin') {
             setCompanies(companyList);
+        } else if (role === 'Company Admin') {
+            setCompanies(companyList.filter(c => c.id === user?.companyId));
         }
+
     } catch (e: any) {
         setError(e.message);
     } finally {
@@ -62,8 +65,10 @@ export default function FieldsPage() {
 
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (user) {
+        loadData();
+    }
+  }, [user, loadData]);
 
   useEffect(() => {
       if (state.type === 'success') {
@@ -112,7 +117,7 @@ export default function FieldsPage() {
                                 name="companyId" 
                                 required 
                                 defaultValue={role === 'Company Admin' ? user?.companyId : undefined}
-                                disabled={role === 'Company Admin'}
+                                disabled={isLoading || (role === 'Company Admin' && companies.length === 1)}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select a company" />
