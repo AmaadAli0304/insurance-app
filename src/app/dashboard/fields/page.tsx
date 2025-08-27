@@ -42,16 +42,21 @@ export default function FieldsPage() {
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
-        const companyIdForFilter = role === 'Admin' ? 'all' : user?.companyId;
-        if (!companyIdForFilter && role !== 'Admin') {
-            setError("Could not determine company context.");
-            setIsLoading(false);
+        if (!user) {
+            setError("User context not available.");
             return;
-        };
+        }
+
+        const companyIdForFilter = role === 'Admin' ? 'all' : user.companyId;
+        if (!companyIdForFilter) {
+            setError("Could not determine company context.");
+            return;
+        }
 
         const [fieldData, companyList] = await Promise.all([
-            getFields(companyIdForFilter || 'all'),
+            getFields(companyIdForFilter),
             getCompaniesForForm()
         ]);
         
@@ -60,7 +65,9 @@ export default function FieldsPage() {
         if (role === 'Admin') {
             setCompanies(companyList);
         } else if (role === 'Company Admin') {
-            setCompanies(companyList.filter(c => c.id === user?.companyId));
+            // For Company Admin, filter the full list to find their company.
+            const userCompany = companyList.find(c => c.id === user.companyId);
+            setCompanies(userCompany ? [userCompany] : []);
         }
 
     } catch (e: any) {
@@ -68,7 +75,7 @@ export default function FieldsPage() {
     } finally {
         setIsLoading(false);
     }
-  }, [user?.companyId, role]);
+  }, [user, role]);
 
 
   useEffect(() => {
