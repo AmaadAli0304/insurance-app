@@ -69,8 +69,8 @@ export function FieldsTable({ fields, onFieldDeleted }: FieldsTableProps) {
       <TableHeader>
         <TableRow>
           <TableHead>ID</TableHead>
-          <TableHead>Company</TableHead>
           <TableHead>Name</TableHead>
+          <TableHead>Company</TableHead>
           <TableHead>Type</TableHead>
           <TableHead>Required</TableHead>
           <TableHead><span className="sr-only">Actions</span></TableHead>
@@ -81,8 +81,8 @@ export function FieldsTable({ fields, onFieldDeleted }: FieldsTableProps) {
           fields.map(field => (
             <TableRow key={field.id}>
               <TableCell>{field.id}</TableCell>
-              <TableCell>{field.companyName}</TableCell>
               <TableCell className="font-medium">{field.name}</TableCell>
+              <TableCell>{field.companyName}</TableCell>
               <TableCell>
                 <Badge variant="secondary">{field.type}</Badge>
               </TableCell>
