@@ -32,7 +32,6 @@ export function MainNav() {
       { href: '/dashboard/company-hospitals', label: 'Hospitals', icon: Building },
       { href: '/dashboard/companies', label: 'Companies', icon: Factory },
       { href: '/dashboard/staff', label: 'Staff', icon: Users },
-      { href: '/dashboard/patients', label: 'Patients', icon: Users },
       { href: '/dashboard/fields', label: 'Fields', icon: FilePlus2 },
     ],
   };
