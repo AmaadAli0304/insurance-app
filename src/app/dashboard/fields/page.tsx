@@ -50,10 +50,8 @@ export default function FieldsPage() {
             return;
         }
 
-        const companyIdToFilter = role === 'Admin' ? null : user.companyId;
-
         const [fieldData, companyList] = await Promise.all([
-            getFields(companyIdToFilter),
+            getFields(),
             getCompaniesForForm()
         ]);
         
@@ -121,7 +119,7 @@ export default function FieldsPage() {
                                 name="companyId" 
                                 required 
                                 defaultValue={role === 'Company Admin' ? user?.companyId : undefined}
-                                disabled={isLoading || (role === 'Company Admin' && companies.length === 1)}
+                                disabled={isLoading}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select a company" />
