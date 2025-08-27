@@ -114,6 +114,10 @@ export default function FieldsPage() {
                                 </SelectContent>
                             </Select>
                         </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="order">Order <span className="text-destructive">*</span></Label>
+                            <Input id="order" name="order" type="number" placeholder="e.g., 1" required />
+                        </div>
                         
                         <div className="space-y-2">
                             <Label htmlFor="companyId">Company <span className="text-destructive">*</span></Label>

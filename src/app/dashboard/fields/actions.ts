@@ -12,6 +12,7 @@ const fieldSchema = z.object({
   type: z.enum(["Text", "Dropdown", "Radio", "Checkbox", "Number", "Textarea", "Date"]),
   required: z.boolean(),
   companyId: z.string().min(1, "Company ID is required."),
+  order: z.coerce.number().int("Order must be a whole number."),
 });
 
 export type Field = {
@@ -56,6 +57,7 @@ export async function handleAddField(prevState: { message: string, type?: string
     type: formData.get("type"),
     required: formData.get("required") === "on",
     companyId: formData.get("companyId"),
+    order: formData.get("order"),
   });
   
   if (!validatedFields.success) {
@@ -72,7 +74,8 @@ export async function handleAddField(prevState: { message: string, type?: string
       .input('type', sql.NVarChar, data.type)
       .input('required', sql.Bit, data.required)
       .input('company_id', sql.NVarChar, data.companyId)
-      .query(`INSERT INTO fields (name, type, required, company_id) VALUES (@name, @type, @required, @company_id)`);
+      .input('order', sql.Int, data.order)
+      .query(`INSERT INTO fields (name, type, required, company_id, "order") VALUES (@name, @type, @required, @company_id, @order)`);
 
   } catch (error) {
     console.error('Error adding field:', error);
