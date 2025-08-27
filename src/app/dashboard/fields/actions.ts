@@ -7,7 +7,7 @@ import { z } from 'zod';
 
 const fieldSchema = z.object({
   name: z.string().min(1, "Field name is required."),
-  type: z.enum(["Text", "Radio", "Checkbox"]),
+  type: z.enum(["Text", "Dropdown", "Radio", "Checkbox", "Number", "Textarea"]),
   required: z.boolean(),
 });
 
