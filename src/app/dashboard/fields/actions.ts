@@ -8,7 +8,7 @@ import { Company } from "@/lib/types";
 
 const fieldSchema = z.object({
   name: z.string().min(1, "Field name is required."),
-  type: z.enum(["Text", "Dropdown", "Radio", "Checkbox", "Number", "Textarea", "Date"]),
+  type: z.enum(["Text", "Dropdown", "Radio", "Checkbox", "Number", "Textarea", "Date", "Label"]),
   required: z.boolean(),
   companyId: z.string().min(1, "Company ID is required."),
   order: z.coerce.number().int("Order must be a whole number."),
