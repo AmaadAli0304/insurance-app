@@ -44,12 +44,19 @@ export default function FieldsPage() {
     setIsLoading(true);
     try {
         const companyIdForFilter = role === 'Admin' ? 'all' : user?.companyId;
-        if (!companyIdForFilter && role !== 'Admin') return;
+        if (!companyIdForFilter && role !== 'Admin') {
+            setError("Could not determine company context.");
+            setIsLoading(false);
+            return;
+        };
 
-        const fieldData = await getFields(companyIdForFilter || 'all');
+        const [fieldData, companyList] = await Promise.all([
+            getFields(companyIdForFilter || 'all'),
+            getCompaniesForForm()
+        ]);
+        
         setFields(fieldData);
 
-        const companyList = await getCompaniesForForm();
         if (role === 'Admin') {
             setCompanies(companyList);
         } else if (role === 'Company Admin') {
@@ -128,9 +135,6 @@ export default function FieldsPage() {
                                     ))}
                                 </SelectContent>
                             </Select>
-                             {role === 'Company Admin' && (
-                                 <input type="hidden" name="companyId" value={user?.companyId || ''} />
-                            )}
                         </div>
                        
                         <div className="flex items-center space-x-2 pt-2">
