@@ -119,6 +119,8 @@ export default function FieldsPage() {
                                     <SelectItem value="Date">Date</SelectItem>
                                     <SelectItem value="Time">Time</SelectItem>
                                     <SelectItem value="Label">Label</SelectItem>
+                                    <SelectItem value="Price">Price</SelectItem>
+                                    <SelectItem value="Days">Days</SelectItem>
                                     <SelectItem value="Dropdown">Dropdown</SelectItem>
                                     <SelectItem value="Radio">Radio</SelectItem>
                                     <SelectItem value="Checkbox">Checkbox</SelectItem>
