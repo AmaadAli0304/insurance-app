@@ -1,4 +1,3 @@
-
 "use server";
 
 import pool, { sql, poolConnect } from "@/lib/db";
@@ -61,7 +60,7 @@ export async function handleAddField(prevState: { message: string, type?: string
     companyId: formData.get("companyId"),
     order: formData.get("order"),
     parent_id: formData.get("parent_id") || null,
-    options: formData.get("options") as string,
+    options: formData.get("options"),
   });
   
   if (!validatedFields.success) {
