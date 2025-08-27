@@ -30,7 +30,7 @@ export async function getFields(): Promise<Field[]> {
   try {
     await poolConnect;
     const request = pool.request();
-    let query = 'SELECT f.*, c.name as companyName FROM fields f JOIN companies c ON f.company_id = c.id ORDER BY c.name, f.name';
+    let query = 'SELECT f.*, c.name as companyName FROM fields f JOIN companies c ON f.company_id = c.id ORDER BY f.id';
     
     const result = await request.query(query);
     return result.recordset as Field[];
