@@ -9,7 +9,7 @@ import { z } from 'zod';
 
 const phoneRegex = new RegExp(/^\d{10}$/);
 
-const addPatientFormSchema = z.object({
+const basePatientFormSchema = z.object({
   // Patient Details
   name: z.string().min(1, "Full Name is required."),
   email_address: z.string().email("Invalid email address.").min(1, "Email is required."),
@@ -54,10 +54,25 @@ const addPatientFormSchema = z.object({
   treat_doc_number: z.string().regex(phoneRegex, "Treating doctor's contact must be 10 digits"),
   treat_doc_qualification: z.string().min(1, "Doctor’s qualification is required."),
   treat_doc_reg_no: z.string().min(1, "Doctor’s registration no. is required."),
-}).refine(data => data.age !== null && data.age !== undefined && data.age > 0 || (data.birth_date !== null && data.birth_date !== undefined && data.birth_date !== ''), {
-  message: "Either Age or Date of birth is required.",
-  path: ["age"], // you can also set it to birth_date
 });
+
+const refinement = (data: z.infer<typeof basePatientFormSchema>) => 
+  (data.age !== null && data.age !== undefined && data.age > 0) || 
+  (data.birth_date !== null && data.birth_date !== undefined && data.birth_date !== '');
+
+
+const addPatientFormSchema = basePatientFormSchema.refine(refinement, {
+  message: "Either Age or Date of birth is required.",
+  path: ["age"], 
+});
+
+const updatePatientFormSchema = basePatientFormSchema.extend({
+  id: z.string(), // Patient ID
+}).refine(refinement, {
+    message: "Either Age or Date of birth is required.",
+    path: ["age"],
+});
+
 
 export async function getPatients(): Promise<Patient[]> {
   try {
@@ -160,8 +175,8 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
     
     const patientId = patientResult.recordset[0].id;
     
-    if (!patientId) {
-        throw new Error("Failed to create patient record.");
+    if (!patientId || typeof patientId !== 'string') {
+        throw new Error("Failed to create patient record or retrieve ID.");
     }
 
     // Insert into admissions table
@@ -182,7 +197,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('payer_phone', sql.NVarChar, data.payer_phone)
       .input('tpa_id', sql.Int, data.tpa_id)
       .input('hospital_id', sql.NVarChar, data.hospital_id || null)
-      .input('patient_id', sql.NVarChar, `${patientId}`)
+      .input('patient_id', sql.NVarChar, patientId)
       .input('treat_doc_name', sql.NVarChar, data.treat_doc_name)
       .input('treat_doc_number', sql.NVarChar, data.treat_doc_number)
       .input('treat_doc_qualification', sql.NVarChar, data.treat_doc_qualification)
@@ -202,11 +217,6 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
   }
   return { message: "Patient added successfully.", type: "success" };
 }
-
-
-const updatePatientFormSchema = addPatientFormSchema.extend({
-  id: z.string(), // Patient ID
-});
 
 export async function handleUpdatePatient(prevState: { message: string, type?: string }, formData: FormData) {
   const validatedFields = updatePatientFormSchema.safeParse(Object.fromEntries(formData.entries()));
