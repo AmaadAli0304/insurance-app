@@ -8,14 +8,6 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
-const s3Client = new S3Client({
-    region: process.env.AWS_S3_REGION,
-    credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-    },
-});
-
 const phoneRegex = new RegExp(/^\d{10}$/);
 
 const basePatientFormSchema = z.object({
@@ -105,7 +97,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
     await poolConnect;
     const result = await pool.request()
       .input('id', sql.Int, Number(id))
-      .query(`
+       .query(`
         SELECT 
           p.id,
           p.name as fullName, 
@@ -120,6 +112,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
           p.employee_id,
           p.abha_id,
           p.health_id,
+          p.image_url,
           a.admission_id,
           a.relationship_policyholder,
           a.policy_number as policyNumber,
@@ -164,11 +157,19 @@ export async function getPatientById(id: string): Promise<Patient | null> {
 }
 
 async function uploadFileToS3(file: Buffer, fileName: string): Promise<string> {
+    const s3Client = new S3Client({
+        region: process.env.AWS_S3_REGION,
+        credentials: {
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+        },
+    });
+
     const params = {
         Bucket: process.env.AWS_S3_BUCKET_NAME,
         Key: `patients/${fileName}`,
         Body: file,
-        ContentType: 'image/jpeg',
+        ContentType: 'image/jpeg', // Assuming jpeg, adjust if needed
     };
 
     const command = new PutObjectCommand(params);
@@ -192,6 +193,10 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
   const imageFile = formData.get("image_url") as File;
   
   if (imageFile && imageFile.size > 0) {
+      const { AWS_S3_BUCKET_NAME, AWS_S3_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY } = process.env;
+      if (!AWS_S3_BUCKET_NAME || !AWS_S3_REGION || !AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
+          return { message: "S3 credentials are not configured. Cannot upload image.", type: 'error' };
+      }
       try {
           const buffer = Buffer.from(await imageFile.arrayBuffer());
           const fileName = `patient_${Date.now()}_${imageFile.name}`;
