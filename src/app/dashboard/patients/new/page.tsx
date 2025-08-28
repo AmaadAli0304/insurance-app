@@ -102,8 +102,8 @@ export default function NewPatientPage() {
                                 <Input id="email" name="email" type="email" required />
                             </div>
                              <div className="space-y-2">
-                                <Label htmlFor="phone">Registered mobile number <span className="text-destructive">*</span></Label>
-                                <Input id="phone" name="phone" required maxLength={10} />
+                                <Label htmlFor="phone_number">Registered mobile number <span className="text-destructive">*</span></Label>
+                                <Input id="phone_number" name="phone_number" required maxLength={10} />
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="alternative_number">Alternate contact number</Label>
@@ -121,11 +121,11 @@ export default function NewPatientPage() {
                                 </Select>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="age">Age <span className="text-destructive">*</span></Label>
+                                <Label htmlFor="age">Age</Label>
                                 <Input id="age" name="age" type="number" />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="birth_date">Date of birth <span className="text-destructive">*</span></Label>
+                                <Label htmlFor="birth_date">Date of birth</Label>
                                 <Input id="birth_date" name="birth_date" type="date" />
                             </div>
                              <div className="md:col-span-2 space-y-2">
@@ -277,3 +277,5 @@ export default function NewPatientPage() {
         </div>
     );
 }
+
+    

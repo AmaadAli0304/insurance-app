@@ -13,7 +13,7 @@ const addPatientFormSchema = z.object({
   // Patient Details
   name: z.string().min(1, "Full Name is required."),
   email: z.string().email("Invalid email address.").min(1, "Email is required."),
-  phone: z.string().regex(phoneRegex, 'Registered mobile number must be 10 digits'),
+  phone_number: z.string().regex(phoneRegex, 'Registered mobile number must be 10 digits'),
   alternative_number: z.string().regex(phoneRegex, 'Alternate number must be 10 digits').optional().or(z.literal('')),
   gender: z.string().min(1, "Gender is required."),
   age: z.coerce.number().optional().nullable(),
@@ -126,7 +126,6 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
   }
   
   const { data } = validatedFields;
-  const patientId = `pat-${Date.now()}`;
   let transaction;
 
   try {
@@ -136,11 +135,10 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
 
     // Insert into patients table
     const patientRequest = new sql.Request(transaction);
-    await patientRequest
-      .input('id', sql.NVarChar, patientId)
+    const patientResult = await patientRequest
       .input('name', sql.NVarChar, data.name)
       .input('email_address', sql.NVarChar, data.email)
-      .input('phone_number', sql.NVarChar, data.phone)
+      .input('phone_number', sql.NVarChar, data.phone_number)
       .input('alternative_number', sql.NVarChar, data.alternative_number || null)
       .input('gender', sql.NVarChar, data.gender)
       .input('age', sql.Int, data.age)
@@ -153,9 +151,12 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('hospital_id', sql.NVarChar, data.hospital_id || null)
       // NOTE: KYC fields (adhaar_path, etc.) are ignored for now as file upload is not implemented.
       .query(`
-        INSERT INTO patients (id, name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id)
-        VALUES (@id, @name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id)
+        INSERT INTO patients (name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id)
+        OUTPUT INSERTED.id
+        VALUES (@name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id)
       `);
+    
+    const patientId = patientResult.recordset[0].id;
 
     // Insert into admissions table
     const admissionRequest = new sql.Request(transaction);
@@ -255,3 +256,6 @@ export async function handleDeletePatient(prevState: { message: string, type?: s
     revalidatePath('/dashboard/patients');
     return { message: "Patient deleted successfully.", type: 'success' };
 }
+
+
+    
