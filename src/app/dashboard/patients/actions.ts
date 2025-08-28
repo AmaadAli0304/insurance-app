@@ -12,7 +12,7 @@ const phoneRegex = new RegExp(/^\d{10}$/);
 const addPatientFormSchema = z.object({
   // Patient Details
   name: z.string().min(1, "Full Name is required."),
-  email: z.string().email("Invalid email address.").min(1, "Email is required."),
+  email_address: z.string().email("Invalid email address.").min(1, "Email is required."),
   phone_number: z.string().regex(phoneRegex, 'Registered mobile number must be 10 digits'),
   alternative_number: z.string().regex(phoneRegex, 'Alternate number must be 10 digits').optional().or(z.literal('')),
   gender: z.string().min(1, "Gender is required."),
@@ -137,7 +137,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
     const patientRequest = new sql.Request(transaction);
     const patientResult = await patientRequest
       .input('name', sql.NVarChar, data.name)
-      .input('email_address', sql.NVarChar, data.email)
+      .input('email_address', sql.NVarChar, data.email_address)
       .input('phone_number', sql.NVarChar, data.phone_number)
       .input('alternative_number', sql.NVarChar, data.alternative_number || null)
       .input('gender', sql.NVarChar, data.gender)
@@ -205,8 +205,8 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
   const patientUpdateSchema = z.object({
     id: z.string(),
     name: z.string().min(1, "Full Name is required."),
-    email: z.string().email("Invalid email address.").min(1, "Email is required."),
-    phone: z.string().optional(),
+    email_address: z.string().email("Invalid email address.").min(1, "Email is required."),
+    phone_number: z.string().optional(),
     address: z.string().optional(),
     birth_date: z.string().optional(),
     gender: z.string().optional(),
@@ -237,8 +237,8 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
     await patientRequest
       .input('id', sql.NVarChar, id)
       .input('name', sql.NVarChar, data.name)
-      .input('email_address', sql.NVarChar, data.email)
-      .input('phone_number', sql.NVarChar, data.phone)
+      .input('email_address', sql.NVarChar, data.email_address)
+      .input('phone_number', sql.NVarChar, data.phone_number)
       .input('address', sql.NVarChar, data.address)
       .input('birth_date', data.birth_date ? sql.Date : sql.Date, data.birth_date ? new Date(data.birth_date) : null)
       .input('gender', sql.NVarChar, data.gender)
@@ -311,10 +311,3 @@ export async function handleDeletePatient(prevState: { message: string, type?: s
     revalidatePath('/dashboard/patients');
     return { message: "Patient deleted successfully.", type: 'success' };
 }
-
-
-    
-
-    
-
-    

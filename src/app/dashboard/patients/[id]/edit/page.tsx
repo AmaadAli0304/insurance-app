@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
 import { handleUpdatePatient, getPatientById } from "../../actions";
 import Link from "next/link";
-import { ArrowLeft, Upload } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getCompaniesForForm } from "@/app/dashboard/company-hospitals/actions";
@@ -123,12 +123,12 @@ export default function EditPatientPage() {
                                 </Select>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="email">Email <span className="text-destructive">*</span></Label>
-                                <Input id="email" name="email" type="email" defaultValue={patient.email_address ?? ""} required />
+                                <Label htmlFor="email_address">Email <span className="text-destructive">*</span></Label>
+                                <Input id="email_address" name="email_address" type="email" defaultValue={patient.email_address ?? ""} required />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="phone">Contact Phone</Label>
-                                <Input id="phone" name="phone" defaultValue={patient.phoneNumber ?? ""} />
+                                <Label htmlFor="phone_number">Contact Phone</Label>
+                                <Input id="phone_number" name="phone_number" defaultValue={patient.phoneNumber ?? ""} />
                             </div>
                             <div className="md:col-span-2 space-y-2">
                                 <Label htmlFor="address">Full Address</Label>
