@@ -194,10 +194,10 @@ export async function handleCreatePatientsTable(prevState: { message: string, ty
       IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='patients' and xtype='U')
       BEGIN
         CREATE TABLE patients (
-          id INT IDENTITY(1,1) PRIMARY KEY,
+          id NVARCHAR(255) PRIMARY KEY,
           name NVARCHAR(255),
-          email_address NVARCHAR(255),
-          phone_number NVARCHAR(50),
+          email NVARCHAR(255),
+          phone NVARCHAR(50),
           alternative_number NVARCHAR(50),
           gender NVARCHAR(50),
           age INT,
@@ -214,6 +214,11 @@ export async function handleCreatePatientsTable(prevState: { message: string, ty
           abha_id NVARCHAR(255),
           health_id NVARCHAR(255),
           hospital_id NVARCHAR(255),
+          company_id NVARCHAR(255),
+          policy_number NVARCHAR(255),
+          member_id NVARCHAR(255),
+          policy_start_date DATE,
+          policy_end_date DATE,
           created_at DATETIME DEFAULT GETDATE(),
           updated_at DATETIME DEFAULT GETDATE()
         );
@@ -279,3 +284,48 @@ export async function handleCreateFieldOptionsTable(prevState: { message: string
     return { message: `Error creating Field Options table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
+
+export async function handleCreateAdmissionsTable(prevState: { message: string, type?: string }, formData: FormData) {
+  try {
+    await poolConnect;
+    const request = pool.request();
+    const createAdmissionsTableQuery = `
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='admissions' and xtype='U')
+      BEGIN
+        CREATE TABLE admissions (
+          id INT IDENTITY(1,1) PRIMARY KEY,
+          admission_id NVARCHAR(255),
+          relationship_policyholder NVARCHAR(255),
+          policy_number NVARCHAR(255),
+          insured_card_number NVARCHAR(255),
+          insurance_company NVARCHAR(255),
+          policy_start_date DATE,
+          policy_end_date DATE,
+          corporate_policy_number NVARCHAR(255),
+          other_policy_name NVARCHAR(255),
+          family_doctor_name NVARCHAR(255),
+          family_doctor_phone NVARCHAR(50),
+          payer_email NVARCHAR(255),
+          payer_phone NVARCHAR(50),
+          tpa_id INT,
+          hospital_id NVARCHAR(255),
+          patient_id NVARCHAR(255),
+          treat_doc_name NVARCHAR(255),
+          treat_doc_number NVARCHAR(50),
+          treat_doc_qualification NVARCHAR(255),
+          treat_doc_reg_no NVARCHAR(255),
+          created_at DATETIME DEFAULT GETDATE(),
+          updated_at DATETIME DEFAULT GETDATE()
+        );
+      END
+    `;
+    await request.query(createAdmissionsTableQuery);
+    return { message: "Admissions table created successfully or already exists.", type: "success" };
+  } catch (error) {
+    const dbError = error as { message?: string };
+    console.error('Error creating Admissions table:', dbError);
+    return { message: `Error creating Admissions table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+  }
+}
+
+    

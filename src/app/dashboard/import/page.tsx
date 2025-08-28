@@ -7,9 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleImportCompanies, handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable } from "./actions";
+import { handleImportCompanies, handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable } from "./actions";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus } from "lucide-react";
+import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble } from "lucide-react";
 
 function SubmitImportButton() {
     const { pending } = useFormStatus();
@@ -81,6 +81,16 @@ function SubmitFieldOptionsTableButton() {
     );
 }
 
+function SubmitAdmissionsTableButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending} variant="secondary">
+             <BedDouble className="mr-2 h-4 w-4" />
+            {pending ? "Creating..." : "Create Admissions Table"}
+        </Button>
+    );
+}
+
 
 export default function ImportPage() {
     const [importState, importAction] = useActionState(handleImportCompanies, { message: "", type: undefined });
@@ -90,6 +100,7 @@ export default function ImportPage() {
     const [createPatientsTableState, createPatientsTableAction] = useActionState(handleCreatePatientsTable, { message: "", type: undefined });
     const [createFieldsTableState, createFieldsTableAction] = useActionState(handleCreateFieldsTable, { message: "", type: undefined });
     const [createFieldOptionsTableState, createFieldOptionsTableAction] = useActionState(handleCreateFieldOptionsTable, { message: "", type: undefined });
+    const [createAdmissionsTableState, createAdmissionsTableAction] = useActionState(handleCreateAdmissionsTable, { message: "", type: undefined });
 
 
     const { toast } = useToast();
@@ -207,6 +218,22 @@ export default function ImportPage() {
             });
         }
     }, [createFieldOptionsTableState, toast]);
+    
+    useEffect(() => {
+        if (createAdmissionsTableState.type === 'success') {
+            toast({
+                title: "Database Action",
+                description: createAdmissionsTableState.message,
+                variant: "success",
+            });
+        } else if (createAdmissionsTableState.type === 'error') {
+            toast({
+                title: "Database Error",
+                description: createAdmissionsTableState.message,
+                variant: "destructive"
+            });
+        }
+    }, [createAdmissionsTableState, toast]);
 
 
     return (
@@ -260,8 +287,13 @@ export default function ImportPage() {
                      <form action={createFieldOptionsTableAction}>
                         <SubmitFieldOptionsTableButton />
                     </form>
+                    <form action={createAdmissionsTableAction}>
+                        <SubmitAdmissionsTableButton />
+                    </form>
                 </CardContent>
             </Card>
         </div>
     );
 }
+
+    
