@@ -7,9 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleUpdatePatient, getPatientById } from "../../actions";
+import { handleUpdatePatient, getPatientById, handleUploadPatientPhoto } from "../../actions";
 import Link from "next/link";
-import { ArrowLeft, Upload, User as UserIcon } from "lucide-react";
+import { ArrowLeft, Upload, User as UserIcon, Loader2 } from "lucide-react";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getCompaniesForForm, getTPAsForForm } from "@/app/dashboard/company-hospitals/actions";
@@ -50,7 +50,8 @@ export default function EditPatientPage() {
     const [companies, setCompanies] = useState<Pick<Company, "id" | "name">[]>([]);
     const [tpas, setTpas] = useState<Pick<TPA, "id" | "name">[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+    const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
     const photoInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -71,7 +72,7 @@ export default function EditPatientPage() {
                 setCompanies(companyList);
                 setTpas(tpaList);
                 if (patientData.photo) {
-                    setPhotoPreview(patientData.photo);
+                    setPhotoUrl(patientData.photo);
                 }
             } catch (error) {
                 toast({ title: "Error", description: "Failed to load patient data.", variant: "destructive" });
@@ -104,14 +105,20 @@ export default function EditPatientPage() {
         return notFound();
     }
     
-    const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handlePhotoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPhotoPreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
+            setIsUploading(true);
+            const formData = new FormData();
+            formData.append('photo', file);
+            const result = await handleUploadPatientPhoto(formData);
+            if (result.type === 'success') {
+                setPhotoUrl(result.url);
+                toast({ title: "Success", description: "Photo uploaded.", variant: "success" });
+            } else {
+                toast({ title: "Error", description: result.message, variant: "destructive" });
+            }
+            setIsUploading(false);
         }
     };
 
@@ -129,22 +136,31 @@ export default function EditPatientPage() {
             <form action={formAction}>
                  <input type="hidden" name="id" value={patient.id} />
                  <input type="hidden" name="hospital_id" value={user?.hospitalId || ''} />
+                 <input type="hidden" name="photo" value={photoUrl || ''} />
                 <div className="grid gap-6">
                     <Card className="flex flex-col items-center p-6">
                         <Avatar className="h-32 w-32 mb-4">
-                            <AvatarImage src={photoPreview ?? undefined} alt={patient.fullName} />
-                            <AvatarFallback>
-                                <UserIcon className="h-16 w-16" />
-                            </AvatarFallback>
+                           {isUploading ? (
+                                <div className="flex h-full w-full items-center justify-center rounded-full bg-muted">
+                                    <Loader2 className="h-10 w-10 animate-spin" />
+                                </div>
+                            ) : (
+                                <>
+                                    <AvatarImage src={photoUrl ?? undefined} alt={patient.fullName} />
+                                    <AvatarFallback>
+                                        <UserIcon className="h-16 w-16" />
+                                    </AvatarFallback>
+                                </>
+                            )}
                         </Avatar>
-                        <Button type="button" variant="outline" onClick={() => photoInputRef.current?.click()}>
+                        <Button type="button" variant="outline" onClick={() => photoInputRef.current?.click()} disabled={isUploading}>
                             <Upload className="mr-2 h-4 w-4" />
-                            Upload Photo
+                            {isUploading ? 'Uploading...' : 'Upload Photo'}
                         </Button>
                         <Input 
                             ref={photoInputRef}
-                            id="photo" 
-                            name="photo" 
+                            id="photo-upload" 
+                            name="photo-upload" 
                             type="file" 
                             className="hidden" 
                             accept="image/*"

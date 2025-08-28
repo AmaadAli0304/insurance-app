@@ -25,7 +25,7 @@ const basePatientFormSchema = z.object({
   abha_id: z.string().optional().nullable(),
   health_id: z.string().optional().nullable(),
   
-  photo: z.any().optional().nullable(),
+  photo: z.string().optional().nullable(),
 
   // KYC Documents
   adhaar_path: z.any().optional().nullable(),
@@ -157,39 +157,44 @@ export async function getPatientById(id: string): Promise<Patient | null> {
   }
 }
 
-async function uploadFileToS3(file: File): Promise<string> {
+export async function handleUploadPatientPhoto(formData: FormData): Promise<{ type: 'success', url: string } | { type: 'error', message: string }> {
+    const file = formData.get("photo") as File | null;
+    if (!file || file.size === 0) {
+        return { type: 'error', message: 'No file provided.' };
+    }
+    
     const bucketName = process.env.AWS_S3_BUCKET_NAME;
-    const region = process.env.AWS_REGION;
+    const region = process.env.AWS_S3_REGION;
     const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
     const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
 
     if (!bucketName || !region || !accessKeyId || !secretAccessKey) {
-        throw new Error("S3 credentials are not configured correctly on the server.");
+        return { type: 'error', message: 'S3 credentials are not configured correctly.' };
     }
 
-    const s3Client = new S3Client({
-        region,
-        credentials: {
-            accessKeyId,
-            secretAccessKey,
-        },
-    });
+    try {
+        const s3Client = new S3Client({
+            region,
+            credentials: { accessKeyId, secretAccessKey },
+        });
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const fileName = `patients/${Date.now()}-${file.name}`;
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const fileName = `patients/${Date.now()}-${file.name.replace(/\s/g, '_')}`;
 
-    const params = {
-        Bucket: bucketName,
-        Key: fileName,
-        Body: buffer,
-        ContentType: file.type,
-        ACL: 'public-read' as const,
-    };
+        await s3Client.send(new PutObjectCommand({
+            Bucket: bucketName,
+            Key: fileName,
+            Body: buffer,
+            ContentType: file.type,
+            ACL: 'public-read',
+        }));
 
-    const command = new PutObjectCommand(params);
-    await s3Client.send(command);
-
-    return `https://${bucketName}.s3.${region}.amazonaws.com/${fileName}`;
+        const imageUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${fileName}`;
+        return { type: 'success', url: imageUrl };
+    } catch (error) {
+        console.error("S3 upload error:", error);
+        return { type: 'error', message: (error as Error).message };
+    }
 }
 
 
@@ -203,14 +208,8 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
   
   const { data } = validatedFields;
   let transaction;
-  let photoUrl: string | null = null;
   
   try {
-    const photoFile = data.photo as File | null;
-    if (photoFile && photoFile.size > 0) {
-      photoUrl = await uploadFileToS3(photoFile);
-    }
-
     await poolConnect;
     transaction = new sql.Transaction(pool);
     await transaction.begin();
@@ -231,8 +230,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('abha_id', sql.NVarChar, data.abha_id || null)
       .input('health_id', sql.NVarChar, data.health_id || null)
       .input('hospital_id', sql.NVarChar, data.hospital_id || null)
-      .input('photo', sql.NVarChar, photoUrl)
-      // NOTE: KYC fields (adhaar_path, etc.) are ignored for now as file upload is not implemented.
+      .input('photo', sql.NVarChar, data.photo)
       .query(`
         INSERT INTO patients (name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id, photo)
         OUTPUT INSERTED.id
@@ -295,29 +293,15 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
   const { data } = validatedFields;
   const { id: patientId } = data;
   let transaction;
-  let photoUrl: string | null = null;
   
   try {
-    const photoFile = data.photo as File | null;
-    if (photoFile && photoFile.size > 0) {
-      photoUrl = await uploadFileToS3(photoFile);
-    }
-
     await poolConnect;
     transaction = new sql.Transaction(pool);
     await transaction.begin();
 
     // Update patients table
     const patientRequest = new sql.Request(transaction);
-    let patientUpdateQuery = `
-        UPDATE patients 
-        SET 
-          name = @name, email_address = @email_address, phone_number = @phone_number, alternative_number = @alternative_number, 
-          gender = @gender, age = @age, birth_date = @birth_date, address = @address, occupation = @occupation,
-          employee_id = @employee_id, abha_id = @abha_id, health_id = @health_id, updated_at = GETDATE()
-    `;
-    
-    patientRequest
+    await patientRequest
       .input('id', sql.Int, Number(patientId))
       .input('name', sql.NVarChar, data.name)
       .input('email_address', sql.NVarChar, data.email_address)
@@ -330,16 +314,16 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
       .input('occupation', sql.NVarChar, data.occupation || null)
       .input('employee_id', sql.NVarChar, data.employee_id || null)
       .input('abha_id', sql.NVarChar, data.abha_id || null)
-      .input('health_id', sql.NVarChar, data.health_id || null);
-
-    if (photoUrl) {
-      patientUpdateQuery += `, photo = @photo`;
-      patientRequest.input('photo', sql.NVarChar, photoUrl);
-    }
-
-    patientUpdateQuery += ` WHERE id = @id`;
-    await patientRequest.query(patientUpdateQuery);
-
+      .input('health_id', sql.NVarChar, data.health_id || null)
+      .input('photo', sql.NVarChar, data.photo)
+      .query(`
+        UPDATE patients 
+        SET 
+          name = @name, email_address = @email_address, phone_number = @phone_number, alternative_number = @alternative_number, 
+          gender = @gender, age = @age, birth_date = @birth_date, address = @address, occupation = @occupation,
+          employee_id = @employee_id, abha_id = @abha_id, health_id = @health_id, photo = @photo, updated_at = GETDATE()
+        WHERE id = @id
+      `);
 
     // Update admissions table
     const admissionRequest = new sql.Request(transaction);
