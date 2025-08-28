@@ -7,12 +7,14 @@ import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
+const phoneRegex = new RegExp(/^\d{10}$/);
+
 const addPatientFormSchema = z.object({
   // Patient Details
   name: z.string().min(1, "Full Name is required."),
   email: z.string().email("Invalid email address."),
-  phone: z.string().min(1, "Registered mobile number is required."),
-  alternative_number: z.string().optional().nullable(),
+  phone: z.string().regex(phoneRegex, 'Phone number must be 10 digits'),
+  alternative_number: z.string().regex(phoneRegex, 'Alternate number must be 10 digits').optional().or(z.literal('')),
   gender: z.string().min(1, "Gender is required."),
   age: z.coerce.number().optional().nullable(),
   birth_date: z.string().optional().nullable(),
@@ -33,15 +35,15 @@ const addPatientFormSchema = z.object({
   corporate_policy_number: z.string().optional().nullable(),
   other_policy_name: z.string().optional().nullable(),
   family_doctor_name: z.string().optional().nullable(),
-  family_doctor_phone: z.string().optional().nullable(),
+  family_doctor_phone: z.string().regex(phoneRegex, 'Family doctor phone must be 10 digits').optional().or(z.literal('')),
   payer_email: z.string().email("Invalid email for Proposer/Payer."),
-  payer_phone: z.string().min(1, "Proposer/Payer phone number is required."),
+  payer_phone: z.string().regex(phoneRegex, 'Payer phone number must be 10 digits'),
   
   // Hospital & TPA
   tpa_id: z.coerce.number({required_error: "TPA is required."}),
   hospital_id: z.string().optional().nullable(),
   treat_doc_name: z.string().min(1, "Treating doctor's name is required."),
-  treat_doc_number: z.string().min(1, "Treating doctor's contact number is required."),
+  treat_doc_number: z.string().regex(phoneRegex, 'Doctor contact must be 10 digits'),
   treat_doc_qualification: z.string().min(1, "Doctor's qualification is required."),
   treat_doc_reg_no: z.string().min(1, "Doctor's registration number is required."),
 }).refine(data => data.age !== null || data.birth_date !== null, {
@@ -108,7 +110,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
   const validatedFields = addPatientFormSchema.safeParse(Object.fromEntries(formData.entries()));
   
   if (!validatedFields.success) {
-    const errorMessages = validatedFields.error.errors.map(e => `${e.path.join('.')} a ${e.message}`).join(', ');
+    const errorMessages = validatedFields.error.errors.map(e => `${e.path.join('.')} - ${e.message}`).join(', ');
     return { message: `Invalid data: ${errorMessages}`, type: 'error' };
   }
   
