@@ -12,8 +12,8 @@ const phoneRegex = new RegExp(/^\d{10}$/);
 const addPatientFormSchema = z.object({
   // Patient Details
   name: z.string().min(1, "Full Name is required."),
-  email: z.string().email("Invalid email address."),
-  phone: z.string().regex(phoneRegex, 'Phone number must be 10 digits'),
+  email: z.string().email("Invalid email address.").min(1, "Email is required."),
+  phone: z.string().regex(phoneRegex, 'Registered mobile number must be 10 digits'),
   alternative_number: z.string().regex(phoneRegex, 'Alternate number must be 10 digits').optional().or(z.literal('')),
   gender: z.string().min(1, "Gender is required."),
   age: z.coerce.number().optional().nullable(),
@@ -44,16 +44,16 @@ const addPatientFormSchema = z.object({
   other_policy_name: z.string().optional().nullable(),
   family_doctor_name: z.string().optional().nullable(),
   family_doctor_phone: z.string().regex(phoneRegex, 'Family doctor phone must be 10 digits').optional().or(z.literal('')),
-  payer_email: z.string().email("Invalid email for Proposer/Payer."),
+  payer_email: z.string().email("Invalid email for Proposer/Payer.").min(1, "Proposer/Payer email is required."),
   payer_phone: z.string().regex(phoneRegex, 'Payer phone number must be 10 digits'),
   
   // Hospital & TPA
   tpa_id: z.coerce.number({required_error: "TPA is required."}),
   hospital_id: z.string().optional().nullable(),
-  treat_doc_name: z.string().min(1, "Treating doctor's name is required."),
-  treat_doc_number: z.string().regex(phoneRegex, 'Doctor contact must be 10 digits'),
-  treat_doc_qualification: z.string().min(1, "Doctor's qualification is required."),
-  treat_doc_reg_no: z.string().min(1, "Doctor's registration number is required."),
+  treat_doc_name: z.string().min(1, "Treating doctor’s name is required."),
+  treat_doc_number: z.string().regex(phoneRegex, "Treating doctor's contact must be 10 digits"),
+  treat_doc_qualification: z.string().min(1, "Doctor’s qualification is required."),
+  treat_doc_reg_no: z.string().min(1, "Doctor’s registration no. is required."),
 }).refine(data => data.age !== null || data.birth_date !== null, {
   message: "Either Age or Date of birth is required.",
   path: ["age"], // you can also set it to birth_date
@@ -138,23 +138,25 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('name', sql.NVarChar, data.name)
       .input('email', sql.NVarChar, data.email)
       .input('phone', sql.NVarChar, data.phone)
-      .input('alternative_number', sql.NVarChar, data.alternative_number)
+      .input('alternative_number', sql.NVarChar, data.alternative_number || null)
       .input('gender', sql.NVarChar, data.gender)
       .input('age', sql.Int, data.age)
       .input('birth_date', data.birth_date ? sql.Date : sql.Date, data.birth_date ? new Date(data.birth_date) : null)
       .input('address', sql.NVarChar, data.address)
-      .input('occupation', sql.NVarChar, data.occupation)
-      .input('employee_id', sql.NVarChar, data.employee_id)
-      .input('abha_id', sql.NVarChar, data.abha_id)
-      .input('health_id', sql.NVarChar, data.health_id)
-      .input('hospital_id', sql.NVarChar, data.hospital_id)
+      .input('occupation', sql.NVarChar, data.occupation || null)
+      .input('employee_id', sql.NVarChar, data.employee_id || null)
+      .input('abha_id', sql.NVarChar, data.abha_id || null)
+      .input('health_id', sql.NVarChar, data.health_id || null)
+      .input('hospital_id', sql.NVarChar, data.hospital_id || null)
       .input('company_id', sql.NVarChar, data.company_id)
       .input('policy_number', sql.NVarChar, data.policy_number)
+      .input('member_id', sql.NVarChar, data.insured_card_number) // Storing insured_card_number as member_id
       .input('policy_start_date', data.policy_start_date ? sql.Date : sql.Date, data.policy_start_date ? new Date(data.policy_start_date) : null)
       .input('policy_end_date', data.policy_end_date ? sql.Date : sql.Date, data.policy_end_date ? new Date(data.policy_end_date) : null)
+      // NOTE: KYC fields (adhaar_path, etc.) are ignored for now as file upload is not implemented.
       .query(`
-        INSERT INTO patients (id, name, email, phone, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id, company_id, policy_number, policy_start_date, policy_end_date)
-        VALUES (@id, @name, @email, @phone, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id, @company_id, @policy_number, @policy_start_date, @policy_end_date)
+        INSERT INTO patients (id, name, email, phone, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id, company_id, policy_number, member_id, policy_start_date, policy_end_date)
+        VALUES (@id, @name, @email, @phone, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id, @company_id, @policy_number, @member_id, @policy_start_date, @policy_end_date)
       `);
 
     // Insert into admissions table
@@ -167,14 +169,14 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('insurance_company', sql.NVarChar, data.company_id) // Storing company ID
       .input('policy_start_date', data.policy_start_date ? sql.Date : sql.Date, data.policy_start_date ? new Date(data.policy_start_date) : null)
       .input('policy_end_date', data.policy_end_date ? sql.Date : sql.Date, data.policy_end_date ? new Date(data.policy_end_date) : null)
-      .input('corporate_policy_number', sql.NVarChar, data.corporate_policy_number)
-      .input('other_policy_name', sql.NVarChar, data.other_policy_name)
-      .input('family_doctor_name', sql.NVarChar, data.family_doctor_name)
-      .input('family_doctor_phone', sql.NVarChar, data.family_doctor_phone)
+      .input('corporate_policy_number', sql.NVarChar, data.corporate_policy_number || null)
+      .input('other_policy_name', sql.NVarChar, data.other_policy_name || null)
+      .input('family_doctor_name', sql.NVarChar, data.family_doctor_name || null)
+      .input('family_doctor_phone', sql.NVarChar, data.family_doctor_phone || null)
       .input('payer_email', sql.NVarChar, data.payer_email)
       .input('payer_phone', sql.NVarChar, data.payer_phone)
       .input('tpa_id', sql.Int, data.tpa_id)
-      .input('hospital_id', sql.NVarChar, data.hospital_id)
+      .input('hospital_id', sql.NVarChar, data.hospital_id || null)
       .input('patient_id', sql.NVarChar, patientId)
       .input('treat_doc_name', sql.NVarChar, data.treat_doc_name)
       .input('treat_doc_number', sql.NVarChar, data.treat_doc_number)
@@ -255,3 +257,6 @@ export async function handleDeletePatient(prevState: { message: string, type?: s
     revalidatePath('/dashboard/patients');
     return { message: "Patient deleted successfully.", type: 'success' };
 }
+
+
+    
