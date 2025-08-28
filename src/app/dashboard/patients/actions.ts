@@ -79,7 +79,7 @@ export async function getPatients(): Promise<Patient[]> {
     await poolConnect;
     const result = await pool.request()
       .query(`
-        SELECT p.id, p.name as fullName, p.email_address, p.phone_number, a.policy_number, c.name as companyName
+        SELECT p.id, p.name as fullName, p.email_address, p.phone_number as phoneNumber, a.policy_number as policyNumber, c.name as companyName
         FROM patients p
         LEFT JOIN admissions a ON p.id = a.patient_id
         LEFT JOIN companies c ON a.insurance_company = c.id
@@ -103,7 +103,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
           p.id as id,
           p.name as fullName, 
           p.email_address,
-          p.phone_number, 
+          p.phone_number as phoneNumber, 
           a.insurance_company as companyId,
           c.name as companyName,
           p.birth_date as dateOfBirth, 
@@ -173,7 +173,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
         VALUES (@name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id)
       `);
     
-    const patientId = patientResult.recordset[0].id;
+    const patientId = patientResult.recordset[0]?.id;
     
     if (!patientId || typeof patientId !== 'string') {
         throw new Error("Failed to create patient record or retrieve ID.");
@@ -344,3 +344,4 @@ export async function handleDeletePatient(prevState: { message: string, type?: s
     revalidatePath('/dashboard/patients');
     return { message: "Patient deleted successfully.", type: 'success' };
 }
+
