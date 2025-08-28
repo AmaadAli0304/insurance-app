@@ -98,8 +98,8 @@ export default function NewPatientPage() {
                                 <Input id="name" name="name" required />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="email">Email Address <span className="text-destructive">*</span></Label>
-                                <Input id="email" name="email" type="email" required />
+                                <Label htmlFor="email_address">Email Address <span className="text-destructive">*</span></Label>
+                                <Input id="email_address" name="email_address" type="email" required />
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="phone_number">Registered mobile number <span className="text-destructive">*</span></Label>
@@ -277,5 +277,3 @@ export default function NewPatientPage() {
         </div>
     );
 }
-
-    
