@@ -25,7 +25,7 @@ const basePatientFormSchema = z.object({
   abha_id: z.string().optional().nullable(),
   health_id: z.string().optional().nullable(),
   
-  photo: z.string().optional().nullable(),
+  photo: z.string().url().optional().nullable().or(z.literal('')),
 
   // KYC Documents
   adhaar_path: z.any().optional().nullable(),
@@ -230,7 +230,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('abha_id', sql.NVarChar, data.abha_id || null)
       .input('health_id', sql.NVarChar, data.health_id || null)
       .input('hospital_id', sql.NVarChar, data.hospital_id || null)
-      .input('photo', sql.NVarChar, data.photo)
+      .input('photo', sql.NVarChar, data.photo || null)
       .query(`
         INSERT INTO patients (name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id, photo)
         OUTPUT INSERTED.id
@@ -315,7 +315,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
       .input('employee_id', sql.NVarChar, data.employee_id || null)
       .input('abha_id', sql.NVarChar, data.abha_id || null)
       .input('health_id', sql.NVarChar, data.health_id || null)
-      .input('photo', sql.NVarChar, data.photo)
+      .input('photo', sql.NVarChar, data.photo || null)
       .query(`
         UPDATE patients 
         SET 
