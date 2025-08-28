@@ -98,19 +98,39 @@ export async function getPatientById(id: string): Promise<Patient | null> {
       .input('id', sql.NVarChar, id)
       .query(`
         SELECT 
-          p.*,
-          a.*,
-          p.id as id,
+          p.id,
           p.name as fullName, 
           p.email_address,
-          p.phone_number as phoneNumber, 
+          p.phone_number as phoneNumber,
+          p.alternative_number,
+          p.gender,
+          p.age,
+          p.birth_date as dateOfBirth,
+          p.address,
+          p.occupation,
+          p.employee_id,
+          p.abha_id,
+          p.health_id,
+          a.admission_id,
+          a.relationship_policyholder,
+          a.policy_number as policyNumber,
+          a.insured_card_number as memberId,
           a.insurance_company as companyId,
           c.name as companyName,
-          p.birth_date as dateOfBirth, 
-          a.policy_number as policyNumber, 
-          a.insured_card_number as memberId, 
-          a.policy_start_date as policyStartDate, 
-          a.policy_end_date as policyEndDate 
+          a.policy_start_date as policyStartDate,
+          a.policy_end_date as policyEndDate,
+          a.corporate_policy_number,
+          a.other_policy_name,
+          a.family_doctor_name,
+          a.family_doctor_phone,
+          a.payer_email,
+          a.payer_phone,
+          a.tpa_id,
+          a.hospital_id,
+          a.treat_doc_name,
+          a.treat_doc_number,
+          a.treat_doc_qualification,
+          a.treat_doc_reg_no
         FROM patients p
         LEFT JOIN admissions a ON p.id = a.patient_id
         LEFT JOIN companies c ON a.insurance_company = c.id
@@ -344,4 +364,3 @@ export async function handleDeletePatient(prevState: { message: string, type?: s
     revalidatePath('/dashboard/patients');
     return { message: "Patient deleted successfully.", type: 'success' };
 }
-
