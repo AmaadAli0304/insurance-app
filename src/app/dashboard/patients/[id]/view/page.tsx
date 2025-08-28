@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns';
 import type { Patient } from "@/lib/types";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 
 const DetailItem = ({ label, value }: { label: string, value?: string | null }) => (
     <div>
@@ -54,6 +56,11 @@ export default function ViewPatientPage() {
             return "Invalid Date";
         }
     };
+    
+    const getInitials = (name?: string | null) => {
+        if (!name) return 'P';
+        return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    }
 
     if (isLoading) {
         return (
@@ -74,7 +81,11 @@ export default function ViewPatientPage() {
     return (
         <div className="space-y-6">
             <Card>
-                <CardHeader>
+                <CardHeader className="items-center text-center">
+                    <Avatar className="h-24 w-24 mb-4">
+                        <AvatarImage src={patient.image_url ?? undefined} alt={patient.fullName} data-ai-hint="patient photo" />
+                        <AvatarFallback>{getInitials(patient.fullName)}</AvatarFallback>
+                    </Avatar>
                     <CardTitle className="text-3xl">{patient.fullName}</CardTitle>
                     <CardDescription>Patient Details</CardDescription>
                 </CardHeader>
@@ -101,3 +112,4 @@ export default function ViewPatientPage() {
         </div>
     );
 }
+
