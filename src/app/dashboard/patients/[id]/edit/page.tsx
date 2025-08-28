@@ -16,6 +16,8 @@ import { getCompaniesForForm, getTPAsForForm } from "@/app/dashboard/company-hos
 import type { Patient, Company, TPA } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth-provider";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -95,6 +97,11 @@ export default function EditPatientPage() {
     if (!patient) {
         return notFound();
     }
+    
+    const getInitials = (name?: string | null) => {
+        if (!name) return 'P';
+        return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    }
 
     return (
         <div className="space-y-6">
@@ -171,6 +178,19 @@ export default function EditPatientPage() {
                               <div className="space-y-2">
                                 <Label htmlFor="health_id">Health ID / UHID</Label>
                                 <Input id="health_id" name="health_id" defaultValue={patient.health_id ?? ''} />
+                            </div>
+                            <div className="md:col-span-3 flex items-center gap-4">
+                                <div>
+                                    <Label>Current Photo</Label>
+                                     <Avatar className="h-24 w-24 mt-2">
+                                        <AvatarImage src={patient.image_url ?? undefined} alt={patient.fullName} />
+                                        <AvatarFallback>{getInitials(patient.fullName)}</AvatarFallback>
+                                    </Avatar>
+                                </div>
+                                <div className="flex-1">
+                                    <Label htmlFor="image_url">Upload New Photo</Label>
+                                    <Input id="image_url" name="image_url" type="file" accept="image/*" />
+                                </div>
                             </div>
                         </CardContent>
                     </Card>

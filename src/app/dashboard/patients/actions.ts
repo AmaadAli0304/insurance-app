@@ -295,6 +295,25 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
   const { id: patientId } = data;
   let transaction;
 
+  let imageUrl: string | null = null;
+  const imageFile = formData.get("image_url") as File;
+
+  if (imageFile && imageFile.size > 0) {
+      const { AWS_S3_BUCKET_NAME, AWS_S3_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY } = process.env;
+      if (!AWS_S3_BUCKET_NAME || !AWS_S3_REGION || !AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
+          return { message: "S3 credentials are not configured. Cannot upload image.", type: 'error' };
+      }
+      try {
+          const buffer = Buffer.from(await imageFile.arrayBuffer());
+          const fileName = `patient_${Date.now()}_${imageFile.name}`;
+          imageUrl = await uploadFileToS3(buffer, fileName);
+      } catch (error) {
+          console.error("Error uploading image to S3", error);
+          return { message: "Failed to upload patient image.", type: 'error' };
+      }
+  }
+
+
   try {
     await poolConnect;
     transaction = new sql.Transaction(pool);
@@ -302,7 +321,15 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
 
     // Update patients table
     const patientRequest = new sql.Request(transaction);
-    await patientRequest
+    let patientUpdateQuery = `
+        UPDATE patients 
+        SET 
+          name = @name, email_address = @email_address, phone_number = @phone_number, alternative_number = @alternative_number, 
+          gender = @gender, age = @age, birth_date = @birth_date, address = @address, occupation = @occupation,
+          employee_id = @employee_id, abha_id = @abha_id, health_id = @health_id, updated_at = GETDATE()
+    `;
+    
+    patientRequest
       .input('id', sql.Int, Number(patientId))
       .input('name', sql.NVarChar, data.name)
       .input('email_address', sql.NVarChar, data.email_address)
@@ -316,14 +343,15 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
       .input('employee_id', sql.NVarChar, data.employee_id || null)
       .input('abha_id', sql.NVarChar, data.abha_id || null)
       .input('health_id', sql.NVarChar, data.health_id || null)
-      .query(`
-        UPDATE patients 
-        SET 
-          name = @name, email_address = @email_address, phone_number = @phone_number, alternative_number = @alternative_number, 
-          gender = @gender, age = @age, birth_date = @birth_date, address = @address, occupation = @occupation,
-          employee_id = @employee_id, abha_id = @abha_id, health_id = @health_id, updated_at = GETDATE()
-        WHERE id = @id
-      `);
+
+    if(imageUrl) {
+        patientUpdateQuery += `, image_url = @image_url`;
+        patientRequest.input('image_url', sql.NVarChar, imageUrl);
+    }
+      
+    patientUpdateQuery += ` WHERE id = @id`;
+    await patientRequest.query(patientUpdateQuery);
+
 
     // Update admissions table
     const admissionRequest = new sql.Request(transaction);
