@@ -30,6 +30,23 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Invalid password.' }, { status: 401 });
         }
 
+        if (user.role === 'Hospital Staff') {
+            const hospitalResult = await pool.request()
+                .input('staff_id', sql.NVarChar, user.uid)
+                .query(`
+                    SELECT h.id, h.name 
+                    FROM hospitals h 
+                    JOIN hospital_staff hs ON h.id = hs.hospital_id 
+                    WHERE hs.staff_id = @staff_id
+                `);
+            
+            if (hospitalResult.recordset.length > 0) {
+                user.hospitalId = hospitalResult.recordset[0].id;
+                // Add hospitalName to the user object if needed elsewhere, e.g., user.hospitalName = hospitalResult.recordset[0].name;
+            }
+        }
+
+
         const { password: _, ...userPayload } = user;
 
         // In a real scenario, the secret would be in env variables.
