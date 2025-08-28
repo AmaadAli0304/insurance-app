@@ -75,6 +75,7 @@ export function PatientsTable({ patients, onPatientDeleted }: PatientsTableProps
         <TableRow>
           <TableHead>Full Name</TableHead>
           <TableHead>Insurance Company</TableHead>
+          <TableHead>Policy Number</TableHead>
           <TableHead>Email</TableHead>
           <TableHead>Phone</TableHead>
           <TableHead><span className="sr-only">Actions</span></TableHead>
@@ -86,6 +87,7 @@ export function PatientsTable({ patients, onPatientDeleted }: PatientsTableProps
             <TableRow key={p.id} onClick={() => handleRowClick(p.id)} className="cursor-pointer">
               <TableCell className="font-medium">{p.fullName}</TableCell>
               <TableCell>{p.companyName || 'N/A'}</TableCell>
+              <TableCell>{p.policyNumber}</TableCell>
               <TableCell>{p.email}</TableCell>
               <TableCell>{p.phoneNumber}</TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
@@ -133,7 +135,7 @@ export function PatientsTable({ patients, onPatientDeleted }: PatientsTableProps
           ))
         ) : (
           <TableRow>
-            <TableCell colSpan={5} className="h-24 text-center">
+            <TableCell colSpan={6} className="h-24 text-center">
               No data found
             </TableCell>
           </TableRow>

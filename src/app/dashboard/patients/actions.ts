@@ -64,7 +64,7 @@ export async function getPatients(): Promise<Patient[]> {
     await poolConnect;
     const result = await pool.request()
       .query(`
-        SELECT p.id, p.name as fullName, p.email, p.phone as phoneNumber, p.policy_number as policyNumber, c.name as companyName
+        SELECT p.id, p.name as fullName, p.email, p.phone as phoneNumber, p.policy_number, c.name as companyName
         FROM patients p
         LEFT JOIN companies c ON p.company_id = c.id
       `);
@@ -257,8 +257,3 @@ export async function handleDeletePatient(prevState: { message: string, type?: s
     revalidatePath('/dashboard/patients');
     return { message: "Patient deleted successfully.", type: 'success' };
 }
-
-
-    
-
-    

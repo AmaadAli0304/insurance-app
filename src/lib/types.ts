@@ -7,6 +7,7 @@ export interface User {
   email: string;
   role: UserRole;
   hospitalId?: string | null;
+  hospitalName?: string | null;
   companyId?: string;
   password?: string;
   designation?: string | null;

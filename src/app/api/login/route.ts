@@ -42,7 +42,7 @@ export async function POST(request: Request) {
             
             if (hospitalResult.recordset.length > 0) {
                 user.hospitalId = hospitalResult.recordset[0].id;
-                // Add hospitalName to the user object if needed elsewhere, e.g., user.hospitalName = hospitalResult.recordset[0].name;
+                user.hospitalName = hospitalResult.recordset[0].name;
             }
         }
 
