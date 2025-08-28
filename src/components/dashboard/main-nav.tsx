@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -33,7 +34,6 @@ export function MainNav() {
       { href: '/dashboard/tpas', label: 'TPAs', icon: Briefcase },
       { href: '/dashboard/staff', label: 'Staff', icon: Users },
       { href: '/dashboard/fields', label: 'Fields', icon: FilePlus2 },
-      { href: '/dashboard/import', label: 'Import', icon: Upload },
     ],
   };
 
