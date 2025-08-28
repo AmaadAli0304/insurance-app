@@ -59,7 +59,7 @@ export interface Patient {
   fullName: string;
   dateOfBirth?: string | null;
   gender?: 'Male' | 'Female' | 'Other' | null;
-  email: string;
+  email_address: string;
   phoneNumber?: string | null; 
   address?: string | null;
   companyId: string;

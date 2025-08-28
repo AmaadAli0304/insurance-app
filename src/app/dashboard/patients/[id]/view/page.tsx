@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -80,7 +81,7 @@ export default function ViewPatientPage() {
                 <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6">
                     <DetailItem label="Date of Birth" value={formatDate(patient.dateOfBirth)} />
                     <DetailItem label="Gender" value={patient.gender} />
-                    <DetailItem label="Email Address" value={patient.email} />
+                    <DetailItem label="Email Address" value={patient.email_address} />
                     <DetailItem label="Contact Number" value={patient.phoneNumber} />
                     <DetailItem label="Address" value={patient.address} />
                 </CardContent>

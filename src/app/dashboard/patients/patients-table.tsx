@@ -88,7 +88,7 @@ export function PatientsTable({ patients, onPatientDeleted }: PatientsTableProps
               <TableCell className="font-medium">{p.fullName}</TableCell>
               <TableCell>{p.companyName || 'N/A'}</TableCell>
               <TableCell>{p.policyNumber ?? 'N/A'}</TableCell>
-              <TableCell>{p.email}</TableCell>
+              <TableCell>{p.email_address}</TableCell>
               <TableCell>{p.phoneNumber}</TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
                 <AlertDialog>

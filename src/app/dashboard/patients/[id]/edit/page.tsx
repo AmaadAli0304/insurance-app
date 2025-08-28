@@ -12,7 +12,7 @@ import Link from "next/link";
 import { ArrowLeft, Upload } from "lucide-react";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getCompaniesForForm } from "../../../company-hospitals/actions";
+import { getCompaniesForForm } from "../../company-hospitals/actions";
 import type { Patient, Company } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 
@@ -124,7 +124,7 @@ export default function EditPatientPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email <span className="text-destructive">*</span></Label>
-                                <Input id="email" name="email" type="email" defaultValue={patient.email ?? ""} required />
+                                <Input id="email" name="email" type="email" defaultValue={patient.email_address ?? ""} required />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="phone">Contact Phone</Label>
