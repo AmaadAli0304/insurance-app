@@ -4,6 +4,50 @@
 import * as XLSX from 'xlsx';
 import pool, { sql, poolConnect } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+
+export async function handleUploadFileToS3(prevState: { message: string, type?: string }, formData: FormData) {
+  const file = formData.get("file") as File;
+
+  if (!file || file.size === 0) {
+    return { message: "Please select a file to upload.", type: "error" };
+  }
+  
+  const { AWS_S3_BUCKET_NAME, AWS_S3_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY } = process.env;
+  if (!AWS_S3_BUCKET_NAME || !AWS_S3_REGION || !AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
+      return { message: "S3 credentials are not configured on the server.", type: 'error' };
+  }
+
+  try {
+      const s3Client = new S3Client({
+          region: AWS_S3_REGION,
+          credentials: {
+              accessKeyId: AWS_ACCESS_KEY_ID,
+              secretAccessKey: AWS_SECRET_ACCESS_KEY,
+          },
+      });
+
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const fileName = `imports/${Date.now()}_${file.name}`;
+      
+      const params = {
+          Bucket: AWS_S3_BUCKET_NAME,
+          Key: fileName,
+          Body: buffer,
+          ContentType: file.type,
+      };
+
+      const command = new PutObjectCommand(params);
+      await s3Client.send(command);
+
+      return { message: `File "${file.name}" uploaded successfully to S3.`, type: "success" };
+
+  } catch (error) {
+      console.error("Error uploading to S3:", error);
+      const s3Error = error as { message?: string };
+      return { message: `Failed to upload file: ${s3Error.message || 'Unknown S3 error.'}`, type: 'error' };
+  }
+}
 
 export async function handleImportCompanies(prevState: { message: string, type?: string }, formData: FormData) {
   const file = formData.get("file") as File;
@@ -194,7 +238,7 @@ export async function handleCreatePatientsTable(prevState: { message: string, ty
       IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='patients' and xtype='U')
       BEGIN
         CREATE TABLE patients (
-          id NVARCHAR(255) PRIMARY KEY,
+          id INT IDENTITY(1,1) PRIMARY KEY,
           name NVARCHAR(255),
           email NVARCHAR(255),
           phone_number NVARCHAR(50),

@@ -7,9 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleImportCompanies, handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable } from "./actions";
+import { handleImportCompanies, handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleUploadFileToS3 } from "./actions";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble } from "lucide-react";
+import { useAuth } from "@/components/auth-provider";
 
 function SubmitImportButton() {
     const { pending } = useFormStatus();
@@ -91,8 +92,19 @@ function SubmitAdmissionsTableButton() {
     );
 }
 
+function SubmitS3UploadButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending}>
+            <Upload className="mr-2 h-4 w-4" />
+            {pending ? "Uploading..." : "Upload to S3"}
+        </Button>
+    );
+}
+
 
 export default function ImportPage() {
+    const { role } = useAuth();
     const [importState, importAction] = useActionState(handleImportCompanies, { message: "", type: undefined });
     const [createTableState, createTableAction] = useActionState(handleCreateTable, { message: "", type: undefined });
     const [createRelationshipTableState, createRelationshipTableAction] = useActionState(handleCreateRelationshipTables, { message: "", type: undefined });
@@ -101,140 +113,40 @@ export default function ImportPage() {
     const [createFieldsTableState, createFieldsTableAction] = useActionState(handleCreateFieldsTable, { message: "", type: undefined });
     const [createFieldOptionsTableState, createFieldOptionsTableAction] = useActionState(handleCreateFieldOptionsTable, { message: "", type: undefined });
     const [createAdmissionsTableState, createAdmissionsTableAction] = useActionState(handleCreateAdmissionsTable, { message: "", type: undefined });
+    const [s3UploadState, s3UploadAction] = useActionState(handleUploadFileToS3, { message: "", type: undefined });
 
 
     const { toast } = useToast();
-    const formRef = useRef<HTMLFormElement>(null);
+    const importFormRef = useRef<HTMLFormElement>(null);
+    const s3FormRef = useRef<HTMLFormElement>(null);
 
-    useEffect(() => {
-        if (importState.type === 'success') {
-            toast({
-                title: "Import Successful",
-                description: importState.message,
-                variant: "success",
-            });
-            formRef.current?.reset();
-        } else if (importState.type === 'error') {
-            toast({
-                title: "Import Error",
-                description: importState.message,
-                variant: "destructive"
-            });
-        }
-    }, [importState, toast]);
+    const useToastEffect = (state: { type?: string; message: string; }, title: string) => {
+        useEffect(() => {
+            if (state.type === 'success') {
+                toast({ title, description: state.message, variant: "success" });
+            } else if (state.type === 'error') {
+                toast({ title: "Error", description: state.message, variant: "destructive" });
+            }
+        }, [state, toast, title]);
+    };
 
-     useEffect(() => {
-        if (createTableState.type === 'success') {
-            toast({
-                title: "Database Action",
-                description: createTableState.message,
-                variant: "success",
-            });
-        } else if (createTableState.type === 'error') {
-            toast({
-                title: "Database Error",
-                description: createTableState.message,
-                variant: "destructive"
-            });
-        }
-    }, [createTableState, toast]);
-    
-     useEffect(() => {
-        if (createRelationshipTableState.type === 'success') {
-            toast({
-                title: "Database Action",
-                description: createRelationshipTableState.message,
-                variant: "success",
-            });
-        } else if (createRelationshipTableState.type === 'error') {
-            toast({
-                title: "Database Error",
-                description: createRelationshipTableState.message,
-                variant: "destructive"
-            });
-        }
-    }, [createRelationshipTableState, toast]);
-
-    useEffect(() => {
-        if (createHospitalTableState.type === 'success') {
-            toast({
-                title: "Database Action",
-                description: createHospitalTableState.message,
-                variant: "success",
-            });
-        } else if (createHospitalTableState.type === 'error') {
-            toast({
-                title: "Database Error",
-                description: createHospitalTableState.message,
-                variant: "destructive"
-            });
-        }
-    }, [createHospitalTableState, toast]);
-
-     useEffect(() => {
-        if (createPatientsTableState.type === 'success') {
-            toast({
-                title: "Database Action",
-                description: createPatientsTableState.message,
-                variant: "success",
-            });
-        } else if (createPatientsTableState.type === 'error') {
-            toast({
-                title: "Database Error",
-                description: createPatientsTableState.message,
-                variant: "destructive"
-            });
-        }
-    }, [createPatientsTableState, toast]);
-
-    useEffect(() => {
-        if (createFieldsTableState.type === 'success') {
-            toast({
-                title: "Database Action",
-                description: createFieldsTableState.message,
-                variant: "success",
-            });
-        } else if (createFieldsTableState.type === 'error') {
-            toast({
-                title: "Database Error",
-                description: createFieldsTableState.message,
-                variant: "destructive"
-            });
-        }
-    }, [createFieldsTableState, toast]);
-
-    useEffect(() => {
-        if (createFieldOptionsTableState.type === 'success') {
-            toast({
-                title: "Database Action",
-                description: createFieldOptionsTableState.message,
-                variant: "success",
-            });
-        } else if (createFieldOptionsTableState.type === 'error') {
-            toast({
-                title: "Database Error",
-                description: createFieldOptionsTableState.message,
-                variant: "destructive"
-            });
-        }
-    }, [createFieldOptionsTableState, toast]);
+    useToastEffect(importState, "Import Companies");
+    useToastEffect(createTableState, "Database Action");
+    useToastEffect(createRelationshipTableState, "Database Action");
+    useToastEffect(createHospitalTableState, "Database Action");
+    useToastEffect(createPatientsTableState, "Database Action");
+    useToastEffect(createFieldsTableState, "Database Action");
+    useToastEffect(createFieldOptionsTableState, "Database Action");
+    useToastEffect(createAdmissionsTableState, "Database Action");
     
     useEffect(() => {
-        if (createAdmissionsTableState.type === 'success') {
-            toast({
-                title: "Database Action",
-                description: createAdmissionsTableState.message,
-                variant: "success",
-            });
-        } else if (createAdmissionsTableState.type === 'error') {
-            toast({
-                title: "Database Error",
-                description: createAdmissionsTableState.message,
-                variant: "destructive"
-            });
+        if (s3UploadState.type === 'success') {
+            toast({ title: "S3 Upload", description: s3UploadState.message, variant: "success" });
+            s3FormRef.current?.reset();
+        } else if (s3UploadState.type === 'error') {
+            toast({ title: "S3 Upload Error", description: s3UploadState.message, variant: "destructive" });
         }
-    }, [createAdmissionsTableState, toast]);
-
+    }, [s3UploadState, toast]);
 
     return (
         <div className="space-y-6">
@@ -246,7 +158,7 @@ export default function ImportPage() {
                         for &quot;Name&quot; and &quot;Email&quot;.
                     </CardDescription>
                 </CardHeader>
-                <form action={importAction} ref={formRef}>
+                <form action={importAction} ref={importFormRef}>
                     <CardContent className="space-y-4">
                          <div className="space-y-2">
                             <Label htmlFor="file">XLSX File</Label>
@@ -260,6 +172,27 @@ export default function ImportPage() {
                     </CardContent>
                 </form>
             </Card>
+
+            {role === 'Company Admin' && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Upload File to S3</CardTitle>
+                        <CardDescription>
+                            Select any file and upload it directly to the S3 bucket.
+                        </CardDescription>
+                    </CardHeader>
+                    <form action={s3UploadAction} ref={s3FormRef}>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="s3file">File for S3</Label>
+                                <Input id="s3file" name="file" type="file" required className="w-full md:w-auto" />
+                            </div>
+                            {s3UploadState.type === 'error' && <p className="text-sm text-destructive">{s3UploadState.message}</p>}
+                            <SubmitS3UploadButton />
+                        </CardContent>
+                    </form>
+                </Card>
+            )}
 
             <Card>
                 <CardHeader>
@@ -295,5 +228,3 @@ export default function ImportPage() {
         </div>
     );
 }
-
-    
