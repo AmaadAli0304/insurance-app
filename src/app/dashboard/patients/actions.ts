@@ -10,40 +10,43 @@ import { z } from 'zod';
 const addPatientFormSchema = z.object({
   // Patient Details
   name: z.string().min(1, "Full Name is required."),
-  email: z.string().email("Invalid email address.").optional().nullable(),
-  phone: z.string().optional().nullable(),
+  email: z.string().email("Invalid email address."),
+  phone: z.string().min(1, "Registered mobile number is required."),
   alternative_number: z.string().optional().nullable(),
-  gender: z.string().optional().nullable(),
+  gender: z.string().min(1, "Gender is required."),
   age: z.coerce.number().optional().nullable(),
   birth_date: z.string().optional().nullable(),
-  address: z.string().optional().nullable(),
+  address: z.string().min(1, "Address is required."),
   occupation: z.string().optional().nullable(),
   employee_id: z.string().optional().nullable(),
   abha_id: z.string().optional().nullable(),
   health_id: z.string().optional().nullable(),
   
   // Insurance Details
-  admission_id: z.string().optional().nullable(),
-  relationship_policyholder: z.string().optional().nullable(),
-  policy_number: z.string().optional().nullable(),
-  insured_card_number: z.string().optional().nullable(),
+  admission_id: z.string().min(1, "Admission ID is required."),
+  relationship_policyholder: z.string().min(1, "Relationship to policyholder is required."),
+  policy_number: z.string().min(1, "Policy number is required."),
+  insured_card_number: z.string().min(1, "Insured member/card ID number is required."),
   company_id: z.string().min(1, "Insurance Company is required."),
-  policy_start_date: z.string().optional().nullable(),
-  policy_end_date: z.string().optional().nullable(),
+  policy_start_date: z.string().min(1, "Policy Start Date is required."),
+  policy_end_date: z.string().min(1, "Policy End Date is required."),
   corporate_policy_number: z.string().optional().nullable(),
   other_policy_name: z.string().optional().nullable(),
   family_doctor_name: z.string().optional().nullable(),
   family_doctor_phone: z.string().optional().nullable(),
-  payer_email: z.string().email().optional().nullable(),
-  payer_phone: z.string().optional().nullable(),
+  payer_email: z.string().email("Invalid email for Proposer/Payer."),
+  payer_phone: z.string().min(1, "Proposer/Payer phone number is required."),
   
   // Hospital & TPA
-  tpa_id: z.coerce.number().optional().nullable(),
+  tpa_id: z.coerce.number({required_error: "TPA is required."}),
   hospital_id: z.string().optional().nullable(),
-  treat_doc_name: z.string().optional().nullable(),
-  treat_doc_number: z.string().optional().nullable(),
-  treat_doc_qualification: z.string().optional().nullable(),
-  treat_doc_reg_no: z.string().optional().nullable(),
+  treat_doc_name: z.string().min(1, "Treating doctor's name is required."),
+  treat_doc_number: z.string().min(1, "Treating doctor's contact number is required."),
+  treat_doc_qualification: z.string().min(1, "Doctor's qualification is required."),
+  treat_doc_reg_no: z.string().min(1, "Doctor's registration number is required."),
+}).refine(data => data.age !== null || data.birth_date !== null, {
+  message: "Either Age or Date of birth is required.",
+  path: ["age"], // you can also set it to birth_date
 });
 
 export async function getPatients(): Promise<Patient[]> {

@@ -84,24 +84,24 @@ export default function NewPatientPage() {
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-3 gap-4">
                              <div className="space-y-2">
-                                <Label htmlFor="name">Full Name (as per ID proof)</Label>
+                                <Label htmlFor="name">Full Name (as per ID proof) <span className="text-destructive">*</span></Label>
                                 <Input id="name" name="name" required />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="email">Email Address</Label>
-                                <Input id="email" name="email" type="email"/>
+                                <Label htmlFor="email">Email Address <span className="text-destructive">*</span></Label>
+                                <Input id="email" name="email" type="email" required />
                             </div>
                              <div className="space-y-2">
-                                <Label htmlFor="phone">Registered mobile number</Label>
-                                <Input id="phone" name="phone" />
+                                <Label htmlFor="phone">Registered mobile number <span className="text-destructive">*</span></Label>
+                                <Input id="phone" name="phone" required />
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="alternative_number">Alternate contact number</Label>
                                 <Input id="alternative_number" name="alternative_number" />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="gender">Gender</Label>
-                                <Select name="gender">
+                                <Label htmlFor="gender">Gender <span className="text-destructive">*</span></Label>
+                                <Select name="gender" required>
                                     <SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="Male">Male</SelectItem>
@@ -111,16 +111,16 @@ export default function NewPatientPage() {
                                 </Select>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="age">Age</Label>
+                                <Label htmlFor="age">Age <span className="text-destructive">*</span></Label>
                                 <Input id="age" name="age" type="number" />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="birth_date">Date of birth</Label>
+                                <Label htmlFor="birth_date">Date of birth <span className="text-destructive">*</span></Label>
                                 <Input id="birth_date" name="birth_date" type="date" />
                             </div>
                              <div className="md:col-span-2 space-y-2">
-                                <Label htmlFor="address">Address</Label>
-                                <Input id="address" name="address" />
+                                <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
+                                <Input id="address" name="address" required />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="occupation">Occupation</Label>
@@ -148,23 +148,23 @@ export default function NewPatientPage() {
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-3 gap-4">
                              <div className="space-y-2">
-                                <Label htmlFor="admission_id">Admission ID</Label>
-                                <Input id="admission_id" name="admission_id" />
+                                <Label htmlFor="admission_id">Admission ID <span className="text-destructive">*</span></Label>
+                                <Input id="admission_id" name="admission_id" required />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="relationship_policyholder">Relationship to policyholder</Label>
-                                <Input id="relationship_policyholder" name="relationship_policyholder" />
+                                <Label htmlFor="relationship_policyholder">Relationship to policyholder <span className="text-destructive">*</span></Label>
+                                <Input id="relationship_policyholder" name="relationship_policyholder" required />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="policy_number">Policy number</Label>
-                                <Input id="policy_number" name="policy_number" />
+                                <Label htmlFor="policy_number">Policy number <span className="text-destructive">*</span></Label>
+                                <Input id="policy_number" name="policy_number" required />
                             </div>
                              <div className="space-y-2">
-                                <Label htmlFor="insured_card_number">Insured member / card ID number</Label>
-                                <Input id="insured_card_number" name="insured_card_number" />
+                                <Label htmlFor="insured_card_number">Insured member / card ID number <span className="text-destructive">*</span></Label>
+                                <Input id="insured_card_number" name="insured_card_number" required />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="company_id">Insurance Company</Label>
+                                <Label htmlFor="company_id">Insurance Company <span className="text-destructive">*</span></Label>
                                 <Select name="company_id" required disabled={isLoading}>
                                     <SelectTrigger><SelectValue placeholder="Select a company" /></SelectTrigger>
                                     <SelectContent>
@@ -175,12 +175,12 @@ export default function NewPatientPage() {
                                 </Select>
                             </div>
                              <div className="space-y-2">
-                                <Label htmlFor="policy_start_date">Policy Start Date</Label>
-                                <Input id="policy_start_date" name="policy_start_date" type="date" />
+                                <Label htmlFor="policy_start_date">Policy Start Date <span className="text-destructive">*</span></Label>
+                                <Input id="policy_start_date" name="policy_start_date" type="date" required />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="policy_end_date">Policy End Date</Label>
-                                <Input id="policy_end_date" name="policy_end_date" type="date" />
+                                <Label htmlFor="policy_end_date">Policy End Date <span className="text-destructive">*</span></Label>
+                                <Input id="policy_end_date" name="policy_end_date" type="date" required />
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="corporate_policy_number">Corporate policy name/number</Label>
@@ -199,12 +199,12 @@ export default function NewPatientPage() {
                                 <Input id="family_doctor_phone" name="family_doctor_phone" />
                             </div>
                              <div className="space-y-2">
-                                <Label htmlFor="payer_email">Proposer/Payer email ID</Label>
-                                <Input id="payer_email" name="payer_email" type="email" />
+                                <Label htmlFor="payer_email">Proposer/Payer email ID <span className="text-destructive">*</span></Label>
+                                <Input id="payer_email" name="payer_email" type="email" required />
                             </div>
                              <div className="space-y-2">
-                                <Label htmlFor="payer_phone">Proposer/Payer phone number</Label>
-                                <Input id="payer_phone" name="payer_phone" />
+                                <Label htmlFor="payer_phone">Proposer/Payer phone number <span className="text-destructive">*</span></Label>
+                                <Input id="payer_phone" name="payer_phone" required />
                             </div>
                         </CardContent>
                     </Card>
@@ -216,8 +216,8 @@ export default function NewPatientPage() {
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-3 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="tpa_id">Select TPA</Label>
-                                <Select name="tpa_id" disabled={isLoading}>
+                                <Label htmlFor="tpa_id">Select TPA <span className="text-destructive">*</span></Label>
+                                <Select name="tpa_id" disabled={isLoading} required>
                                     <SelectTrigger><SelectValue placeholder="Select a TPA" /></SelectTrigger>
                                     <SelectContent>
                                         {tpas.map(t => (
@@ -227,20 +227,20 @@ export default function NewPatientPage() {
                                 </Select>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="treat_doc_name">Treating doctor’s name</Label>
-                                <Input id="treat_doc_name" name="treat_doc_name" />
+                                <Label htmlFor="treat_doc_name">Treating doctor’s name <span className="text-destructive">*</span></Label>
+                                <Input id="treat_doc_name" name="treat_doc_name" required />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="treat_doc_number">Treating doctor’s contact</Label>
-                                <Input id="treat_doc_number" name="treat_doc_number" />
+                                <Label htmlFor="treat_doc_number">Treating doctor’s contact <span className="text-destructive">*</span></Label>
+                                <Input id="treat_doc_number" name="treat_doc_number" required />
                             </div>
                              <div className="space-y-2">
-                                <Label htmlFor="treat_doc_qualification">Doctor’s qualification</Label>
-                                <Input id="treat_doc_qualification" name="treat_doc_qualification" />
+                                <Label htmlFor="treat_doc_qualification">Doctor’s qualification <span className="text-destructive">*</span></Label>
+                                <Input id="treat_doc_qualification" name="treat_doc_qualification" required />
                             </div>
                              <div className="space-y-2">
-                                <Label htmlFor="treat_doc_reg_no">Doctor’s registration no.</Label>
-                                <Input id="treat_doc_reg_no" name="treat_doc_reg_no" />
+                                <Label htmlFor="treat_doc_reg_no">Doctor’s registration no. <span className="text-destructive">*</span></Label>
+                                <Input id="treat_doc_reg_no" name="treat_doc_reg_no" required />
                             </div>
                         </CardContent>
                     </Card>
