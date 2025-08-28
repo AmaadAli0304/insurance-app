@@ -84,6 +84,8 @@ export async function getPatientById(id: string): Promise<Patient | null> {
       .query(`
         SELECT 
           p.*,
+          a.*,
+          p.id as id,
           p.name as fullName, 
           p.email_address,
           p.phone_number, 
@@ -201,30 +203,21 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
   return { message: "Patient added successfully.", type: "success" };
 }
 
+
+const updatePatientFormSchema = addPatientFormSchema.extend({
+  id: z.string(), // Patient ID
+});
+
 export async function handleUpdatePatient(prevState: { message: string, type?: string }, formData: FormData) {
-  const patientUpdateSchema = z.object({
-    id: z.string(),
-    name: z.string().min(1, "Full Name is required."),
-    email_address: z.string().email("Invalid email address.").min(1, "Email is required."),
-    phone_number: z.string().optional(),
-    address: z.string().optional(),
-    birth_date: z.string().optional(),
-    gender: z.string().optional(),
-    company_id: z.string().min(1, "Insurance Company is required."),
-    policy_number: z.string().optional(),
-    member_id: z.string().optional(),
-    policy_start_date: z.string().optional(),
-    policy_end_date: z.string().optional(),
-  });
-  
-  const validatedFields = patientUpdateSchema.safeParse(Object.fromEntries(formData.entries()));
+  const validatedFields = updatePatientFormSchema.safeParse(Object.fromEntries(formData.entries()));
   
   if (!validatedFields.success) {
-    const errorMessages = validatedFields.error.errors.map((e: any) => e.message).join(', ');
+    const errorMessages = validatedFields.error.errors.map(e => `${e.path.join('.')} - ${e.message}`).join(', ');
     return { message: `Invalid data: ${errorMessages}`, type: 'error' };
   }
   
-  const { id, ...data } = validatedFields.data;
+  const { data } = validatedFields;
+  const { id: patientId } = data;
   let transaction;
 
   try {
@@ -235,31 +228,61 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
     // Update patients table
     const patientRequest = new sql.Request(transaction);
     await patientRequest
-      .input('id', sql.NVarChar, id)
+      .input('id', sql.NVarChar, patientId)
       .input('name', sql.NVarChar, data.name)
       .input('email_address', sql.NVarChar, data.email_address)
       .input('phone_number', sql.NVarChar, data.phone_number)
-      .input('address', sql.NVarChar, data.address)
-      .input('birth_date', data.birth_date ? sql.Date : sql.Date, data.birth_date ? new Date(data.birth_date) : null)
+      .input('alternative_number', sql.NVarChar, data.alternative_number || null)
       .input('gender', sql.NVarChar, data.gender)
+      .input('age', sql.Int, data.age)
+      .input('birth_date', data.birth_date ? sql.Date : sql.Date, data.birth_date ? new Date(data.birth_date) : null)
+      .input('address', sql.NVarChar, data.address)
+      .input('occupation', sql.NVarChar, data.occupation || null)
+      .input('employee_id', sql.NVarChar, data.employee_id || null)
+      .input('abha_id', sql.NVarChar, data.abha_id || null)
+      .input('health_id', sql.NVarChar, data.health_id || null)
       .query(`
         UPDATE patients 
-        SET name = @name, email_address = @email_address, phone_number = @phone_number, address = @address, birth_date = @birth_date, gender = @gender, updated_at = GETDATE()
+        SET 
+          name = @name, email_address = @email_address, phone_number = @phone_number, alternative_number = @alternative_number, 
+          gender = @gender, age = @age, birth_date = @birth_date, address = @address, occupation = @occupation,
+          employee_id = @employee_id, abha_id = @abha_id, health_id = @health_id, updated_at = GETDATE()
         WHERE id = @id
       `);
 
     // Update admissions table
     const admissionRequest = new sql.Request(transaction);
     await admissionRequest
-      .input('patient_id', sql.NVarChar, id)
-      .input('insurance_company', sql.NVarChar, data.company_id)
+      .input('patient_id', sql.NVarChar, patientId)
+      .input('admission_id', sql.NVarChar, data.admission_id)
+      .input('relationship_policyholder', sql.NVarChar, data.relationship_policyholder)
       .input('policy_number', sql.NVarChar, data.policy_number)
-      .input('insured_card_number', sql.NVarChar, data.member_id)
+      .input('insured_card_number', sql.NVarChar, data.insured_card_number)
+      .input('insurance_company', sql.NVarChar, data.company_id)
       .input('policy_start_date', data.policy_start_date ? sql.Date : sql.Date, data.policy_start_date ? new Date(data.policy_start_date) : null)
       .input('policy_end_date', data.policy_end_date ? sql.Date : sql.Date, data.policy_end_date ? new Date(data.policy_end_date) : null)
+      .input('corporate_policy_number', sql.NVarChar, data.corporate_policy_number || null)
+      .input('other_policy_name', sql.NVarChar, data.other_policy_name || null)
+      .input('family_doctor_name', sql.NVarChar, data.family_doctor_name || null)
+      .input('family_doctor_phone', sql.NVarChar, data.family_doctor_phone || null)
+      .input('payer_email', sql.NVarChar, data.payer_email)
+      .input('payer_phone', sql.NVarChar, data.payer_phone)
+      .input('tpa_id', sql.Int, data.tpa_id)
+      .input('hospital_id', sql.NVarChar, data.hospital_id || null)
+      .input('treat_doc_name', sql.NVarChar, data.treat_doc_name)
+      .input('treat_doc_number', sql.NVarChar, data.treat_doc_number)
+      .input('treat_doc_qualification', sql.NVarChar, data.treat_doc_qualification)
+      .input('treat_doc_reg_no', sql.NVarChar, data.treat_doc_reg_no)
       .query(`
         UPDATE admissions
-        SET insurance_company = @insurance_company, policy_number = @policy_number, insured_card_number = @insured_card_number, policy_start_date = @policy_start_date, policy_end_date = @policy_end_date, updated_at = GETDATE()
+        SET 
+          admission_id = @admission_id, relationship_policyholder = @relationship_policyholder, policy_number = @policy_number,
+          insured_card_number = @insured_card_number, insurance_company = @insurance_company, policy_start_date = @policy_start_date,
+          policy_end_date = @policy_end_date, corporate_policy_number = @corporate_policy_number, other_policy_name = @other_policy_name,
+          family_doctor_name = @family_doctor_name, family_doctor_phone = @family_doctor_phone, payer_email = @payer_email,
+          payer_phone = @payer_phone, tpa_id = @tpa_id, hospital_id = @hospital_id, treat_doc_name = @treat_doc_name,
+          treat_doc_number = @treat_doc_number, treat_doc_qualification = @treat_doc_qualification, treat_doc_reg_no = @treat_doc_reg_no,
+          updated_at = GETDATE()
         WHERE patient_id = @patient_id
       `);
 

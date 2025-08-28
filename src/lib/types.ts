@@ -61,6 +61,12 @@ export interface Patient {
   gender?: 'Male' | 'Female' | 'Other' | null;
   email_address: string;
   phoneNumber?: string | null; 
+  alternative_number?: string | null;
+  age?: number | null;
+  occupation?: string | null;
+  employee_id?: string | null;
+  abha_id?: string | null;
+  health_id?: string | null;
   address?: string | null;
   companyId: string;
   companyName?: string; 
@@ -72,6 +78,23 @@ export interface Patient {
   id_path?: string | null;
   card_path?: string | null;
   package_path?: string | null;
+
+  // Admission fields
+  admission_id?: string;
+  relationship_policyholder?: string;
+  corporate_policy_number?: string;
+  other_policy_name?: string;
+  family_doctor_name?: string;
+  family_doctor_phone?: string;
+  payer_email?: string;
+  payer_phone?: string;
+  tpa_id?: number;
+  treat_doc_name?: string;
+  treat_doc_number?: string;
+  treat_doc_qualification?: string;
+  treat_doc_reg_no?: string;
+
+
   // Deprecated fields, kept for mock data compatibility
   hospitalId?: string;
   hospitalCode?: string;
