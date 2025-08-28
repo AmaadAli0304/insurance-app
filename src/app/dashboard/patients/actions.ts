@@ -180,7 +180,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('payer_phone', sql.NVarChar, data.payer_phone)
       .input('tpa_id', sql.Int, data.tpa_id)
       .input('hospital_id', sql.NVarChar, data.hospital_id || null)
-      .input('patient_id', sql.NVarChar, patientId)
+      .input('patient_id', sql.NVarChar, `${patientId}`)
       .input('treat_doc_name', sql.NVarChar, data.treat_doc_name)
       .input('treat_doc_number', sql.NVarChar, data.treat_doc_number)
       .input('treat_doc_qualification', sql.NVarChar, data.treat_doc_qualification)
