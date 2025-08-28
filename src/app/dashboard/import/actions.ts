@@ -13,17 +13,21 @@ export async function handleUploadFileToS3(prevState: { message: string, type?: 
     return { message: "Please select a file to upload.", type: "error" };
   }
   
-  const { AWS_S3_BUCKET_NAME, AWS_S3_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY } = process.env;
-  if (!AWS_S3_BUCKET_NAME || !AWS_S3_REGION || !AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
-      return { message: "S3 credentials are not configured on the server.", type: 'error' };
+  const bucketName = process.env.AWS_S3_BUCKET_NAME;
+  const region = process.env.AWS_S3_REGION;
+  const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+
+  if (!bucketName || !region || !accessKeyId || !secretAccessKey) {
+      return { message: "S3 credentials are not configured correctly on the server.", type: 'error' };
   }
 
   try {
       const s3Client = new S3Client({
-          region: AWS_S3_REGION,
+          region: region,
           credentials: {
-              accessKeyId: AWS_ACCESS_KEY_ID,
-              secretAccessKey: AWS_SECRET_ACCESS_KEY,
+              accessKeyId: accessKeyId,
+              secretAccessKey: secretAccessKey,
           },
       });
 
@@ -31,7 +35,7 @@ export async function handleUploadFileToS3(prevState: { message: string, type?: 
       const fileName = `imports/${Date.now()}_${file.name}`;
       
       const params = {
-          Bucket: AWS_S3_BUCKET_NAME,
+          Bucket: bucketName,
           Key: fileName,
           Body: buffer,
           ContentType: file.type,
