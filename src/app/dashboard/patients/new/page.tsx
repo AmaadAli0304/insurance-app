@@ -151,10 +151,25 @@ export default function NewPatientPage() {
                         </CardContent>
                     </Card>
 
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>B. KYC &amp; Documents</CardTitle>
+                            <CardDescription>Upload patient's KYC documents.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid md:grid-cols-2 gap-4">
+                            <FileUploadField label="Aadhaar Card" name="adhaar_path" />
+                            <FileUploadField label="PAN Card" name="pan_path" />
+                            <FileUploadField label="Passport" name="passport_path" />
+                            <FileUploadField label="Driving License" name="driving_licence_path" />
+                            <FileUploadField label="Voter ID" name="voter_id_path" />
+                            <FileUploadField label="Other Document" name="other_path" />
+                        </CardContent>
+                    </Card>
+
                     {/* Insurance Details */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>B. Insurance & Admission Details</CardTitle>
+                            <CardTitle>C. Insurance &amp; Admission Details</CardTitle>
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-3 gap-4">
                              <div className="space-y-2">
@@ -222,7 +237,7 @@ export default function NewPatientPage() {
                     {/* Hospital & TPA Details */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>C. Hospital & TPA Details</CardTitle>
+                            <CardTitle>D. Hospital &amp; TPA Details</CardTitle>
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-3 gap-4">
                             <div className="space-y-2">
@@ -254,22 +269,6 @@ export default function NewPatientPage() {
                             </div>
                         </CardContent>
                     </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>D. KYC & Documents</CardTitle>
-                            <CardDescription>Upload patient's KYC documents.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="grid md:grid-cols-2 gap-4">
-                            <FileUploadField label="Aadhaar Card" name="adhaar_path" />
-                            <FileUploadField label="PAN Card" name="pan_path" />
-                            <FileUploadField label="Passport" name="passport_path" />
-                            <FileUploadField label="Driving License" name="driving_licence_path" />
-                            <FileUploadField label="Voter ID" name="voter_id_path" />
-                            <FileUploadField label="Other Document" name="other_path" />
-                        </CardContent>
-                    </Card>
-
 
                     {state.type === 'error' && <p className="text-sm text-destructive">{state.message}</p>}
                     <SubmitButton />
