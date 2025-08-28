@@ -179,19 +179,6 @@ export default function EditPatientPage() {
                                 <Label htmlFor="health_id">Health ID / UHID</Label>
                                 <Input id="health_id" name="health_id" defaultValue={patient.health_id ?? ''} />
                             </div>
-                            <div className="md:col-span-3 flex items-center gap-4">
-                                <div>
-                                    <Label>Current Photo</Label>
-                                     <Avatar className="h-24 w-24 mt-2">
-                                        <AvatarImage src={patient.image_url ?? undefined} alt={patient.fullName} />
-                                        <AvatarFallback>{getInitials(patient.fullName)}</AvatarFallback>
-                                    </Avatar>
-                                </div>
-                                <div className="flex-1">
-                                    <Label htmlFor="image_url">Upload New Photo</Label>
-                                    <Input id="image_url" name="image_url" type="file" accept="image/*" />
-                                </div>
-                            </div>
                         </CardContent>
                     </Card>
 
