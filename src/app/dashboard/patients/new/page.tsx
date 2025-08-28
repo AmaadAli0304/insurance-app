@@ -7,9 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleAddPatient, handleUploadPatientPhoto } from "../actions";
+import { handleAddPatient, handleUploadPatientFile } from "../actions";
 import Link from "next/link";
-import { ArrowLeft, Upload, User as UserIcon, Loader2 } from "lucide-react";
+import { ArrowLeft, Upload, User as UserIcon, Loader2, Eye } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getCompaniesForForm, getTPAsForForm } from "../../company-hospitals/actions";
 import type { Company, TPA } from "@/lib/types";
@@ -27,14 +27,48 @@ function SubmitButton() {
     );
 }
 
-const FileUploadField = ({ label, name }: { label: string; name: string }) => (
-    <div className="space-y-2">
-        <Label htmlFor={name}>{label}</Label>
-        <div className="flex items-center gap-2">
-            <Input id={name} name={name} type="file" className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
+const FileUploadField = ({ label, name, onUrlChange, patientId }: { label: string; name: string, onUrlChange: (url: string) => void, patientId?: string }) => {
+    const [isUploading, setIsUploading] = useState(false);
+    const [fileUrl, setFileUrl] = useState<string | null>(null);
+    const { toast } = useToast();
+
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            setIsUploading(true);
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('fileType', name); // e.g. 'adhaar_path'
+            
+            const result = await handleUploadPatientFile(formData);
+            if (result.type === 'success') {
+                setFileUrl(result.url);
+                onUrlChange(result.url);
+                toast({ title: "Success", description: `${label} uploaded.`, variant: "success" });
+            } else {
+                toast({ title: "Error", description: result.message, variant: "destructive" });
+            }
+            setIsUploading(false);
+        }
+    };
+
+    return (
+        <div className="space-y-2">
+            <Label htmlFor={name}>{label}</Label>
+            <div className="flex items-center gap-2">
+                <Input id={name} name={`${name}-file`} type="file" onChange={handleFileChange} disabled={isUploading} className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
+                {isUploading && <Loader2 className="h-5 w-5 animate-spin" />}
+                {fileUrl && (
+                     <Button variant="outline" size="icon" asChild>
+                        <Link href={fileUrl} target="_blank">
+                            <Eye className="h-4 w-4" />
+                        </Link>
+                    </Button>
+                )}
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 
 export default function NewPatientPage() {
@@ -46,8 +80,10 @@ export default function NewPatientPage() {
     const [tpas, setTpas] = useState<Pick<TPA, "id" | "name">[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-    const [isUploading, setIsUploading] = useState(false);
+    const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
     const photoInputRef = useRef<HTMLInputElement>(null);
+    const [documentUrls, setDocumentUrls] = useState<Record<string, string>>({});
+
     
     useEffect(() => {
         async function loadData() {
@@ -79,20 +115,24 @@ export default function NewPatientPage() {
     const handlePhotoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            setIsUploading(true);
+            setIsUploadingPhoto(true);
             const formData = new FormData();
-            formData.append('photo', file);
-            const result = await handleUploadPatientPhoto(formData);
+            formData.append('file', file);
+            formData.append('fileType', 'photo');
+            const result = await handleUploadPatientFile(formData);
             if (result.type === 'success') {
                 setPhotoUrl(result.url);
                 toast({ title: "Success", description: "Photo uploaded.", variant: "success" });
             } else {
                 toast({ title: "Error", description: result.message, variant: "destructive" });
             }
-            setIsUploading(false);
+            setIsUploadingPhoto(false);
         }
     };
-
+    
+    const handleDocumentUrlChange = (name: string, url: string) => {
+        setDocumentUrls(prev => ({ ...prev, [name]: url }));
+    };
 
     return (
         <div className="space-y-6">
@@ -108,10 +148,13 @@ export default function NewPatientPage() {
             <form action={formAction}>
                  <input type="hidden" name="hospital_id" value={user?.hospitalId || ''} />
                  <input type="hidden" name="photo" value={photoUrl || ''} />
+                 {Object.entries(documentUrls).map(([key, value]) => (
+                    <input key={key} type="hidden" name={key} value={value} />
+                 ))}
                 <div className="grid gap-6">
                     <Card className="flex flex-col items-center p-6">
                         <Avatar className="h-32 w-32 mb-4">
-                            {isUploading ? (
+                            {isUploadingPhoto ? (
                                 <div className="flex h-full w-full items-center justify-center rounded-full bg-muted">
                                     <Loader2 className="h-10 w-10 animate-spin" />
                                 </div>
@@ -124,14 +167,14 @@ export default function NewPatientPage() {
                                 </>
                             )}
                         </Avatar>
-                        <Button type="button" variant="outline" onClick={() => photoInputRef.current?.click()} disabled={isUploading}>
+                        <Button type="button" variant="outline" onClick={() => photoInputRef.current?.click()} disabled={isUploadingPhoto}>
                             <Upload className="mr-2 h-4 w-4" />
-                            {isUploading ? 'Uploading...' : 'Upload Photo'}
+                            {isUploadingPhoto ? 'Uploading...' : 'Upload Photo'}
                         </Button>
                         <Input 
                             ref={photoInputRef}
                             id="photo-upload" 
-                            name="photo-upload" 
+                            name="photo-upload-file" 
                             type="file" 
                             className="hidden" 
                             accept="image/*"
@@ -208,12 +251,12 @@ export default function NewPatientPage() {
                             <CardDescription>Upload patient's KYC documents.</CardDescription>
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-2 gap-4">
-                            <FileUploadField label="Aadhaar Card" name="adhaar_path" />
-                            <FileUploadField label="PAN Card" name="pan_path" />
-                            <FileUploadField label="Passport" name="passport_path" />
-                            <FileUploadField label="Driving License" name="driving_licence_path" />
-                            <FileUploadField label="Voter ID" name="voter_id_path" />
-                            <FileUploadField label="Other Document" name="other_path" />
+                            <FileUploadField label="Aadhaar Card" name="adhaar_path" onUrlChange={(url) => handleDocumentUrlChange("adhaar_path", url)} />
+                            <FileUploadField label="PAN Card" name="pan_path" onUrlChange={(url) => handleDocumentUrlChange("pan_path", url)} />
+                            <FileUploadField label="Passport" name="passport_path" onUrlChange={(url) => handleDocumentUrlChange("passport_path", url)} />
+                            <FileUploadField label="Driving License" name="driving_licence_path" onUrlChange={(url) => handleDocumentUrlChange("driving_licence_path", url)} />
+                            <FileUploadField label="Voter ID" name="voter_id_path" onUrlChange={(url) => handleDocumentUrlChange("voter_id_path", url)} />
+                            <FileUploadField label="Other Document" name="other_path" onUrlChange={(url) => handleDocumentUrlChange("other_path", url)} />
                         </CardContent>
                     </Card>
 

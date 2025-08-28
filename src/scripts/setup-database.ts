@@ -173,12 +173,27 @@ async function setupDatabase() {
       ELSE
       BEGIN
         PRINT '"patients" table already exists.';
-        -- Add photo column if it doesn't exist
-        IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'photo' AND Object_ID = Object_ID(N'patients'))
-        BEGIN
-            ALTER TABLE patients ADD photo NVARCHAR(MAX);
-            PRINT 'Added "photo" column to "patients" table.';
-        END
+        -- Add columns if they don't exist
+        const columns_to_add = [
+            { name: 'photo', type: 'NVARCHAR(MAX)' },
+            { name: 'adhaar_path', type: 'NVARCHAR(MAX)' },
+            { name: 'pan_path', type: 'NVARCHAR(MAX)' },
+            { name: 'passport_path', type: 'NVARCHAR(MAX)' },
+            { name: 'voter_id_path', type: 'NVARCHAR(MAX)' },
+            { name: 'driving_licence_path', type: 'NVARCHAR(MAX)' },
+            { name: 'other_path', type: 'NVARCHAR(MAX)' }
+        ];
+
+        for (const col of columns_to_add) {
+            const checkColumnQuery = \`
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'\${col.name}' AND Object_ID = Object_ID(N'patients'))
+                BEGIN
+                    ALTER TABLE patients ADD \${col.name} \${col.type};
+                    PRINT 'Added "\${col.name}" column to "patients" table.';
+                END
+            \`;
+            await request.query(checkColumnQuery);
+        }
       END
     `;
     await request.query(createPatientsTableQuery);

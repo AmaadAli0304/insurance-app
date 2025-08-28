@@ -28,12 +28,12 @@ const basePatientFormSchema = z.object({
   photo: z.string().url().optional().nullable().or(z.literal('')),
 
   // KYC Documents
-  adhaar_path: z.any().optional().nullable(),
-  pan_path: z.any().optional().nullable(),
-  passport_path: z.any().optional().nullable(),
-  voter_id_path: z.any().optional().nullable(),
-  driving_licence_path: z.any().optional().nullable(),
-  other_path: z.any().optional().nullable(),
+  adhaar_path: z.string().url().optional().nullable().or(z.literal('')),
+  pan_path: z.string().url().optional().nullable().or(z.literal('')),
+  passport_path: z.string().url().optional().nullable().or(z.literal('')),
+  voter_id_path: z.string().url().optional().nullable().or(z.literal('')),
+  driving_licence_path: z.string().url().optional().nullable().or(z.literal('')),
+  other_path: z.string().url().optional().nullable().or(z.literal('')),
 
   // Insurance Details
   admission_id: z.string().min(1, "Admission ID is required."),
@@ -114,6 +114,12 @@ export async function getPatientById(id: string): Promise<Patient | null> {
           p.abha_id,
           p.health_id,
           p.photo,
+          p.adhaar_path,
+          p.pan_path,
+          p.passport_path,
+          p.voter_id_path,
+          p.driving_licence_path,
+          p.other_path,
           a.admission_id,
           a.relationship_policyholder,
           a.policy_number as policyNumber,
@@ -157,8 +163,10 @@ export async function getPatientById(id: string): Promise<Patient | null> {
   }
 }
 
-export async function handleUploadPatientPhoto(formData: FormData): Promise<{ type: 'success', url: string } | { type: 'error', message: string }> {
-    const file = formData.get("photo") as File | null;
+export async function handleUploadPatientFile(formData: FormData): Promise<{ type: 'success', url: string } | { type: 'error', message: string }> {
+    const file = formData.get("file") as File | null;
+    const fileType = formData.get("fileType") as string || 'other'; // e.g., 'photo', 'aadhaar', 'pan'
+    
     if (!file || file.size === 0) {
         return { type: 'error', message: 'No file provided.' };
     }
@@ -179,7 +187,8 @@ export async function handleUploadPatientPhoto(formData: FormData): Promise<{ ty
         });
 
         const buffer = Buffer.from(await file.arrayBuffer());
-        const fileName = `patients/${Date.now()}-${file.name.replace(/\s/g, '_')}`;
+        const folder = fileType === 'photo' ? 'photos' : 'kyc';
+        const fileName = `patients/${folder}/${Date.now()}-${file.name.replace(/\s/g, '_')}`;
 
         await s3Client.send(new PutObjectCommand({
             Bucket: bucketName,
@@ -231,10 +240,16 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('health_id', sql.NVarChar, data.health_id || null)
       .input('hospital_id', sql.NVarChar, data.hospital_id || null)
       .input('photo', sql.NVarChar, data.photo || null)
+      .input('adhaar_path', sql.NVarChar, data.adhaar_path || null)
+      .input('pan_path', sql.NVarChar, data.pan_path || null)
+      .input('passport_path', sql.NVarChar, data.passport_path || null)
+      .input('voter_id_path', sql.NVarChar, data.voter_id_path || null)
+      .input('driving_licence_path', sql.NVarChar, data.driving_licence_path || null)
+      .input('other_path', sql.NVarChar, data.other_path || null)
       .query(`
-        INSERT INTO patients (name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id, photo)
+        INSERT INTO patients (name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id, photo, adhaar_path, pan_path, passport_path, voter_id_path, driving_licence_path, other_path)
         OUTPUT INSERTED.id
-        VALUES (@name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id, @photo)
+        VALUES (@name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id, @photo, @adhaar_path, @pan_path, @passport_path, @voter_id_path, @driving_licence_path, @other_path)
       `);
     
     const patientId = patientResult.recordset[0]?.id;
@@ -316,12 +331,21 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
       .input('abha_id', sql.NVarChar, data.abha_id || null)
       .input('health_id', sql.NVarChar, data.health_id || null)
       .input('photo', sql.NVarChar, data.photo || null)
+      .input('adhaar_path', sql.NVarChar, data.adhaar_path || null)
+      .input('pan_path', sql.NVarChar, data.pan_path || null)
+      .input('passport_path', sql.NVarChar, data.passport_path || null)
+      .input('voter_id_path', sql.NVarChar, data.voter_id_path || null)
+      .input('driving_licence_path', sql.NVarChar, data.driving_licence_path || null)
+      .input('other_path', sql.NVarChar, data.other_path || null)
       .query(`
         UPDATE patients 
         SET 
           name = @name, email_address = @email_address, phone_number = @phone_number, alternative_number = @alternative_number, 
           gender = @gender, age = @age, birth_date = @birth_date, address = @address, occupation = @occupation,
-          employee_id = @employee_id, abha_id = @abha_id, health_id = @health_id, photo = @photo, updated_at = GETDATE()
+          employee_id = @employee_id, abha_id = @abha_id, health_id = @health_id, photo = @photo, 
+          adhaar_path = @adhaar_path, pan_path = @pan_path, passport_path = @passport_path, 
+          voter_id_path = @voter_id_path, driving_licence_path = @driving_licence_path, other_path = @other_path,
+          updated_at = GETDATE()
         WHERE id = @id
       `);
 

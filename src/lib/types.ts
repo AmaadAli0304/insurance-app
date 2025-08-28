@@ -74,11 +74,13 @@ export interface Patient {
   memberId?: string | null;
   policyStartDate?: string | null;
   policyEndDate?: string | null;
-  report_path?: string | null;
-  id_path?: string | null;
-  card_path?: string | null;
-  package_path?: string | null;
   photo?: string | null;
+  adhaar_path?: string | null;
+  pan_path?: string | null;
+  passport_path?: string | null;
+  voter_id_path?: string | null;
+  driving_licence_path?: string | null;
+  other_path?: string | null;
 
   // Admission fields
   admission_id?: string;
