@@ -54,7 +54,7 @@ const addPatientFormSchema = z.object({
   treat_doc_number: z.string().regex(phoneRegex, "Treating doctor's contact must be 10 digits"),
   treat_doc_qualification: z.string().min(1, "Doctor’s qualification is required."),
   treat_doc_reg_no: z.string().min(1, "Doctor’s registration no. is required."),
-}).refine(data => data.age !== null || data.birth_date !== null, {
+}).refine(data => data.age !== null && data.age !== undefined && data.age > 0 || (data.birth_date !== null && data.birth_date !== undefined && data.birth_date !== ''), {
   message: "Either Age or Date of birth is required.",
   path: ["age"], // you can also set it to birth_date
 });
@@ -150,7 +150,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('hospital_id', sql.NVarChar, data.hospital_id || null)
       .input('company_id', sql.NVarChar, data.company_id)
       .input('policy_number', sql.NVarChar, data.policy_number)
-      .input('member_id', sql.NVarChar, data.insured_card_number) // Storing insured_card_number as member_id
+      .input('member_id', sql.NVarChar, data.insured_card_number)
       .input('policy_start_date', data.policy_start_date ? sql.Date : sql.Date, data.policy_start_date ? new Date(data.policy_start_date) : null)
       .input('policy_end_date', data.policy_end_date ? sql.Date : sql.Date, data.policy_end_date ? new Date(data.policy_end_date) : null)
       // NOTE: KYC fields (adhaar_path, etc.) are ignored for now as file upload is not implemented.
@@ -258,5 +258,7 @@ export async function handleDeletePatient(prevState: { message: string, type?: s
     return { message: "Patient deleted successfully.", type: 'success' };
 }
 
+
+    
 
     
