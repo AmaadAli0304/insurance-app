@@ -197,7 +197,7 @@ export async function handleCreatePatientsTable(prevState: { message: string, ty
           id NVARCHAR(255) PRIMARY KEY,
           name NVARCHAR(255),
           email NVARCHAR(255),
-          phone NVARCHAR(50),
+          phone_number NVARCHAR(50),
           alternative_number NVARCHAR(50),
           gender NVARCHAR(50),
           age INT,
@@ -214,11 +214,6 @@ export async function handleCreatePatientsTable(prevState: { message: string, ty
           abha_id NVARCHAR(255),
           health_id NVARCHAR(255),
           hospital_id NVARCHAR(255),
-          company_id NVARCHAR(255),
-          policy_number NVARCHAR(255),
-          member_id NVARCHAR(255),
-          policy_start_date DATE,
-          policy_end_date DATE,
           created_at DATETIME DEFAULT GETDATE(),
           updated_at DATETIME DEFAULT GETDATE()
         );
@@ -327,5 +322,3 @@ export async function handleCreateAdmissionsTable(prevState: { message: string, 
     return { message: `Error creating Admissions table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
-
-    

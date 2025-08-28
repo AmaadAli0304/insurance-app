@@ -64,7 +64,7 @@ export async function getPatients(): Promise<Patient[]> {
     await poolConnect;
     const result = await pool.request()
       .query(`
-        SELECT p.id, p.name as fullName, p.email, p.phone as phoneNumber, a.policy_number, c.name as companyName
+        SELECT p.id, p.name as fullName, p.email, p.phone_number as phoneNumber, a.policy_number, c.name as companyName
         FROM patients p
         LEFT JOIN admissions a ON p.id = a.patient_id
         LEFT JOIN companies c ON a.insurance_company = c.id
@@ -85,7 +85,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
         SELECT 
           p.*,
           p.name as fullName, 
-          p.phone as phoneNumber, 
+          p.phone_number as phoneNumber, 
           a.insurance_company as companyId,
           c.name as companyName,
           p.birth_date as dateOfBirth, 
@@ -139,7 +139,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('id', sql.NVarChar, patientId)
       .input('name', sql.NVarChar, data.name)
       .input('email', sql.NVarChar, data.email)
-      .input('phone', sql.NVarChar, data.phone)
+      .input('phone_number', sql.NVarChar, data.phone)
       .input('alternative_number', sql.NVarChar, data.alternative_number || null)
       .input('gender', sql.NVarChar, data.gender)
       .input('age', sql.Int, data.age)
@@ -152,8 +152,8 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('hospital_id', sql.NVarChar, data.hospital_id || null)
       // NOTE: KYC fields (adhaar_path, etc.) are ignored for now as file upload is not implemented.
       .query(`
-        INSERT INTO patients (id, name, email, phone, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id)
-        VALUES (@id, @name, @email, @phone, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id)
+        INSERT INTO patients (id, name, email, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id)
+        VALUES (@id, @name, @email, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id)
       `);
 
     // Insert into admissions table
