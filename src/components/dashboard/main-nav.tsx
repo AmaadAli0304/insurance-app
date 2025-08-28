@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -19,7 +18,6 @@ export function MainNav() {
       { href: '/dashboard/tpas', label: 'TPAs', icon: Briefcase },
       { href: '/dashboard/staff', label: 'Staff', icon: Users },
       { href: '/dashboard/import', label: 'Import', icon: Upload },
-      { href: '/dashboard/fields', label: 'Fields', icon: FilePlus2 },
     ],
     'Hospital Staff': [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -33,7 +31,6 @@ export function MainNav() {
       { href: '/dashboard/companies', label: 'Companies', icon: Factory },
       { href: '/dashboard/tpas', label: 'TPAs', icon: Briefcase },
       { href: '/dashboard/staff', label: 'Staff', icon: Users },
-      { href: '/dashboard/fields', label: 'Fields', icon: FilePlus2 },
     ],
   };
 
