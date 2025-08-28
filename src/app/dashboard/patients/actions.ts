@@ -6,6 +6,15 @@ import { Patient } from "@/lib/types";
 import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+
+const s3Client = new S3Client({
+    region: process.env.AWS_S3_REGION,
+    credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    },
+});
 
 const phoneRegex = new RegExp(/^\d{10}$/);
 
@@ -23,6 +32,7 @@ const basePatientFormSchema = z.object({
   employee_id: z.string().optional().nullable(),
   abha_id: z.string().optional().nullable(),
   health_id: z.string().optional().nullable(),
+  image_url: z.any().optional().nullable(),
   
   // KYC Documents
   adhaar_path: z.any().optional().nullable(),
@@ -60,7 +70,6 @@ const refinement = (data: z.infer<typeof basePatientFormSchema>) =>
   (data.age !== null && data.age !== undefined && data.age > 0) || 
   (data.birth_date !== null && data.birth_date !== undefined && data.birth_date !== '');
 
-
 const addPatientFormSchema = basePatientFormSchema.refine(refinement, {
   message: "Either Age or Date of birth is required.",
   path: ["age"], 
@@ -95,7 +104,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
   try {
     await poolConnect;
     const result = await pool.request()
-      .input('id', sql.NVarChar, id)
+      .input('id', sql.Int, Number(id))
       .query(`
         SELECT 
           p.id,
@@ -154,6 +163,21 @@ export async function getPatientById(id: string): Promise<Patient | null> {
   }
 }
 
+async function uploadFileToS3(file: Buffer, fileName: string): Promise<string> {
+    const params = {
+        Bucket: process.env.AWS_S3_BUCKET_NAME,
+        Key: `patients/${fileName}`,
+        Body: file,
+        ContentType: 'image/jpeg',
+    };
+
+    const command = new PutObjectCommand(params);
+    await s3Client.send(command);
+
+    return `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_S3_REGION}.amazonaws.com/patients/${fileName}`;
+}
+
+
 export async function handleAddPatient(prevState: { message: string, type?: string }, formData: FormData) {
   const validatedFields = addPatientFormSchema.safeParse(Object.fromEntries(formData.entries()));
   
@@ -164,6 +188,20 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
   
   const { data } = validatedFields;
   let transaction;
+  let imageUrl: string | null = null;
+  const imageFile = formData.get("image_url") as File;
+  
+  if (imageFile && imageFile.size > 0) {
+      try {
+          const buffer = Buffer.from(await imageFile.arrayBuffer());
+          const fileName = `patient_${Date.now()}_${imageFile.name}`;
+          imageUrl = await uploadFileToS3(buffer, fileName);
+      } catch (error) {
+          console.error("Error uploading image to S3", error);
+          return { message: "Failed to upload patient image.", type: 'error' };
+      }
+  }
+
 
   try {
     await poolConnect;
@@ -186,16 +224,17 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('abha_id', sql.NVarChar, data.abha_id || null)
       .input('health_id', sql.NVarChar, data.health_id || null)
       .input('hospital_id', sql.NVarChar, data.hospital_id || null)
+      .input('image_url', sql.NVarChar, imageUrl)
       // NOTE: KYC fields (adhaar_path, etc.) are ignored for now as file upload is not implemented.
       .query(`
-        INSERT INTO patients (name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id)
+        INSERT INTO patients (name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id, image_url)
         OUTPUT INSERTED.id
-        VALUES (@name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id)
+        VALUES (@name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id, @image_url)
       `);
     
     const patientId = patientResult.recordset[0]?.id;
     
-    if (!patientId || typeof patientId !== 'string') {
+    if (!patientId || typeof patientId !== 'number') {
         throw new Error("Failed to create patient record or retrieve ID.");
     }
 
@@ -217,7 +256,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('payer_phone', sql.NVarChar, data.payer_phone)
       .input('tpa_id', sql.Int, data.tpa_id)
       .input('hospital_id', sql.NVarChar, data.hospital_id || null)
-      .input('patient_id', sql.NVarChar, patientId)
+      .input('patient_id', sql.Int, patientId)
       .input('treat_doc_name', sql.NVarChar, data.treat_doc_name)
       .input('treat_doc_number', sql.NVarChar, data.treat_doc_number)
       .input('treat_doc_qualification', sql.NVarChar, data.treat_doc_qualification)
@@ -258,7 +297,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
     // Update patients table
     const patientRequest = new sql.Request(transaction);
     await patientRequest
-      .input('id', sql.NVarChar, patientId)
+      .input('id', sql.Int, Number(patientId))
       .input('name', sql.NVarChar, data.name)
       .input('email_address', sql.NVarChar, data.email_address)
       .input('phone_number', sql.NVarChar, data.phone_number)
@@ -283,7 +322,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
     // Update admissions table
     const admissionRequest = new sql.Request(transaction);
     await admissionRequest
-      .input('patient_id', sql.NVarChar, patientId)
+      .input('patient_id', sql.Int, Number(patientId))
       .input('admission_id', sql.NVarChar, data.admission_id)
       .input('relationship_policyholder', sql.NVarChar, data.relationship_policyholder)
       .input('policy_number', sql.NVarChar, data.policy_number)
@@ -342,11 +381,11 @@ export async function handleDeletePatient(prevState: { message: string, type?: s
         await transaction.begin();
 
         await new sql.Request(transaction)
-          .input('patient_id', sql.NVarChar, id)
+          .input('patient_id', sql.Int, Number(id))
           .query('DELETE FROM admissions WHERE patient_id = @patient_id');
 
         const result = await new sql.Request(transaction)
-            .input('id', sql.NVarChar, id)
+            .input('id', sql.Int, Number(id))
             .query('DELETE FROM patients WHERE id = @id');
 
         if (result.rowsAffected[0] === 0) {

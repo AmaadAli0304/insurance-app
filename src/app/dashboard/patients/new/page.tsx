@@ -136,6 +136,10 @@ export default function NewPatientPage() {
                                 <Label htmlFor="occupation">Occupation</Label>
                                 <Input id="occupation" name="occupation" />
                             </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="image_url">Patient Image</Label>
+                                <Input id="image_url" name="image_url" type="file" accept="image/*" />
+                            </div>
                              <div className="space-y-2">
                                 <Label htmlFor="employee_id">Employee ID</Label>
                                 <Input id="employee_id" name="employee_id" />
