@@ -132,10 +132,13 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
     await poolConnect;
     transaction = new sql.Transaction(pool);
     await transaction.begin();
+    
+    const patientId = `pat-${Date.now()}`;
 
     // Insert into patients table
     const patientRequest = new sql.Request(transaction);
-    const patientResult = await patientRequest
+    await patientRequest
+      .input('id', sql.NVarChar, patientId)
       .input('name', sql.NVarChar, data.name)
       .input('email_address', sql.NVarChar, data.email)
       .input('phone_number', sql.NVarChar, data.phone_number)
@@ -151,12 +154,10 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('hospital_id', sql.NVarChar, data.hospital_id || null)
       // NOTE: KYC fields (adhaar_path, etc.) are ignored for now as file upload is not implemented.
       .query(`
-        INSERT INTO patients (name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id)
-        OUTPUT INSERTED.id
-        VALUES (@name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id)
+        INSERT INTO patients (id, name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id)
+        VALUES (@id, @name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id)
       `);
     
-    const patientId = patientResult.recordset[0].id;
 
     // Insert into admissions table
     const admissionRequest = new sql.Request(transaction);
@@ -257,5 +258,7 @@ export async function handleDeletePatient(prevState: { message: string, type?: s
     return { message: "Patient deleted successfully.", type: 'success' };
 }
 
+
+    
 
     

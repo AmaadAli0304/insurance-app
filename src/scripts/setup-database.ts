@@ -138,6 +138,46 @@ async function setupDatabase() {
     await request.query(createTokenBlacklistTableQuery);
     console.log('Token blacklist table check/create complete.');
 
+    // Create Patients Table
+    console.log('Checking for "patients" table...');
+    const createPatientsTableQuery = `
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='patients' and xtype='U')
+      BEGIN
+        CREATE TABLE patients (
+          id NVARCHAR(255) PRIMARY KEY,
+          name NVARCHAR(255) NOT NULL,
+          email_address NVARCHAR(255) NOT NULL,
+          phone_number NVARCHAR(50) NOT NULL,
+          alternative_number NVARCHAR(50),
+          gender NVARCHAR(50) NOT NULL,
+          age INT,
+          birth_date DATE,
+          address NVARCHAR(MAX) NOT NULL,
+          occupation NVARCHAR(255),
+          adhaar_path NVARCHAR(MAX),
+          pan_path NVARCHAR(MAX),
+          passport_path NVARCHAR(MAX),
+          voter_id_path NVARCHAR(MAX),
+          driving_licence_path NVARCHAR(MAX),
+          other_path NVARCHAR(MAX),
+          employee_id NVARCHAR(255),
+          abha_id NVARCHAR(255),
+          health_id NVARCHAR(255),
+          hospital_id NVARCHAR(255),
+          created_at DATETIME DEFAULT GETDATE(),
+          updated_at DATETIME DEFAULT GETDATE()
+        );
+        PRINT '"patients" table created.';
+      END
+      ELSE
+      BEGIN
+        PRINT '"patients" table already exists.';
+      END
+    `;
+    await request.query(createPatientsTableQuery);
+    console.log('Patients table check/create complete.');
+
+
     console.log('Database setup complete!');
 
   } catch (err) {
@@ -150,3 +190,5 @@ async function setupDatabase() {
 }
 
 setupDatabase();
+
+    
