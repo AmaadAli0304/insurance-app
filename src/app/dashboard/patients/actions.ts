@@ -24,6 +24,14 @@ const addPatientFormSchema = z.object({
   abha_id: z.string().optional().nullable(),
   health_id: z.string().optional().nullable(),
   
+  // KYC Documents
+  adhaar_path: z.any().optional().nullable(),
+  pan_path: z.any().optional().nullable(),
+  passport_path: z.any().optional().nullable(),
+  voter_id_path: z.any().optional().nullable(),
+  driving_licence_path: z.any().optional().nullable(),
+  other_path: z.any().optional().nullable(),
+
   // Insurance Details
   admission_id: z.string().min(1, "Admission ID is required."),
   relationship_policyholder: z.string().min(1, "Relationship to policyholder is required."),

@@ -26,6 +26,16 @@ function SubmitButton() {
     );
 }
 
+const FileUploadField = ({ label, name }: { label: string; name: string }) => (
+    <div className="space-y-2">
+        <Label htmlFor={name}>{label}</Label>
+        <div className="flex items-center gap-2">
+            <Input id={name} name={name} type="file" className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
+        </div>
+    </div>
+);
+
+
 export default function NewPatientPage() {
     const { user } = useAuth();
     const [state, formAction] = useActionState(handleAddPatient, { message: "", type: "initial" });
@@ -244,6 +254,22 @@ export default function NewPatientPage() {
                             </div>
                         </CardContent>
                     </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>D. KYC & Documents</CardTitle>
+                            <CardDescription>Upload patient's KYC documents.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid md:grid-cols-2 gap-4">
+                            <FileUploadField label="Aadhaar Card" name="adhaar_path" />
+                            <FileUploadField label="PAN Card" name="pan_path" />
+                            <FileUploadField label="Passport" name="passport_path" />
+                            <FileUploadField label="Driving License" name="driving_licence_path" />
+                            <FileUploadField label="Voter ID" name="voter_id_path" />
+                            <FileUploadField label="Other Document" name="other_path" />
+                        </CardContent>
+                    </Card>
+
 
                     {state.type === 'error' && <p className="text-sm text-destructive">{state.message}</p>}
                     <SubmitButton />
