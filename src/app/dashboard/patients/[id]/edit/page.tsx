@@ -50,6 +50,8 @@ export default function EditPatientPage() {
     const [companies, setCompanies] = useState<Pick<Company, "id" | "name">[]>([]);
     const [tpas, setTpas] = useState<Pick<TPA, "id" | "name">[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         async function loadData() {
@@ -68,6 +70,9 @@ export default function EditPatientPage() {
                 setPatient(patientData);
                 setCompanies(companyList);
                 setTpas(tpaList);
+                if (patientData.image_url) {
+                    setImagePreview(patientData.image_url);
+                }
             } catch (error) {
                 toast({ title: "Error", description: "Failed to load patient data.", variant: "destructive" });
             } finally {
@@ -85,6 +90,17 @@ export default function EditPatientPage() {
             toast({ title: "Error", description: state.message, variant: "destructive" });
         }
     }, [state, toast, router]);
+
+    const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     if (isLoading) {
         return (
@@ -118,6 +134,30 @@ export default function EditPatientPage() {
                  <input type="hidden" name="id" value={patient.id} />
                  <input type="hidden" name="hospital_id" value={user?.hospitalId || ''} />
                 <div className="grid gap-6">
+                     <Card>
+                        <CardHeader className="items-center">
+                            <div className="flex flex-col items-center gap-4">
+                                <Avatar className="h-24 w-24">
+                                    <AvatarImage src={imagePreview ?? undefined} alt={patient.fullName} />
+                                    <AvatarFallback>{getInitials(patient.fullName)}</AvatarFallback>
+                                </Avatar>
+                                <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                                    <Upload className="mr-2 h-4 w-4" />
+                                    Upload Photo
+                                </Button>
+                                <Input 
+                                    ref={fileInputRef}
+                                    id="image_url" 
+                                    name="image_url" 
+                                    type="file" 
+                                    className="hidden" 
+                                    accept="image/*"
+                                    onChange={handleImageChange}
+                                />
+                            </div>
+                        </CardHeader>
+                    </Card>
+
                     {/* Patient Details */}
                     <Card>
                         <CardHeader>
