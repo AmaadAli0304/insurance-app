@@ -85,8 +85,8 @@ export async function getPatientById(id: string): Promise<Patient | null> {
         SELECT 
           p.*,
           p.name as fullName, 
-          p.email_address as email,
-          p.phone_number as phoneNumber, 
+          p.email_address,
+          p.phone_number, 
           a.insurance_company as companyId,
           c.name as companyName,
           p.birth_date as dateOfBirth, 
@@ -133,12 +133,9 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
     transaction = new sql.Transaction(pool);
     await transaction.begin();
     
-    const patientId = `pat-${Date.now()}`;
-
     // Insert into patients table
     const patientRequest = new sql.Request(transaction);
-    await patientRequest
-      .input('id', sql.NVarChar, patientId)
+    const patientResult = await patientRequest
       .input('name', sql.NVarChar, data.name)
       .input('email_address', sql.NVarChar, data.email)
       .input('phone_number', sql.NVarChar, data.phone_number)
@@ -154,10 +151,16 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('hospital_id', sql.NVarChar, data.hospital_id || null)
       // NOTE: KYC fields (adhaar_path, etc.) are ignored for now as file upload is not implemented.
       .query(`
-        INSERT INTO patients (id, name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id)
-        VALUES (@id, @name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id)
+        INSERT INTO patients (name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id)
+        OUTPUT INSERTED.id
+        VALUES (@name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id)
       `);
     
+    const patientId = patientResult.recordset[0].id;
+    
+    if (!patientId) {
+        throw new Error("Failed to create patient record.");
+    }
 
     // Insert into admissions table
     const admissionRequest = new sql.Request(transaction);
@@ -199,7 +202,21 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
 }
 
 export async function handleUpdatePatient(prevState: { message: string, type?: string }, formData: FormData) {
-  const patientUpdateSchema = z.any(); // Bypassing for now as edit form is not updated
+  const patientUpdateSchema = z.object({
+    id: z.string(),
+    name: z.string().min(1, "Full Name is required."),
+    email: z.string().email("Invalid email address.").min(1, "Email is required."),
+    phone: z.string().optional(),
+    address: z.string().optional(),
+    birth_date: z.string().optional(),
+    gender: z.string().optional(),
+    company_id: z.string().min(1, "Insurance Company is required."),
+    policy_number: z.string().optional(),
+    member_id: z.string().optional(),
+    policy_start_date: z.string().optional(),
+    policy_end_date: z.string().optional(),
+  });
+  
   const validatedFields = patientUpdateSchema.safeParse(Object.fromEntries(formData.entries()));
   
   if (!validatedFields.success) {
@@ -208,23 +225,48 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
   }
   
   const { id, ...data } = validatedFields.data;
+  let transaction;
 
   try {
     await poolConnect;
-    const request = pool.request();
-    // This needs to be updated with new fields if edit functionality is required
-    request
+    transaction = new sql.Transaction(pool);
+    await transaction.begin();
+
+    // Update patients table
+    const patientRequest = new sql.Request(transaction);
+    await patientRequest
       .input('id', sql.NVarChar, id)
       .input('name', sql.NVarChar, data.name)
-      .input('email', sql.NVarChar, data.email)
+      .input('email_address', sql.NVarChar, data.email)
+      .input('phone_number', sql.NVarChar, data.phone)
+      .input('address', sql.NVarChar, data.address)
+      .input('birth_date', data.birth_date ? sql.Date : sql.Date, data.birth_date ? new Date(data.birth_date) : null)
+      .input('gender', sql.NVarChar, data.gender)
+      .query(`
+        UPDATE patients 
+        SET name = @name, email_address = @email_address, phone_number = @phone_number, address = @address, birth_date = @birth_date, gender = @gender, updated_at = GETDATE()
+        WHERE id = @id
+      `);
 
-    await request.query(`
-      UPDATE patients 
-      SET name = @name, email = @email
-      WHERE id = @id
-    `);
+    // Update admissions table
+    const admissionRequest = new sql.Request(transaction);
+    await admissionRequest
+      .input('patient_id', sql.NVarChar, id)
+      .input('insurance_company', sql.NVarChar, data.company_id)
+      .input('policy_number', sql.NVarChar, data.policy_number)
+      .input('insured_card_number', sql.NVarChar, data.member_id)
+      .input('policy_start_date', data.policy_start_date ? sql.Date : sql.Date, data.policy_start_date ? new Date(data.policy_start_date) : null)
+      .input('policy_end_date', data.policy_end_date ? sql.Date : sql.Date, data.policy_end_date ? new Date(data.policy_end_date) : null)
+      .query(`
+        UPDATE admissions
+        SET insurance_company = @insurance_company, policy_number = @policy_number, insured_card_number = @insured_card_number, policy_start_date = @policy_start_date, policy_end_date = @policy_end_date, updated_at = GETDATE()
+        WHERE patient_id = @patient_id
+      `);
+
+    await transaction.commit();
 
   } catch (error) {
+    if(transaction) await transaction.rollback();
     console.error('Error updating patient:', error);
     const dbError = error as { message?: string };
     return { message: `Database Error: ${dbError.message || 'Unknown error'}`, type: "error" };
@@ -239,17 +281,29 @@ export async function handleDeletePatient(prevState: { message: string, type?: s
      if (!id) {
       return { message: "Delete error: ID is missing", type: 'error' };
     }
+    let transaction;
 
     try {
         await poolConnect;
-        const result = await pool.request()
+        transaction = new sql.Transaction(pool);
+        await transaction.begin();
+
+        await new sql.Request(transaction)
+          .input('patient_id', sql.NVarChar, id)
+          .query('DELETE FROM admissions WHERE patient_id = @patient_id');
+
+        const result = await new sql.Request(transaction)
             .input('id', sql.NVarChar, id)
             .query('DELETE FROM patients WHERE id = @id');
 
         if (result.rowsAffected[0] === 0) {
+            await transaction.rollback();
             return { message: "Patient not found.", type: 'error' };
         }
+        await transaction.commit();
+
     } catch (error) {
+        if (transaction) await transaction.rollback();
         console.error('Database error:', error);
         return { message: "Database error during deletion.", type: 'error' };
     }
@@ -258,6 +312,8 @@ export async function handleDeletePatient(prevState: { message: string, type?: s
     return { message: "Patient deleted successfully.", type: 'success' };
 }
 
+
+    
 
     
 
