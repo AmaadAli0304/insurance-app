@@ -87,7 +87,7 @@ export function PatientsTable({ patients, onPatientDeleted }: PatientsTableProps
             <TableRow key={p.id} onClick={() => handleRowClick(p.id)} className="cursor-pointer">
               <TableCell className="font-medium">{p.fullName}</TableCell>
               <TableCell>{p.companyName || 'N/A'}</TableCell>
-              <TableCell>{p.policyNumber}</TableCell>
+              <TableCell>{p.policyNumber ?? 'N/A'}</TableCell>
               <TableCell>{p.email}</TableCell>
               <TableCell>{p.phoneNumber}</TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>

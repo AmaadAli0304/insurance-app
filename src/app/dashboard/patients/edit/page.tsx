@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleUpdatePatient, getPatientById } from "../../actions";
+import { handleUpdatePatient, getPatientById } from "../actions";
 import Link from "next/link";
 import { ArrowLeft, Upload } from "lucide-react";
 import { notFound, useParams, useRouter } from "next/navigation";
@@ -160,11 +160,11 @@ export default function EditPatientPage() {
                                 <Label htmlFor="policy_number">Policy Number</Label>
                                 <Input id="policy_number" name="policy_number" defaultValue={patient.policyNumber ?? ""} />
                             </div>
-                             <div className="space-y-2">
+                            <div className="space-y-2">
                                 <Label htmlFor="member_id">Member ID</Label>
                                 <Input id="member_id" name="member_id" defaultValue={patient.memberId ?? ""} />
                             </div>
-                             <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="policy_start_date">Policy Start Date</Label>
                                     <Input id="policy_start_date" name="policy_start_date" type="date" defaultValue={patient.policyStartDate ?? ""} />

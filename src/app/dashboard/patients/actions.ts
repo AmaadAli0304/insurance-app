@@ -64,9 +64,10 @@ export async function getPatients(): Promise<Patient[]> {
     await poolConnect;
     const result = await pool.request()
       .query(`
-        SELECT p.id, p.name as fullName, p.email, p.phone as phoneNumber, p.policy_number, c.name as companyName
+        SELECT p.id, p.name as fullName, p.email, p.phone as phoneNumber, a.policy_number, c.name as companyName
         FROM patients p
-        LEFT JOIN companies c ON p.company_id = c.id
+        LEFT JOIN admissions a ON p.id = a.patient_id
+        LEFT JOIN companies c ON a.insurance_company = c.id
       `);
     return result.recordset as Patient[];
   } catch (error) {
@@ -82,18 +83,19 @@ export async function getPatientById(id: string): Promise<Patient | null> {
       .input('id', sql.NVarChar, id)
       .query(`
         SELECT 
-          p.*, 
+          p.*,
           p.name as fullName, 
           p.phone as phoneNumber, 
-          p.company_id as companyId,
+          a.insurance_company as companyId,
           c.name as companyName,
           p.birth_date as dateOfBirth, 
-          p.policy_number as policyNumber, 
-          p.member_id as memberId, 
-          p.policy_start_date as policyStartDate, 
-          p.policy_end_date as policyEndDate 
+          a.policy_number as policyNumber, 
+          a.insured_card_number as memberId, 
+          a.policy_start_date as policyStartDate, 
+          a.policy_end_date as policyEndDate 
         FROM patients p
-        LEFT JOIN companies c ON p.company_id = c.id
+        LEFT JOIN admissions a ON p.id = a.patient_id
+        LEFT JOIN companies c ON a.insurance_company = c.id
         WHERE p.id = @id
       `);
       
@@ -148,15 +150,10 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('abha_id', sql.NVarChar, data.abha_id || null)
       .input('health_id', sql.NVarChar, data.health_id || null)
       .input('hospital_id', sql.NVarChar, data.hospital_id || null)
-      .input('company_id', sql.NVarChar, data.company_id)
-      .input('policy_number', sql.NVarChar, data.policy_number)
-      .input('member_id', sql.NVarChar, data.insured_card_number)
-      .input('policy_start_date', data.policy_start_date ? sql.Date : sql.Date, data.policy_start_date ? new Date(data.policy_start_date) : null)
-      .input('policy_end_date', data.policy_end_date ? sql.Date : sql.Date, data.policy_end_date ? new Date(data.policy_end_date) : null)
       // NOTE: KYC fields (adhaar_path, etc.) are ignored for now as file upload is not implemented.
       .query(`
-        INSERT INTO patients (id, name, email, phone, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id, company_id, policy_number, member_id, policy_start_date, policy_end_date)
-        VALUES (@id, @name, @email, @phone, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id, @company_id, @policy_number, @member_id, @policy_start_date, @policy_end_date)
+        INSERT INTO patients (id, name, email, phone, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id)
+        VALUES (@id, @name, @email, @phone, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id)
       `);
 
     // Insert into admissions table
