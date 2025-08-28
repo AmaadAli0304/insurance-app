@@ -24,7 +24,6 @@ const basePatientFormSchema = z.object({
   employee_id: z.string().optional().nullable(),
   abha_id: z.string().optional().nullable(),
   health_id: z.string().optional().nullable(),
-  image_url: z.any().optional().nullable(),
   
   // KYC Documents
   adhaar_path: z.any().optional().nullable(),
@@ -112,7 +111,6 @@ export async function getPatientById(id: string): Promise<Patient | null> {
           p.employee_id,
           p.abha_id,
           p.health_id,
-          p.image_url,
           a.admission_id,
           a.relationship_policyholder,
           a.policy_number as policyNumber,
@@ -190,24 +188,6 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
   
   const { data } = validatedFields;
   let transaction;
-  let imageUrl: string | null = null;
-  const imageFile = formData.get("image_url") as File;
-  
-  if (imageFile && imageFile.size > 0) {
-      const { AWS_S3_BUCKET_NAME, AWS_S3_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY } = process.env;
-      if (!AWS_S3_BUCKET_NAME || !AWS_S3_REGION || !AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
-          return { message: "S3 credentials are not configured. Cannot upload image.", type: 'error' };
-      }
-      try {
-          const buffer = Buffer.from(await imageFile.arrayBuffer());
-          const fileName = `patient_${Date.now()}_${imageFile.name}`;
-          imageUrl = await uploadFileToS3(buffer, fileName);
-      } catch (error) {
-          console.error("Error uploading image to S3", error);
-          return { message: "Failed to upload patient image.", type: 'error' };
-      }
-  }
-
 
   try {
     await poolConnect;
@@ -230,12 +210,11 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('abha_id', sql.NVarChar, data.abha_id || null)
       .input('health_id', sql.NVarChar, data.health_id || null)
       .input('hospital_id', sql.NVarChar, data.hospital_id || null)
-      .input('image_url', sql.NVarChar, imageUrl)
       // NOTE: KYC fields (adhaar_path, etc.) are ignored for now as file upload is not implemented.
       .query(`
-        INSERT INTO patients (name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id, image_url)
+        INSERT INTO patients (name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id)
         OUTPUT INSERTED.id
-        VALUES (@name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id, @image_url)
+        VALUES (@name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id)
       `);
     
     const patientId = patientResult.recordset[0]?.id;
@@ -295,25 +274,6 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
   const { id: patientId } = data;
   let transaction;
 
-  let imageUrl: string | null = null;
-  const imageFile = formData.get("image_url") as File;
-
-  if (imageFile && imageFile.size > 0) {
-      const { AWS_S3_BUCKET_NAME, AWS_S3_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY } = process.env;
-      if (!AWS_S3_BUCKET_NAME || !AWS_S3_REGION || !AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
-          return { message: "S3 credentials are not configured. Cannot upload image.", type: 'error' };
-      }
-      try {
-          const buffer = Buffer.from(await imageFile.arrayBuffer());
-          const fileName = `patient_${Date.now()}_${imageFile.name}`;
-          imageUrl = await uploadFileToS3(buffer, fileName);
-      } catch (error) {
-          console.error("Error uploading image to S3", error);
-          return { message: "Failed to upload patient image.", type: 'error' };
-      }
-  }
-
-
   try {
     await poolConnect;
     transaction = new sql.Transaction(pool);
@@ -342,13 +302,8 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
       .input('occupation', sql.NVarChar, data.occupation || null)
       .input('employee_id', sql.NVarChar, data.employee_id || null)
       .input('abha_id', sql.NVarChar, data.abha_id || null)
-      .input('health_id', sql.NVarChar, data.health_id || null)
+      .input('health_id', sql.NVarChar, data.health_id || null);
 
-    if(imageUrl) {
-        patientUpdateQuery += `, image_url = @image_url`;
-        patientRequest.input('image_url', sql.NVarChar, imageUrl);
-    }
-      
     patientUpdateQuery += ` WHERE id = @id`;
     await patientRequest.query(patientUpdateQuery);
 

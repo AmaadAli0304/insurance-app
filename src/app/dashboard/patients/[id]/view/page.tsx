@@ -57,11 +57,6 @@ export default function ViewPatientPage() {
         }
     };
     
-    const getInitials = (name?: string | null) => {
-        if (!name) return 'P';
-        return name.split(' ').map(n => n[0]).join('').toUpperCase();
-    }
-
     if (isLoading) {
         return (
             <div className="flex items-center justify-center h-full">
@@ -81,11 +76,7 @@ export default function ViewPatientPage() {
     return (
         <div className="space-y-6">
             <Card>
-                <CardHeader className="items-center text-center">
-                    <Avatar className="h-24 w-24 mb-4">
-                        <AvatarImage src={patient.image_url ?? undefined} alt={patient.fullName} data-ai-hint="patient photo" />
-                        <AvatarFallback>{getInitials(patient.fullName)}</AvatarFallback>
-                    </Avatar>
+                <CardHeader>
                     <CardTitle className="text-3xl">{patient.fullName}</CardTitle>
                     <CardDescription>Patient Details</CardDescription>
                 </CardHeader>
@@ -112,4 +103,3 @@ export default function ViewPatientPage() {
         </div>
     );
 }
-
