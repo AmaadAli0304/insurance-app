@@ -6,7 +6,7 @@ import pool, { sql, poolConnect } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
-export async function handleUploadFileToS3(prevState: { message: string, type?: string }, formData: FormData) {
+export async function handleUploadFileToS3(prevState: { message: string, type?: string, imageUrl?: string }, formData: FormData) {
   const file = formData.get("file") as File;
 
   if (!file || file.size === 0) {
@@ -44,7 +44,9 @@ export async function handleUploadFileToS3(prevState: { message: string, type?: 
       const command = new PutObjectCommand(params);
       await s3Client.send(command);
 
-      return { message: `File "${file.name}" uploaded successfully to S3.`, type: "success" };
+      const imageUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${fileName}`;
+
+      return { message: `File "${file.name}" uploaded successfully to S3.`, type: "success", imageUrl };
 
   } catch (error) {
       console.error("Error uploading to S3:", error);
@@ -370,3 +372,5 @@ export async function handleCreateAdmissionsTable(prevState: { message: string, 
     return { message: `Error creating Admissions table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
+
+    

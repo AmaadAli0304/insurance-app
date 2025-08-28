@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,8 @@ import { handleImportCompanies, handleCreateTable, handleCreateRelationshipTable
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
+import Image from "next/image";
+
 
 function SubmitImportButton() {
     const { pending } = useFormStatus();
@@ -113,8 +115,9 @@ export default function ImportPage() {
     const [createFieldsTableState, createFieldsTableAction] = useActionState(handleCreateFieldsTable, { message: "", type: undefined });
     const [createFieldOptionsTableState, createFieldOptionsTableAction] = useActionState(handleCreateFieldOptionsTable, { message: "", type: undefined });
     const [createAdmissionsTableState, createAdmissionsTableAction] = useActionState(handleCreateAdmissionsTable, { message: "", type: undefined });
-    const [s3UploadState, s3UploadAction] = useActionState(handleUploadFileToS3, { message: "", type: undefined });
+    const [s3UploadState, s3UploadAction] = useActionState(handleUploadFileToS3, { message: "", type: undefined, imageUrl: undefined });
 
+    const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
 
     const { toast } = useToast();
     const importFormRef = useRef<HTMLFormElement>(null);
@@ -142,9 +145,11 @@ export default function ImportPage() {
     useEffect(() => {
         if (s3UploadState.type === 'success') {
             toast({ title: "S3 Upload", description: s3UploadState.message, variant: "success" });
+            setUploadedImageUrl(s3UploadState.imageUrl || null);
             s3FormRef.current?.reset();
         } else if (s3UploadState.type === 'error') {
             toast({ title: "S3 Upload Error", description: s3UploadState.message, variant: "destructive" });
+            setUploadedImageUrl(null);
         }
     }, [s3UploadState, toast]);
 
@@ -189,6 +194,20 @@ export default function ImportPage() {
                             </div>
                             {s3UploadState.type === 'error' && <p className="text-sm text-destructive">{s3UploadState.message}</p>}
                             <SubmitS3UploadButton />
+                             {uploadedImageUrl && (
+                                <div className="mt-4">
+                                    <p className="text-sm font-medium text-foreground">Upload Successful:</p>
+                                    <div className="relative mt-2 h-48 w-48 rounded-md border">
+                                      <Image
+                                        src={uploadedImageUrl}
+                                        alt="Uploaded file"
+                                        layout="fill"
+                                        objectFit="cover"
+                                        className="rounded-md"
+                                      />
+                                    </div>
+                                </div>
+                            )}
                         </CardContent>
                     </form>
                 </Card>
@@ -228,3 +247,5 @@ export default function ImportPage() {
         </div>
     );
 }
+
+    
