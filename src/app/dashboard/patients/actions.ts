@@ -25,6 +25,8 @@ const basePatientFormSchema = z.object({
   abha_id: z.string().optional().nullable(),
   health_id: z.string().optional().nullable(),
   
+  photo: z.any().optional().nullable(),
+
   // KYC Documents
   adhaar_path: z.any().optional().nullable(),
   pan_path: z.any().optional().nullable(),
@@ -111,6 +113,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
           p.employee_id,
           p.abha_id,
           p.health_id,
+          p.photo,
           a.admission_id,
           a.relationship_policyholder,
           a.policy_number as policyNumber,
@@ -154,27 +157,39 @@ export async function getPatientById(id: string): Promise<Patient | null> {
   }
 }
 
-async function uploadFileToS3(file: Buffer, fileName: string): Promise<string> {
+async function uploadFileToS3(file: File): Promise<string> {
+    const bucketName = process.env.AWS_S3_BUCKET_NAME;
+    const region = process.env.AWS_REGION;
+    const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
+    const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+
+    if (!bucketName || !region || !accessKeyId || !secretAccessKey) {
+        throw new Error("S3 credentials are not configured correctly on the server.");
+    }
+
     const s3Client = new S3Client({
-        region: process.env.AWS_S3_REGION,
+        region,
         credentials: {
-            accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+            accessKeyId,
+            secretAccessKey,
         },
     });
 
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const fileName = `patients/${Date.now()}-${file.name}`;
+
     const params = {
-        Bucket: process.env.AWS_S3_BUCKET_NAME,
-        Key: `patients/${fileName}`,
-        Body: file,
-        ContentType: 'image/jpeg', // Assuming jpeg, adjust if needed
+        Bucket: bucketName,
+        Key: fileName,
+        Body: buffer,
+        ContentType: file.type,
         ACL: 'public-read' as const,
     };
 
     const command = new PutObjectCommand(params);
     await s3Client.send(command);
 
-    return `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_S3_REGION}.amazonaws.com/patients/${fileName}`;
+    return `https://${bucketName}.s3.${region}.amazonaws.com/${fileName}`;
 }
 
 
@@ -188,8 +203,14 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
   
   const { data } = validatedFields;
   let transaction;
-
+  let photoUrl: string | null = null;
+  
   try {
+    const photoFile = data.photo as File | null;
+    if (photoFile && photoFile.size > 0) {
+      photoUrl = await uploadFileToS3(photoFile);
+    }
+
     await poolConnect;
     transaction = new sql.Transaction(pool);
     await transaction.begin();
@@ -210,11 +231,12 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('abha_id', sql.NVarChar, data.abha_id || null)
       .input('health_id', sql.NVarChar, data.health_id || null)
       .input('hospital_id', sql.NVarChar, data.hospital_id || null)
+      .input('photo', sql.NVarChar, photoUrl)
       // NOTE: KYC fields (adhaar_path, etc.) are ignored for now as file upload is not implemented.
       .query(`
-        INSERT INTO patients (name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id)
+        INSERT INTO patients (name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id, photo)
         OUTPUT INSERTED.id
-        VALUES (@name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id)
+        VALUES (@name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id, @photo)
       `);
     
     const patientId = patientResult.recordset[0]?.id;
@@ -273,8 +295,14 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
   const { data } = validatedFields;
   const { id: patientId } = data;
   let transaction;
-
+  let photoUrl: string | null = null;
+  
   try {
+    const photoFile = data.photo as File | null;
+    if (photoFile && photoFile.size > 0) {
+      photoUrl = await uploadFileToS3(photoFile);
+    }
+
     await poolConnect;
     transaction = new sql.Transaction(pool);
     await transaction.begin();
@@ -303,6 +331,11 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
       .input('employee_id', sql.NVarChar, data.employee_id || null)
       .input('abha_id', sql.NVarChar, data.abha_id || null)
       .input('health_id', sql.NVarChar, data.health_id || null);
+
+    if (photoUrl) {
+      patientUpdateQuery += `, photo = @photo`;
+      patientRequest.input('photo', sql.NVarChar, photoUrl);
+    }
 
     patientUpdateQuery += ` WHERE id = @id`;
     await patientRequest.query(patientUpdateQuery);

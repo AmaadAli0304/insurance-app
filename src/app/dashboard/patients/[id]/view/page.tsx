@@ -56,6 +56,11 @@ export default function ViewPatientPage() {
             return "Invalid Date";
         }
     };
+
+    const getInitials = (name: string) => {
+        if (!name) return 'P';
+        return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    }
     
     if (isLoading) {
         return (
@@ -76,11 +81,15 @@ export default function ViewPatientPage() {
     return (
         <div className="space-y-6">
             <Card>
-                <CardHeader>
+                <CardHeader className="items-center text-center">
+                    <Avatar className="h-24 w-24 mb-4">
+                        <AvatarImage src={patient.photo ?? undefined} alt={patient.fullName} />
+                        <AvatarFallback>{getInitials(patient.fullName)}</AvatarFallback>
+                    </Avatar>
                     <CardTitle className="text-3xl">{patient.fullName}</CardTitle>
                     <CardDescription>Patient Details</CardDescription>
                 </CardHeader>
-                <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6">
+                <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6 border-t">
                     <DetailItem label="Date of Birth" value={formatDate(patient.dateOfBirth)} />
                     <DetailItem label="Gender" value={patient.gender} />
                     <DetailItem label="Email Address" value={patient.email_address} />

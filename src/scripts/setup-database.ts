@@ -164,7 +164,7 @@ async function setupDatabase() {
           abha_id NVARCHAR(255),
           health_id NVARCHAR(255),
           hospital_id NVARCHAR(255),
-          image_url NVARCHAR(MAX),
+          photo NVARCHAR(MAX),
           created_at DATETIME DEFAULT GETDATE(),
           updated_at DATETIME DEFAULT GETDATE()
         );
@@ -173,11 +173,11 @@ async function setupDatabase() {
       ELSE
       BEGIN
         PRINT '"patients" table already exists.';
-        -- Add image_url column if it doesn't exist
-        IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'image_url' AND Object_ID = Object_ID(N'patients'))
+        -- Add photo column if it doesn't exist
+        IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'photo' AND Object_ID = Object_ID(N'patients'))
         BEGIN
-            ALTER TABLE patients ADD image_url NVARCHAR(MAX);
-            PRINT 'Added "image_url" column to "patients" table.';
+            ALTER TABLE patients ADD photo NVARCHAR(MAX);
+            PRINT 'Added "photo" column to "patients" table.';
         END
       END
     `;

@@ -78,7 +78,7 @@ export interface Patient {
   id_path?: string | null;
   card_path?: string | null;
   package_path?: string | null;
-  image_url?: string | null;
+  photo?: string | null;
 
   // Admission fields
   admission_id?: string;
