@@ -170,6 +170,7 @@ async function uploadFileToS3(file: Buffer, fileName: string): Promise<string> {
         Key: `patients/${fileName}`,
         Body: file,
         ContentType: 'image/jpeg', // Assuming jpeg, adjust if needed
+        ACL: 'public-read' as const,
     };
 
     const command = new PutObjectCommand(params);

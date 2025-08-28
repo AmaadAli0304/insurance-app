@@ -39,6 +39,7 @@ export async function handleUploadFileToS3(prevState: { message: string, type?: 
           Key: fileName,
           Body: buffer,
           ContentType: file.type,
+          ACL: 'public-read' as const,
       };
 
       const command = new PutObjectCommand(params);
