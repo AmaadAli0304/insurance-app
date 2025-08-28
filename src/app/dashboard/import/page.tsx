@@ -9,9 +9,9 @@ import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
 import { handleImportCompanies, handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleUploadFileToS3 } from "./actions";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble } from "lucide-react";
+import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble, Download } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
-import Image from "next/image";
+import Link from "next/link";
 
 
 function SubmitImportButton() {
@@ -195,17 +195,15 @@ export default function ImportPage() {
                             {s3UploadState.type === 'error' && <p className="text-sm text-destructive">{s3UploadState.message}</p>}
                             <SubmitS3UploadButton />
                              {uploadedImageUrl && (
-                                <div className="mt-4">
-                                    <p className="text-sm font-medium text-foreground">Upload Successful:</p>
-                                    <div className="relative mt-2 h-48 w-48 rounded-md border">
-                                      <Image
-                                        src={uploadedImageUrl}
-                                        alt="Uploaded file"
-                                        layout="fill"
-                                        objectFit="cover"
-                                        className="rounded-md"
-                                      />
-                                    </div>
+                                <div className="mt-4 p-4 border rounded-md bg-muted/50">
+                                    <p className="text-sm font-medium text-foreground">Upload Successful!</p>
+                                    <p className="text-sm text-muted-foreground break-all mb-2">URL: {uploadedImageUrl}</p>
+                                    <Button asChild>
+                                        <Link href={uploadedImageUrl} target="_blank" download>
+                                            <Download className="mr-2 h-4 w-4" />
+                                            Download File
+                                        </Link>
+                                    </Button>
                                 </div>
                             )}
                         </CardContent>
@@ -247,5 +245,3 @@ export default function ImportPage() {
         </div>
     );
 }
-
-    
