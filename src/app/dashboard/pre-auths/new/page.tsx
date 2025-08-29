@@ -46,10 +46,17 @@ export default function NewRequestPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    const [selectedPatientId, setSelectedPatientId] = useState<string | null>(searchParams.get('patientId'));
+    const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
     const [patientDetails, setPatientDetails] = useState<Patient | null>(null);
     const [isLoadingPatient, setIsLoadingPatient] = useState(false);
     const [hospitalPatients, setHospitalPatients] = useState<{ id: string; fullName: string; admission_id: string; }[]>([]);
+
+    useEffect(() => {
+        const patientIdFromQuery = searchParams.get('patientId');
+        if (patientIdFromQuery) {
+            setSelectedPatientId(patientIdFromQuery);
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         if (!user?.hospitalId) return;
@@ -80,14 +87,6 @@ export default function NewRequestPage() {
             });
         }
     }, [state, toast, router]);
-    
-    useEffect(() => {
-        const patientIdFromQuery = searchParams.get('patientId');
-        if (patientIdFromQuery && patientIdFromQuery !== selectedPatientId) {
-             setSelectedPatientId(patientIdFromQuery);
-        }
-    }, [searchParams, selectedPatientId]);
-
 
     useEffect(() => {
         const fetchDetails = async () => {
