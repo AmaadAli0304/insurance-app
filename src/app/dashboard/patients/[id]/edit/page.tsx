@@ -2,6 +2,7 @@
 "use client";
 
 import { useActionState, useEffect, useState, useRef } from "react";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,7 +29,7 @@ function SubmitButton() {
     );
 }
 
-const FileUploadField = ({ label, name, onUploadComplete, initialUrl }: { label: string; name: string; onUploadComplete: (name: string, url: string) => void; initialUrl?: string | null }) => {
+const FileUploadField = ({ label, name, onUploadComplete, initialUrl }: { label: string; name: string; onUploadComplete: (fieldName: string, name: string, url: string) => void; initialUrl?: string | null }) => {
     const [isUploading, setIsUploading] = useState(false);
     const [fileUrl, setFileUrl] = useState<string | null>(initialUrl || null);
     const { toast } = useToast();
@@ -44,7 +45,7 @@ const FileUploadField = ({ label, name, onUploadComplete, initialUrl }: { label:
             const result = await handleUploadPatientFile(formData);
             if (result.type === 'success' && result.url) {
                 setFileUrl(result.url);
-                onUploadComplete(result.name, result.url);
+                onUploadComplete(name, result.name, result.url);
                 toast({ title: "Success", description: `${label} uploaded.`, variant: "success" });
             } else {
                 toast({ title: "Error", description: result.message, variant: "destructive" });
