@@ -128,15 +128,44 @@ export interface StaffingRequest {
   subject: string;
   email: string; // "To" email
   fromEmail?: string;
-  admissionId?: string;
   requestAmount?: number; 
-  doctorName?: string;
-  proposedTreatment?: string;
-
+  
+  // Patient and admission details snapshot
+  fullName?: string;
+  dateOfBirth?: string | null;
+  gender?: 'Male' | 'Female' | 'Other' | null;
+  email_address?: string;
+  phoneNumber?: string | null;
+  alternative_number?: string | null;
+  age?: number | null;
+  occupation?: string | null;
+  employee_id?: string | null;
+  abha_id?: string | null;
+  health_id?: string | null;
+  address?: string | null;
+  policyNumber?: string | null;
+  memberId?: string | null;
+  policyStartDate?: string | null;
+  policyEndDate?: string | null;
+  admission_id?: string;
+  relationship_policyholder?: string;
+  corporate_policy_number?: string;
+  other_policy_name?: string;
+  family_doctor_name?: string;
+  family_doctor_phone?: string;
+  payer_email?: string;
+  payer_phone?: string;
+  treat_doc_name?: string;
+  treat_doc_number?: string;
+  treat_doc_qualification?: string;
+  treat_doc_reg_no?: string;
+  
   // Deprecated fields, kept for mock data compatibility for now
   packageId?: string; 
   doctorSpeciality?: string;
   expectedDischargeDate?: string;
+  doctorName?: string;
+  proposedTreatment?: string;
 }
 
 export type ClaimStatus = 'Processing' | 'Approved' | 'Paid' | 'Rejected' | 'Appealed';
@@ -170,5 +199,3 @@ export interface Staff extends Omit<User, 'uid' | 'role' | 'companyId'> {
   hospitalName?: string;
   assignedHospitalsDetails?: { id: string | number, name: string }[];
 }
-
-    

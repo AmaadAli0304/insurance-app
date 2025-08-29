@@ -36,9 +36,40 @@ export async function handleAddRequest(prevState: { message: string, type?:strin
     email: toEmail,
     fromEmail: fromEmail,
     requestAmount: Number(formData.get("estimatedCost")) || patient.estimatedCost,
-    doctorName: formData.get("doctorName") as string || patient.treat_doc_name,
-    proposedTreatment: formData.get("proposedTreatment") as string || patient.proposedTreatment,
-    admissionId: formData.get("admissionId") as string || patient.admission_id,
+
+    // Editable Patient Details
+    fullName: formData.get("name") as string,
+    email_address: formData.get("email_address") as string,
+    phoneNumber: formData.get("phone_number") as string,
+    alternative_number: formData.get("alternative_number") as string,
+    gender: formData.get("gender") as 'Male' | 'Female' | 'Other',
+    age: Number(formData.get("age")),
+    dateOfBirth: formData.get("birth_date") as string,
+    address: formData.get("address") as string,
+    occupation: formData.get("occupation") as string,
+    employee_id: formData.get("employee_id") as string,
+    abha_id: formData.get("abha_id") as string,
+    health_id: formData.get("health_id") as string,
+
+    // Admission Details
+    admission_id: formData.get("admission_id") as string,
+    relationship_policyholder: formData.get("relationship_policyholder") as string,
+    policyNumber: formData.get("policy_number") as string,
+    memberId: formData.get("insured_card_number") as string,
+    policyStartDate: formData.get("policy_start_date") as string,
+    policyEndDate: formData.get("policy_end_date") as string,
+    corporate_policy_number: formData.get("corporate_policy_number") as string,
+    other_policy_name: formData.get("other_policy_name") as string,
+    family_doctor_name: formData.get("family_doctor_name") as string,
+    family_doctor_phone: formData.get("family_doctor_phone") as string,
+    payer_email: formData.get("payer_email") as string,
+    payer_phone: formData.get("payer_phone") as string,
+
+    // Treatment details
+    treat_doc_name: formData.get("treat_doc_name") as string,
+    treat_doc_number: formData.get("treat_doc_number") as string,
+    treat_doc_qualification: formData.get("treat_doc_qualification") as string,
+    treat_doc_reg_no: formData.get("treat_doc_reg_no") as string,
   };
 
   mockStaffingRequests.push(newRequest);
@@ -54,5 +85,3 @@ export async function handleDeleteRequest(formData: FormData) {
         mockStaffingRequests.splice(index, 1);
     }
 }
-
-    
