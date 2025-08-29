@@ -39,24 +39,17 @@ const DetailItem = ({ label, value, className }: { label: string, value?: string
 );
 
 
-export default function NewRequestPage() {
+function NewRequestForm() {
     const { user } = useAuth();
     const [state, formAction] = useActionState(handleAddRequest, { message: "" });
     const { toast } = useToast();
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+    const [selectedPatientId, setSelectedPatientId] = useState<string | null>(searchParams.get('patientId'));
     const [patientDetails, setPatientDetails] = useState<Patient | null>(null);
     const [isLoadingPatient, setIsLoadingPatient] = useState(false);
     const [hospitalPatients, setHospitalPatients] = useState<{ id: string; fullName: string; admission_id: string; }[]>([]);
-
-    useEffect(() => {
-        const patientIdFromQuery = searchParams.get('patientId');
-        if (patientIdFromQuery) {
-            setSelectedPatientId(patientIdFromQuery);
-        }
-    }, [searchParams]);
 
     useEffect(() => {
         if (!user?.hospitalId) return;
@@ -234,4 +227,12 @@ export default function NewRequestPage() {
     );
 }
 
+
+export default function NewRequestPage() {
+    return (
+        <React.Suspense fallback={<div>Loading...</div>}>
+            <NewRequestForm />
+        </React.Suspense>
+    )
+}
     
