@@ -2,10 +2,10 @@
 "use server";
 
 import { mockStaffingRequests, mockPatients } from "@/lib/mock-data";
-import { StaffingRequest } from "@/lib/types";
+import { StaffingRequest, Patient } from "@/lib/types";
 import { redirect } from 'next/navigation';
 
-export async function handleAddRequest(prevState: { message: string }, formData: FormData) {
+export async function handleAddRequest(prevState: { message: string, type?:string }, formData: FormData) {
   
   const patientId = formData.get("patientId") as string;
   const toEmail = formData.get("to") as string;
@@ -15,12 +15,13 @@ export async function handleAddRequest(prevState: { message: string }, formData:
   const fromEmail = formData.get("from") as string;
 
   if (!patientId || !toEmail || !subject || !details || !hospitalId) {
-    return { message: `Please fill all required fields.` };
+    return { message: `Please fill all required fields.`, type: 'error' };
   }
 
+  // This part of the logic remains with mock data as there is no `patients` table with all fields yet.
   const patient = mockPatients.find(p => p.id === patientId);
   if (!patient) {
-    return { message: "Selected patient not found." };
+    return { message: "Selected patient not found.", type: 'error' };
   }
 
   const newRequest: StaffingRequest = {
@@ -34,16 +35,15 @@ export async function handleAddRequest(prevState: { message: string }, formData:
     subject: subject,
     email: toEmail, // 'to' field from form
     fromEmail: fromEmail,
-    // Simplified fields for new structure
     requestAmount: patient.estimatedCost,
     doctorName: patient.doctorName,
     proposedTreatment: patient.proposedTreatment,
-    packageId: "N/A", // This field is no longer in the form
+    packageId: "N/A",
   };
 
   mockStaffingRequests.push(newRequest);
   
-  redirect('/dashboard/pre-auths');
+  return { message: "Request sent successfully", type: 'success' };
 }
 
 

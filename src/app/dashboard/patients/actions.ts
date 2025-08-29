@@ -22,7 +22,7 @@ const basePatientFormSchema = z.object({
   address: z.string().min(1, "Address is required."),
   occupation: z.string().optional().nullable(),
   employee_id: z.string().optional().nullable(),
-  abha_id: z.string().optional().nullable(),
+  abha_id: z_string().optional().nullable(),
   health_id: z.string().optional().nullable(),
   
   photoUrl: z.string().url().optional().nullable().or(z.literal('')),
@@ -121,14 +121,17 @@ export async function getPatients(): Promise<Patient[]> {
 const getDocumentData = (jsonString: string | null | undefined): { url: string; name: string } | null => {
     if (!jsonString) return null;
     try {
-        return JSON.parse(jsonString);
+        const parsed = JSON.parse(jsonString);
+        if (typeof parsed === 'object' && parsed !== null && 'url' in parsed) {
+            return { url: parsed.url, name: parsed.name || 'View Document' };
+        }
     } catch (e) {
         // Fallback for legacy plain URL strings
         if (typeof jsonString === 'string' && jsonString.startsWith('http')) {
             return { url: jsonString, name: 'View Document' };
         }
-        return null;
     }
+    return null;
 };
 
 
@@ -165,6 +168,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
           a.insured_card_number as memberId,
           a.insurance_company as companyId,
           c.name as companyName,
+          t.name as tpaName,
           a.policy_start_date as policyStartDate,
           a.policy_end_date as policyEndDate,
           a.corporate_policy_number,
@@ -182,6 +186,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
         FROM patients p
         LEFT JOIN admissions a ON p.id = a.patient_id
         LEFT JOIN companies c ON a.insurance_company = c.id
+        LEFT JOIN tpas t ON a.tpa_id = t.id
         WHERE p.id = @id
       `);
       
@@ -195,7 +200,6 @@ export async function getPatientById(id: string): Promise<Patient | null> {
     if (patientData.policyStartDate) patientData.policyStartDate = new Date(patientData.policyStartDate).toISOString().split('T')[0];
     if (patientData.policyEndDate) patientData.policyEndDate = new Date(patientData.policyEndDate).toISOString().split('T')[0];
     
-    // Extract document data from JSON string for all path fields
     patientData.photo = getDocumentData(patientData.photo);
     patientData.adhaar_path = getDocumentData(patientData.adhaar_path);
     patientData.pan_path = getDocumentData(patientData.pan_path);
@@ -209,6 +213,11 @@ export async function getPatientById(id: string): Promise<Patient | null> {
     console.error(`Error fetching patient with id ${id}:`, error);
     throw new Error("Failed to fetch patient from database.");
   }
+}
+
+export async function getPatientWithDetailsForForm(patientId: string): Promise<Patient | null> {
+    if (!patientId) return null;
+    return getPatientById(patientId);
 }
 
 export async function handleUploadPatientFile(formData: FormData): Promise<{ type: 'success', url: string, name: string } | { type: 'error', message: string }> {
@@ -260,16 +269,13 @@ const createDocumentJson = (url: string | undefined | null, name: string | undef
     if (url && name) {
         return JSON.stringify({ url, name });
     }
-    // If only URL exists (legacy or unchanged in edit form), store it directly or as JSON
-    if(url) {
+     if(url) {
        try {
-         // check if it's already a json
-         JSON.parse(url);
-         return url;
+         const parsed = JSON.parse(url);
+         if (parsed.url) return url;
        } catch (e) {
-         // if not, and there is no name, create a json with empty name
          if (url.startsWith('http')) return JSON.stringify({ url, name: '' });
-         return url; // It might be a json string already
+         return url;
        }
     }
     return null;
