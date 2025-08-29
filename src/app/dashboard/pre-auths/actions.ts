@@ -35,7 +35,7 @@ export async function handleAddRequest(prevState: { message: string, type?:strin
     subject: subject,
     email: toEmail,
     fromEmail: fromEmail,
-    requestAmount: Number(formData.get("estimatedCost")) || patient.estimatedCost,
+    requestAmount: Number(formData.get("totalExpectedCost")) || patient.estimatedCost,
 
     // Editable Patient Details
     fullName: formData.get("name") as string,
@@ -70,6 +70,83 @@ export async function handleAddRequest(prevState: { message: string, type?:strin
     treat_doc_number: formData.get("treat_doc_number") as string,
     treat_doc_qualification: formData.get("treat_doc_qualification") as string,
     treat_doc_reg_no: formData.get("treat_doc_reg_no") as string,
+
+     // C. Clinical Information
+    natureOfIllness: formData.get("natureOfIllness") as string,
+    clinicalFindings: formData.get("clinicalFindings") as string,
+    ailmentDuration: Number(formData.get("ailmentDuration")),
+    firstConsultationDate: formData.get("firstConsultationDate") as string,
+    pastHistory: formData.get("pastHistory") as string,
+    provisionalDiagnosis: formData.get("provisionalDiagnosis") as string,
+    icd10Codes: formData.get("icd10Codes") as string,
+    treatmentMedical: formData.get("treatmentMedical") as string,
+    treatmentSurgical: formData.get("treatmentSurgical") as string,
+    treatmentIntensiveCare: formData.get("treatmentIntensiveCare") as string,
+    treatmentInvestigation: formData.get("treatmentInvestigation") as string,
+    treatmentNonAllopathic: formData.get("treatmentNonAllopathic") as string,
+    investigationDetails: formData.get("investigationDetails") as string,
+    drugRoute: formData.get("drugRoute") as string,
+    procedureName: formData.get("procedureName") as string,
+    icd10PcsCodes: formData.get("icd10PcsCodes") as string,
+    otherTreatments: formData.get("otherTreatments") as string,
+
+    // D. Accident / Medico-Legal
+    isInjury: formData.get("isInjury") === 'on',
+    injuryCause: formData.get("injuryCause") as string,
+    isRta: formData.get("isRta") === 'on',
+    injuryDate: formData.get("injuryDate") as string,
+    isReportedToPolice: formData.get("isReportedToPolice") === 'on',
+    firNumber: formData.get("firNumber") as string,
+    isAlcoholSuspected: formData.get("isAlcoholSuspected") === 'on',
+    isToxicologyConducted: formData.get("isToxicologyConducted") === 'on',
+
+    // E. Maternity
+    isMaternity: formData.get("isMaternity") === 'on',
+    g: Number(formData.get("g")),
+    p: Number(formData.get("p")),
+    l: Number(formData.get("l")),
+    a: Number(formData.get("a")),
+    expectedDeliveryDate: formData.get("expectedDeliveryDate") as string,
+
+    // F. Admission & Cost Estimate
+    admissionDate: formData.get("admissionDate") as string,
+    admissionTime: formData.get("admissionTime") as string,
+    admissionType: formData.get("admissionType") as string,
+    expectedStay: Number(formData.get("expectedStay")),
+    expectedIcuStay: Number(formData.get("expectedIcuStay")),
+    roomCategory: formData.get("roomCategory") as string,
+    roomNursingDietCost: Number(formData.get("roomNursingDietCost")),
+    investigationCost: Number(formData.get("investigationCost")),
+    icuCost: Number(formData.get("icuCost")),
+    otCost: Number(formData.get("otCost")),
+    professionalFees: Number(formData.get("professionalFees")),
+    medicineCost: Number(formData.get("medicineCost")),
+    otherHospitalExpenses: Number(formData.get("otherHospitalExpenses")),
+    packageCharges: Number(formData.get("packageCharges")),
+    totalExpectedCost: Number(formData.get("totalExpectedCost")),
+
+    // G. Medical History
+    diabetesSince: formData.get("diabetesSince") as string,
+    hypertensionSince: formData.get("hypertensionSince") as string,
+    heartDiseaseSince: formData.get("heartDiseaseSince") as string,
+    hyperlipidemiaSince: formData.get("hyperlipidemiaSince") as string,
+    osteoarthritisSince: formData.get("osteoarthritisSince") as string,
+    asthmaCopdSince: formData.get("asthmaCopdSince") as string,
+    cancerSince: formData.get("cancerSince") as string,
+    alcoholDrugAbuseSince: formData.get("alcoholDrugAbuseSince") as string,
+    hivSince: formData.get("hivSince") as string,
+    otherChronicAilment: formData.get("otherChronicAilment") as string,
+
+    // H. Declarations & Attachments
+    patientDeclarationName: formData.get("patientDeclarationName") as string,
+    patientDeclarationContact: formData.get("patientDeclarationContact") as string,
+    patientDeclarationEmail: formData.get("patientDeclarationEmail") as string,
+    patientDeclarationDate: formData.get("patientDeclarationDate") as string,
+    patientDeclarationTime: formData.get("patientDeclarationTime") as string,
+    hospitalDeclarationDoctorName: formData.get("hospitalDeclarationDoctorName") as string,
+    hospitalDeclarationDate: formData.get("hospitalDeclarationDate") as string,
+    hospitalDeclarationTime: formData.get("hospitalDeclarationTime") as string,
+    attachments: formData.getAll("attachments") as string[],
   };
 
   mockStaffingRequests.push(newRequest);

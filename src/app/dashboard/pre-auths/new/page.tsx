@@ -19,7 +19,8 @@ import { getPatientWithDetailsForForm, getPatientsForPreAuth } from "@/app/dashb
 import type { Patient } from "@/lib/types";
 import { format } from "date-fns";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Checkbox } from "@/components/ui/checkbox";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -47,6 +48,30 @@ export default function NewRequestPage() {
     const [isSearchListOpen, setIsSearchListOpen] = useState(false);
     const searchContainerRef = useRef<HTMLDivElement>(null);
     
+    const [totalCost, setTotalCost] = useState(0);
+
+    const calculateTotalCost = () => {
+        const costs = [
+            'roomNursingDietCost', 'investigationCost', 'icuCost',
+            'otCost', 'professionalFees', 'medicineCost', 'otherHospitalExpenses'
+        ];
+        let sum = 0;
+        const form = document.querySelector('form');
+        if (form) {
+            costs.forEach(id => {
+                const input = form.querySelector(`#${id}`) as HTMLInputElement;
+                if (input && input.value) {
+                    sum += parseFloat(input.value) || 0;
+                }
+            });
+        }
+        setTotalCost(sum);
+    };
+
+    useEffect(() => {
+        calculateTotalCost();
+    }, [patientDetails]);
+
     useEffect(() => {
         if (state.type === 'success') {
             toast({
@@ -281,7 +306,7 @@ export default function NewRequestPage() {
                         
                         <Card>
                             <CardHeader>
-                                <CardTitle>C. Insurance &amp; Admission Details</CardTitle>
+                                <CardTitle>B. Insurance &amp; Admission Details</CardTitle>
                             </CardHeader>
                             <CardContent className="grid md:grid-cols-3 gap-4">
                                 <div className="space-y-2">
@@ -336,13 +361,7 @@ export default function NewRequestPage() {
                                     <Label htmlFor="payer_phone">Proposer/Payer phone number <span className="text-destructive">*</span></Label>
                                     <Input id="payer_phone" name="payer_phone" defaultValue={patientDetails.payer_phone ?? ''} required maxLength={10} />
                                 </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader><CardTitle>D. Hospital &amp; TPA Details</CardTitle></CardHeader>
-                            <CardContent className="grid md:grid-cols-3 gap-4">
-                                <div className="space-y-2">
+                                 <div className="space-y-2">
                                     <Label htmlFor="tpaName">TPA</Label>
                                     <Input id="tpaName" name="tpaName" defaultValue={patientDetails.tpaName ?? ''} readOnly />
                                 </div>
@@ -362,12 +381,316 @@ export default function NewRequestPage() {
                                     <Label htmlFor="treat_doc_reg_no">Doctor’s registration no. <span className="text-destructive">*</span></Label>
                                     <Input id="treat_doc_reg_no" name="treat_doc_reg_no" defaultValue={patientDetails.treat_doc_reg_no ?? ''} required />
                                 </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="estimatedCost">Estimated Cost</Label>
-                                    <Input id="estimatedCost" name="estimatedCost" type="number" defaultValue={patientDetails.estimatedCost ?? ''} />
-                                </div>
                             </CardContent>
                         </Card>
+                        
+                        <Accordion type="multiple" className="w-full space-y-6">
+                            <Card>
+                            <AccordionItem value="clinical-info">
+                                <CardHeader>
+                                    <AccordionTrigger>
+                                        <CardTitle>C. Clinical Information</CardTitle>
+                                    </AccordionTrigger>
+                                </CardHeader>
+                                <AccordionContent>
+                                    <CardContent className="grid md:grid-cols-2 gap-4">
+                                         <div className="space-y-2 md:col-span-2">
+                                            <Label htmlFor="natureOfIllness">Nature of illness / presenting complaints</Label>
+                                            <Textarea id="natureOfIllness" name="natureOfIllness" />
+                                        </div>
+                                         <div className="space-y-2 md:col-span-2">
+                                            <Label htmlFor="clinicalFindings">Relevant clinical findings</Label>
+                                            <Textarea id="clinicalFindings" name="clinicalFindings" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="ailmentDuration">Duration of present ailment (days)</Label>
+                                            <Input id="ailmentDuration" name="ailmentDuration" type="number" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="firstConsultationDate">Date of first consultation</Label>
+                                            <Input id="firstConsultationDate" name="firstConsultationDate" type="date" />
+                                        </div>
+                                         <div className="space-y-2 md:col-span-2">
+                                            <Label htmlFor="pastHistory">Past history of present ailment</Label>
+                                            <Textarea id="pastHistory" name="pastHistory" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="provisionalDiagnosis">Provisional diagnosis</Label>
+                                            <Input id="provisionalDiagnosis" name="provisionalDiagnosis" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="icd10Codes">ICD-10 diagnosis code(s)</Label>
+                                            <Input id="icd10Codes" name="icd10Codes" />
+                                        </div>
+                                         <div className="space-y-2 md:col-span-2">
+                                            <Label>Proposed line of treatment</Label>
+                                            <div className="grid md:grid-cols-2 gap-4">
+                                               <Input name="treatmentMedical" placeholder="Medical management" />
+                                               <Input name="treatmentSurgical" placeholder="Surgical management" />
+                                               <Input name="treatmentIntensiveCare" placeholder="Intensive care" />
+                                               <Input name="treatmentInvestigation" placeholder="Investigation only" />
+                                               <Input name="treatmentNonAllopathic" placeholder="Non-allopathic" />
+                                            </div>
+                                        </div>
+                                         <div className="space-y-2">
+                                            <Label htmlFor="investigationDetails">Investigation / medical management details</Label>
+                                            <Textarea id="investigationDetails" name="investigationDetails" />
+                                        </div>
+                                         <div className="space-y-2">
+                                            <Label htmlFor="drugRoute">Route of drug administration</Label>
+                                            <Input id="drugRoute" name="drugRoute" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="procedureName">Planned procedure / surgery name</Label>
+                                            <Input id="procedureName" name="procedureName" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="icd10PcsCodes">ICD-10-PCS / procedure code(s)</Label>
+                                            <Input id="icd10PcsCodes" name="icd10PcsCodes" />
+                                        </div>
+                                         <div className="space-y-2 md:col-span-2">
+                                            <Label htmlFor="otherTreatments">Any other treatments (details)</Label>
+                                            <Textarea id="otherTreatments" name="otherTreatments" />
+                                        </div>
+                                    </CardContent>
+                                </AccordionContent>
+                            </AccordionItem>
+                            </Card>
+
+                            <Card>
+                            <AccordionItem value="accident-info">
+                                 <CardHeader>
+                                    <AccordionTrigger>
+                                        <CardTitle>D. Accident / Medico-Legal</CardTitle>
+                                    </AccordionTrigger>
+                                </CardHeader>
+                                <AccordionContent>
+                                    <CardContent className="grid md:grid-cols-3 gap-4">
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox id="isInjury" name="isInjury" />
+                                            <Label htmlFor="isInjury">Due to injury/accident?</Label>
+                                        </div>
+                                         <div className="space-y-2 md:col-span-2">
+                                            <Label htmlFor="injuryCause">How did injury occur?</Label>
+                                            <Input id="injuryCause" name="injuryCause" />
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox id="isRta" name="isRta" />
+                                            <Label htmlFor="isRta">Road Traffic Accident?</Label>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="injuryDate">Date of injury</Label>
+                                            <Input id="injuryDate" name="injuryDate" type="date" />
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox id="isReportedToPolice" name="isReportedToPolice" />
+                                            <Label htmlFor="isReportedToPolice">Reported to police?</Label>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="firNumber">FIR number</Label>
+                                            <Input id="firNumber" name="firNumber" />
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox id="isAlcoholSuspected" name="isAlcoholSuspected" />
+                                            <Label htmlFor="isAlcoholSuspected">Alcohol/substance use?</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox id="isToxicologyConducted" name="isToxicologyConducted" />
+                                            <Label htmlFor="isToxicologyConducted">Toxicology test done?</Label>
+                                        </div>
+                                    </CardContent>
+                                </AccordionContent>
+                            </AccordionItem>
+                            </Card>
+                            
+                            <Card>
+                             <AccordionItem value="maternity-info">
+                                 <CardHeader>
+                                    <AccordionTrigger>
+                                        <CardTitle>E. Maternity</CardTitle>
+                                    </AccordionTrigger>
+                                </CardHeader>
+                                <AccordionContent>
+                                    <CardContent className="grid md:grid-cols-3 gap-4">
+                                         <div className="flex items-center space-x-2">
+                                            <Checkbox id="isMaternity" name="isMaternity" />
+                                            <Label htmlFor="isMaternity">Is this a maternity case?</Label>
+                                        </div>
+                                        <div className="grid grid-cols-4 gap-2 md:col-span-2">
+                                            <Input name="g" type="number" placeholder="G" />
+                                            <Input name="p" type="number" placeholder="P" />
+                                            <Input name="l" type="number" placeholder="L" />
+                                            <Input name="a" type="number" placeholder="A" />
+                                        </div>
+                                         <div className="space-y-2">
+                                            <Label htmlFor="expectedDeliveryDate">Expected date of delivery</Label>
+                                            <Input id="expectedDeliveryDate" name="expectedDeliveryDate" type="date" />
+                                        </div>
+                                    </CardContent>
+                                </AccordionContent>
+                            </AccordionItem>
+                            </Card>
+
+                             <Card>
+                            <AccordionItem value="cost-info">
+                                <CardHeader>
+                                    <AccordionTrigger>
+                                        <CardTitle>F. Admission & Cost Estimate</CardTitle>
+                                    </AccordionTrigger>
+                                </CardHeader>
+                                <AccordionContent>
+                                     <CardContent className="grid md:grid-cols-3 gap-4" onChange={calculateTotalCost}>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="admissionDate">Admission date</Label>
+                                            <Input id="admissionDate" name="admissionDate" type="date" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="admissionTime">Admission time</Label>
+                                            <Input id="admissionTime" name="admissionTime" type="time" />
+                                        </div>
+                                         <div className="space-y-2">
+                                            <Label htmlFor="admissionType">Type of admission</Label>
+                                            <Input id="admissionType" name="admissionType" placeholder="e.g. Emergency, Planned"/>
+                                        </div>
+                                         <div className="space-y-2">
+                                            <Label htmlFor="expectedStay">Expected days of stay</Label>
+                                            <Input id="expectedStay" name="expectedStay" type="number" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="expectedIcuStay">Expected days in ICU</Label>
+                                            <Input id="expectedIcuStay" name="expectedIcuStay" type="number" />
+                                        </div>
+                                         <div className="space-y-2">
+                                            <Label htmlFor="roomCategory">Requested room category</Label>
+                                            <Input id="roomCategory" name="roomCategory" placeholder="e.g. Private, Semi-Private, General" />
+                                        </div>
+                                         <div className="space-y-2">
+                                            <Label htmlFor="roomNursingDietCost">Room + Nursing + Diet (₹)</Label>
+                                            <Input id="roomNursingDietCost" name="roomNursingDietCost" type="number" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="investigationCost">Diagnostics/investigations cost (₹)</Label>
+                                            <Input id="investigationCost" name="investigationCost" type="number" />
+                                        </div>
+                                         <div className="space-y-2">
+                                            <Label htmlFor="icuCost">ICU charges (₹)</Label>
+                                            <Input id="icuCost" name="icuCost" type="number" />
+                                        </div>
+                                         <div className="space-y-2">
+                                            <Label htmlFor="otCost">OT charges (₹)</Label>
+                                            <Input id="otCost" name="otCost" type="number" />
+                                        </div>
+                                         <div className="space-y-2">
+                                            <Label htmlFor="professionalFees">Professional fees (₹)</Label>
+                                            <Input id="professionalFees" name="professionalFees" type="number" />
+                                        </div>
+                                         <div className="space-y-2">
+                                            <Label htmlFor="medicineCost">Medicines + consumables (₹)</Label>
+                                            <Input id="medicineCost" name="medicineCost" type="number" />
+                                        </div>
+                                         <div className="space-y-2">
+                                            <Label htmlFor="otherHospitalExpenses">Other hospital expenses (₹)</Label>
+                                            <Input id="otherHospitalExpenses" name="otherHospitalExpenses" type="number" />
+                                        </div>
+                                         <div className="space-y-2">
+                                            <Label htmlFor="packageCharges">All-inclusive package charges (₹)</Label>
+                                            <Input id="packageCharges" name="packageCharges" type="number" />
+                                        </div>
+                                         <div className="space-y-2 md:col-span-3">
+                                            <Label htmlFor="totalExpectedCost">Total expected cost (₹)</Label>
+                                            <Input id="totalExpectedCost" name="totalExpectedCost" type="number" value={totalCost} readOnly className="font-bold text-lg" />
+                                        </div>
+                                    </CardContent>
+                                </AccordionContent>
+                            </AccordionItem>
+                             </Card>
+                             
+                             <Card>
+                             <AccordionItem value="history-info">
+                                <CardHeader>
+                                    <AccordionTrigger>
+                                        <CardTitle>G. Medical History</CardTitle>
+                                    </AccordionTrigger>
+                                </CardHeader>
+                                <AccordionContent>
+                                    <CardContent className="grid md:grid-cols-2 gap-x-8 gap-y-4">
+                                        <Input name="diabetesSince" placeholder="Diabetes – since (MM/YY)" />
+                                        <Input name="hypertensionSince" placeholder="Hypertension – since (MM/YY)" />
+                                        <Input name="heartDiseaseSince" placeholder="Heart disease – since (MM/YY)" />
+                                        <Input name="hyperlipidemiaSince" placeholder="Hyperlipidemia – since (MM/YY)" />
+                                        <Input name="osteoarthritisSince" placeholder="Osteoarthritis – since (MM/YY)" />
+                                        <Input name="asthmaCopdSince" placeholder="Asthma/COPD – since (MM/YY)" />
+                                        <Input name="cancerSince" placeholder="Cancer – since (MM/YY)" />
+                                        <Input name="alcoholDrugAbuseSince" placeholder="Alcohol/drug abuse – since (MM/YY)" />
+                                        <Input name="hivSince" placeholder="HIV/STD – since (MM/YY)" />
+                                        <Input name="otherChronicAilment" placeholder="Any other chronic ailment (specify and since when)" />
+                                    </CardContent>
+                                </AccordionContent>
+                            </AccordionItem>
+                             </Card>
+                             
+                              <Card>
+                             <AccordionItem value="declarations-info">
+                                <CardHeader>
+                                    <AccordionTrigger>
+                                        <CardTitle>H. Declarations & Attachments</CardTitle>
+                                    </AccordionTrigger>
+                                </CardHeader>
+                                <AccordionContent>
+                                     <CardContent className="space-y-4">
+                                        <div className="grid md:grid-cols-3 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="patientDeclarationName">Patient/insured name</Label>
+                                                <Input id="patientDeclarationName" name="patientDeclarationName" defaultValue={patientDetails.fullName}/>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="patientDeclarationContact">Contact number</Label>
+                                                <Input id="patientDeclarationContact" name="patientDeclarationContact" defaultValue={patientDetails.phoneNumber ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="patientDeclarationEmail">Email ID</Label>
+                                                <Input id="patientDeclarationEmail" name="patientDeclarationEmail" type="email" defaultValue={patientDetails.email_address ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="patientDeclarationDate">Declaration date</Label>
+                                                <Input id="patientDeclarationDate" name="patientDeclarationDate" type="date" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="patientDeclarationTime">Declaration time</Label>
+                                                <Input id="patientDeclarationTime" name="patientDeclarationTime" type="time" />
+                                            </div>
+                                        </div>
+                                         <div className="grid md:grid-cols-3 gap-4 border-t pt-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="hospitalDeclarationDoctorName">Hospital declaration – doctor name</Label>
+                                                <Input id="hospitalDeclarationDoctorName" name="hospitalDeclarationDoctorName" defaultValue={patientDetails.treat_doc_name} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="hospitalDeclarationDate">Declaration date</Label>
+                                                <Input id="hospitalDeclarationDate" name="hospitalDeclarationDate" type="date" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="hospitalDeclarationTime">Declaration time</Label>
+                                                <Input id="hospitalDeclarationTime" name="hospitalDeclarationTime" type="time" />
+                                            </div>
+                                        </div>
+                                         <div className="space-y-2 pt-4 border-t">
+                                            <Label>Attachments to enclose</Label>
+                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                                {['ID proof', 'Policy copy', 'Doctor’s notes', 'Investigations', 'Estimate'].map(item => (
+                                                     <div key={item} className="flex items-center space-x-2">
+                                                        <Checkbox id={`att-${item}`} name="attachments" value={item} />
+                                                        <Label htmlFor={`att-${item}`} className="font-normal">{item}</Label>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </AccordionContent>
+                            </AccordionItem>
+                             </Card>
+                        </Accordion>
+
                         </>
                     )}
 
@@ -412,5 +735,3 @@ export default function NewRequestPage() {
         </div>
     );
 }
-
-    

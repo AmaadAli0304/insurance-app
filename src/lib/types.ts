@@ -159,7 +159,84 @@ export interface StaffingRequest {
   treat_doc_number?: string;
   treat_doc_qualification?: string;
   treat_doc_reg_no?: string;
-  
+
+  // C. Clinical Information
+  natureOfIllness?: string;
+  clinicalFindings?: string;
+  ailmentDuration?: number;
+  firstConsultationDate?: string;
+  pastHistory?: string;
+  provisionalDiagnosis?: string;
+  icd10Codes?: string;
+  treatmentMedical?: string;
+  treatmentSurgical?: string;
+  treatmentIntensiveCare?: string;
+  treatmentInvestigation?: string;
+  treatmentNonAllopathic?: string;
+  investigationDetails?: string;
+  drugRoute?: string;
+  procedureName?: string;
+  icd10PcsCodes?: string;
+  otherTreatments?: string;
+
+  // D. Accident / Medico-Legal
+  isInjury?: boolean;
+  injuryCause?: string;
+  isRta?: boolean;
+  injuryDate?: string;
+  isReportedToPolice?: boolean;
+  firNumber?: string;
+  isAlcoholSuspected?: boolean;
+  isToxicologyConducted?: boolean;
+
+  // E. Maternity
+  isMaternity?: boolean;
+  g?: number;
+  p?: number;
+  l?: number;
+  a?: number;
+  expectedDeliveryDate?: string;
+
+  // F. Admission & Cost Estimate
+  admissionDate?: string;
+  admissionTime?: string;
+  admissionType?: string;
+  expectedStay?: number;
+  expectedIcuStay?: number;
+  roomCategory?: string;
+  roomNursingDietCost?: number;
+  investigationCost?: number;
+  icuCost?: number;
+  otCost?: number;
+  professionalFees?: number;
+  medicineCost?: number;
+  otherHospitalExpenses?: number;
+  packageCharges?: number;
+  totalExpectedCost?: number;
+
+  // G. Medical History
+  diabetesSince?: string;
+  hypertensionSince?: string;
+  heartDiseaseSince?: string;
+  hyperlipidemiaSince?: string;
+  osteoarthritisSince?: string;
+  asthmaCopdSince?: string;
+  cancerSince?: string;
+  alcoholDrugAbuseSince?: string;
+  hivSince?: string;
+  otherChronicAilment?: string;
+
+  // H. Declarations & Attachments
+  patientDeclarationName?: string;
+  patientDeclarationContact?: string;
+  patientDeclarationEmail?: string;
+  patientDeclarationDate?: string;
+  patientDeclarationTime?: string;
+  hospitalDeclarationDoctorName?: string;
+  hospitalDeclarationDate?: string;
+  hospitalDeclarationTime?: string;
+  attachments?: string[];
+
   // Deprecated fields, kept for mock data compatibility for now
   packageId?: string; 
   doctorSpeciality?: string;
