@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo, useActionState, useEffect } from "react";
+import { useState, useActionState, useEffect } from "react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,17 +39,24 @@ const DetailItem = ({ label, value, className }: { label: string, value?: string
 );
 
 
-function NewRequestForm() {
+export default function NewRequestPage() {
     const { user } = useAuth();
     const [state, formAction] = useActionState(handleAddRequest, { message: "" });
     const { toast } = useToast();
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    const [selectedPatientId, setSelectedPatientId] = useState<string | null>(searchParams.get('patientId'));
+    const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
     const [patientDetails, setPatientDetails] = useState<Patient | null>(null);
     const [isLoadingPatient, setIsLoadingPatient] = useState(false);
     const [hospitalPatients, setHospitalPatients] = useState<{ id: string; fullName: string; admission_id: string; }[]>([]);
+    
+    useEffect(() => {
+        const patientIdFromUrl = searchParams.get('patientId');
+        if (patientIdFromUrl) {
+            setSelectedPatientId(patientIdFromUrl);
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         if (!user?.hospitalId) return;
@@ -225,14 +232,5 @@ function NewRequestForm() {
             </form>
         </div>
     );
-}
-
-
-export default function NewRequestPage() {
-    return (
-        <React.Suspense fallback={<div>Loading...</div>}>
-            <NewRequestForm />
-        </React.Suspense>
-    )
 }
     
