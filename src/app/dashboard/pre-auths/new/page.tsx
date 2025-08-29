@@ -16,7 +16,7 @@ import { useAuth } from "@/components/auth-provider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { mockPatients, mockCompanies } from "@/lib/mock-data";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getPatientWithDetailsForForm } from "@/app/dashboard/patients/actions";
 import type { Patient } from "@/lib/types";
 import { format } from "date-fns";
@@ -45,8 +45,9 @@ export default function NewRequestPage() {
     const [state, formAction] = useActionState(handleAddRequest, { message: "" });
     const { toast } = useToast();
     const router = useRouter();
+    const searchParams = useSearchParams();
 
-    const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+    const [selectedPatientId, setSelectedPatientId] = useState<string | null>(searchParams.get('patientId'));
     const [patientDetails, setPatientDetails] = useState<Patient | null>(null);
     const [isLoadingPatient, setIsLoadingPatient] = useState(false);
 
@@ -70,6 +71,14 @@ export default function NewRequestPage() {
             });
         }
     }, [state, toast, router]);
+    
+    useEffect(() => {
+        const patientIdFromQuery = searchParams.get('patientId');
+        if (patientIdFromQuery && patientIdFromQuery !== selectedPatientId) {
+             setSelectedPatientId(patientIdFromQuery);
+        }
+    }, [searchParams, selectedPatientId]);
+
 
     useEffect(() => {
         const fetchDetails = async () => {
@@ -120,7 +129,7 @@ export default function NewRequestPage() {
                         </CardHeader>
                         <CardContent>
                             <Label htmlFor="patientId">Select Patient</Label>
-                            <Select name="patientId" required onValueChange={setSelectedPatientId}>
+                            <Select name="patientId" required onValueChange={setSelectedPatientId} value={selectedPatientId ?? undefined}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select a patient from your hospital" />
                                 </SelectTrigger>
