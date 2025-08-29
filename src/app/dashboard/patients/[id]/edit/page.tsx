@@ -42,7 +42,7 @@ const FileUploadField = ({ label, name, onUrlChange, initialUrl }: { label: stri
             formData.append('fileType', name);
             
             const result = await handleUploadPatientFile(formData);
-            if (result.type === 'success') {
+            if (result.type === 'success' && result.url) {
                 setFileUrl(result.url);
                 onUrlChange(result.url);
                 toast({ title: "Success", description: `${label} uploaded.`, variant: "success" });
@@ -85,6 +85,7 @@ export default function EditPatientPage() {
     const [tpas, setTpas] = useState<Pick<TPA, "id" | "name">[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+    const [photoName, setPhotoName] = useState<string | null>(null);
     const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
     const photoInputRef = useRef<HTMLInputElement>(null);
     const [documentUrls, setDocumentUrls] = useState<Record<string, string>>({});
@@ -158,8 +159,9 @@ export default function EditPatientPage() {
             formData.append('file', file);
             formData.append('fileType', 'photo');
             const result = await handleUploadPatientFile(formData);
-            if (result.type === 'success') {
+            if (result.type === 'success' && result.url) {
                 setPhotoUrl(result.url);
+                setPhotoName(result.name);
                 toast({ title: "Success", description: "Photo uploaded.", variant: "success" });
             } else {
                 toast({ title: "Error", description: result.message, variant: "destructive" });
@@ -186,7 +188,8 @@ export default function EditPatientPage() {
             <form action={formAction}>
                  <input type="hidden" name="id" value={patient.id} />
                  <input type="hidden" name="hospital_id" value={user?.hospitalId || ''} />
-                 <input type="hidden" name="photo" value={photoUrl || ''} />
+                 <input type="hidden" name="photoUrl" value={photoUrl || ''} />
+                 <input type="hidden" name="photoName" value={photoName || ''} />
                  {Object.entries(documentUrls).map(([key, value]) => (
                     <input key={key} type="hidden" name={key} value={value} />
                  ))}
@@ -411,5 +414,3 @@ export default function EditPatientPage() {
         </div>
     );
 }
-
-    

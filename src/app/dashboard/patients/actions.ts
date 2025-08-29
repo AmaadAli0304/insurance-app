@@ -25,7 +25,9 @@ const basePatientFormSchema = z.object({
   abha_id: z.string().optional().nullable(),
   health_id: z.string().optional().nullable(),
   
-  photo: z.string().url().optional().nullable().or(z.literal('')),
+  photoUrl: z.string().url().optional().nullable().or(z.literal('')),
+  photoName: z.string().optional().nullable().or(z.literal('')),
+
 
   // KYC Documents
   adhaar_path: z.string().url().optional().nullable().or(z.literal('')),
@@ -86,7 +88,23 @@ export async function getPatients(): Promise<Patient[]> {
         LEFT JOIN admissions a ON p.id = a.patient_id
         LEFT JOIN companies c ON a.insurance_company = c.id
       `);
-    return result.recordset as Patient[];
+      
+    return result.recordset.map(record => {
+        let photoUrl = null;
+        if (record.photo) {
+            try {
+                const photoData = JSON.parse(record.photo);
+                photoUrl = photoData.url;
+            } catch (e) {
+                // Legacy support for plain URL
+                photoUrl = record.photo;
+            }
+        }
+        return {
+            ...record,
+            photo: photoUrl
+        }
+    }) as Patient[];
   } catch (error) {
     const dbError = error as Error;
     throw new Error(`Error fetching patients: ${dbError.message}`);
@@ -155,6 +173,17 @@ export async function getPatientById(id: string): Promise<Patient | null> {
     if (patientData.dateOfBirth) patientData.dateOfBirth = new Date(patientData.dateOfBirth).toISOString().split('T')[0];
     if (patientData.policyStartDate) patientData.policyStartDate = new Date(patientData.policyStartDate).toISOString().split('T')[0];
     if (patientData.policyEndDate) patientData.policyEndDate = new Date(patientData.policyEndDate).toISOString().split('T')[0];
+    
+    // Parse photo JSON
+    if (patientData.photo) {
+        try {
+            const photoInfo = JSON.parse(patientData.photo);
+            patientData.photo = photoInfo.url;
+        } catch (e) {
+            // Keep as is if it's not a valid JSON (legacy support)
+        }
+    }
+
 
     return patientData as Patient;
   } catch (error) {
@@ -163,7 +192,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
   }
 }
 
-export async function handleUploadPatientFile(formData: FormData): Promise<{ type: 'success', url: string } | { type: 'error', message: string }> {
+export async function handleUploadPatientFile(formData: FormData): Promise<{ type: 'success', url: string, name: string } | { type: 'error', message: string }> {
     const file = formData.get("file") as File | null;
     const fileType = formData.get("fileType") as string || 'other'; // e.g., 'photo', 'aadhaar', 'pan'
     
@@ -199,7 +228,7 @@ export async function handleUploadPatientFile(formData: FormData): Promise<{ typ
         }));
 
         const imageUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${fileName}`;
-        return { type: 'success', url: imageUrl };
+        return { type: 'success', url: imageUrl, name: file.name };
     } catch (error) {
         console.error("S3 upload error:", error);
         return { type: 'error', message: (error as Error).message };
@@ -222,6 +251,11 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
     await poolConnect;
     transaction = new sql.Transaction(pool);
     await transaction.begin();
+
+    let photoJson = null;
+    if (data.photoUrl && data.photoName) {
+      photoJson = JSON.stringify({ url: data.photoUrl, name: data.photoName });
+    }
     
     // Insert into patients table
     const patientRequest = new sql.Request(transaction);
@@ -239,7 +273,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('abha_id', sql.NVarChar, data.abha_id || null)
       .input('health_id', sql.NVarChar, data.health_id || null)
       .input('hospital_id', sql.NVarChar, data.hospital_id || null)
-      .input('photo', sql.NVarChar, data.photo || null)
+      .input('photo', sql.NVarChar, photoJson)
       .input('adhaar_path', sql.NVarChar, data.adhaar_path || null)
       .input('pan_path', sql.NVarChar, data.pan_path || null)
       .input('passport_path', sql.NVarChar, data.passport_path || null)
@@ -314,6 +348,11 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
     transaction = new sql.Transaction(pool);
     await transaction.begin();
 
+    let photoJson = null;
+    if (data.photoUrl && data.photoName) {
+      photoJson = JSON.stringify({ url: data.photoUrl, name: data.photoName });
+    }
+
     // Update patients table
     const patientRequest = new sql.Request(transaction);
     await patientRequest
@@ -330,7 +369,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
       .input('employee_id', sql.NVarChar, data.employee_id || null)
       .input('abha_id', sql.NVarChar, data.abha_id || null)
       .input('health_id', sql.NVarChar, data.health_id || null)
-      .input('photo', sql.NVarChar, data.photo || null)
+      .input('photo', sql.NVarChar, photoJson)
       .input('adhaar_path', sql.NVarChar, data.adhaar_path || null)
       .input('pan_path', sql.NVarChar, data.pan_path || null)
       .input('passport_path', sql.NVarChar, data.passport_path || null)
