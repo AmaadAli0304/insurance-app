@@ -117,15 +117,17 @@ export async function getPatients(): Promise<Patient[]> {
   }
 }
 
-// Helper to safely parse a JSON string and extract the URL
-const getUrlFromJsonString = (jsonString: string | null | undefined): string | null => {
+// Helper to safely parse a JSON string
+const getDocumentData = (jsonString: string | null | undefined): { url: string; name: string } | null => {
     if (!jsonString) return null;
     try {
-        const data = JSON.parse(jsonString);
-        return data.url || null;
+        return JSON.parse(jsonString);
     } catch (e) {
         // Fallback for legacy plain URL strings
-        return jsonString;
+        if (typeof jsonString === 'string' && jsonString.startsWith('http')) {
+            return { url: jsonString, name: 'View Document' };
+        }
+        return null;
     }
 };
 
@@ -193,14 +195,14 @@ export async function getPatientById(id: string): Promise<Patient | null> {
     if (patientData.policyStartDate) patientData.policyStartDate = new Date(patientData.policyStartDate).toISOString().split('T')[0];
     if (patientData.policyEndDate) patientData.policyEndDate = new Date(patientData.policyEndDate).toISOString().split('T')[0];
     
-    // Extract URL from JSON string for all path fields
-    patientData.photo = getUrlFromJsonString(patientData.photo);
-    patientData.adhaar_path = getUrlFromJsonString(patientData.adhaar_path);
-    patientData.pan_path = getUrlFromJsonString(patientData.pan_path);
-    patientData.passport_path = getUrlFromJsonString(patientData.passport_path);
-    patientData.voter_id_path = getUrlFromJsonString(patientData.voter_id_path);
-    patientData.driving_licence_path = getUrlFromJsonString(patientData.driving_licence_path);
-    patientData.other_path = getUrlFromJsonString(patientData.other_path);
+    // Extract document data from JSON string for all path fields
+    patientData.photo = getDocumentData(patientData.photo);
+    patientData.adhaar_path = getDocumentData(patientData.adhaar_path);
+    patientData.pan_path = getDocumentData(patientData.pan_path);
+    patientData.passport_path = getDocumentData(patientData.passport_path);
+    patientData.voter_id_path = getDocumentData(patientData.voter_id_path);
+    patientData.driving_licence_path = getDocumentData(patientData.driving_licence_path);
+    patientData.other_path = getDocumentData(patientData.other_path);
 
     return patientData as Patient;
   } catch (error) {

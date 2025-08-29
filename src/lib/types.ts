@@ -1,4 +1,5 @@
 
+
 export type UserRole = 'Admin' | 'Hospital Staff' | 'Company Admin';
 
 export interface User {
@@ -74,13 +75,13 @@ export interface Patient {
   memberId?: string | null;
   policyStartDate?: string | null;
   policyEndDate?: string | null;
-  photo?: string | null;
-  adhaar_path?: string | null;
-  pan_path?: string | null;
-  passport_path?: string | null;
-  voter_id_path?: string | null;
-  driving_licence_path?: string | null;
-  other_path?: string | null;
+  photo?: { url: string; name: string; } | string | null;
+  adhaar_path?: { url: string; name: string; } | string | null;
+  pan_path?: { url: string; name: string; } | string | null;
+  passport_path?: { url: string; name: string; } | string | null;
+  voter_id_path?: { url: string; name: string; } | string | null;
+  driving_licence_path?: { url: string; name: string; } | string | null;
+  other_path?: { url: string; name: string; } | string | null;
 
   // Admission fields
   admission_id?: string;

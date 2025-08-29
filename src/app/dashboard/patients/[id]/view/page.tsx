@@ -78,12 +78,15 @@ export default function ViewPatientPage() {
         return notFound();
     }
 
+    const photoUrl = patient.photo && typeof patient.photo === 'object' ? patient.photo.url : null;
+
+
     return (
         <div className="space-y-6">
             <Card>
                 <CardHeader className="items-center text-center">
                     <Avatar className="h-24 w-24 mb-4">
-                        <AvatarImage src={patient.photo ?? undefined} alt={patient.fullName} />
+                        <AvatarImage src={photoUrl ?? undefined} alt={patient.fullName} />
                         <AvatarFallback>{getInitials(patient.fullName)}</AvatarFallback>
                     </Avatar>
                     <CardTitle className="text-3xl">{patient.fullName}</CardTitle>
