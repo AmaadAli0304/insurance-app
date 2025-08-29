@@ -29,13 +29,19 @@ const basePatientFormSchema = z.object({
   photoName: z.string().optional().nullable().or(z.literal('')),
 
 
-  // KYC Documents
-  adhaar_path: z.string().url().optional().nullable().or(z.literal('')),
-  pan_path: z.string().url().optional().nullable().or(z.literal('')),
-  passport_path: z.string().url().optional().nullable().or(z.literal('')),
-  voter_id_path: z.string().url().optional().nullable().or(z.literal('')),
-  driving_licence_path: z.string().url().optional().nullable().or(z.literal('')),
-  other_path: z.string().url().optional().nullable().or(z.literal('')),
+  // KYC Documents - now expect pairs of url/name
+  adhaar_path_url: z.string().url().optional().or(z.literal('')),
+  adhaar_path_name: z.string().optional().or(z.literal('')),
+  pan_path_url: z.string().url().optional().or(z.literal('')),
+  pan_path_name: z.string().optional().or(z.literal('')),
+  passport_path_url: z.string().url().optional().or(z.literal('')),
+  passport_path_name: z.string().optional().or(z.literal('')),
+  voter_id_path_url: z.string().url().optional().or(z.literal('')),
+  voter_id_path_name: z.string().optional().or(z.literal('')),
+  driving_licence_path_url: z.string().url().optional().or(z.literal('')),
+  driving_licence_path_name: z.string().optional().or(z.literal('')),
+  other_path_url: z.string().url().optional().or(z.literal('')),
+  other_path_name: z.string().optional().or(z.literal('')),
 
   // Insurance Details
   admission_id: z.string().min(1, "Admission ID is required."),
@@ -111,6 +117,19 @@ export async function getPatients(): Promise<Patient[]> {
   }
 }
 
+// Helper to safely parse a JSON string and extract the URL
+const getUrlFromJsonString = (jsonString: string | null | undefined): string | null => {
+    if (!jsonString) return null;
+    try {
+        const data = JSON.parse(jsonString);
+        return data.url || null;
+    } catch (e) {
+        // Fallback for legacy plain URL strings
+        return jsonString;
+    }
+};
+
+
 export async function getPatientById(id: string): Promise<Patient | null> {
   try {
     await poolConnect;
@@ -174,16 +193,14 @@ export async function getPatientById(id: string): Promise<Patient | null> {
     if (patientData.policyStartDate) patientData.policyStartDate = new Date(patientData.policyStartDate).toISOString().split('T')[0];
     if (patientData.policyEndDate) patientData.policyEndDate = new Date(patientData.policyEndDate).toISOString().split('T')[0];
     
-    // Parse photo JSON
-    if (patientData.photo) {
-        try {
-            const photoInfo = JSON.parse(patientData.photo);
-            patientData.photo = photoInfo.url;
-        } catch (e) {
-            // Keep as is if it's not a valid JSON (legacy support)
-        }
-    }
-
+    // Extract URL from JSON string for all path fields
+    patientData.photo = getUrlFromJsonString(patientData.photo);
+    patientData.adhaar_path = getUrlFromJsonString(patientData.adhaar_path);
+    patientData.pan_path = getUrlFromJsonString(patientData.pan_path);
+    patientData.passport_path = getUrlFromJsonString(patientData.passport_path);
+    patientData.voter_id_path = getUrlFromJsonString(patientData.voter_id_path);
+    patientData.driving_licence_path = getUrlFromJsonString(patientData.driving_licence_path);
+    patientData.other_path = getUrlFromJsonString(patientData.other_path);
 
     return patientData as Patient;
   } catch (error) {
@@ -236,6 +253,26 @@ export async function handleUploadPatientFile(formData: FormData): Promise<{ typ
 }
 
 
+// Helper to create a JSON string from a URL and name
+const createDocumentJson = (url: string | undefined | null, name: string | undefined | null): string | null => {
+    if (url && name) {
+        return JSON.stringify({ url, name });
+    }
+    // If only URL exists (legacy or unchanged in edit form), store it directly or as JSON
+    if(url) {
+       try {
+         // check if it's already a json
+         JSON.parse(url);
+         return url;
+       } catch (e) {
+         // if not, and there is no name, create a json with empty name
+         if (url.startsWith('http')) return JSON.stringify({ url, name: '' });
+         return url; // It might be a json string already
+       }
+    }
+    return null;
+};
+
 export async function handleAddPatient(prevState: { message: string, type?: string }, formData: FormData) {
   const validatedFields = addPatientFormSchema.safeParse(Object.fromEntries(formData.entries()));
   
@@ -252,10 +289,13 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
     transaction = new sql.Transaction(pool);
     await transaction.begin();
 
-    let photoJson = null;
-    if (data.photoUrl && data.photoName) {
-      photoJson = JSON.stringify({ url: data.photoUrl, name: data.photoName });
-    }
+    const photoJson = createDocumentJson(data.photoUrl, data.photoName);
+    const adhaarJson = createDocumentJson(data.adhaar_path_url, data.adhaar_path_name);
+    const panJson = createDocumentJson(data.pan_path_url, data.pan_path_name);
+    const passportJson = createDocumentJson(data.passport_path_url, data.passport_path_name);
+    const voterIdJson = createDocumentJson(data.voter_id_path_url, data.voter_id_path_name);
+    const drivingLicenceJson = createDocumentJson(data.driving_licence_path_url, data.driving_licence_path_name);
+    const otherJson = createDocumentJson(data.other_path_url, data.other_path_name);
     
     // Insert into patients table
     const patientRequest = new sql.Request(transaction);
@@ -274,12 +314,12 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('health_id', sql.NVarChar, data.health_id || null)
       .input('hospital_id', sql.NVarChar, data.hospital_id || null)
       .input('photo', sql.NVarChar, photoJson)
-      .input('adhaar_path', sql.NVarChar, data.adhaar_path || null)
-      .input('pan_path', sql.NVarChar, data.pan_path || null)
-      .input('passport_path', sql.NVarChar, data.passport_path || null)
-      .input('voter_id_path', sql.NVarChar, data.voter_id_path || null)
-      .input('driving_licence_path', sql.NVarChar, data.driving_licence_path || null)
-      .input('other_path', sql.NVarChar, data.other_path || null)
+      .input('adhaar_path', sql.NVarChar, adhaarJson)
+      .input('pan_path', sql.NVarChar, panJson)
+      .input('passport_path', sql.NVarChar, passportJson)
+      .input('voter_id_path', sql.NVarChar, voterIdJson)
+      .input('driving_licence_path', sql.NVarChar, drivingLicenceJson)
+      .input('other_path', sql.NVarChar, otherJson)
       .query(`
         INSERT INTO patients (name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id, photo, adhaar_path, pan_path, passport_path, voter_id_path, driving_licence_path, other_path)
         OUTPUT INSERTED.id
@@ -348,10 +388,14 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
     transaction = new sql.Transaction(pool);
     await transaction.begin();
 
-    let photoJson = null;
-    if (data.photoUrl && data.photoName) {
-      photoJson = JSON.stringify({ url: data.photoUrl, name: data.photoName });
-    }
+    const photoJson = createDocumentJson(data.photoUrl, data.photoName);
+    const adhaarJson = createDocumentJson(data.adhaar_path_url, data.adhaar_path_name);
+    const panJson = createDocumentJson(data.pan_path_url, data.pan_path_name);
+    const passportJson = createDocumentJson(data.passport_path_url, data.passport_path_name);
+    const voterIdJson = createDocumentJson(data.voter_id_path_url, data.voter_id_path_name);
+    const drivingLicenceJson = createDocumentJson(data.driving_licence_path_url, data.driving_licence_path_name);
+    const otherJson = createDocumentJson(data.other_path_url, data.other_path_name);
+
 
     // Update patients table
     const patientRequest = new sql.Request(transaction);
@@ -370,12 +414,12 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
       .input('abha_id', sql.NVarChar, data.abha_id || null)
       .input('health_id', sql.NVarChar, data.health_id || null)
       .input('photo', sql.NVarChar, photoJson)
-      .input('adhaar_path', sql.NVarChar, data.adhaar_path || null)
-      .input('pan_path', sql.NVarChar, data.pan_path || null)
-      .input('passport_path', sql.NVarChar, data.passport_path || null)
-      .input('voter_id_path', sql.NVarChar, data.voter_id_path || null)
-      .input('driving_licence_path', sql.NVarChar, data.driving_licence_path || null)
-      .input('other_path', sql.NVarChar, data.other_path || null)
+      .input('adhaar_path', sql.NVarChar, adhaarJson)
+      .input('pan_path', sql.NVarChar, panJson)
+      .input('passport_path', sql.NVarChar, passportJson)
+      .input('voter_id_path', sql.NVarChar, voterIdJson)
+      .input('driving_licence_path', sql.NVarChar, drivingLicenceJson)
+      .input('other_path', sql.NVarChar, otherJson)
       .query(`
         UPDATE patients 
         SET 

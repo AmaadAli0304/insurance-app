@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth-provider";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import React from "react";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -27,7 +28,7 @@ function SubmitButton() {
     );
 }
 
-const FileUploadField = ({ label, name, onUrlChange, patientId }: { label: string; name: string, onUrlChange: (url: string) => void, patientId?: string }) => {
+const FileUploadField = ({ label, name, onUploadComplete }: { label: string; name: string, onUploadComplete: (name: string, url: string) => void }) => {
     const [isUploading, setIsUploading] = useState(false);
     const [fileUrl, setFileUrl] = useState<string | null>(null);
     const { toast } = useToast();
@@ -43,7 +44,7 @@ const FileUploadField = ({ label, name, onUrlChange, patientId }: { label: strin
             const result = await handleUploadPatientFile(formData);
             if (result.type === 'success' && result.url) {
                 setFileUrl(result.url);
-                onUrlChange(result.url);
+                onUploadComplete(result.name, result.url);
                 toast({ title: "Success", description: `${label} uploaded.`, variant: "success" });
             } else {
                 toast({ title: "Error", description: result.message, variant: "destructive" });
@@ -83,7 +84,7 @@ export default function NewPatientPage() {
     const [photoName, setPhotoName] = useState<string | null>(null);
     const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
     const photoInputRef = useRef<HTMLInputElement>(null);
-    const [documentUrls, setDocumentUrls] = useState<Record<string, string>>({});
+    const [documentUrls, setDocumentUrls] = useState<Record<string, { url: string, name: string }>>({});
 
     
     useEffect(() => {
@@ -132,8 +133,8 @@ export default function NewPatientPage() {
         }
     };
     
-    const handleDocumentUrlChange = (name: string, url: string) => {
-        setDocumentUrls(prev => ({ ...prev, [name]: url }));
+    const handleDocumentUploadComplete = (fieldName: string, name: string, url: string) => {
+        setDocumentUrls(prev => ({ ...prev, [fieldName]: { url, name } }));
     };
 
     return (
@@ -152,7 +153,10 @@ export default function NewPatientPage() {
                  <input type="hidden" name="photoUrl" value={photoUrl || ''} />
                  <input type="hidden" name="photoName" value={photoName || ''} />
                  {Object.entries(documentUrls).map(([key, value]) => (
-                    <input key={key} type="hidden" name={key} value={value} />
+                    <React.Fragment key={key}>
+                      <input type="hidden" name={`${key}_url`} value={value.url} />
+                      <input type="hidden" name={`${key}_name`} value={value.name} />
+                    </React.Fragment>
                  ))}
                 <div className="grid gap-6">
                     <Card className="flex flex-col items-center p-6">
@@ -254,12 +258,12 @@ export default function NewPatientPage() {
                             <CardDescription>Upload patient's KYC documents.</CardDescription>
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-2 gap-4">
-                            <FileUploadField label="Aadhaar Card" name="adhaar_path" onUrlChange={(url) => handleDocumentUrlChange("adhaar_path", url)} />
-                            <FileUploadField label="PAN Card" name="pan_path" onUrlChange={(url) => handleDocumentUrlChange("pan_path", url)} />
-                            <FileUploadField label="Passport" name="passport_path" onUrlChange={(url) => handleDocumentUrlChange("passport_path", url)} />
-                            <FileUploadField label="Driving License" name="driving_licence_path" onUrlChange={(url) => handleDocumentUrlChange("driving_licence_path", url)} />
-                            <FileUploadField label="Voter ID" name="voter_id_path" onUrlChange={(url) => handleDocumentUrlChange("voter_id_path", url)} />
-                            <FileUploadField label="Other Document" name="other_path" onUrlChange={(url) => handleDocumentUrlChange("other_path", url)} />
+                            <FileUploadField label="Aadhaar Card" name="adhaar_path" onUploadComplete={(name, url) => handleDocumentUploadComplete("adhaar_path", name, url)} />
+                            <FileUploadField label="PAN Card" name="pan_path" onUploadComplete={(name, url) => handleDocumentUploadComplete("pan_path", name, url)} />
+                            <FileUploadField label="Passport" name="passport_path" onUploadComplete={(name, url) => handleDocumentUploadComplete("passport_path", name, url)} />
+                            <FileUploadField label="Driving License" name="driving_licence_path" onUploadComplete={(name, url) => handleDocumentUploadComplete("driving_licence_path", name, url)} />
+                            <FileUploadField label="Voter ID" name="voter_id_path" onUploadComplete={(name, url) => handleDocumentUploadComplete("voter_id_path", name, url)} />
+                            <FileUploadField label="Other Document" name="other_path" onUploadComplete={(name, url) => handleDocumentUploadComplete("other_path", name, url)} />
                         </CardContent>
                     </Card>
 

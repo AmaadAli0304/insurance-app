@@ -28,7 +28,7 @@ function SubmitButton() {
     );
 }
 
-const FileUploadField = ({ label, name, onUrlChange, initialUrl }: { label: string; name: string; onUrlChange: (url: string) => void; initialUrl?: string | null }) => {
+const FileUploadField = ({ label, name, onUploadComplete, initialUrl }: { label: string; name: string; onUploadComplete: (name: string, url: string) => void; initialUrl?: string | null }) => {
     const [isUploading, setIsUploading] = useState(false);
     const [fileUrl, setFileUrl] = useState<string | null>(initialUrl || null);
     const { toast } = useToast();
@@ -44,7 +44,7 @@ const FileUploadField = ({ label, name, onUrlChange, initialUrl }: { label: stri
             const result = await handleUploadPatientFile(formData);
             if (result.type === 'success' && result.url) {
                 setFileUrl(result.url);
-                onUrlChange(result.url);
+                onUploadComplete(result.name, result.url);
                 toast({ title: "Success", description: `${label} uploaded.`, variant: "success" });
             } else {
                 toast({ title: "Error", description: result.message, variant: "destructive" });
@@ -84,11 +84,13 @@ export default function EditPatientPage() {
     const [companies, setCompanies] = useState<Pick<Company, "id" | "name">[]>([]);
     const [tpas, setTpas] = useState<Pick<TPA, "id" | "name">[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    
     const [photoUrl, setPhotoUrl] = useState<string | null>(null);
     const [photoName, setPhotoName] = useState<string | null>(null);
     const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
     const photoInputRef = useRef<HTMLInputElement>(null);
-    const [documentUrls, setDocumentUrls] = useState<Record<string, string>>({});
+
+    const [documentUrls, setDocumentUrls] = useState<Record<string, { url: string, name: string }>>({});
 
 
     useEffect(() => {
@@ -111,13 +113,16 @@ export default function EditPatientPage() {
                 if (patientData.photo) {
                     setPhotoUrl(patientData.photo);
                 }
-                const initialDocUrls: Record<string, string> = {};
-                if(patientData.adhaar_path) initialDocUrls.adhaar_path = patientData.adhaar_path;
-                if(patientData.pan_path) initialDocUrls.pan_path = patientData.pan_path;
-                if(patientData.passport_path) initialDocUrls.passport_path = patientData.passport_path;
-                if(patientData.voter_id_path) initialDocUrls.voter_id_path = patientData.voter_id_path;
-                if(patientData.driving_licence_path) initialDocUrls.driving_licence_path = patientData.driving_licence_path;
-                if(patientData.other_path) initialDocUrls.other_path = patientData.other_path;
+                
+                const initialDocUrls: Record<string, { url: string, name: string }> = {};
+                const docFields: (keyof Patient)[] = ['adhaar_path', 'pan_path', 'passport_path', 'voter_id_path', 'driving_licence_path', 'other_path'];
+
+                for (const field of docFields) {
+                    const value = patientData[field];
+                    if (value) {
+                         initialDocUrls[field] = { url: value, name: '' }; // name is not needed for view, just the url
+                    }
+                }
                 setDocumentUrls(initialDocUrls);
 
             } catch (error) {
@@ -170,8 +175,8 @@ export default function EditPatientPage() {
         }
     };
     
-    const handleDocumentUrlChange = (name: string, url: string) => {
-        setDocumentUrls(prev => ({ ...prev, [name]: url }));
+    const handleDocumentUploadComplete = (fieldName: string, name: string, url: string) => {
+        setDocumentUrls(prev => ({ ...prev, [fieldName]: { url, name } }));
     };
 
     return (
@@ -191,7 +196,10 @@ export default function EditPatientPage() {
                  <input type="hidden" name="photoUrl" value={photoUrl || ''} />
                  <input type="hidden" name="photoName" value={photoName || ''} />
                  {Object.entries(documentUrls).map(([key, value]) => (
-                    <input key={key} type="hidden" name={key} value={value} />
+                    <React.Fragment key={key}>
+                      <input type="hidden" name={`${key}_url`} value={value.url} />
+                      <input type="hidden" name={`${key}_name`} value={value.name} />
+                    </React.Fragment>
                  ))}
                 <div className="grid gap-6">
                     <Card className="flex flex-col items-center p-6">
@@ -294,12 +302,12 @@ export default function EditPatientPage() {
                             <CardDescription>Upload patient's KYC documents.</CardDescription>
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-2 gap-4">
-                            <FileUploadField label="Aadhaar Card" name="adhaar_path" onUrlChange={(url) => handleDocumentUrlChange("adhaar_path", url)} initialUrl={patient.adhaar_path} />
-                            <FileUploadField label="PAN Card" name="pan_path" onUrlChange={(url) => handleDocumentUrlChange("pan_path", url)} initialUrl={patient.pan_path} />
-                            <FileUploadField label="Passport" name="passport_path" onUrlChange={(url) => handleDocumentUrlChange("passport_path", url)} initialUrl={patient.passport_path} />
-                            <FileUploadField label="Driving License" name="driving_licence_path" onUrlChange={(url) => handleDocumentUrlChange("driving_licence_path", url)} initialUrl={patient.driving_licence_path} />
-                            <FileUploadField label="Voter ID" name="voter_id_path" onUrlChange={(url) => handleDocumentUrlChange("voter_id_path", url)} initialUrl={patient.voter_id_path} />
-                            <FileUploadField label="Other Document" name="other_path" onUrlChange={(url) => handleDocumentUrlChange("other_path", url)} initialUrl={patient.other_path} />
+                            <FileUploadField label="Aadhaar Card" name="adhaar_path" onUploadComplete={(name, url) => handleDocumentUploadComplete("adhaar_path", name, url)} initialUrl={patient.adhaar_path} />
+                            <FileUploadField label="PAN Card" name="pan_path" onUploadComplete={(name, url) => handleDocumentUploadComplete("pan_path", name, url)} initialUrl={patient.pan_path} />
+                            <FileUploadField label="Passport" name="passport_path" onUploadComplete={(name, url) => handleDocumentUploadComplete("passport_path", name, url)} initialUrl={patient.passport_path} />
+                            <FileUploadField label="Driving License" name="driving_licence_path" onUploadComplete={(name, url) => handleDocumentUploadComplete("driving_licence_path", name, url)} initialUrl={patient.driving_licence_path} />
+                            <FileUploadField label="Voter ID" name="voter_id_path" onUploadComplete={(name, url) => handleDocumentUploadComplete("voter_id_path", name, url)} initialUrl={patient.voter_id_path} />
+                            <FileUploadField label="Other Document" name="other_path" onUploadComplete={(name, url) => handleDocumentUploadComplete("other_path", name, url)} initialUrl={patient.other_path} />
                         </CardContent>
                     </Card>
 
