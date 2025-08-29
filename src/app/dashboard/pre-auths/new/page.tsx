@@ -54,35 +54,6 @@ export default function NewRequestPage() {
     const [isSearchListOpen, setIsSearchListOpen] = useState(false);
     const searchContainerRef = useRef<HTMLDivElement>(null);
     
-     useEffect(() => {
-        const patientIdFromUrl = searchParams.get('patientId');
-        if (patientIdFromUrl) {
-            setSelectedPatientId(patientIdFromUrl);
-        }
-    }, [searchParams]);
-
-    useEffect(() => {
-        if (!user?.hospitalId) return;
-        async function loadPatients() {
-            try {
-                const patients = await getPatientsForPreAuth(user!.hospitalId!);
-                setHospitalPatients(patients);
-                
-                const patientIdFromUrl = searchParams.get('patientId');
-                if (patientIdFromUrl) {
-                     const preselectedPatient = patients.find(p => p.id === patientIdFromUrl);
-                     if (preselectedPatient) {
-                         setSearchQuery(`${preselectedPatient.fullName} - ${preselectedPatient.admission_id}`);
-                     }
-                }
-
-            } catch (error) {
-                toast({ title: "Error", description: "Failed to fetch hospital patients.", variant: 'destructive' });
-            }
-        }
-        loadPatients();
-    }, [user?.hospitalId, toast, searchParams]);
-    
     useEffect(() => {
         if (state.type === 'success') {
             toast({
@@ -100,6 +71,36 @@ export default function NewRequestPage() {
         }
     }, [state, toast, router]);
 
+    // Effect 1: Fetch the list of patients for the search dropdown.
+    useEffect(() => {
+        if (!user?.hospitalId) return;
+        async function loadPatients() {
+            try {
+                const patients = await getPatientsForPreAuth(user!.hospitalId!);
+                setHospitalPatients(patients);
+            } catch (error) {
+                toast({ title: "Error", description: "Failed to fetch hospital patients.", variant: 'destructive' });
+            }
+        }
+        loadPatients();
+    }, [user?.hospitalId, toast]);
+
+    // Effect 2: When the patient list is loaded, check for a patient ID in the URL and set the state.
+    useEffect(() => {
+        if (hospitalPatients.length > 0) {
+            const patientIdFromUrl = searchParams.get('patientId');
+            if (patientIdFromUrl) {
+                const preselectedPatient = hospitalPatients.find(p => p.id === patientIdFromUrl);
+                if (preselectedPatient) {
+                    setSelectedPatientId(preselectedPatient.id);
+                    setSearchQuery(`${preselectedPatient.fullName} - ${preselectedPatient.admission_id}`);
+                }
+            }
+        }
+    }, [searchParams, hospitalPatients]);
+
+
+    // Effect 3: Fetch full patient details whenever a patient is selected.
     useEffect(() => {
         const fetchDetails = async () => {
             if (!selectedPatientId) {
@@ -119,6 +120,7 @@ export default function NewRequestPage() {
         fetchDetails();
     }, [selectedPatientId, toast]);
     
+    // Effect 4: Handle clicks outside the search list to close it.
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
@@ -133,10 +135,14 @@ export default function NewRequestPage() {
 
     const filteredPatients = useMemo(() => {
         if (!searchQuery) return [];
+        // Prevent showing the list if the query exactly matches a selected patient
+        const exactMatch = hospitalPatients.some(p => `${p.fullName} - ${p.admission_id}` === searchQuery);
+        if (exactMatch && selectedPatientId) return [];
+
         return hospitalPatients.filter(p => 
             `${p.fullName} - ${p.admission_id}`.toLowerCase().includes(searchQuery.toLowerCase())
         );
-    }, [searchQuery, hospitalPatients]);
+    }, [searchQuery, hospitalPatients, selectedPatientId]);
 
 
     const handlePatientSelect = (patient: { id: string; fullName: string; admission_id: string; }) => {
@@ -297,6 +303,3 @@ export default function NewRequestPage() {
         </div>
     );
 }
-    
-
-    
