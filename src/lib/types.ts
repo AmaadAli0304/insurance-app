@@ -128,11 +128,13 @@ export interface StaffingRequest {
   subject: string;
   email: string; // "To" email
   fromEmail?: string;
-  // Deprecated fields, kept for mock data compatibility for now
-  packageId?: string; 
+  admissionId?: string;
   requestAmount?: number; 
   doctorName?: string;
   proposedTreatment?: string;
+
+  // Deprecated fields, kept for mock data compatibility for now
+  packageId?: string; 
   doctorSpeciality?: string;
   expectedDischargeDate?: string;
 }
@@ -168,3 +170,5 @@ export interface Staff extends Omit<User, 'uid' | 'role' | 'companyId'> {
   hospitalName?: string;
   assignedHospitalsDetails?: { id: string | number, name: string }[];
 }
+
+    

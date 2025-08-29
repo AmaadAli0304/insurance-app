@@ -4,6 +4,7 @@
 import { mockStaffingRequests, mockPatients } from "@/lib/mock-data";
 import { StaffingRequest, Patient } from "@/lib/types";
 import { redirect } from 'next/navigation';
+import { getPatientById } from "../patients/actions";
 
 export async function handleAddRequest(prevState: { message: string, type?:string }, formData: FormData) {
   
@@ -18,8 +19,7 @@ export async function handleAddRequest(prevState: { message: string, type?:strin
     return { message: `Please fill all required fields.`, type: 'error' };
   }
 
-  // This part of the logic remains with mock data as there is no `patients` table with all fields yet.
-  const patient = mockPatients.find(p => p.id === patientId);
+  const patient = await getPatientById(patientId);
   if (!patient) {
     return { message: "Selected patient not found.", type: 'error' };
   }
@@ -28,17 +28,17 @@ export async function handleAddRequest(prevState: { message: string, type?:strin
     id: `req-${Date.now()}`,
     patientId: patient.id,
     hospitalId: hospitalId,
-    companyId: patient.companyId, // Infer company from patient
+    companyId: patient.companyId,
     status: 'Pending',
     createdAt: new Date().toISOString(),
     details: details,
     subject: subject,
-    email: toEmail, // 'to' field from form
+    email: toEmail,
     fromEmail: fromEmail,
-    requestAmount: patient.estimatedCost,
-    doctorName: patient.doctorName,
-    proposedTreatment: patient.proposedTreatment,
-    packageId: "N/A",
+    requestAmount: Number(formData.get("estimatedCost")) || patient.estimatedCost,
+    doctorName: formData.get("doctorName") as string || patient.treat_doc_name,
+    proposedTreatment: formData.get("proposedTreatment") as string || patient.proposedTreatment,
+    admissionId: formData.get("admissionId") as string || patient.admission_id,
   };
 
   mockStaffingRequests.push(newRequest);
@@ -54,3 +54,5 @@ export async function handleDeleteRequest(formData: FormData) {
         mockStaffingRequests.splice(index, 1);
     }
 }
+
+    
