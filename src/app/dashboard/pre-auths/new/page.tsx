@@ -71,10 +71,11 @@ export default function NewRequestPage() {
         }
     }, [state, toast, router]);
 
-    // Effect 1: Fetch the list of patients for the search dropdown.
+    // Effect 1: Fetch the list of patients and then set the pre-selected one from URL.
     useEffect(() => {
         if (!user?.hospitalId) return;
-        async function loadPatients() {
+
+        async function loadInitialData() {
             try {
                 const patients = await getPatientsForPreAuth(user!.hospitalId!);
                 setHospitalPatients(patients);
@@ -82,7 +83,7 @@ export default function NewRequestPage() {
                 // Now that patients are loaded, check for a patient ID in the URL.
                 const patientIdFromUrl = searchParams.get('patientId');
                 if (patientIdFromUrl) {
-                    const preselectedPatient = patients.find(p => p.id === patientIdFromUrl);
+                    const preselectedPatient = patients.find(p => String(p.id) === patientIdFromUrl);
                     if (preselectedPatient) {
                         setSelectedPatientId(preselectedPatient.id);
                         setSearchQuery(`${preselectedPatient.fullName} - ${preselectedPatient.admission_id}`);
@@ -92,8 +93,8 @@ export default function NewRequestPage() {
                 toast({ title: "Error", description: "Failed to fetch hospital patients.", variant: 'destructive' });
             }
         }
-        loadPatients();
-    }, [user?.hospitalId, toast, searchParams]);
+        loadInitialData();
+    }, [user?.hospitalId, searchParams, toast]);
 
 
     // Effect 2: Fetch full patient details whenever a patient is selected.
@@ -299,3 +300,5 @@ export default function NewRequestPage() {
         </div>
     );
 }
+
+    
