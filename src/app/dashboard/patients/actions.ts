@@ -81,7 +81,7 @@ export async function getPatients(): Promise<Patient[]> {
     await poolConnect;
     const result = await pool.request()
       .query(`
-        SELECT p.id, p.name as fullName, p.email_address, p.phone_number as phoneNumber, a.policy_number as policyNumber, c.name as companyName
+        SELECT p.id, p.name as fullName, p.photo, p.email_address, p.phone_number as phoneNumber, a.policy_number as policyNumber, c.name as companyName
         FROM patients p
         LEFT JOIN admissions a ON p.id = a.patient_id
         LEFT JOIN companies c ON a.insurance_company = c.id

@@ -23,6 +23,7 @@ import {
 import type { Patient } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface PatientsTableProps {
   patients: Patient[];
@@ -69,10 +70,16 @@ export function PatientsTable({ patients, onPatientDeleted }: PatientsTableProps
     router.push(`/dashboard/patients/${patientId}/view`);
   };
 
+  const getInitials = (name: string) => {
+    if (!name) return 'P';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  }
+
   return (
     <Table>
       <TableHeader>
         <TableRow>
+          <TableHead className="w-[80px]">Photo</TableHead>
           <TableHead>Full Name</TableHead>
           <TableHead>Insurance Company</TableHead>
           <TableHead>Policy Number</TableHead>
@@ -85,6 +92,12 @@ export function PatientsTable({ patients, onPatientDeleted }: PatientsTableProps
         {patients.length > 0 ? (
           patients.map(p => (
             <TableRow key={p.id} onClick={() => handleRowClick(p.id)} className="cursor-pointer">
+              <TableCell>
+                 <Avatar className="h-10 w-10">
+                    <AvatarImage src={p.photo ?? undefined} alt={p.fullName} />
+                    <AvatarFallback>{getInitials(p.fullName)}</AvatarFallback>
+                </Avatar>
+              </TableCell>
               <TableCell className="font-medium">{p.fullName}</TableCell>
               <TableCell>{p.companyName || 'N/A'}</TableCell>
               <TableCell>{p.policyNumber ?? 'N/A'}</TableCell>
@@ -135,7 +148,7 @@ export function PatientsTable({ patients, onPatientDeleted }: PatientsTableProps
           ))
         ) : (
           <TableRow>
-            <TableCell colSpan={6} className="h-24 text-center">
+            <TableCell colSpan={7} className="h-24 text-center">
               No data found
             </TableCell>
           </TableRow>
