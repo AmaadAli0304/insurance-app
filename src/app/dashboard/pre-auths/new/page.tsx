@@ -78,29 +78,25 @@ export default function NewRequestPage() {
             try {
                 const patients = await getPatientsForPreAuth(user!.hospitalId!);
                 setHospitalPatients(patients);
+
+                // Now that patients are loaded, check for a patient ID in the URL.
+                const patientIdFromUrl = searchParams.get('patientId');
+                if (patientIdFromUrl) {
+                    const preselectedPatient = patients.find(p => p.id === patientIdFromUrl);
+                    if (preselectedPatient) {
+                        setSelectedPatientId(preselectedPatient.id);
+                        setSearchQuery(`${preselectedPatient.fullName} - ${preselectedPatient.admission_id}`);
+                    }
+                }
             } catch (error) {
                 toast({ title: "Error", description: "Failed to fetch hospital patients.", variant: 'destructive' });
             }
         }
         loadPatients();
-    }, [user?.hospitalId, toast]);
-
-    // Effect 2: When the patient list is loaded, check for a patient ID in the URL and set the state.
-    useEffect(() => {
-        if (hospitalPatients.length > 0) {
-            const patientIdFromUrl = searchParams.get('patientId');
-            if (patientIdFromUrl) {
-                const preselectedPatient = hospitalPatients.find(p => p.id === patientIdFromUrl);
-                if (preselectedPatient) {
-                    setSelectedPatientId(preselectedPatient.id);
-                    setSearchQuery(`${preselectedPatient.fullName} - ${preselectedPatient.admission_id}`);
-                }
-            }
-        }
-    }, [searchParams, hospitalPatients]);
+    }, [user?.hospitalId, toast, searchParams]);
 
 
-    // Effect 3: Fetch full patient details whenever a patient is selected.
+    // Effect 2: Fetch full patient details whenever a patient is selected.
     useEffect(() => {
         const fetchDetails = async () => {
             if (!selectedPatientId) {
@@ -120,7 +116,7 @@ export default function NewRequestPage() {
         fetchDetails();
     }, [selectedPatientId, toast]);
     
-    // Effect 4: Handle clicks outside the search list to close it.
+    // Effect 3: Handle clicks outside the search list to close it.
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
