@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useActionState, useEffect } from "react";
+import { useState, useActionState, useEffect, useMemo, useRef } from "react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,15 +11,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { useFormStatus } from "react-dom";
 import { handleAddRequest } from "../actions";
 import Link from "next/link";
-import { ArrowLeft, Loader2, Download, Send } from "lucide-react";
+import { ArrowLeft, Loader2, Download, Send, Check } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getPatientWithDetailsForForm, getPatientsForPreAuth } from "@/app/dashboard/patients/actions";
 import type { Patient } from "@/lib/types";
 import { format } from "date-fns";
-import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -51,7 +50,11 @@ export default function NewRequestPage() {
     const [isLoadingPatient, setIsLoadingPatient] = useState(false);
     const [hospitalPatients, setHospitalPatients] = useState<{ id: string; fullName: string; admission_id: string; }[]>([]);
     
-    useEffect(() => {
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isSearchListOpen, setIsSearchListOpen] = useState(false);
+    const searchContainerRef = useRef<HTMLDivElement>(null);
+    
+     useEffect(() => {
         const patientIdFromUrl = searchParams.get('patientId');
         if (patientIdFromUrl) {
             setSelectedPatientId(patientIdFromUrl);
@@ -64,12 +67,21 @@ export default function NewRequestPage() {
             try {
                 const patients = await getPatientsForPreAuth(user!.hospitalId!);
                 setHospitalPatients(patients);
+                
+                const patientIdFromUrl = searchParams.get('patientId');
+                if (patientIdFromUrl) {
+                     const preselectedPatient = patients.find(p => p.id === patientIdFromUrl);
+                     if (preselectedPatient) {
+                         setSearchQuery(`${preselectedPatient.fullName} - ${preselectedPatient.admission_id}`);
+                     }
+                }
+
             } catch (error) {
                 toast({ title: "Error", description: "Failed to fetch hospital patients.", variant: 'destructive' });
             }
         }
         loadPatients();
-    }, [user?.hospitalId, toast]);
+    }, [user?.hospitalId, toast, searchParams]);
     
     useEffect(() => {
         if (state.type === 'success') {
@@ -107,6 +119,33 @@ export default function NewRequestPage() {
         fetchDetails();
     }, [selectedPatientId, toast]);
     
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+                setIsSearchListOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
+    const filteredPatients = useMemo(() => {
+        if (!searchQuery) return [];
+        return hospitalPatients.filter(p => 
+            `${p.fullName} - ${p.admission_id}`.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [searchQuery, hospitalPatients]);
+
+
+    const handlePatientSelect = (patient: { id: string; fullName: string; admission_id: string; }) => {
+        setSelectedPatientId(patient.id);
+        setSearchQuery(`${patient.fullName} - ${patient.admission_id}`);
+        setIsSearchListOpen(false);
+    };
+
+
     const formatDate = (dateString?: string | null) => {
         if (!dateString) return "N/A";
         try {
@@ -127,26 +166,51 @@ export default function NewRequestPage() {
                 <h1 className="text-lg font-semibold md:text-2xl">New Pre-Authorization</h1>
             </div>
             <form action={formAction}>
+                 <input type="hidden" name="patientId" value={selectedPatientId || ''} />
                  <input type="hidden" name="hospitalId" value={user?.hospitalId || ''} />
                  <input type="hidden" name="from" value={user?.email || ''} />
                 <div className="grid gap-6">
                     <Card>
                         <CardHeader>
                             <CardTitle>Select Patient</CardTitle>
-                             <CardDescription>Select a patient to populate their details and compose the request.</CardDescription>
+                             <CardDescription>Search for a patient by name or admission ID to populate their details.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <Label htmlFor="patientId">Select Patient</Label>
-                            <Select name="patientId" required onValueChange={setSelectedPatientId} value={selectedPatientId ?? ""}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a patient from your hospital" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {hospitalPatients.map(p => (
-                                        <SelectItem key={p.id} value={p.id}>{p.fullName} - {p.admission_id}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                             <div ref={searchContainerRef} className="relative">
+                                <Label htmlFor="patient-search">Search Patient</Label>
+                                <Input 
+                                    id="patient-search"
+                                    value={searchQuery}
+                                    onChange={(e) => {
+                                        setSearchQuery(e.target.value);
+                                        if (e.target.value) {
+                                            setIsSearchListOpen(true);
+                                        }
+                                        if (selectedPatientId) {
+                                            setSelectedPatientId(null);
+                                            setPatientDetails(null);
+                                        }
+                                    }}
+                                    onFocus={() => setIsSearchListOpen(true)}
+                                    placeholder="Search by name or admission ID..."
+                                />
+                                {isSearchListOpen && filteredPatients.length > 0 && (
+                                    <div className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-lg">
+                                        <ul className="max-h-60 overflow-auto">
+                                            {filteredPatients.map(p => (
+                                                <li 
+                                                    key={p.id}
+                                                    className="p-2 hover:bg-accent cursor-pointer flex items-center justify-between"
+                                                    onClick={() => handlePatientSelect(p)}
+                                                >
+                                                   <span>{p.fullName} - {p.admission_id}</span>
+                                                   {selectedPatientId === p.id && <Check className="h-4 w-4" />}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
                         </CardContent>
                     </Card>
 
@@ -233,4 +297,6 @@ export default function NewRequestPage() {
         </div>
     );
 }
+    
+
     
