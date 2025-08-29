@@ -1,3 +1,4 @@
+
 "use server";
 
 import pool, { sql, poolConnect } from "@/lib/db";
@@ -95,19 +96,20 @@ export async function getPatients(): Promise<Patient[]> {
       `);
       
     return result.recordset.map(record => {
-        let photoUrl = null;
+        let photo = null;
         if (record.photo) {
             try {
-                const photoData = JSON.parse(record.photo);
-                photoUrl = photoData.url;
+                photo = JSON.parse(record.photo);
             } catch (e) {
-                // Legacy support for plain URL
-                photoUrl = record.photo;
+                 // Fallback for non-JSON string
+                if (typeof record.photo === 'string' && record.photo.startsWith('http')) {
+                    photo = { url: record.photo, name: 'Photo' };
+                }
             }
         }
         return {
             ...record,
-            photo: photoUrl
+            photo: photo?.url // only send url to client for table view
         }
     }) as Patient[];
   } catch (error) {
@@ -211,6 +213,24 @@ export async function getPatientById(id: string): Promise<Patient | null> {
   } catch (error) {
     console.error(`Error fetching patient with id ${id}:`, error);
     throw new Error("Failed to fetch patient from database.");
+  }
+}
+
+export async function getPatientsForPreAuth(hospitalId: string): Promise<{ id: string; fullName: string; admission_id: string; }[]> {
+  try {
+    await poolConnect;
+    const result = await pool.request()
+      .input('hospitalId', sql.NVarChar, hospitalId)
+      .query(`
+        SELECT p.id, p.name as fullName, a.admission_id
+        FROM patients p
+        JOIN admissions a ON p.id = a.patient_id
+        WHERE p.hospital_id = @hospitalId
+      `);
+    return result.recordset;
+  } catch (error) {
+    const dbError = error as Error;
+    throw new Error(`Error fetching patients for pre-auth: ${dbError.message}`);
   }
 }
 
@@ -523,3 +543,5 @@ export async function handleDeletePatient(prevState: { message: string, type?: s
     revalidatePath('/dashboard/patients');
     return { message: "Patient deleted successfully.", type: 'success' };
 }
+
+    

@@ -14,10 +14,9 @@ import Link from "next/link";
 import { ArrowLeft, Loader2, Download, Send } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { mockPatients, mockCompanies } from "@/lib/mock-data";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getPatientWithDetailsForForm } from "@/app/dashboard/patients/actions";
+import { getPatientWithDetailsForForm, getPatientsForPreAuth } from "@/app/dashboard/patients/actions";
 import type { Patient } from "@/lib/types";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -50,10 +49,20 @@ export default function NewRequestPage() {
     const [selectedPatientId, setSelectedPatientId] = useState<string | null>(searchParams.get('patientId'));
     const [patientDetails, setPatientDetails] = useState<Patient | null>(null);
     const [isLoadingPatient, setIsLoadingPatient] = useState(false);
+    const [hospitalPatients, setHospitalPatients] = useState<{ id: string; fullName: string; admission_id: string; }[]>([]);
 
-    const hospitalPatients = useMemo(() => {
-        return mockPatients.filter(p => p.hospitalId === user?.hospitalId);
-    }, [user?.hospitalId]);
+    useEffect(() => {
+        if (!user?.hospitalId) return;
+        async function loadPatients() {
+            try {
+                const patients = await getPatientsForPreAuth(user!.hospitalId!);
+                setHospitalPatients(patients);
+            } catch (error) {
+                toast({ title: "Error", description: "Failed to fetch hospital patients.", variant: 'destructive' });
+            }
+        }
+        loadPatients();
+    }, [user?.hospitalId, toast]);
     
     useEffect(() => {
         if (state.type === 'success') {
@@ -129,13 +138,13 @@ export default function NewRequestPage() {
                         </CardHeader>
                         <CardContent>
                             <Label htmlFor="patientId">Select Patient</Label>
-                            <Select name="patientId" required onValueChange={setSelectedPatientId} value={selectedPatientId ?? undefined}>
+                            <Select name="patientId" required onValueChange={setSelectedPatientId} value={selectedPatientId ?? ""}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select a patient from your hospital" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {hospitalPatients.map(p => (
-                                        <SelectItem key={p.id} value={p.id}>{p.fullName} (Policy: {p.policyNumber})</SelectItem>
+                                        <SelectItem key={p.id} value={p.id}>{p.fullName} - {p.admission_id}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -225,3 +234,5 @@ export default function NewRequestPage() {
         </div>
     );
 }
+
+    
