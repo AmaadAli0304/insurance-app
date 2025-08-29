@@ -1,4 +1,3 @@
-
 "use server";
 
 import pool, { sql, poolConnect } from "@/lib/db";
@@ -22,7 +21,7 @@ const basePatientFormSchema = z.object({
   address: z.string().min(1, "Address is required."),
   occupation: z.string().optional().nullable(),
   employee_id: z.string().optional().nullable(),
-  abha_id: z_string().optional().nullable(),
+  abha_id: z.string().optional().nullable(),
   health_id: z.string().optional().nullable(),
   
   photoUrl: z.string().url().optional().nullable().or(z.literal('')),
