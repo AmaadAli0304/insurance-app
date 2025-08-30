@@ -316,7 +316,17 @@ export default function NewPatientPage() {
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="relationship_policyholder">Relationship to policyholder <span className="text-destructive">*</span></Label>
-                                        <Input id="relationship_policyholder" name="relationship_policyholder" required />
+                                        <Select name="relationship_policyholder" required>
+                                            <SelectTrigger><SelectValue placeholder="Select relationship" /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Sister">Sister</SelectItem>
+                                                <SelectItem value="Brother">Brother</SelectItem>
+                                                <SelectItem value="Mother">Mother</SelectItem>
+                                                <SelectItem value="Father">Father</SelectItem>
+                                                <SelectItem value="Son">Son</SelectItem>
+                                                <SelectItem value="Daughter">Daughter</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="policy_number">Policy number <span className="text-destructive">*</span></Label>
