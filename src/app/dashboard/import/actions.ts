@@ -12,7 +12,8 @@ export async function handleImportIctCodes(prevState: { message: string, type?: 
     return { message: "Please upload a valid XLSX file.", type: "error" };
   }
 
-  let transaction;
+  let totalRowsAffected = 0;
+
   try {
     await poolConnect;
     const workbook = XLSX.read(await file.arrayBuffer(), { type: "buffer" });
@@ -43,33 +44,39 @@ export async function handleImportIctCodes(prevState: { message: string, type?: 
       return { message: "No rows with valid shortcodes found in the file to import.", type: "error" };
     }
     
-    transaction = new sql.Transaction(pool);
-    await transaction.begin();
-    
-    const table = new sql.Table('ict_code');
-    table.create = false; // We are not creating the table here, just inserting
-    table.columns.add('shortcode', sql.NVarChar(255), { nullable: false });
-    table.columns.add('description', sql.NVarChar(sql.MAX), { nullable: true });
-
-    for (const row of rowsToInsert) {
-      table.rows.add(row.shortcode, row.description);
-    }
-    
-    const request = new sql.Request(transaction);
-    const result = await request.bulk(table);
-
-    await transaction.commit();
-
-    return { message: `${result.rowsAffected} new ICT codes imported successfully.`, type: "success" };
-
-  } catch (error) {
-    if (transaction && transaction.rolledBack === false) {
+    const batchSize = 1000;
+    for (let i = 0; i < rowsToInsert.length; i += batchSize) {
+      const batch = rowsToInsert.slice(i, i + batchSize);
+      let transaction;
       try {
-        await transaction.rollback();
-      } catch (rollbackError) {
-        console.error('Error during rollback:', rollbackError);
+        transaction = new sql.Transaction(pool);
+        await transaction.begin();
+        
+        const table = new sql.Table('ict_code');
+        table.create = false;
+        table.columns.add('shortcode', sql.NVarChar(255), { nullable: false });
+        table.columns.add('description', sql.NVarChar(sql.MAX), { nullable: true });
+
+        for (const row of batch) {
+          table.rows.add(row.shortcode, row.description);
+        }
+        
+        const request = new sql.Request(transaction);
+        const result = await request.bulk(table);
+        await transaction.commit();
+        totalRowsAffected += result.rowsAffected;
+
+      } catch (batchError) {
+        if (transaction && transaction.rolledBack === false) {
+          await transaction.rollback();
+        }
+        throw batchError; // Propagate the error to the outer catch block
       }
     }
+
+    return { message: `${totalRowsAffected} new ICT codes imported successfully.`, type: "success" };
+
+  } catch (error) {
     const dbError = error as { message?: string, code?: string };
     console.error('Error importing ICT codes:', dbError);
     return { message: `Error importing ICT codes: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
