@@ -67,23 +67,23 @@ const basePatientFormSchema = z.object({
   treat_doc_reg_no: z.string().min(1, "Doctor’s registration no. is required."),
 
   // C. Clinical Information
-  natureOfIllness: z.string().optional().nullable(),
-  clinicalFindings: z.string().optional().nullable(),
-  ailmentDuration: z.coerce.number().optional().nullable(),
-  firstConsultationDate: z.string().optional().nullable(),
-  pastHistory: z.string().optional().nullable(),
-  provisionalDiagnosis: z.string().optional().nullable(),
-  icd10Codes: z.string().optional().nullable(),
-  treatmentMedical: z.string().optional().nullable(),
-  treatmentSurgical: z.string().optional().nullable(),
-  treatmentIntensiveCare: z.string().optional().nullable(),
-  treatmentInvestigation: z.string().optional().nullable(),
-  treatmentNonAllopathic: z.string().optional().nullable(),
-  investigationDetails: z.string().optional().nullable(),
-  drugRoute: z.string().optional().nullable(),
-  procedureName: z.string().optional().nullable(),
-  icd10PcsCodes: z.string().optional().nullable(),
-  otherTreatments: z.string().optional().nullable(),
+  natureOfIllness: z.string().min(1, "Nature of illness is required."),
+  clinicalFindings: z.string().min(1, "Clinical findings are required."),
+  ailmentDuration: z.coerce.number({ required_error: "Ailment duration is required." }).min(1, "Ailment duration is required."),
+  firstConsultationDate: z.string().min(1, "First consultation date is required."),
+  pastHistory: z.string().min(1, "Past history is required."),
+  provisionalDiagnosis: z.string().min(1, "Provisional diagnosis is required."),
+  icd10Codes: z.string().min(1, "ICD-10 code is required."),
+  treatmentMedical: z.string().min(1, "Medical treatment is required."),
+  treatmentSurgical: z.string().min(1, "Surgical treatment is required."),
+  treatmentIntensiveCare: z.string().min(1, "Intensive care details are required."),
+  treatmentInvestigation: z.string().min(1, "Investigation details are required."),
+  treatmentNonAllopathic: z.string().min(1, "Non-allopathic treatment details are required."),
+  investigationDetails: z.string().min(1, "Investigation details are required."),
+  drugRoute: z.string().min(1, "Drug route is required."),
+  procedureName: z.string().min(1, "Procedure name is required."),
+  icd10PcsCodes: z.string().min(1, "ICD-10-PCS code is required."),
+  otherTreatments: z.string().min(1, "Other treatments details are required."),
 
   // D. Accident / Medico-Legal
   isInjury: z.string().optional().nullable(),
@@ -320,7 +320,7 @@ export async function handleUploadPatientFile(formData: FormData): Promise<{ typ
     }
 
     try {
-        const s3Client = new s3Client({
+        const s3Client = new S3Client({
             region,
             credentials: { accessKeyId, secretAccessKey },
         });

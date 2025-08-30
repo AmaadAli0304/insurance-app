@@ -468,62 +468,62 @@ export default function EditPatientPage() {
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-2 gap-4">
                                         <div className="space-y-2 md:col-span-2">
-                                            <Label htmlFor="natureOfIllness">Nature of illness / presenting complaints</Label>
-                                            <Textarea id="natureOfIllness" name="natureOfIllness" defaultValue={patient.natureOfIllness ?? ''} />
+                                            <Label htmlFor="natureOfIllness">Nature of illness / presenting complaints <span className="text-destructive">*</span></Label>
+                                            <Textarea id="natureOfIllness" name="natureOfIllness" defaultValue={patient.natureOfIllness ?? ''} required/>
                                         </div>
                                         <div className="space-y-2 md:col-span-2">
-                                            <Label htmlFor="clinicalFindings">Relevant clinical findings</Label>
-                                            <Textarea id="clinicalFindings" name="clinicalFindings" defaultValue={patient.clinicalFindings ?? ''} />
+                                            <Label htmlFor="clinicalFindings">Relevant clinical findings <span className="text-destructive">*</span></Label>
+                                            <Textarea id="clinicalFindings" name="clinicalFindings" defaultValue={patient.clinicalFindings ?? ''} required/>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="ailmentDuration">Duration of present ailment (days)</Label>
-                                            <Input id="ailmentDuration" name="ailmentDuration" type="number" defaultValue={patient.ailmentDuration ?? ''} />
+                                            <Label htmlFor="ailmentDuration">Duration of present ailment (days) <span className="text-destructive">*</span></Label>
+                                            <Input id="ailmentDuration" name="ailmentDuration" type="number" defaultValue={patient.ailmentDuration ?? ''} required/>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="firstConsultationDate">Date of first consultation</Label>
-                                            <Input id="firstConsultationDate" name="firstConsultationDate" type="date" defaultValue={patient.firstConsultationDate ?? ''} />
+                                            <Label htmlFor="firstConsultationDate">Date of first consultation <span className="text-destructive">*</span></Label>
+                                            <Input id="firstConsultationDate" name="firstConsultationDate" type="date" defaultValue={patient.firstConsultationDate ?? ''} required/>
                                         </div>
                                         <div className="space-y-2 md:col-span-2">
-                                            <Label htmlFor="pastHistory">Past history of present ailment</Label>
-                                            <Textarea id="pastHistory" name="pastHistory" defaultValue={patient.pastHistory ?? ''} />
+                                            <Label htmlFor="pastHistory">Past history of present ailment <span className="text-destructive">*</span></Label>
+                                            <Textarea id="pastHistory" name="pastHistory" defaultValue={patient.pastHistory ?? ''} required/>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="provisionalDiagnosis">Provisional diagnosis</Label>
-                                            <Input id="provisionalDiagnosis" name="provisionalDiagnosis" defaultValue={patient.provisionalDiagnosis ?? ''} />
+                                            <Label htmlFor="provisionalDiagnosis">Provisional diagnosis <span className="text-destructive">*</span></Label>
+                                            <Input id="provisionalDiagnosis" name="provisionalDiagnosis" defaultValue={patient.provisionalDiagnosis ?? ''} required/>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="icd10Codes">ICD-10 diagnosis code(s)</Label>
-                                            <Input id="icd10Codes" name="icd10Codes" defaultValue={patient.icd10Codes ?? ''} />
+                                            <Label htmlFor="icd10Codes">ICD-10 diagnosis code(s) <span className="text-destructive">*</span></Label>
+                                            <Input id="icd10Codes" name="icd10Codes" defaultValue={patient.icd10Codes ?? ''} required/>
                                         </div>
                                         <div className="space-y-2 md:col-span-2">
-                                            <Label>Proposed line of treatment</Label>
+                                            <Label>Proposed line of treatment <span className="text-destructive">*</span></Label>
                                             <div className="grid md:grid-cols-2 gap-4">
-                                               <Input name="treatmentMedical" placeholder="Medical management" defaultValue={patient.treatmentMedical ?? ''} />
-                                               <Input name="treatmentSurgical" placeholder="Surgical management" defaultValue={patient.treatmentSurgical ?? ''} />
-                                               <Input name="treatmentIntensiveCare" placeholder="Intensive care" defaultValue={patient.treatmentIntensiveCare ?? ''} />
-                                               <Input name="treatmentInvestigation" placeholder="Investigation only" defaultValue={patient.treatmentInvestigation ?? ''} />
-                                               <Input name="treatmentNonAllopathic" placeholder="Non-allopathic" defaultValue={patient.treatmentNonAllopathic ?? ''} />
+                                               <Input name="treatmentMedical" placeholder="Medical management" defaultValue={patient.treatmentMedical ?? ''} required/>
+                                               <Input name="treatmentSurgical" placeholder="Surgical management" defaultValue={patient.treatmentSurgical ?? ''} required/>
+                                               <Input name="treatmentIntensiveCare" placeholder="Intensive care" defaultValue={patient.treatmentIntensiveCare ?? ''} required/>
+                                               <Input name="treatmentInvestigation" placeholder="Investigation only" defaultValue={patient.treatmentInvestigation ?? ''} required/>
+                                               <Input name="treatmentNonAllopathic" placeholder="Non-allopathic" defaultValue={patient.treatmentNonAllopathic ?? ''} required/>
                                             </div>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="investigationDetails">Investigation / medical management details</Label>
-                                            <Textarea id="investigationDetails" name="investigationDetails" defaultValue={patient.investigationDetails ?? ''} />
+                                            <Label htmlFor="investigationDetails">Investigation / medical management details <span className="text-destructive">*</span></Label>
+                                            <Textarea id="investigationDetails" name="investigationDetails" defaultValue={patient.investigationDetails ?? ''} required/>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="drugRoute">Route of drug administration</Label>
-                                            <Input id="drugRoute" name="drugRoute" defaultValue={patient.drugRoute ?? ''} />
+                                            <Label htmlFor="drugRoute">Route of drug administration <span className="text-destructive">*</span></Label>
+                                            <Input id="drugRoute" name="drugRoute" defaultValue={patient.drugRoute ?? ''} required/>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="procedureName">Planned procedure / surgery name</Label>
-                                            <Input id="procedureName" name="procedureName" defaultValue={patient.procedureName ?? ''} />
+                                            <Label htmlFor="procedureName">Planned procedure / surgery name <span className="text-destructive">*</span></Label>
+                                            <Input id="procedureName" name="procedureName" defaultValue={patient.procedureName ?? ''} required/>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="icd10PcsCodes">ICD-10-PCS / procedure code(s)</Label>
-                                            <Input id="icd10PcsCodes" name="icd10PcsCodes" defaultValue={patient.icd10PcsCodes ?? ''} />
+                                            <Label htmlFor="icd10PcsCodes">ICD-10-PCS / procedure code(s) <span className="text-destructive">*</span></Label>
+                                            <Input id="icd10PcsCodes" name="icd10PcsCodes" defaultValue={patient.icd10PcsCodes ?? ''} required/>
                                         </div>
                                         <div className="space-y-2 md:col-span-2">
-                                            <Label htmlFor="otherTreatments">Any other treatments (details)</Label>
-                                            <Textarea id="otherTreatments" name="otherTreatments" defaultValue={patient.otherTreatments ?? ''} />
+                                            <Label htmlFor="otherTreatments">Any other treatments (details) <span className="text-destructive">*</span></Label>
+                                            <Textarea id="otherTreatments" name="otherTreatments" defaultValue={patient.otherTreatments ?? ''} required/>
                                         </div>
                                     </CardContent>
                                 </AccordionContent>
