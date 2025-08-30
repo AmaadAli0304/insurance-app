@@ -560,7 +560,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
             @investigationCost, @icuCost, @otCost, @professionalFees, @medicineCost, @otherHospitalExpenses, @packageCharges,
             @totalExpectedCost,
             @diabetesSince, @hypertensionSince, @heartDiseaseSince, @hyperlipidemiaSince, @osteoarthritisSince, @asthmaCopdSince,
-            @cancerSince, @alcoholDrugAbuseSince, @hivSince, @otherChronicAilment,
+            @cancerSince, @alcoholDrugAbuseSince, @hivSince, otherChronicAilment,
             @patientDeclarationName, @patientDeclarationContact, @patientDeclarationEmail, @patientDeclarationDate, @patientDeclarationTime,
             @hospitalDeclarationDoctorName, @hospitalDeclarationDate, @hospitalDeclarationTime, @attachments
           )
