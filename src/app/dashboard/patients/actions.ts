@@ -264,7 +264,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
 
     return patientData as Patient;
   } catch (error) {
-    console.error(`Error fetching patient with id ${id}:`, error);
+    console.error('Error fetching patient with id ${id}:', error);
     throw new Error("Failed to fetch patient from database.");
   }
 }
@@ -373,6 +373,8 @@ const buildObjectFromFormData = (formData: FormData) => {
     // Ensure attachments is an array even if it's empty or has one item
     if (!data.attachments) {
         data.attachments = [];
+    } else if (typeof data.attachments === 'string') {
+        data.attachments = [data.attachments];
     }
 
     return data;
