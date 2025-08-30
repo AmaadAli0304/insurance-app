@@ -59,7 +59,7 @@ function SubmitPatientTableButton() {
     return (
         <Button type="submit" disabled={pending} variant="secondary">
              <Users className="mr-2 h-4 w-4" />
-            {pending ? "Creating..." : "Create Patients Table"}
+            {pending ? "Creating..." : "Create Patient & Admission Tables"}
         </Button>
     );
 }
@@ -245,5 +245,3 @@ export default function ImportPage() {
         </div>
     );
 }
-
-    
