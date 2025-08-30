@@ -5,7 +5,7 @@ import * as XLSX from 'xlsx';
 import pool, { sql, poolConnect } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 
-export async function handleImportCompanies(prevState: { message: string, type?: string }, formData: FormData) {
+export async function handleImportIctCodes(prevState: { message: string, type?: string }, formData: FormData) {
   const file = formData.get("file") as File;
 
   if (!file || file.size === 0) {
@@ -27,47 +27,45 @@ export async function handleImportCompanies(prevState: { message: string, type?:
     const headerRow: any[] = data[0];
     const headers = headerRow.map(header => (typeof header === 'string' ? String(header).toLowerCase().trim() : ''));
     
-    const nameIndex = headers.indexOf('name');
-    const emailIndex = headers.indexOf('email');
+    const shortcodeIndex = headers.indexOf('shortcode');
+    const descriptionIndex = headers.indexOf('description');
 
-    if (nameIndex === -1) {
-      return { message: `Detected columns: [${headerRow.join(', ')}]. Please ensure 'Name' column exists.`, type: "error" };
+    if (shortcodeIndex === -1) {
+      return { message: `Detected columns: [${headerRow.join(', ')}]. Please ensure 'shortcode' column exists.`, type: "error" };
     }
 
     const rowsToInsert = data.slice(1).map((row, index) => ({
-      id: `comp-${Date.now()}-${index}`, // Generate a unique ID
-      name: row[nameIndex],
-      email: row[emailIndex] || null // Use null if email is missing
-    })).filter(row => row.name); // Only filter if name is missing
+      shortcode: row[shortcodeIndex],
+      description: row[descriptionIndex] || null
+    })).filter(row => row.shortcode);
 
     if (rowsToInsert.length === 0) {
-      return { message: "No new companies were imported. This may be due to processing errors or empty rows.", type: "error" };
+      return { message: "No new ICT codes were imported. This may be due to processing errors or empty rows.", type: "error" };
     }
     
     transaction = new sql.Transaction(pool);
     await transaction.begin();
     
     const request = new sql.Request(transaction);
-    const table = new sql.Table('companies');
+    const table = new sql.Table('ict_code');
     table.create = false; 
-    table.columns.add('id', sql.NVarChar(255), { nullable: false });
-    table.columns.add('name', sql.NVarChar(255), { nullable: false });
-    table.columns.add('email', sql.NVarChar(255), { nullable: true });
+    table.columns.add('shortcode', sql.NVarChar(255), { nullable: false });
+    table.columns.add('description', sql.NVarChar(sql.MAX), { nullable: true });
 
     for (const row of rowsToInsert) {
-      table.rows.add(row.id, row.name, row.email);
+      table.rows.add(row.shortcode, row.description);
     }
     
     const result = await request.bulk(table);
 
     await transaction.commit();
 
-    const companiesProcessed = result.rowsAffected;
+    const codesProcessed = result.rowsAffected;
 
-    if (companiesProcessed > 0) {
-      return { message: `${companiesProcessed} new companies imported successfully.`, type: "success" };
+    if (codesProcessed > 0) {
+      return { message: `${codesProcessed} new ICT codes imported successfully.`, type: "success" };
     } else {
-      return { message: "No new companies were imported. This may be due to processing errors or empty rows.", type: "error" };
+      return { message: "No new ICT codes were imported. This may be due to processing errors or empty rows.", type: "error" };
     }
 
   } catch (error) {
@@ -79,8 +77,8 @@ export async function handleImportCompanies(prevState: { message: string, type?:
       }
     }
     const dbError = error as { message?: string, code?: string };
-    console.error('Error importing companies:', dbError);
-    return { message: `Error importing companies: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+    console.error('Error importing ICT codes:', dbError);
+    return { message: `Error importing ICT codes: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
 

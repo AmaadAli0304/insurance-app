@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleImportCompanies, handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable } from "./actions";
+import { handleImportIctCodes, handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable } from "./actions";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
@@ -18,7 +18,7 @@ function SubmitImportButton() {
     return (
         <Button type="submit" disabled={pending}>
             <Upload className="mr-2 h-4 w-4" />
-            {pending ? "Importing..." : "Import Companies"}
+            {pending ? "Importing..." : "Import ICT Codes"}
         </Button>
     );
 }
@@ -106,7 +106,7 @@ function SubmitIctCodeTableButton() {
 
 export default function ImportPage() {
     const { role } = useAuth();
-    const [importState, importAction] = useActionState(handleImportCompanies, { message: "", type: undefined });
+    const [importState, importAction] = useActionState(handleImportIctCodes, { message: "", type: undefined });
     const [createTableState, createTableAction] = useActionState(handleCreateTable, { message: "", type: undefined });
     const [createRelationshipTableState, createRelationshipTableAction] = useActionState(handleCreateRelationshipTables, { message: "", type: undefined });
     const [createHospitalTableState, createHospitalTableAction] = useActionState(handleCreateHospitalTable, { message: "", type: undefined });
@@ -130,7 +130,7 @@ export default function ImportPage() {
         }, [state, toast, title]);
     };
 
-    useToastEffect(importState, "Import Companies");
+    useToastEffect(importState, "Import ICT Codes");
     useToastEffect(createTableState, "Database Action");
     useToastEffect(createRelationshipTableState, "Database Action");
     useToastEffect(createHospitalTableState, "Database Action");
@@ -145,10 +145,10 @@ export default function ImportPage() {
         <div className="space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Import Insurance Companies</CardTitle>
+                    <CardTitle>Import ICT Codes</CardTitle>
                     <CardDescription>
-                        Upload an XLSX file with company data. Ensure the file has columns
-                        for &quot;Name&quot; and &quot;Email&quot;.
+                        Upload an XLSX file with ICT code data. Ensure the file has columns
+                        for &quot;shortcode&quot; and &quot;description&quot;.
                     </CardDescription>
                 </CardHeader>
                 <form action={importAction} ref={importFormRef}>
