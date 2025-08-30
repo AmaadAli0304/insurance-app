@@ -31,24 +31,23 @@ export async function handleImportIctCodes(prevState: { message: string, type?: 
     const descriptionIndex = headers.indexOf('description');
 
     if (shortcodeIndex === -1) {
-      return { message: `Detected columns: [${headerRow.join(', ')}]. Please ensure 'shortcode' column exists.`, type: "error" };
+      return { message: `The Excel file must contain a 'shortcode' column. Detected columns were: [${headerRow.join(', ')}].`, type: "error" };
     }
 
-    const rowsToInsert = data.slice(1).map((row, index) => ({
+    const rowsToInsert = data.slice(1).map((row) => ({
       shortcode: row[shortcodeIndex],
-      description: row[descriptionIndex] || null
-    })).filter(row => row.shortcode);
+      description: descriptionIndex > -1 ? row[descriptionIndex] : null
+    })).filter(row => row.shortcode); // Filter out rows without a shortcode
 
     if (rowsToInsert.length === 0) {
-      return { message: "No new ICT codes were imported. This may be due to processing errors or empty rows.", type: "error" };
+      return { message: "No rows with valid shortcodes found in the file to import.", type: "error" };
     }
     
     transaction = new sql.Transaction(pool);
     await transaction.begin();
     
-    const request = new sql.Request(transaction);
     const table = new sql.Table('ict_code');
-    table.create = false; 
+    table.create = false; // We are not creating the table here, just inserting
     table.columns.add('shortcode', sql.NVarChar(255), { nullable: false });
     table.columns.add('description', sql.NVarChar(sql.MAX), { nullable: true });
 
@@ -56,17 +55,12 @@ export async function handleImportIctCodes(prevState: { message: string, type?: 
       table.rows.add(row.shortcode, row.description);
     }
     
+    const request = new sql.Request(transaction);
     const result = await request.bulk(table);
 
     await transaction.commit();
 
-    const codesProcessed = result.rowsAffected;
-
-    if (codesProcessed > 0) {
-      return { message: `${codesProcessed} new ICT codes imported successfully.`, type: "success" };
-    } else {
-      return { message: "No new ICT codes were imported. This may be due to processing errors or empty rows.", type: "error" };
-    }
+    return { message: `${result.rowsAffected} new ICT codes imported successfully.`, type: "success" };
 
   } catch (error) {
     if (transaction && transaction.rolledBack === false) {
