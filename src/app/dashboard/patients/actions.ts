@@ -69,7 +69,7 @@ const basePatientFormSchema = z.object({
   // C. Clinical Information
   natureOfIllness: z.string().min(1, "Nature of illness is required."),
   clinicalFindings: z.string().min(1, "Clinical findings are required."),
-  ailmentDuration: z.coerce.number({ required_error: "Ailment duration is required." }).min(1, "Ailment duration is required."),
+  ailmentDuration: z.coerce.number({ required_error: "Ailment duration is required." }).min(1, "Ailment duration must be at least 1."),
   firstConsultationDate: z.string().min(1, "First consultation date is required."),
   pastHistory: z.string().min(1, "Past history is required."),
   provisionalDiagnosis: z.string().min(1, "Provisional diagnosis is required."),
