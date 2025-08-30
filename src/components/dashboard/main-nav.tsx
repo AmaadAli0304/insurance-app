@@ -31,7 +31,6 @@ export function MainNav() {
       { href: '/dashboard/companies', label: 'Companies', icon: Factory },
       { href: '/dashboard/tpas', label: 'TPAs', icon: Briefcase },
       { href: '/dashboard/staff', label: 'Staff', icon: Users },
-      { href: '/dashboard/templates', label: 'Templates', icon: FilePlus2 },
     ],
   };
 
