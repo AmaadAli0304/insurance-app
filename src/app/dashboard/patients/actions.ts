@@ -1,3 +1,4 @@
+
 "use server";
 
 import pool, { sql, poolConnect } from "@/lib/db";
@@ -362,8 +363,26 @@ const createDocumentJson = (url: string | undefined | null, name: string | undef
     return null;
 };
 
+// Helper function to build the object from FormData
+const buildObjectFromFormData = (formData: FormData) => {
+    const data: { [key: string]: any } = {};
+    formData.forEach((value, key) => {
+        if (key === 'attachments') {
+            if (!data.attachments) {
+                data.attachments = [];
+            }
+            data.attachments.push(value);
+        } else {
+            // This will overwrite if the key already exists, which is fine for most fields
+            data[key] = value;
+        }
+    });
+    return data;
+};
+
 export async function handleAddPatient(prevState: { message: string, type?: string }, formData: FormData) {
-  const validatedFields = addPatientFormSchema.safeParse(Object.fromEntries(formData.entries()));
+  const formObject = buildObjectFromFormData(formData);
+  const validatedFields = addPatientFormSchema.safeParse(formObject);
   
   if (!validatedFields.success) {
     const errorMessages = validatedFields.error.errors.map(e => `${e.path.join('.')} - ${e.message}`).join(', ');
@@ -561,7 +580,8 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
 }
 
 export async function handleUpdatePatient(prevState: { message: string, type?: string }, formData: FormData) {
-  const validatedFields = updatePatientFormSchema.safeParse(Object.fromEntries(formData.entries()));
+  const formObject = buildObjectFromFormData(formData);
+  const validatedFields = updatePatientFormSchema.safeParse(formObject);
   
   if (!validatedFields.success) {
     const errorMessages = validatedFields.error.errors.map(e => `${e.path.join('.')} - ${e.message}`).join(', ');
@@ -750,7 +770,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
     if(transaction) await transaction.rollback();
     console.error('Error updating patient:', error);
     const dbError = error as { message?: string };
-    return { message: `Database Error: ${dbError.message || 'Unknown error'}`, type: "error" };
+    return { message: `Database Error: ${dbError.message || 'Unknown error'}`, type: 'error' };
   }
   
   return { message: "Patient updated successfully.", type: "success" };
