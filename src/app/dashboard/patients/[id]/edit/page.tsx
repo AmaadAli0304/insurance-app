@@ -463,7 +463,7 @@ export default function EditPatientPage() {
                         <Card>
                             <AccordionItem value="clinical-info">
                                 <AccordionTrigger className="p-6">
-                                    <CardTitle>D. Clinical Information</CardTitle>
+                                    <CardTitle>D. Clinical Information <span className="text-destructive">*</span></CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-2 gap-4">
