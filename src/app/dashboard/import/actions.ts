@@ -4,57 +4,6 @@
 import * as XLSX from 'xlsx';
 import pool, { sql, poolConnect } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-
-export async function handleUploadFileToS3(prevState: { message: string, type?: string, imageUrl?: string }, formData: FormData) {
-  const file = formData.get("file") as File;
-
-  if (!file || file.size === 0) {
-    return { message: "Please select a file to upload.", type: "error" };
-  }
-  
-  const bucketName = process.env.AWS_S3_BUCKET_NAME;
-  const region = process.env.AWS_S3_REGION;
-  const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
-  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
-
-  if (!bucketName || !region || !accessKeyId || !secretAccessKey) {
-      return { message: "S3 credentials are not configured correctly on the server.", type: 'error' };
-  }
-
-  try {
-      const s3Client = new S3Client({
-          region: region,
-          credentials: {
-              accessKeyId: accessKeyId,
-              secretAccessKey: secretAccessKey,
-          },
-      });
-
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const fileName = `imports/${Date.now()}_${file.name}`;
-      
-      const params = {
-          Bucket: bucketName,
-          Key: fileName,
-          Body: buffer,
-          ContentType: file.type,
-          ACL: 'public-read' as const,
-      };
-
-      const command = new PutObjectCommand(params);
-      await s3Client.send(command);
-
-      const imageUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${fileName}`;
-
-      return { message: `File "${file.name}" uploaded successfully to S3.`, type: "success", imageUrl };
-
-  } catch (error) {
-      console.error("Error uploading to S3:", error);
-      const s3Error = error as { message?: string };
-      return { message: `Failed to upload file: ${s3Error.message || 'Unknown S3 error.'}`, type: 'error' };
-  }
-}
 
 export async function handleImportCompanies(prevState: { message: string, type?: string }, formData: FormData) {
   const file = formData.get("file") as File;

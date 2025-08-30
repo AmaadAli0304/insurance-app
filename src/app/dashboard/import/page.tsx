@@ -7,11 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleImportCompanies, handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleUploadFileToS3, handleCreateIctCodeTable } from "./actions";
+import { handleImportCompanies, handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable } from "./actions";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble, Download } from "lucide-react";
+import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
-import Link from "next/link";
 
 
 function SubmitImportButton() {
@@ -94,16 +93,6 @@ function SubmitAdmissionsTableButton() {
     );
 }
 
-function SubmitS3UploadButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" disabled={pending}>
-            <Upload className="mr-2 h-4 w-4" />
-            {pending ? "Uploading..." : "Upload to S3"}
-        </Button>
-    );
-}
-
 function SubmitIctCodeTableButton() {
     const { pending } = useFormStatus();
     return (
@@ -125,14 +114,11 @@ export default function ImportPage() {
     const [createFieldsTableState, createFieldsTableAction] = useActionState(handleCreateFieldsTable, { message: "", type: undefined });
     const [createFieldOptionsTableState, createFieldOptionsTableAction] = useActionState(handleCreateFieldOptionsTable, { message: "", type: undefined });
     const [createAdmissionsTableState, createAdmissionsTableAction] = useActionState(handleCreateAdmissionsTable, { message: "", type: undefined });
-    const [s3UploadState, s3UploadAction] = useActionState(handleUploadFileToS3, { message: "", type: undefined, imageUrl: undefined });
     const [createIctCodeTableState, createIctCodeTableAction] = useActionState(handleCreateIctCodeTable, { message: "", type: undefined });
 
-    const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
 
     const { toast } = useToast();
     const importFormRef = useRef<HTMLFormElement>(null);
-    const s3FormRef = useRef<HTMLFormElement>(null);
 
     const useToastEffect = (state: { type?: string; message: string; }, title: string) => {
         useEffect(() => {
@@ -154,16 +140,6 @@ export default function ImportPage() {
     useToastEffect(createAdmissionsTableState, "Database Action");
     useToastEffect(createIctCodeTableState, "Database Action");
     
-    useEffect(() => {
-        if (s3UploadState.type === 'success') {
-            toast({ title: "S3 Upload", description: s3UploadState.message, variant: "success" });
-            setUploadedImageUrl(s3UploadState.imageUrl || null);
-            s3FormRef.current?.reset();
-        } else if (s3UploadState.type === 'error') {
-            toast({ title: "S3 Upload Error", description: s3UploadState.message, variant: "destructive" });
-            setUploadedImageUrl(null);
-        }
-    }, [s3UploadState, toast]);
 
     return (
         <div className="space-y-6">
@@ -189,39 +165,6 @@ export default function ImportPage() {
                     </CardContent>
                 </form>
             </Card>
-
-            {role === 'Company Admin' && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Upload File to S3</CardTitle>
-                        <CardDescription>
-                            Select any file and upload it directly to the S3 bucket.
-                        </CardDescription>
-                    </CardHeader>
-                    <form action={s3UploadAction} ref={s3FormRef}>
-                        <CardContent className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="s3file">File for S3</Label>
-                                <Input id="s3file" name="file" type="file" required className="w-full md:w-auto" />
-                            </div>
-                            {s3UploadState.type === 'error' && <p className="text-sm text-destructive">{s3UploadState.message}</p>}
-                            <SubmitS3UploadButton />
-                             {uploadedImageUrl && (
-                                <div className="mt-4 p-4 border rounded-md bg-muted/50">
-                                    <p className="text-sm font-medium text-foreground">Upload Successful!</p>
-                                    <p className="text-sm text-muted-foreground break-all mb-2">URL: {uploadedImageUrl}</p>
-                                    <Button asChild>
-                                        <Link href={uploadedImageUrl} target="_blank" download>
-                                            <Download className="mr-2 h-4 w-4" />
-                                            Download File
-                                        </Link>
-                                    </Button>
-                                </div>
-                            )}
-                        </CardContent>
-                    </form>
-                </Card>
-            )}
 
             <Card>
                 <CardHeader>
