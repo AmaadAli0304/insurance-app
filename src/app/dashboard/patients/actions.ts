@@ -1,4 +1,5 @@
 
+      
 "use server";
 
 import pool, { sql, poolConnect } from "@/lib/db";
@@ -557,8 +558,8 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
             @admissionDate, @admissionTime, @admissionType, @expectedStay, @expectedIcuStay, @roomCategory, @roomNursingDietCost,
             @investigationCost, @icuCost, @otCost, @professionalFees, @medicineCost, @otherHospitalExpenses, @packageCharges,
             @totalExpectedCost,
-            @diabetesSince, @hypertensionSince, @heartDiseaseSince, @hyperlipidemiaSince, @osteoarthritisSince, @asthmaCopdSince,
-            @cancerSince, @alcoholDrugAbuseSince, @hivSince, @otherChronicAilment,
+            @diabetesSince, hypertensionSince, heartDiseaseSince, hyperlipidemiaSince, osteoarthritisSince, asthmaCopdSince,
+            @cancerSince, alcoholDrugAbuseSince, hivSince, otherChronicAilment,
             @patientDeclarationName, @patientDeclarationContact, @patientDeclarationEmail, @patientDeclarationDate, @patientDeclarationTime,
             @hospitalDeclarationDoctorName, @hospitalDeclarationDate, @hospitalDeclarationTime, @attachments
           )
@@ -601,8 +602,6 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
     const drivingLicenceJson = createDocumentJson(data.driving_licence_path_url, data.driving_licence_path_name);
     const otherJson = createDocumentJson(data.other_path_url, data.other_path_name);
 
-
-    // Update patients table
     const patientRequest = new sql.Request(transaction);
     await patientRequest
       .input('id', sql.Int, Number(patientId))
@@ -637,7 +636,6 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
         WHERE id = @id
       `);
 
-    // Update admissions table
     const admissionRequest = new sql.Request(transaction);
     await admissionRequest
       .input('patient_id', sql.Int, Number(patientId))
@@ -808,6 +806,8 @@ export async function handleDeletePatient(prevState: { message: string, type?: s
     return { message: "Patient deleted successfully.", type: 'success' };
 }
 
+
+    
 
     
 
