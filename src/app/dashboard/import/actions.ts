@@ -44,33 +44,30 @@ export async function handleImportIctCodes(prevState: { message: string, type?: 
       return { message: "No rows with valid shortcodes found in the file to import.", type: "error" };
     }
     
-    const batchSize = 1000;
-    for (let i = 0; i < rowsToInsert.length; i += batchSize) {
-      const batch = rowsToInsert.slice(i, i + batchSize);
+    for (const row of rowsToInsert) {
       let transaction;
       try {
         transaction = new sql.Transaction(pool);
         await transaction.begin();
         
-        const table = new sql.Table('ict_code');
-        table.create = false;
-        table.columns.add('shortcode', sql.NVarChar(255), { nullable: false });
-        table.columns.add('description', sql.NVarChar(sql.MAX), { nullable: true });
-
-        for (const row of batch) {
-          table.rows.add(row.shortcode, row.description);
-        }
-        
         const request = new sql.Request(transaction);
-        const result = await request.bulk(table);
-        await transaction.commit();
-        totalRowsAffected += result.rowsAffected;
+        await request
+            .input('shortcode', sql.NVarChar, row.shortcode)
+            .input('description', sql.NVarChar, row.description)
+            .query('INSERT INTO ict_code (shortcode, description) VALUES (@shortcode, @description)');
 
-      } catch (batchError) {
+        await transaction.commit();
+        totalRowsAffected++;
+
+      } catch (rowError) {
         if (transaction && transaction.rolledBack === false) {
           await transaction.rollback();
         }
-        throw batchError; // Propagate the error to the outer catch block
+        // Log the problematic row but continue if possible, or re-throw to stop.
+        console.error(`Failed to import row with shortcode: ${row.shortcode}. Error:`, rowError);
+        // Depending on requirements, you might want to stop the whole import on first error.
+        // For now, we'll stop and report the error.
+        throw new Error(`Failed on shortcode '${row.shortcode}'. Check server logs for details.`);
       }
     }
 
