@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleImportCompanies, handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleUploadFileToS3 } from "./actions";
+import { handleImportCompanies, handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleUploadFileToS3, handleCreateIctCodeTable } from "./actions";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble, Download } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
@@ -104,6 +104,16 @@ function SubmitS3UploadButton() {
     );
 }
 
+function SubmitIctCodeTableButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending} variant="secondary">
+             <FilePlus2 className="mr-2 h-4 w-4" />
+            {pending ? "Creating..." : "Create ICT Code Table"}
+        </Button>
+    );
+}
+
 
 export default function ImportPage() {
     const { role } = useAuth();
@@ -116,6 +126,7 @@ export default function ImportPage() {
     const [createFieldOptionsTableState, createFieldOptionsTableAction] = useActionState(handleCreateFieldOptionsTable, { message: "", type: undefined });
     const [createAdmissionsTableState, createAdmissionsTableAction] = useActionState(handleCreateAdmissionsTable, { message: "", type: undefined });
     const [s3UploadState, s3UploadAction] = useActionState(handleUploadFileToS3, { message: "", type: undefined, imageUrl: undefined });
+    const [createIctCodeTableState, createIctCodeTableAction] = useActionState(handleCreateIctCodeTable, { message: "", type: undefined });
 
     const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
 
@@ -141,6 +152,7 @@ export default function ImportPage() {
     useToastEffect(createFieldsTableState, "Database Action");
     useToastEffect(createFieldOptionsTableState, "Database Action");
     useToastEffect(createAdmissionsTableState, "Database Action");
+    useToastEffect(createIctCodeTableState, "Database Action");
     
     useEffect(() => {
         if (s3UploadState.type === 'success') {
@@ -239,6 +251,9 @@ export default function ImportPage() {
                     </form>
                     <form action={createAdmissionsTableAction}>
                         <SubmitAdmissionsTableButton />
+                    </form>
+                    <form action={createIctCodeTableAction}>
+                        <SubmitIctCodeTableButton />
                     </form>
                 </CardContent>
             </Card>

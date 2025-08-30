@@ -537,3 +537,26 @@ export async function handleCreateAdmissionsTable(prevState: { message: string, 
     return { message: `Error creating Admissions table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
+
+export async function handleCreateIctCodeTable(prevState: { message: string, type?: string }, formData: FormData) {
+  try {
+    await poolConnect;
+    const request = pool.request();
+    const createIctCodeTableQuery = `
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='ict_code' and xtype='U')
+      BEGIN
+        CREATE TABLE ict_code (
+          id INT IDENTITY(1,1) PRIMARY KEY,
+          shortcode NVARCHAR(255) NOT NULL,
+          description NVARCHAR(MAX)
+        );
+      END
+    `;
+    await request.query(createIctCodeTableQuery);
+    return { message: "ICT Code table created successfully or already exists.", type: "success" };
+  } catch (error) {
+    const dbError = error as { message?: string };
+    console.error('Error creating ICT Code table:', dbError);
+    return { message: `Error creating ICT Code table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+  }
+}
