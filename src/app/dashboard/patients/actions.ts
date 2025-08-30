@@ -12,8 +12,8 @@ const phoneRegex = new RegExp(/^\d{10}$/);
 
 const basePatientFormSchema = z.object({
   // Patient Details
-  name: z.string().min(1, "Full Name is required."),
-  email_address: z.string().email("Invalid email address.").min(1, "Email is required."),
+  name: z.string().optional().nullable(),
+  email_address: z.string().email("Invalid email address.").optional().nullable(),
   phone_number: z.string().optional().nullable(),
   alternative_number: z.string().optional().nullable(),
   gender: z.string().optional().nullable(),
@@ -144,20 +144,9 @@ const basePatientFormSchema = z.object({
   attachments: z.array(z.string()).optional().nullable(),
 });
 
-const refinement = (data: z.infer<typeof basePatientFormSchema>) => 
-  (data.age !== null && data.age !== undefined && data.age > 0) || 
-  (data.birth_date !== null && data.birth_date !== undefined && data.birth_date !== '');
-
-const addPatientFormSchema = basePatientFormSchema.refine(refinement, {
-  message: "Either Age or Date of birth is required.",
-  path: ["age"], 
-});
-
+const addPatientFormSchema = basePatientFormSchema;
 const updatePatientFormSchema = basePatientFormSchema.extend({
   id: z.string(), // Patient ID
-}).refine(refinement, {
-    message: "Either Age or Date of birth is required.",
-    path: ["age"],
 });
 
 
@@ -366,15 +355,25 @@ const createDocumentJson = (url: string | undefined | null, name: string | undef
 // Helper function to build the object from FormData
 const buildObjectFromFormData = (formData: FormData) => {
     const data: { [key: string]: any } = {};
-    // Ensure 'attachments' is an array, even if only one is checked
-    data.attachments = formData.getAll('attachments');
     
     formData.forEach((value, key) => {
-        if (key !== 'attachments') {
-            // This will overwrite if the key already exists, which is fine for most fields
-            data[key] = value;
+      if (!key.endsWith('-file')) { // exclude raw file inputs
+        if (key === 'attachments') {
+          if (!data[key]) {
+            data[key] = [];
+          }
+          data[key].push(value);
+        } else {
+          data[key] = value;
         }
+      }
     });
+
+    // Ensure attachments is an array even if it's empty or has one item
+    if (!data.attachments) {
+        data.attachments = [];
+    }
+
     return data;
 };
 
@@ -461,7 +460,6 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('treat_doc_number', sql.NVarChar, data.treat_doc_number)
       .input('treat_doc_qualification', sql.NVarChar, data.treat_doc_qualification)
       .input('treat_doc_reg_no', sql.NVarChar, data.treat_doc_reg_no)
-      // New Fields
       .input('natureOfIllness', sql.NVarChar, data.natureOfIllness)
       .input('clinicalFindings', sql.NVarChar, data.clinicalFindings)
       .input('ailmentDuration', sql.Int, data.ailmentDuration)
@@ -557,10 +555,10 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
             @isInjury, @injuryCause, @isRta, @injuryDate, @isReportedToPolice, @firNumber, @isAlcoholSuspected, @isToxicologyConducted,
             @isMaternity, @g, @p, @l, @a, @expectedDeliveryDate,
             @admissionDate, @admissionTime, @admissionType, @expectedStay, @expectedIcuStay, @roomCategory, @roomNursingDietCost,
-            @investigationCost, @icuCost, @otCost, @professionalFees, medicineCost, @otherHospitalExpenses, @packageCharges,
+            @investigationCost, @icuCost, @otCost, @professionalFees, @medicineCost, @otherHospitalExpenses, @packageCharges,
             @totalExpectedCost,
-            @diabetesSince, hypertensionSince, heartDiseaseSince, hyperlipidemiaSince, osteoarthritisSince, asthmaCopdSince,
-            @cancerSince, alcoholDrugAbuseSince, hivSince, otherChronicAilment,
+            @diabetesSince, @hypertensionSince, @heartDiseaseSince, @hyperlipidemiaSince, @osteoarthritisSince, @asthmaCopdSince,
+            @cancerSince, @alcoholDrugAbuseSince, @hivSince, @otherChronicAilment,
             @patientDeclarationName, @patientDeclarationContact, @patientDeclarationEmail, @patientDeclarationDate, @patientDeclarationTime,
             @hospitalDeclarationDoctorName, @hospitalDeclarationDate, @hospitalDeclarationTime, @attachments
           )
@@ -662,7 +660,6 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
       .input('treat_doc_number', sql.NVarChar, data.treat_doc_number)
       .input('treat_doc_qualification', sql.NVarChar, data.treat_doc_qualification)
       .input('treat_doc_reg_no', sql.NVarChar, data.treat_doc_reg_no)
-       // New Fields
       .input('natureOfIllness', sql.NVarChar, data.natureOfIllness)
       .input('clinicalFindings', sql.NVarChar, data.clinicalFindings)
       .input('ailmentDuration', sql.Int, data.ailmentDuration)
@@ -811,5 +808,7 @@ export async function handleDeletePatient(prevState: { message: string, type?: s
     return { message: "Patient deleted successfully.", type: 'success' };
 }
 
+
+    
 
     
