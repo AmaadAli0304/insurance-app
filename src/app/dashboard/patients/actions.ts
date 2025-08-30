@@ -264,7 +264,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
 
     return patientData as Patient;
   } catch (error) {
-    console.error(`Error fetching patient with id ${id}:`, error);
+    console.error(\`Error fetching patient with id \${id}:\`, error);
     throw new Error("Failed to fetch patient from database.");
   }
 }
@@ -283,7 +283,7 @@ export async function getPatientsForPreAuth(hospitalId: string): Promise<{ id: s
     return result.recordset;
   } catch (error) {
     const dbError = error as Error;
-    throw new Error(`Error fetching patients for pre-auth: ${dbError.message}`);
+    throw new Error(\`Error fetching patients for pre-auth: \${dbError.message}\`);
   }
 }
 
@@ -317,7 +317,7 @@ export async function handleUploadPatientFile(formData: FormData): Promise<{ typ
 
         const buffer = Buffer.from(await file.arrayBuffer());
         const folder = fileType === 'photo' ? 'photos' : 'kyc';
-        const fileName = `patients/${folder}/${Date.now()}-${file.name.replace(/\s/g, '_')}`;
+        const fileName = \`patients/\${folder}/\${Date.now()}-\${file.name.replace(/\\s/g, '_')}\`;
 
         await s3Client.send(new PutObjectCommand({
             Bucket: bucketName,
@@ -327,7 +327,7 @@ export async function handleUploadPatientFile(formData: FormData): Promise<{ typ
             ACL: 'public-read',
         }));
 
-        const imageUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${fileName}`;
+        const imageUrl = \`https://\${bucketName}.s3.\${region}.amazonaws.com/\${fileName}\`;
         return { type: 'success', url: imageUrl, name: file.name };
     } catch (error) {
         console.error("S3 upload error:", error);
@@ -383,8 +383,8 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
   const validatedFields = addPatientFormSchema.safeParse(formObject);
   
   if (!validatedFields.success) {
-    const errorMessages = validatedFields.error.errors.map(e => `${e.path.join('.')} - ${e.message}`).join(', ');
-    return { message: `Invalid data: ${errorMessages}`, type: 'error' };
+    const errorMessages = validatedFields.error.errors.map(e => \`\${e.path.join('.')} - \${e.message}\`).join(', ');
+    return { message: \`Invalid data: \${errorMessages}\`, type: 'error' };
   }
   
   const { data } = validatedFields;
@@ -426,11 +426,11 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('voter_id_path', sql.NVarChar, voterIdJson)
       .input('driving_licence_path', sql.NVarChar, drivingLicenceJson)
       .input('other_path', sql.NVarChar, otherJson)
-      .query(`
+      .query(\`
         INSERT INTO patients (name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id, photo, adhaar_path, pan_path, passport_path, voter_id_path, driving_licence_path, other_path)
         OUTPUT INSERTED.id
         VALUES (@name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id, @photo, @adhaar_path, @pan_path, @passport_path, @voter_id_path, @driving_licence_path, @other_path)
-      `);
+      \`);
     
     const patientId = patientResult.recordset[0]?.id;
     
@@ -526,7 +526,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('hospitalDeclarationDate', sql.Date, data.hospitalDeclarationDate ? new Date(data.hospitalDeclarationDate) : null)
       .input('hospitalDeclarationTime', sql.NVarChar, data.hospitalDeclarationTime)
       .input('attachments', sql.NVarChar, data.attachments?.join(','))
-      .query(`
+      .query(\`
           INSERT INTO admissions (
             patient_id, admission_id, relationship_policyholder, policy_number, insured_card_number, insurance_company, 
             policy_start_date, policy_end_date, corporate_policy_number, other_policy_name, family_doctor_name, 
@@ -558,12 +558,12 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
             @admissionDate, @admissionTime, @admissionType, @expectedStay, @expectedIcuStay, @roomCategory, @roomNursingDietCost,
             @investigationCost, @icuCost, @otCost, @professionalFees, @medicineCost, @otherHospitalExpenses, @packageCharges,
             @totalExpectedCost,
-            @diabetesSince, hypertensionSince, heartDiseaseSince, hyperlipidemiaSince, osteoarthritisSince, asthmaCopdSince,
-            @cancerSince, alcoholDrugAbuseSince, hivSince, otherChronicAilment,
+            @diabetesSince, @hypertensionSince, @heartDiseaseSince, @hyperlipidemiaSince, @osteoarthritisSince, @asthmaCopdSince,
+            @cancerSince, @alcoholDrugAbuseSince, @hivSince, @otherChronicAilment,
             @patientDeclarationName, @patientDeclarationContact, @patientDeclarationEmail, @patientDeclarationDate, @patientDeclarationTime,
             @hospitalDeclarationDoctorName, @hospitalDeclarationDate, @hospitalDeclarationTime, @attachments
           )
-      `);
+      \`);
 
     await transaction.commit();
 
@@ -571,7 +571,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
     if(transaction) await transaction.rollback();
     console.error('Error adding patient:', error);
     const dbError = error as { message?: string };
-    return { message: `Database Error: ${dbError.message || 'Unknown error'}`, type: "error" };
+    return { message: \`Database Error: \${dbError.message || 'Unknown error'}\`, type: "error" };
   }
   return { message: "Patient added successfully.", type: "success" };
 }
@@ -581,8 +581,8 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
   const validatedFields = updatePatientFormSchema.safeParse(formObject);
   
   if (!validatedFields.success) {
-    const errorMessages = validatedFields.error.errors.map(e => `${e.path.join('.')} - ${e.message}`).join(', ');
-    return { message: `Invalid data: ${errorMessages}`, type: 'error' };
+    const errorMessages = validatedFields.error.errors.map(e => \`\${e.path.join('.')} - \${e.message}\`).join(', ');
+    return { message: \`Invalid data: \${errorMessages}\`, type: 'error' };
   }
   
   const { data } = validatedFields;
@@ -594,6 +594,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
     transaction = new sql.Transaction(pool);
     await transaction.begin();
 
+    // 1. Update Patients Table
     const photoJson = createDocumentJson(data.photoUrl, data.photoName);
     const adhaarJson = createDocumentJson(data.adhaar_path_url, data.adhaar_path_name);
     const panJson = createDocumentJson(data.pan_path_url, data.pan_path_name);
@@ -607,7 +608,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
       .input('id', sql.Int, Number(patientId))
       .input('name', sql.NVarChar, data.name)
       .input('email_address', sql.NVarChar, data.email_address)
-      .input('phone_number', sql.NVarChar, data.phone_number)
+      .input('phone_number', sql.NVarChar, data.phone_number || null)
       .input('alternative_number', sql.NVarChar, data.alternative_number || null)
       .input('gender', sql.NVarChar, data.gender)
       .input('age', sql.Int, data.age)
@@ -617,6 +618,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
       .input('employee_id', sql.NVarChar, data.employee_id || null)
       .input('abha_id', sql.NVarChar, data.abha_id || null)
       .input('health_id', sql.NVarChar, data.health_id || null)
+      .input('hospital_id', sql.NVarChar, data.hospital_id || null)
       .input('photo', sql.NVarChar, photoJson)
       .input('adhaar_path', sql.NVarChar, adhaarJson)
       .input('pan_path', sql.NVarChar, panJson)
@@ -624,18 +626,19 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
       .input('voter_id_path', sql.NVarChar, voterIdJson)
       .input('driving_licence_path', sql.NVarChar, drivingLicenceJson)
       .input('other_path', sql.NVarChar, otherJson)
-      .query(`
+      .query(\`
         UPDATE patients 
         SET 
           name = @name, email_address = @email_address, phone_number = @phone_number, alternative_number = @alternative_number, 
           gender = @gender, age = @age, birth_date = @birth_date, address = @address, occupation = @occupation,
-          employee_id = @employee_id, abha_id = @abha_id, health_id = @health_id, photo = @photo, 
-          adhaar_path = @adhaar_path, pan_path = @pan_path, passport_path = @passport_path, 
+          employee_id = @employee_id, abha_id = @abha_id, health_id = @health_id, hospital_id = @hospital_id,
+          photo = @photo, adhaar_path = @adhaar_path, pan_path = @pan_path, passport_path = @passport_path, 
           voter_id_path = @voter_id_path, driving_licence_path = @driving_licence_path, other_path = @other_path,
           updated_at = GETDATE()
         WHERE id = @id
-      `);
+      \`);
 
+    // 2. Update Admissions Table
     const admissionRequest = new sql.Request(transaction);
     await admissionRequest
       .input('patient_id', sql.Int, Number(patientId))
@@ -653,7 +656,6 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
       .input('payer_email', sql.NVarChar, data.payer_email)
       .input('payer_phone', sql.NVarChar, data.payer_phone)
       .input('tpa_id', sql.Int, data.tpa_id)
-      .input('hospital_id', sql.NVarChar, data.hospital_id || null)
       .input('treat_doc_name', sql.NVarChar, data.treat_doc_name)
       .input('treat_doc_number', sql.NVarChar, data.treat_doc_number)
       .input('treat_doc_qualification', sql.NVarChar, data.treat_doc_qualification)
@@ -723,14 +725,14 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
       .input('hospitalDeclarationDate', sql.Date, data.hospitalDeclarationDate ? new Date(data.hospitalDeclarationDate) : null)
       .input('hospitalDeclarationTime', sql.NVarChar, data.hospitalDeclarationTime)
       .input('attachments', sql.NVarChar, data.attachments?.join(','))
-      .query(`
+      .query(\`
         UPDATE admissions
         SET 
           admission_id = @admission_id, relationship_policyholder = @relationship_policyholder, policy_number = @policy_number,
           insured_card_number = @insured_card_number, insurance_company = @insurance_company, policy_start_date = @policy_start_date,
           policy_end_date = @policy_end_date, corporate_policy_number = @corporate_policy_number, other_policy_name = @other_policy_name,
           family_doctor_name = @family_doctor_name, family_doctor_phone = @family_doctor_phone, payer_email = @payer_email,
-          payer_phone = @payer_phone, tpa_id = @tpa_id, hospital_id = @hospital_id, treat_doc_name = @treat_doc_name,
+          payer_phone = @payer_phone, tpa_id = @tpa_id, treat_doc_name = @treat_doc_name,
           treat_doc_number = @treat_doc_number, treat_doc_qualification = @treat_doc_qualification, treat_doc_reg_no = @treat_doc_reg_no,
           natureOfIllness = @natureOfIllness, clinicalFindings = @clinicalFindings, ailmentDuration = @ailmentDuration, 
           firstConsultationDate = @firstConsultationDate, pastHistory = @pastHistory, provisionalDiagnosis = @provisionalDiagnosis, 
@@ -755,7 +757,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
           hospitalDeclarationTime = @hospitalDeclarationTime, attachments = @attachments,
           updated_at = GETDATE()
         WHERE patient_id = @patient_id
-      `);
+      \`);
 
     await transaction.commit();
 
@@ -763,7 +765,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
     if(transaction) await transaction.rollback();
     console.error('Error updating patient:', error);
     const dbError = error as { message?: string };
-    return { message: `Database Error: ${dbError.message || 'Unknown error'}`, type: 'error' };
+    return { message: \`Database Error: \${dbError.message || 'Unknown error'}\`, type: 'error' };
   }
   
   return { message: "Patient updated successfully.", type: "success" };
