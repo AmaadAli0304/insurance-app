@@ -14,12 +14,12 @@ const basePatientFormSchema = z.object({
   // Patient Details
   name: z.string().min(1, "Full Name is required."),
   email_address: z.string().email("Invalid email address.").min(1, "Email is required."),
-  phone_number: z.string().regex(phoneRegex, 'Registered mobile number must be 10 digits'),
-  alternative_number: z.string().regex(phoneRegex, 'Alternate number must be 10 digits').optional().or(z.literal('')),
-  gender: z.string().min(1, "Gender is required."),
+  phone_number: z.string().optional().nullable(),
+  alternative_number: z.string().optional().nullable(),
+  gender: z.string().optional().nullable(),
   age: z.coerce.number().optional().nullable(),
   birth_date: z.string().optional().nullable(),
-  address: z.string().min(1, "Address is required."),
+  address: z.string().optional().nullable(),
   occupation: z.string().optional().nullable(),
   employee_id: z.string().optional().nullable(),
   abha_id: z.string().optional().nullable(),
@@ -44,46 +44,46 @@ const basePatientFormSchema = z.object({
   other_path_name: z.string().optional().or(z.literal('')),
 
   // Insurance Details
-  admission_id: z.string().min(1, "Admission ID is required."),
-  relationship_policyholder: z.string().min(1, "Relationship to policyholder is required."),
-  policy_number: z.string().min(1, "Policy number is required."),
-  insured_card_number: z.string().min(1, "Insured member/card ID number is required."),
-  company_id: z.string().min(1, "Insurance Company is required."),
-  policy_start_date: z.string().min(1, "Policy Start Date is required."),
-  policy_end_date: z.string().min(1, "Policy End Date is required."),
+  admission_id: z.string().optional().nullable(),
+  relationship_policyholder: z.string().optional().nullable(),
+  policy_number: z.string().optional().nullable(),
+  insured_card_number: z.string().optional().nullable(),
+  company_id: z.string().optional().nullable(),
+  policy_start_date: z.string().optional().nullable(),
+  policy_end_date: z.string().optional().nullable(),
   corporate_policy_number: z.string().optional().nullable(),
   other_policy_name: z.string().optional().nullable(),
   family_doctor_name: z.string().optional().nullable(),
-  family_doctor_phone: z.string().regex(phoneRegex, 'Family doctor phone must be 10 digits').optional().or(z.literal('')),
-  payer_email: z.string().email("Invalid email for Proposer/Payer.").min(1, "Proposer/Payer email is required."),
-  payer_phone: z.string().regex(phoneRegex, 'Payer phone number must be 10 digits'),
+  family_doctor_phone: z.string().optional().nullable(),
+  payer_email: z.string().email().optional().nullable(),
+  payer_phone: z.string().optional().nullable(),
   
   // Hospital & TPA
-  tpa_id: z.coerce.number({required_error: "TPA is required."}),
+  tpa_id: z.coerce.number().optional().nullable(),
   hospital_id: z.string().optional().nullable(),
-  treat_doc_name: z.string().min(1, "Treating doctor’s name is required."),
-  treat_doc_number: z.string().regex(phoneRegex, "Treating doctor's contact must be 10 digits"),
-  treat_doc_qualification: z.string().min(1, "Doctor’s qualification is required."),
-  treat_doc_reg_no: z.string().min(1, "Doctor’s registration no. is required."),
+  treat_doc_name: z.string().optional().nullable(),
+  treat_doc_number: z.string().optional().nullable(),
+  treat_doc_qualification: z.string().optional().nullable(),
+  treat_doc_reg_no: z.string().optional().nullable(),
 
   // C. Clinical Information
-  natureOfIllness: z.string().min(1, "Nature of illness is required."),
-  clinicalFindings: z.string().min(1, "Clinical findings are required."),
-  ailmentDuration: z.coerce.number({ required_error: "Ailment duration is required." }).min(1, "Ailment duration must be at least 1."),
-  firstConsultationDate: z.string().min(1, "First consultation date is required."),
-  pastHistory: z.string().min(1, "Past history is required."),
-  provisionalDiagnosis: z.string().min(1, "Provisional diagnosis is required."),
-  icd10Codes: z.string().min(1, "ICD-10 code is required."),
-  treatmentMedical: z.string().min(1, "Medical treatment is required."),
-  treatmentSurgical: z.string().min(1, "Surgical treatment is required."),
-  treatmentIntensiveCare: z.string().min(1, "Intensive care details are required."),
-  treatmentInvestigation: z.string().min(1, "Investigation details are required."),
-  treatmentNonAllopathic: z.string().min(1, "Non-allopathic treatment details are required."),
-  investigationDetails: z.string().min(1, "Investigation details are required."),
-  drugRoute: z.string().min(1, "Drug route is required."),
-  procedureName: z.string().min(1, "Procedure name is required."),
-  icd10PcsCodes: z.string().min(1, "ICD-10-PCS code is required."),
-  otherTreatments: z.string().min(1, "Other treatments details are required."),
+  natureOfIllness: z.string().optional().nullable(),
+  clinicalFindings: z.string().optional().nullable(),
+  ailmentDuration: z.coerce.number().optional().nullable(),
+  firstConsultationDate: z.string().optional().nullable(),
+  pastHistory: z.string().optional().nullable(),
+  provisionalDiagnosis: z.string().optional().nullable(),
+  icd10Codes: z.string().optional().nullable(),
+  treatmentMedical: z.string().optional().nullable(),
+  treatmentSurgical: z.string().optional().nullable(),
+  treatmentIntensiveCare: z.string().optional().nullable(),
+  treatmentInvestigation: z.string().optional().nullable(),
+  treatmentNonAllopathic: z.string().optional().nullable(),
+  investigationDetails: z.string().optional().nullable(),
+  drugRoute: z.string().optional().nullable(),
+  procedureName: z.string().optional().nullable(),
+  icd10PcsCodes: z.string().optional().nullable(),
+  otherTreatments: z.string().optional().nullable(),
 
   // D. Accident / Medico-Legal
   isInjury: z.string().optional().nullable(),
@@ -104,43 +104,43 @@ const basePatientFormSchema = z.object({
   expectedDeliveryDate: z.string().optional().nullable(),
 
   // F. Admission & Cost Estimate
-  admissionDate: z.string().min(1, "Admission date is required."),
-  admissionTime: z.string().min(1, "Admission time is required."),
-  admissionType: z.string().min(1, "Admission type is required."),
-  expectedStay: z.coerce.number({ required_error: "Expected stay is required." }),
-  expectedIcuStay: z.coerce.number({ required_error: "Expected ICU stay is required." }),
-  roomCategory: z.string().min(1, "Room category is required."),
-  roomNursingDietCost: z.coerce.number({ required_error: "Room/nursing/diet cost is required." }),
-  investigationCost: z.coerce.number({ required_error: "Investigation cost is required." }),
-  icuCost: z.coerce.number({ required_error: "ICU cost is required." }),
-  otCost: z.coerce.number({ required_error: "OT cost is required." }),
-  professionalFees: z.coerce.number({ required_error: "Professional fees are required." }),
-  medicineCost: z.coerce.number({ required_error: "Medicine cost is required." }),
-  otherHospitalExpenses: z.coerce.number({ required_error: "Other expenses are required." }),
-  packageCharges: z.coerce.number({ required_error: "Package charges are required." }),
+  admissionDate: z.string().optional().nullable(),
+  admissionTime: z.string().optional().nullable(),
+  admissionType: z.string().optional().nullable(),
+  expectedStay: z.coerce.number().optional().nullable(),
+  expectedIcuStay: z.coerce.number().optional().nullable(),
+  roomCategory: z.string().optional().nullable(),
+  roomNursingDietCost: z.coerce.number().optional().nullable(),
+  investigationCost: z.coerce.number().optional().nullable(),
+  icuCost: z.coerce.number().optional().nullable(),
+  otCost: z.coerce.number().optional().nullable(),
+  professionalFees: z.coerce.number().optional().nullable(),
+  medicineCost: z.coerce.number().optional().nullable(),
+  otherHospitalExpenses: z.coerce.number().optional().nullable(),
+  packageCharges: z.coerce.number().optional().nullable(),
   totalExpectedCost: z.coerce.number().optional().nullable(),
 
   // G. Medical History
-  diabetesSince: z.string().min(1, "Diabetes history is required."),
-  hypertensionSince: z.string().min(1, "Hypertension history is required."),
-  heartDiseaseSince: z.string().min(1, "Heart disease history is required."),
-  hyperlipidemiaSince: z.string().min(1, "Hyperlipidemia history is required."),
-  osteoarthritisSince: z.string().min(1, "Osteoarthritis history is required."),
-  asthmaCopdSince: z.string().min(1, "Asthma/COPD history is required."),
-  cancerSince: z.string().min(1, "Cancer history is required."),
-  alcoholDrugAbuseSince: z.string().min(1, "Alcohol/drug abuse history is required."),
-  hivSince: z.string().min(1, "HIV/STD history is required."),
-  otherChronicAilment: z.string().min(1, "Other chronic ailment history is required."),
+  diabetesSince: z.string().optional().nullable(),
+  hypertensionSince: z.string().optional().nullable(),
+  heartDiseaseSince: z.string().optional().nullable(),
+  hyperlipidemiaSince: z.string().optional().nullable(),
+  osteoarthritisSince: z.string().optional().nullable(),
+  asthmaCopdSince: z.string().optional().nullable(),
+  cancerSince: z.string().optional().nullable(),
+  alcoholDrugAbuseSince: z.string().optional().nullable(),
+  hivSince: z.string().optional().nullable(),
+  otherChronicAilment: z.string().optional().nullable(),
 
   // H. Declarations & Attachments
-  patientDeclarationName: z.string().min(1, "Patient declaration name is required."),
-  patientDeclarationContact: z.string().min(1, "Patient declaration contact is required."),
-  patientDeclarationEmail: z.string().email("Invalid patient declaration email.").min(1, "Patient declaration email is required."),
-  patientDeclarationDate: z.string().min(1, "Patient declaration date is required."),
-  patientDeclarationTime: z.string().min(1, "Patient declaration time is required."),
-  hospitalDeclarationDoctorName: z.string().min(1, "Hospital declaration doctor name is required."),
-  hospitalDeclarationDate: z.string().min(1, "Hospital declaration date is required."),
-  hospitalDeclarationTime: z.string().min(1, "Hospital declaration time is required."),
+  patientDeclarationName: z.string().optional().nullable(),
+  patientDeclarationContact: z.string().optional().nullable(),
+  patientDeclarationEmail: z.string().email().optional().nullable(),
+  patientDeclarationDate: z.string().optional().nullable(),
+  patientDeclarationTime: z.string().optional().nullable(),
+  hospitalDeclarationDoctorName: z.string().optional().nullable(),
+  hospitalDeclarationDate: z.string().optional().nullable(),
+  hospitalDeclarationTime: z.string().optional().nullable(),
   attachments: z.array(z.string()).optional().nullable(),
 });
 
@@ -366,13 +366,11 @@ const createDocumentJson = (url: string | undefined | null, name: string | undef
 // Helper function to build the object from FormData
 const buildObjectFromFormData = (formData: FormData) => {
     const data: { [key: string]: any } = {};
+    // Ensure 'attachments' is an array, even if only one is checked
+    data.attachments = formData.getAll('attachments');
+    
     formData.forEach((value, key) => {
-        if (key === 'attachments') {
-            if (!data.attachments) {
-                data.attachments = [];
-            }
-            data.attachments.push(value);
-        } else {
+        if (key !== 'attachments') {
             // This will overwrite if the key already exists, which is fine for most fields
             data[key] = value;
         }
@@ -410,7 +408,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
     const patientResult = await patientRequest
       .input('name', sql.NVarChar, data.name)
       .input('email_address', sql.NVarChar, data.email_address)
-      .input('phone_number', sql.NVarChar, data.phone_number)
+      .input('phone_number', sql.NVarChar, data.phone_number || null)
       .input('alternative_number', sql.NVarChar, data.alternative_number || null)
       .input('gender', sql.NVarChar, data.gender)
       .input('age', sql.Int, data.age)
