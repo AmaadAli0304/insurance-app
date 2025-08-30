@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useActionState, useEffect, useState, useRef } from "react";
@@ -603,65 +602,65 @@ export default function EditPatientPage() {
                         <Card>
                             <AccordionItem value="cost-info">
                                 <AccordionTrigger className="p-6">
-                                    <CardTitle>G. Admission & Cost Estimate</CardTitle>
+                                    <CardTitle>G. Admission &amp; Cost Estimate <span className="text-destructive">*</span></CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-3 gap-4" onChange={calculateTotalCost}>
                                         <div className="space-y-2">
-                                            <Label htmlFor="admissionDate">Admission date</Label>
-                                            <Input id="admissionDate" name="admissionDate" type="date" defaultValue={patient.admissionDate ?? ''} />
+                                            <Label htmlFor="admissionDate">Admission date <span className="text-destructive">*</span></Label>
+                                            <Input id="admissionDate" name="admissionDate" type="date" defaultValue={patient.admissionDate ?? ''} required/>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="admissionTime">Admission time</Label>
-                                            <Input id="admissionTime" name="admissionTime" type="time" defaultValue={patient.admissionTime ?? ''} />
+                                            <Label htmlFor="admissionTime">Admission time <span className="text-destructive">*</span></Label>
+                                            <Input id="admissionTime" name="admissionTime" type="time" defaultValue={patient.admissionTime ?? ''} required/>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="admissionType">Type of admission</Label>
-                                            <Input id="admissionType" name="admissionType" placeholder="e.g. Emergency, Planned" defaultValue={patient.admissionType ?? ''} />
+                                            <Label htmlFor="admissionType">Type of admission <span className="text-destructive">*</span></Label>
+                                            <Input id="admissionType" name="admissionType" placeholder="e.g. Emergency, Planned" defaultValue={patient.admissionType ?? ''} required/>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="expectedStay">Expected days of stay</Label>
-                                            <Input id="expectedStay" name="expectedStay" type="number" defaultValue={patient.expectedStay ?? ''} />
+                                            <Label htmlFor="expectedStay">Expected days of stay <span className="text-destructive">*</span></Label>
+                                            <Input id="expectedStay" name="expectedStay" type="number" defaultValue={patient.expectedStay ?? ''} required/>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="expectedIcuStay">Expected days in ICU</Label>
-                                            <Input id="expectedIcuStay" name="expectedIcuStay" type="number" defaultValue={patient.expectedIcuStay ?? ''} />
+                                            <Label htmlFor="expectedIcuStay">Expected days in ICU <span className="text-destructive">*</span></Label>
+                                            <Input id="expectedIcuStay" name="expectedIcuStay" type="number" defaultValue={patient.expectedIcuStay ?? ''} required/>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="roomCategory">Requested room category</Label>
-                                            <Input id="roomCategory" name="roomCategory" placeholder="e.g. Private, Semi-Private, General" defaultValue={patient.roomCategory ?? ''} />
+                                            <Label htmlFor="roomCategory">Requested room category <span className="text-destructive">*</span></Label>
+                                            <Input id="roomCategory" name="roomCategory" placeholder="e.g. Private, Semi-Private, General" defaultValue={patient.roomCategory ?? ''} required/>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="roomNursingDietCost">Room + Nursing + Diet (₹)</Label>
-                                            <Input id="roomNursingDietCost" name="roomNursingDietCost" type="number" defaultValue={patient.roomNursingDietCost ?? ''} />
+                                            <Label htmlFor="roomNursingDietCost">Room + Nursing + Diet (₹) <span className="text-destructive">*</span></Label>
+                                            <Input id="roomNursingDietCost" name="roomNursingDietCost" type="number" defaultValue={patient.roomNursingDietCost ?? ''} required/>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="investigationCost">Diagnostics/investigations cost (₹)</Label>
-                                            <Input id="investigationCost" name="investigationCost" type="number" defaultValue={patient.investigationCost ?? ''} />
+                                            <Label htmlFor="investigationCost">Diagnostics/investigations cost (₹) <span className="text-destructive">*</span></Label>
+                                            <Input id="investigationCost" name="investigationCost" type="number" defaultValue={patient.investigationCost ?? ''} required/>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="icuCost">ICU charges (₹)</Label>
-                                            <Input id="icuCost" name="icuCost" type="number" defaultValue={patient.icuCost ?? ''} />
+                                            <Label htmlFor="icuCost">ICU charges (₹) <span className="text-destructive">*</span></Label>
+                                            <Input id="icuCost" name="icuCost" type="number" defaultValue={patient.icuCost ?? ''} required/>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="otCost">OT charges (₹)</Label>
-                                            <Input id="otCost" name="otCost" type="number" defaultValue={patient.otCost ?? ''} />
+                                            <Label htmlFor="otCost">OT charges (₹) <span className="text-destructive">*</span></Label>
+                                            <Input id="otCost" name="otCost" type="number" defaultValue={patient.otCost ?? ''} required/>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="professionalFees">Professional fees (₹)</Label>
-                                            <Input id="professionalFees" name="professionalFees" type="number" defaultValue={patient.professionalFees ?? ''} />
+                                            <Label htmlFor="professionalFees">Professional fees (₹) <span className="text-destructive">*</span></Label>
+                                            <Input id="professionalFees" name="professionalFees" type="number" defaultValue={patient.professionalFees ?? ''} required/>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="medicineCost">Medicines + consumables (₹)</Label>
-                                            <Input id="medicineCost" name="medicineCost" type="number" defaultValue={patient.medicineCost ?? ''} />
+                                            <Label htmlFor="medicineCost">Medicines + consumables (₹) <span className="text-destructive">*</span></Label>
+                                            <Input id="medicineCost" name="medicineCost" type="number" defaultValue={patient.medicineCost ?? ''} required/>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="otherHospitalExpenses">Other hospital expenses (₹)</Label>
-                                            <Input id="otherHospitalExpenses" name="otherHospitalExpenses" type="number" defaultValue={patient.otherHospitalExpenses ?? ''} />
+                                            <Label htmlFor="otherHospitalExpenses">Other hospital expenses (₹) <span className="text-destructive">*</span></Label>
+                                            <Input id="otherHospitalExpenses" name="otherHospitalExpenses" type="number" defaultValue={patient.otherHospitalExpenses ?? ''} required/>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="packageCharges">All-inclusive package charges (₹)</Label>
-                                            <Input id="packageCharges" name="packageCharges" type="number" defaultValue={patient.packageCharges ?? ''} />
+                                            <Label htmlFor="packageCharges">All-inclusive package charges (₹) <span className="text-destructive">*</span></Label>
+                                            <Input id="packageCharges" name="packageCharges" type="number" defaultValue={patient.packageCharges ?? ''} required/>
                                         </div>
                                         <div className="space-y-2 md:col-span-3">
                                             <Label htmlFor="totalExpectedCost">Total expected cost (₹)</Label>
@@ -675,20 +674,20 @@ export default function EditPatientPage() {
                         <Card>
                             <AccordionItem value="history-info">
                                 <AccordionTrigger className="p-6">
-                                    <CardTitle>H. Medical History</CardTitle>
+                                    <CardTitle>H. Medical History <span className="text-destructive">*</span></CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-2 gap-x-8 gap-y-4">
-                                        <Input name="diabetesSince" placeholder="Diabetes – since (MM/YY)" defaultValue={patient.diabetesSince ?? ''} />
-                                        <Input name="hypertensionSince" placeholder="Hypertension – since (MM/YY)" defaultValue={patient.hypertensionSince ?? ''} />
-                                        <Input name="heartDiseaseSince" placeholder="Heart disease – since (MM/YY)" defaultValue={patient.heartDiseaseSince ?? ''} />
-                                        <Input name="hyperlipidemiaSince" placeholder="Hyperlipidemia – since (MM/YY)" defaultValue={patient.hyperlipidemiaSince ?? ''} />
-                                        <Input name="osteoarthritisSince" placeholder="Osteoarthritis – since (MM/YY)" defaultValue={patient.osteoarthritisSince ?? ''} />
-                                        <Input name="asthmaCopdSince" placeholder="Asthma/COPD – since (MM/YY)" defaultValue={patient.asthmaCopdSince ?? ''} />
-                                        <Input name="cancerSince" placeholder="Cancer – since (MM/YY)" defaultValue={patient.cancerSince ?? ''} />
-                                        <Input name="alcoholDrugAbuseSince" placeholder="Alcohol/drug abuse – since (MM/YY)" defaultValue={patient.alcoholDrugAbuseSince ?? ''} />
-                                        <Input name="hivSince" placeholder="HIV/STD – since (MM/YY)" defaultValue={patient.hivSince ?? ''} />
-                                        <Input name="otherChronicAilment" placeholder="Any other chronic ailment (specify and since when)" defaultValue={patient.otherChronicAilment ?? ''} />
+                                        <Input name="diabetesSince" placeholder="Diabetes – since (MM/YY)" defaultValue={patient.diabetesSince ?? ''} required />
+                                        <Input name="hypertensionSince" placeholder="Hypertension – since (MM/YY)" defaultValue={patient.hypertensionSince ?? ''} required />
+                                        <Input name="heartDiseaseSince" placeholder="Heart disease – since (MM/YY)" defaultValue={patient.heartDiseaseSince ?? ''} required />
+                                        <Input name="hyperlipidemiaSince" placeholder="Hyperlipidemia – since (MM/YY)" defaultValue={patient.hyperlipidemiaSince ?? ''} required />
+                                        <Input name="osteoarthritisSince" placeholder="Osteoarthritis – since (MM/YY)" defaultValue={patient.osteoarthritisSince ?? ''} required />
+                                        <Input name="asthmaCopdSince" placeholder="Asthma/COPD – since (MM/YY)" defaultValue={patient.asthmaCopdSince ?? ''} required />
+                                        <Input name="cancerSince" placeholder="Cancer – since (MM/YY)" defaultValue={patient.cancerSince ?? ''} required />
+                                        <Input name="alcoholDrugAbuseSince" placeholder="Alcohol/drug abuse – since (MM/YY)" defaultValue={patient.alcoholDrugAbuseSince ?? ''} required />
+                                        <Input name="hivSince" placeholder="HIV/STD – since (MM/YY)" defaultValue={patient.hivSince ?? ''} required />
+                                        <Input name="otherChronicAilment" placeholder="Any other chronic ailment (specify and since when)" defaultValue={patient.otherChronicAilment ?? ''} required />
                                     </CardContent>
                                 </AccordionContent>
                             </AccordionItem>
@@ -697,44 +696,44 @@ export default function EditPatientPage() {
                         <Card>
                             <AccordionItem value="declarations-info">
                                 <AccordionTrigger className="p-6">
-                                    <CardTitle>I. Declarations & Attachments</CardTitle>
+                                    <CardTitle>I. Declarations &amp; Attachments <span className="text-destructive">*</span></CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <CardContent className="space-y-4">
                                         <div className="grid md:grid-cols-3 gap-4">
                                             <div className="space-y-2">
-                                                <Label htmlFor="patientDeclarationName">Patient/insured name</Label>
-                                                <Input id="patientDeclarationName" name="patientDeclarationName" defaultValue={patient.patientDeclarationName ?? ''} />
+                                                <Label htmlFor="patientDeclarationName">Patient/insured name <span className="text-destructive">*</span></Label>
+                                                <Input id="patientDeclarationName" name="patientDeclarationName" defaultValue={patient.patientDeclarationName ?? ''} required />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="patientDeclarationContact">Contact number</Label>
-                                                <Input id="patientDeclarationContact" name="patientDeclarationContact" defaultValue={patient.patientDeclarationContact ?? ''} />
+                                                <Label htmlFor="patientDeclarationContact">Contact number <span className="text-destructive">*</span></Label>
+                                                <Input id="patientDeclarationContact" name="patientDeclarationContact" defaultValue={patient.patientDeclarationContact ?? ''} required />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="patientDeclarationEmail">Email ID</Label>
-                                                <Input id="patientDeclarationEmail" name="patientDeclarationEmail" type="email" defaultValue={patient.patientDeclarationEmail ?? ''} />
+                                                <Label htmlFor="patientDeclarationEmail">Email ID <span className="text-destructive">*</span></Label>
+                                                <Input id="patientDeclarationEmail" name="patientDeclarationEmail" type="email" defaultValue={patient.patientDeclarationEmail ?? ''} required />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="patientDeclarationDate">Declaration date</Label>
-                                                <Input id="patientDeclarationDate" name="patientDeclarationDate" type="date" defaultValue={patient.patientDeclarationDate ?? ''} />
+                                                <Label htmlFor="patientDeclarationDate">Declaration date <span className="text-destructive">*</span></Label>
+                                                <Input id="patientDeclarationDate" name="patientDeclarationDate" type="date" defaultValue={patient.patientDeclarationDate ?? ''} required />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="patientDeclarationTime">Declaration time</Label>
-                                                <Input id="patientDeclarationTime" name="patientDeclarationTime" type="time" defaultValue={patient.patientDeclarationTime ?? ''} />
+                                                <Label htmlFor="patientDeclarationTime">Declaration time <span className="text-destructive">*</span></Label>
+                                                <Input id="patientDeclarationTime" name="patientDeclarationTime" type="time" defaultValue={patient.patientDeclarationTime ?? ''} required />
                                             </div>
                                         </div>
                                         <div className="grid md:grid-cols-3 gap-4 border-t pt-4">
                                             <div className="space-y-2">
-                                                <Label htmlFor="hospitalDeclarationDoctorName">Hospital declaration – doctor name</Label>
-                                                <Input id="hospitalDeclarationDoctorName" name="hospitalDeclarationDoctorName" defaultValue={patient.hospitalDeclarationDoctorName ?? ''} />
+                                                <Label htmlFor="hospitalDeclarationDoctorName">Hospital declaration – doctor name <span className="text-destructive">*</span></Label>
+                                                <Input id="hospitalDeclarationDoctorName" name="hospitalDeclarationDoctorName" defaultValue={patient.hospitalDeclarationDoctorName ?? ''} required />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="hospitalDeclarationDate">Declaration date</Label>
-                                                <Input id="hospitalDeclarationDate" name="hospitalDeclarationDate" type="date" defaultValue={patient.hospitalDeclarationDate ?? ''} />
+                                                <Label htmlFor="hospitalDeclarationDate">Declaration date <span className="text-destructive">*</span></Label>
+                                                <Input id="hospitalDeclarationDate" name="hospitalDeclarationDate" type="date" defaultValue={patient.hospitalDeclarationDate ?? ''} required />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="hospitalDeclarationTime">Declaration time</Label>
-                                                <Input id="hospitalDeclarationTime" name="hospitalDeclarationTime" type="time" defaultValue={patient.hospitalDeclarationTime ?? ''} />
+                                                <Label htmlFor="hospitalDeclarationTime">Declaration time <span className="text-destructive">*</span></Label>
+                                                <Input id="hospitalDeclarationTime" name="hospitalDeclarationTime" type="time" defaultValue={patient.hospitalDeclarationTime ?? ''} required />
                                             </div>
                                         </div>
                                         <div className="space-y-2 pt-4 border-t">

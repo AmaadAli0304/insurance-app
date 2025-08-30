@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useActionState, useEffect, useState, useRef } from "react";
@@ -418,11 +417,11 @@ export default function NewPatientPage() {
                             </AccordionTrigger>
                             <AccordionContent>
                                 <CardContent className="grid md:grid-cols-2 gap-4">
-                                        <div className="space-y-2 md:col-span-2">
+                                    <div className="space-y-2 md:col-span-2">
                                         <Label htmlFor="natureOfIllness">Nature of illness / presenting complaints <span className="text-destructive">*</span></Label>
                                         <Textarea id="natureOfIllness" name="natureOfIllness" required/>
                                     </div>
-                                        <div className="space-y-2 md:col-span-2">
+                                    <div className="space-y-2 md:col-span-2">
                                         <Label htmlFor="clinicalFindings">Relevant clinical findings <span className="text-destructive">*</span></Label>
                                         <Textarea id="clinicalFindings" name="clinicalFindings" required/>
                                     </div>
@@ -434,7 +433,7 @@ export default function NewPatientPage() {
                                         <Label htmlFor="firstConsultationDate">Date of first consultation <span className="text-destructive">*</span></Label>
                                         <Input id="firstConsultationDate" name="firstConsultationDate" type="date" required/>
                                     </div>
-                                        <div className="space-y-2 md:col-span-2">
+                                    <div className="space-y-2 md:col-span-2">
                                         <Label htmlFor="pastHistory">Past history of present ailment <span className="text-destructive">*</span></Label>
                                         <Textarea id="pastHistory" name="pastHistory" required/>
                                     </div>
@@ -446,7 +445,7 @@ export default function NewPatientPage() {
                                         <Label htmlFor="icd10Codes">ICD-10 diagnosis code(s) <span className="text-destructive">*</span></Label>
                                         <Input id="icd10Codes" name="icd10Codes" required/>
                                     </div>
-                                        <div className="space-y-2 md:col-span-2">
+                                    <div className="space-y-2 md:col-span-2">
                                         <Label>Proposed line of treatment <span className="text-destructive">*</span></Label>
                                         <div className="grid md:grid-cols-2 gap-4">
                                             <Input name="treatmentMedical" placeholder="Medical management" required/>
@@ -456,11 +455,11 @@ export default function NewPatientPage() {
                                             <Input name="treatmentNonAllopathic" placeholder="Non-allopathic" required/>
                                         </div>
                                     </div>
-                                        <div className="space-y-2">
+                                    <div className="space-y-2">
                                         <Label htmlFor="investigationDetails">Investigation / medical management details <span className="text-destructive">*</span></Label>
                                         <Textarea id="investigationDetails" name="investigationDetails" required/>
                                     </div>
-                                        <div className="space-y-2">
+                                    <div className="space-y-2">
                                         <Label htmlFor="drugRoute">Route of drug administration <span className="text-destructive">*</span></Label>
                                         <Input id="drugRoute" name="drugRoute" required/>
                                     </div>
@@ -472,7 +471,7 @@ export default function NewPatientPage() {
                                         <Label htmlFor="icd10PcsCodes">ICD-10-PCS / procedure code(s) <span className="text-destructive">*</span></Label>
                                         <Input id="icd10PcsCodes" name="icd10PcsCodes" required/>
                                     </div>
-                                        <div className="space-y-2 md:col-span-2">
+                                    <div className="space-y-2 md:col-span-2">
                                         <Label htmlFor="otherTreatments">Any other treatments (details) <span className="text-destructive">*</span></Label>
                                         <Textarea id="otherTreatments" name="otherTreatments" required/>
                                     </div>
@@ -554,65 +553,65 @@ export default function NewPatientPage() {
                         <Card>
                         <AccordionItem value="cost-info">
                             <AccordionTrigger className="p-6">
-                                <CardTitle>G. Admission & Cost Estimate</CardTitle>
+                                <CardTitle>G. Admission &amp; Cost Estimate <span className="text-destructive">*</span></CardTitle>
                             </AccordionTrigger>
                             <AccordionContent>
                                     <CardContent className="grid md:grid-cols-3 gap-4" onChange={calculateTotalCost}>
                                     <div className="space-y-2">
-                                        <Label htmlFor="admissionDate">Admission date</Label>
-                                        <Input id="admissionDate" name="admissionDate" type="date" />
+                                        <Label htmlFor="admissionDate">Admission date <span className="text-destructive">*</span></Label>
+                                        <Input id="admissionDate" name="admissionDate" type="date" required />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="admissionTime">Admission time</Label>
-                                        <Input id="admissionTime" name="admissionTime" type="time" />
-                                    </div>
-                                        <div className="space-y-2">
-                                        <Label htmlFor="admissionType">Type of admission</Label>
-                                        <Input id="admissionType" name="admissionType" placeholder="e.g. Emergency, Planned"/>
-                                    </div>
-                                        <div className="space-y-2">
-                                        <Label htmlFor="expectedStay">Expected days of stay</Label>
-                                        <Input id="expectedStay" name="expectedStay" type="number" />
+                                        <Label htmlFor="admissionTime">Admission time <span className="text-destructive">*</span></Label>
+                                        <Input id="admissionTime" name="admissionTime" type="time" required />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="expectedIcuStay">Expected days in ICU</Label>
-                                        <Input id="expectedIcuStay" name="expectedIcuStay" type="number" />
-                                    </div>
-                                        <div className="space-y-2">
-                                        <Label htmlFor="roomCategory">Requested room category</Label>
-                                        <Input id="roomCategory" name="roomCategory" placeholder="e.g. Private, Semi-Private, General" />
-                                    </div>
-                                        <div className="space-y-2">
-                                        <Label htmlFor="roomNursingDietCost">Room + Nursing + Diet (₹)</Label>
-                                        <Input id="roomNursingDietCost" name="roomNursingDietCost" type="number" />
+                                        <Label htmlFor="admissionType">Type of admission <span className="text-destructive">*</span></Label>
+                                        <Input id="admissionType" name="admissionType" placeholder="e.g. Emergency, Planned" required/>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="investigationCost">Diagnostics/investigations cost (₹)</Label>
-                                        <Input id="investigationCost" name="investigationCost" type="number" />
+                                        <Label htmlFor="expectedStay">Expected days of stay <span className="text-destructive">*</span></Label>
+                                        <Input id="expectedStay" name="expectedStay" type="number" required />
                                     </div>
-                                        <div className="space-y-2">
-                                        <Label htmlFor="icuCost">ICU charges (₹)</Label>
-                                        <Input id="icuCost" name="icuCost" type="number" />
+                                    <div className="space-y-2">
+                                        <Label htmlFor="expectedIcuStay">Expected days in ICU <span className="text-destructive">*</span></Label>
+                                        <Input id="expectedIcuStay" name="expectedIcuStay" type="number" required />
                                     </div>
-                                        <div className="space-y-2">
-                                        <Label htmlFor="otCost">OT charges (₹)</Label>
-                                        <Input id="otCost" name="otCost" type="number" />
+                                    <div className="space-y-2">
+                                        <Label htmlFor="roomCategory">Requested room category <span className="text-destructive">*</span></Label>
+                                        <Input id="roomCategory" name="roomCategory" placeholder="e.g. Private, Semi-Private, General" required />
                                     </div>
-                                        <div className="space-y-2">
-                                        <Label htmlFor="professionalFees">Professional fees (₹)</Label>
-                                        <Input id="professionalFees" name="professionalFees" type="number" />
+                                    <div className="space-y-2">
+                                        <Label htmlFor="roomNursingDietCost">Room + Nursing + Diet (₹) <span className="text-destructive">*</span></Label>
+                                        <Input id="roomNursingDietCost" name="roomNursingDietCost" type="number" required />
                                     </div>
-                                        <div className="space-y-2">
-                                        <Label htmlFor="medicineCost">Medicines + consumables (₹)</Label>
-                                        <Input id="medicineCost" name="medicineCost" type="number" />
+                                    <div className="space-y-2">
+                                        <Label htmlFor="investigationCost">Diagnostics/investigations cost (₹) <span className="text-destructive">*</span></Label>
+                                        <Input id="investigationCost" name="investigationCost" type="number" required />
                                     </div>
-                                        <div className="space-y-2">
-                                        <Label htmlFor="otherHospitalExpenses">Other hospital expenses (₹)</Label>
-                                        <Input id="otherHospitalExpenses" name="otherHospitalExpenses" type="number" />
+                                    <div className="space-y-2">
+                                        <Label htmlFor="icuCost">ICU charges (₹) <span className="text-destructive">*</span></Label>
+                                        <Input id="icuCost" name="icuCost" type="number" required />
                                     </div>
-                                        <div className="space-y-2">
-                                        <Label htmlFor="packageCharges">All-inclusive package charges (₹)</Label>
-                                        <Input id="packageCharges" name="packageCharges" type="number" />
+                                    <div className="space-y-2">
+                                        <Label htmlFor="otCost">OT charges (₹) <span className="text-destructive">*</span></Label>
+                                        <Input id="otCost" name="otCost" type="number" required />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="professionalFees">Professional fees (₹) <span className="text-destructive">*</span></Label>
+                                        <Input id="professionalFees" name="professionalFees" type="number" required />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="medicineCost">Medicines + consumables (₹) <span className="text-destructive">*</span></Label>
+                                        <Input id="medicineCost" name="medicineCost" type="number" required />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="otherHospitalExpenses">Other hospital expenses (₹) <span className="text-destructive">*</span></Label>
+                                        <Input id="otherHospitalExpenses" name="otherHospitalExpenses" type="number" required />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="packageCharges">All-inclusive package charges (₹) <span className="text-destructive">*</span></Label>
+                                        <Input id="packageCharges" name="packageCharges" type="number" required />
                                     </div>
                                         <div className="space-y-2 md:col-span-3">
                                         <Label htmlFor="totalExpectedCost">Total expected cost (₹)</Label>
@@ -626,20 +625,20 @@ export default function NewPatientPage() {
                         <Card>
                         <AccordionItem value="history-info">
                             <AccordionTrigger className="p-6">
-                                <CardTitle>H. Medical History</CardTitle>
+                                <CardTitle>H. Medical History <span className="text-destructive">*</span></CardTitle>
                             </AccordionTrigger>
                             <AccordionContent>
                                 <CardContent className="grid md:grid-cols-2 gap-x-8 gap-y-4">
-                                    <Input name="diabetesSince" placeholder="Diabetes – since (MM/YY)" />
-                                    <Input name="hypertensionSince" placeholder="Hypertension – since (MM/YY)" />
-                                    <Input name="heartDiseaseSince" placeholder="Heart disease – since (MM/YY)" />
-                                    <Input name="hyperlipidemiaSince" placeholder="Hyperlipidemia – since (MM/YY)" />
-                                    <Input name="osteoarthritisSince" placeholder="Osteoarthritis – since (MM/YY)" />
-                                    <Input name="asthmaCopdSince" placeholder="Asthma/COPD – since (MM/YY)" />
-                                    <Input name="cancerSince" placeholder="Cancer – since (MM/YY)" />
-                                    <Input name="alcoholDrugAbuseSince" placeholder="Alcohol/drug abuse – since (MM/YY)" />
-                                    <Input name="hivSince" placeholder="HIV/STD – since (MM/YY)" />
-                                    <Input name="otherChronicAilment" placeholder="Any other chronic ailment (specify and since when)" />
+                                    <Input name="diabetesSince" placeholder="Diabetes – since (MM/YY)" required />
+                                    <Input name="hypertensionSince" placeholder="Hypertension – since (MM/YY)" required />
+                                    <Input name="heartDiseaseSince" placeholder="Heart disease – since (MM/YY)" required />
+                                    <Input name="hyperlipidemiaSince" placeholder="Hyperlipidemia – since (MM/YY)" required />
+                                    <Input name="osteoarthritisSince" placeholder="Osteoarthritis – since (MM/YY)" required />
+                                    <Input name="asthmaCopdSince" placeholder="Asthma/COPD – since (MM/YY)" required />
+                                    <Input name="cancerSince" placeholder="Cancer – since (MM/YY)" required />
+                                    <Input name="alcoholDrugAbuseSince" placeholder="Alcohol/drug abuse – since (MM/YY)" required />
+                                    <Input name="hivSince" placeholder="HIV/STD – since (MM/YY)" required />
+                                    <Input name="otherChronicAilment" placeholder="Any other chronic ailment (specify and since when)" required />
                                 </CardContent>
                             </AccordionContent>
                         </AccordionItem>
@@ -648,44 +647,44 @@ export default function NewPatientPage() {
                         <Card>
                         <AccordionItem value="declarations-info">
                             <AccordionTrigger className="p-6">
-                                <CardTitle>I. Declarations & Attachments</CardTitle>
+                                <CardTitle>I. Declarations &amp; Attachments <span className="text-destructive">*</span></CardTitle>
                             </AccordionTrigger>
                             <AccordionContent>
                                     <CardContent className="space-y-4">
                                     <div className="grid md:grid-cols-3 gap-4">
                                         <div className="space-y-2">
-                                            <Label htmlFor="patientDeclarationName">Patient/insured name</Label>
-                                            <Input id="patientDeclarationName" name="patientDeclarationName" />
+                                            <Label htmlFor="patientDeclarationName">Patient/insured name <span className="text-destructive">*</span></Label>
+                                            <Input id="patientDeclarationName" name="patientDeclarationName" required />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="patientDeclarationContact">Contact number</Label>
-                                            <Input id="patientDeclarationContact" name="patientDeclarationContact" />
+                                            <Label htmlFor="patientDeclarationContact">Contact number <span className="text-destructive">*</span></Label>
+                                            <Input id="patientDeclarationContact" name="patientDeclarationContact" required />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="patientDeclarationEmail">Email ID</Label>
-                                            <Input id="patientDeclarationEmail" name="patientDeclarationEmail" type="email" />
+                                            <Label htmlFor="patientDeclarationEmail">Email ID <span className="text-destructive">*</span></Label>
+                                            <Input id="patientDeclarationEmail" name="patientDeclarationEmail" type="email" required />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="patientDeclarationDate">Declaration date</Label>
-                                            <Input id="patientDeclarationDate" name="patientDeclarationDate" type="date" />
+                                            <Label htmlFor="patientDeclarationDate">Declaration date <span className="text-destructive">*</span></Label>
+                                            <Input id="patientDeclarationDate" name="patientDeclarationDate" type="date" required />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="patientDeclarationTime">Declaration time</Label>
-                                            <Input id="patientDeclarationTime" name="patientDeclarationTime" type="time" />
+                                            <Label htmlFor="patientDeclarationTime">Declaration time <span className="text-destructive">*</span></Label>
+                                            <Input id="patientDeclarationTime" name="patientDeclarationTime" type="time" required />
                                         </div>
                                     </div>
                                         <div className="grid md:grid-cols-3 gap-4 border-t pt-4">
                                         <div className="space-y-2">
-                                            <Label htmlFor="hospitalDeclarationDoctorName">Hospital declaration – doctor name</Label>
-                                            <Input id="hospitalDeclarationDoctorName" name="hospitalDeclarationDoctorName" />
+                                            <Label htmlFor="hospitalDeclarationDoctorName">Hospital declaration – doctor name <span className="text-destructive">*</span></Label>
+                                            <Input id="hospitalDeclarationDoctorName" name="hospitalDeclarationDoctorName" required />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="hospitalDeclarationDate">Declaration date</Label>
-                                            <Input id="hospitalDeclarationDate" name="hospitalDeclarationDate" type="date" />
+                                            <Label htmlFor="hospitalDeclarationDate">Declaration date <span className="text-destructive">*</span></Label>
+                                            <Input id="hospitalDeclarationDate" name="hospitalDeclarationDate" type="date" required />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="hospitalDeclarationTime">Declaration time</Label>
-                                            <Input id="hospitalDeclarationTime" name="hospitalDeclarationTime" type="time" />
+                                            <Label htmlFor="hospitalDeclarationTime">Declaration time <span className="text-destructive">*</span></Label>
+                                            <Input id="hospitalDeclarationTime" name="hospitalDeclarationTime" type="time" required />
                                         </div>
                                     </div>
                                         <div className="space-y-2 pt-4 border-t">
