@@ -1,5 +1,5 @@
 
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import pool, { sql, poolConnect } from '@/lib/db';
 import { z } from 'zod';
 import { Company } from '@/lib/types';
@@ -52,11 +52,35 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const page = parseInt(searchParams.get('page') || '1', 10);
+  const limit = parseInt(searchParams.get('limit') || '10', 10);
+  const offset = (page - 1) * limit;
+
   try {
     await poolConnect;
-    const result = await pool.request().query('SELECT * FROM companies');
-    return NextResponse.json(result.recordset as Company[]);
+    const requestPool = pool.request();
+    
+    const companiesResult = await requestPool
+      .input('offset', sql.Int, offset)
+      .input('limit', sql.Int, limit)
+      .query(`
+        SELECT * FROM companies
+        ORDER BY name
+        OFFSET @offset ROWS
+        FETCH NEXT @limit ROWS ONLY
+      `);
+      
+    const totalResult = await pool.request().query('SELECT COUNT(*) as total FROM companies');
+    const totalCompanies = totalResult.recordset[0].total;
+
+    return NextResponse.json({
+      companies: companiesResult.recordset as Company[],
+      total: totalCompanies,
+      page,
+      limit
+    });
   } catch (error) {
       console.error('Error fetching companies:', error);
       const dbError = error as Error;

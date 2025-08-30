@@ -4,7 +4,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { PlusCircle, AlertTriangle } from "lucide-react"
+import { PlusCircle, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { CompaniesTable } from "./companies-table"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -15,26 +15,38 @@ export default function CompaniesPage() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const fetchCompanies = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/companies');
+      const response = await fetch(`/api/companies?page=${currentPage}&limit=${itemsPerPage}`);
       if (!response.ok) {
         throw new Error('Failed to fetch companies');
       }
       const data = await response.json();
-      setCompanies(data);
+      setCompanies(data.companies);
+      setTotalPages(Math.ceil(data.total / itemsPerPage));
     } catch (e: any) {
       setError(e.message);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [currentPage, itemsPerPage]);
 
   useEffect(() => {
     fetchCompanies();
   }, [fetchCompanies]);
+
+  const handlePrevPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
 
   return (
     <div className="space-y-6">
@@ -53,7 +65,7 @@ export default function CompaniesPage() {
         </CardHeader>
         <CardContent>
            {isLoading ? (
-            <p>Loading companies...</p>
+            <div className="text-center p-8">Loading companies...</div>
            ) : error ? (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
@@ -64,7 +76,32 @@ export default function CompaniesPage() {
                 </AlertDescription>
               </Alert>
            ) : (
-            <CompaniesTable companies={companies} onCompanyDeleted={fetchCompanies} />
+             <>
+              <CompaniesTable companies={companies} onCompanyDeleted={fetchCompanies} />
+              <div className="flex items-center justify-end space-x-2 py-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+             </>
            )}
         </CardContent>
       </Card>
