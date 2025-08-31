@@ -13,7 +13,8 @@ const phoneRegex = new RegExp(/^\d{10}$/);
 
 const basePatientFormSchema = z.object({
   // Patient Details
-  name: z.string().optional().nullable(),
+  firstName: z.string().min(1, 'First Name is required').optional().nullable(),
+  lastName: z.string().optional().nullable(),
   email_address: z.string().email("Invalid email address.").optional().nullable(),
   phone_number: z.string().optional().nullable(),
   alternative_number: z.string().optional().nullable(),
@@ -251,6 +252,11 @@ export async function getPatientById(id: string): Promise<Patient | null> {
     }
     const patientData = result.recordset[0];
     
+    // Split fullName for the form
+    const nameParts = patientData.fullName?.split(' ') || [];
+    patientData.firstName = nameParts[0] || '';
+    patientData.lastName = nameParts.slice(1).join(' ') || '';
+
     const dateFields = ['dateOfBirth', 'policyStartDate', 'policyEndDate', 'firstConsultationDate', 'injuryDate', 'expectedDeliveryDate', 'admissionDate', 'patientDeclarationDate', 'hospitalDeclarationDate'];
     for (const field of dateFields) {
         if (patientData[field]) {
@@ -428,6 +434,8 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
     transaction = new sql.Transaction(pool);
     await transaction.begin();
 
+    const fullName = [data.firstName, data.lastName].filter(Boolean).join(' ');
+
     const photoJson = createDocumentJson(data.photoUrl, data.photoName);
     const adhaarJson = createDocumentJson(data.adhaar_path_url, data.adhaar_path_name);
     const panJson = createDocumentJson(data.pan_path_url, data.pan_path_name);
@@ -439,7 +447,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
     // Insert into patients table
     const patientRequest = new sql.Request(transaction);
     const patientResult = await patientRequest
-      .input('name', sql.NVarChar, data.name)
+      .input('name', sql.NVarChar, fullName)
       .input('email_address', sql.NVarChar, data.email_address)
       .input('phone_number', sql.NVarChar, data.phone_number || null)
       .input('alternative_number', sql.NVarChar, data.alternative_number || null)
@@ -629,6 +637,8 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
         transaction = new sql.Transaction(pool);
         await transaction.begin();
 
+        const fullName = [data.firstName, data.lastName].filter(Boolean).join(' ');
+
         // 1. Update Patients Table
         const photoJson = createDocumentJson(data.photoUrl, data.photoName);
         const adhaarJson = createDocumentJson(data.adhaar_path_url, data.adhaar_path_name);
@@ -641,7 +651,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
         const patientRequest = new sql.Request(transaction);
         await patientRequest
             .input('id', sql.Int, Number(patientId))
-            .input('name', sql.NVarChar, data.name)
+            .input('name', sql.NVarChar, fullName)
             .input('email_address', sql.NVarChar, data.email_address)
             .input('phone_number', sql.NVarChar, data.phone_number || null)
             .input('alternative_number', sql.NVarChar, data.alternative_number || null)

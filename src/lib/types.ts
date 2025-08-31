@@ -58,6 +58,8 @@ export interface Company {
 export interface Patient {
   id: string;
   fullName: string;
+  firstName?: string;
+  lastName?: string;
   dateOfBirth?: string | null;
   gender?: 'Male' | 'Female' | 'Other' | null;
   email_address: string;

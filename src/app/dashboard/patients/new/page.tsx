@@ -237,8 +237,12 @@ export default function NewPatientPage() {
                             <AccordionContent>
                                 <CardContent className="grid md:grid-cols-3 gap-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="name">Full Name (as per ID proof) <span className="text-destructive">*</span></Label>
-                                        <Input id="name" name="name" required />
+                                        <Label htmlFor="firstName">First Name <span className="text-destructive">*</span></Label>
+                                        <Input id="firstName" name="firstName" required />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="lastName">Last Name</Label>
+                                        <Input id="lastName" name="lastName" />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="email_address">Email Address <span className="text-destructive">*</span></Label>
