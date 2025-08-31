@@ -409,25 +409,54 @@ export async function handleCreateAdmissionsTable(prevState: { message: string, 
 }
 
 export async function handleCreateIctCodeTable(prevState: { message: string, type?: string }, formData: FormData) {
+  const file = formData.get("file") as File | null;
+  
+  if (!file) {
+      return { message: "No Excel file provided.", type: "error" };
+  }
+
+  const bytes = await file.arrayBuffer();
+  const workbook = XLSX.read(bytes, { type: "array" });
+  const sheetName = workbook.SheetNames[0];
+  const worksheet = workbook.Sheets[sheetName];
+  const data = XLSX.utils.sheet_to_json(worksheet) as { shortcode: string; description: string }[];
+
+  const BATCH_SIZE = 1000;
+  let totalInserted = 0;
+
   try {
-    await poolConnect;
-    const request = pool.request();
-    const createIctCodeTableQuery = `
-      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='ict_code' and xtype='U')
-      BEGIN
-        CREATE TABLE ict_code (
-          id INT IDENTITY(1,1) PRIMARY KEY,
-          shortcode NVARCHAR(255) NOT NULL,
-          description NVARCHAR(MAX)
-        );
-      END
-    `;
-    await request.query(createIctCodeTableQuery);
-    return { message: "ICT Code table created successfully or already exists.", type: "success" };
+      await poolConnect;
+
+      for (let i = 0; i < data.length; i += BATCH_SIZE) {
+          const batch = data.slice(i, i + BATCH_SIZE);
+          const transaction = new sql.Transaction(pool);
+          await transaction.begin();
+          
+          try {
+              for (const row of batch) {
+                  const request = new sql.Request(transaction);
+                  await request
+                      .input('shortcode', sql.NVarChar, row.shortcode)
+                      .input('description', sql.NVarChar, row.description)
+                      .query('INSERT INTO ict_code (shortcode, description) VALUES (@shortcode, @description)');
+              }
+              await transaction.commit();
+              totalInserted += batch.length;
+          } catch (error) {
+              await transaction.rollback();
+              const dbError = error as Error;
+              console.error('Error during batch insert:', dbError);
+              return { message: `Error importing data: ${dbError.message}. Processed ${totalInserted} rows.`, type: "error" };
+          }
+      }
+
+      revalidatePath('/dashboard/import');
+      return { message: `Successfully imported ${totalInserted} ICT codes.`, type: "success" };
+
   } catch (error) {
-    const dbError = error as { message?: string };
-    console.error('Error creating ICT Code table:', dbError);
-    return { message: `Error creating ICT Code table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+      const dbError = error as Error;
+      console.error('Error connecting to database:', dbError);
+      return { message: `Database connection error: ${dbError.message}`, type: "error" };
   }
 }
 
@@ -441,13 +470,10 @@ export async function handleCreateDoctorsTable(prevState: { message: string, typ
         CREATE TABLE doctors (
           id INT IDENTITY(1,1) PRIMARY KEY,
           name NVARCHAR(255) NOT NULL,
-          specialty NVARCHAR(255),
-          registration_number NVARCHAR(100) UNIQUE,
-          contact_number NVARCHAR(50),
-          email NVARCHAR(255) UNIQUE,
-          hospital_id NVARCHAR(255),
-          created_at DATETIME DEFAULT GETDATE(),
-          updated_at DATETIME DEFAULT GETDATE()
+          email NVARCHAR(255),
+          phone NVARCHAR(50),
+          qualification NVARCHAR(255),
+          reg_no NVARCHAR(100)
         );
       END
     `;
@@ -459,3 +485,5 @@ export async function handleCreateDoctorsTable(prevState: { message: string, typ
     return { message: `Error creating Doctors table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
+
+    
