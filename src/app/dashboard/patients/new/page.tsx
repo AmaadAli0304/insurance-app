@@ -241,8 +241,8 @@ export default function NewPatientPage() {
                                         <Input id="firstName" name="firstName" required />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="lastName">Last Name</Label>
-                                        <Input id="lastName" name="lastName" />
+                                        <Label htmlFor="lastName">Last Name <span className="text-destructive">*</span></Label>
+                                        <Input id="lastName" name="lastName" required />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="email_address">Email Address <span className="text-destructive">*</span></Label>

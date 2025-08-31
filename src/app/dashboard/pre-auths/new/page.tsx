@@ -261,8 +261,8 @@ export default function NewRequestPage() {
                                     <Input id="firstName" name="firstName" defaultValue={patientDetails.firstName} required />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="lastName">Last Name</Label>
-                                    <Input id="lastName" name="lastName" defaultValue={patientDetails.lastName} />
+                                    <Label htmlFor="lastName">Last Name <span className="text-destructive">*</span></Label>
+                                    <Input id="lastName" name="lastName" defaultValue={patientDetails.lastName} required />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="email_address">Email Address <span className="text-destructive">*</span></Label>

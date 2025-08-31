@@ -295,8 +295,8 @@ export default function EditPatientPage() {
                                             <Input id="firstName" name="firstName" defaultValue={patient.firstName} required />
                                         </div>
                                          <div className="space-y-2">
-                                            <Label htmlFor="lastName">Last Name</Label>
-                                            <Input id="lastName" name="lastName" defaultValue={patient.lastName} />
+                                            <Label htmlFor="lastName">Last Name <span className="text-destructive">*</span></Label>
+                                            <Input id="lastName" name="lastName" defaultValue={patient.lastName} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="email_address">Email Address <span className="text-destructive">*</span></Label>

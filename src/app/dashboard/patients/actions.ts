@@ -13,8 +13,8 @@ const phoneRegex = new RegExp(/^\d{10}$/);
 
 const basePatientFormSchema = z.object({
   // Patient Details
-  firstName: z.string().min(1, 'First Name is required').optional().nullable(),
-  lastName: z.string().optional().nullable(),
+  firstName: z.string().min(1, 'First Name is required'),
+  lastName: z.string().min(1, 'Last Name is required'),
   email_address: z.string().email("Invalid email address.").optional().nullable(),
   phone_number: z.string().optional().nullable(),
   alternative_number: z.string().optional().nullable(),
