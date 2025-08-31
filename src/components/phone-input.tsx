@@ -257,6 +257,18 @@ const countries = [
     { code: "+263", name: "ZW" }
 ];
 
+function countryCodeToFlag(isoCode: string) {
+  if (!isoCode || isoCode.length !== 2) {
+    return '';
+  }
+  return String.fromCodePoint(
+    ...isoCode
+      .toUpperCase()
+      .split('')
+      .map(char => 0x1F1A5 + char.charCodeAt(0))
+  );
+}
+
 export function PhoneInput({ name, defaultValue = "", className, ...props }: PhoneInputProps) {
   const [countryCode, setCountryCode] = React.useState("+91");
   const [number, setNumber] = React.useState(defaultValue);
@@ -267,13 +279,21 @@ export function PhoneInput({ name, defaultValue = "", className, ...props }: Pho
     <div className={cn("flex items-center", className)}>
       <input type="hidden" name={name} value={fullNumber} />
       <Select value={countryCode} onValueChange={setCountryCode}>
-        <SelectTrigger className="w-[100px] rounded-r-none focus:ring-0">
-          <SelectValue placeholder="Code" />
+        <SelectTrigger className="w-[120px] rounded-r-none focus:ring-0">
+          <SelectValue placeholder="Code">
+            <span className="flex items-center gap-2">
+                {countryCodeToFlag(countries.find(c => c.code === countryCode)?.name || '')}
+                {countryCode}
+            </span>
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
             {countries.map((country) => (
                 <SelectItem key={country.name} value={country.code}>
-                    {country.name} ({country.code})
+                    <span className="flex items-center gap-2">
+                        {countryCodeToFlag(country.name)}
+                        {country.name} ({country.code})
+                    </span>
                 </SelectItem>
             ))}
         </SelectContent>
