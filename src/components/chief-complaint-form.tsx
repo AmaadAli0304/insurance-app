@@ -84,10 +84,6 @@ export function ChiefComplaintForm({ initialData, patientId }: ChiefComplaintFor
                     <CardTitle>H. Chief Complaint</CardTitle>
                     <CardDescription>Select complaints and specify their duration.</CardDescription>
                 </div>
-                <Button type="button" onClick={addComplaint} size="sm">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Add Complaint
-                </Button>
             </div>
         </CardHeader>
       <CardContent>
