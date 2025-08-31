@@ -6,7 +6,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export interface Complaint {
@@ -63,31 +62,22 @@ export function ChiefComplaintForm({ initialData, patientId }: ChiefComplaintFor
     );
   };
 
-  const removeComplaint = (id: number) => {
-    setComplaints(complaints.filter(c => c.id !== id));
-  }
-
   return (
     <Card>
         <CardHeader>
-             <div className="flex justify-between items-center">
-                <div>
-                    <CardTitle>Medical History</CardTitle>
-                </div>
-            </div>
+            <CardTitle>Medical History</CardTitle>
         </CardHeader>
       <CardContent>
         <input type="hidden" name="chiefComplaints" value={JSON.stringify(complaints.filter(c => c.selected))} />
         <div className="overflow-x-auto">
-            <div className="grid grid-cols-[auto_1fr_1fr_1fr_auto] gap-x-4 items-center border-b pb-2 mb-2 font-medium">
+            <div className="grid grid-cols-[auto_1fr_1fr_1fr] gap-x-4 items-center border-b pb-2 mb-2 font-medium">
                 <Label className="px-2">#</Label>
                 <Label>Complaint</Label>
                 <Label>From</Label>
                 <Label>To</Label>
-                <Label className="sr-only">Actions</Label>
             </div>
              {complaints.map((complaint) => (
-                <div key={complaint.id} className="grid grid-cols-[auto_1fr_1fr_1fr_auto] gap-x-4 items-center mb-2">
+                <div key={complaint.id} className="grid grid-cols-[auto_1fr_1fr_1fr] gap-x-4 items-center mb-2">
                     <Checkbox
                         checked={complaint.selected}
                         onCheckedChange={() => handleToggle(complaint.id)}
@@ -119,9 +109,6 @@ export function ChiefComplaintForm({ initialData, patientId }: ChiefComplaintFor
                         disabled={!complaint.selected}
                         placeholder="e.g. 3"
                     />
-                     <Button type="button" variant="ghost" size="icon" onClick={() => removeComplaint(complaint.id)} disabled={initialComplaints.some(c => c.name === complaint.name)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
                 </div>
             ))}
         </div>
