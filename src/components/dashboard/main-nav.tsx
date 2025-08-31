@@ -18,6 +18,7 @@ export function MainNav() {
       { href: '/dashboard/companies', label: 'Companies', icon: Factory },
       { href: '/dashboard/tpas', label: 'TPAs', icon: Briefcase },
       { href: '/dashboard/staff', label: 'Staff', icon: Users },
+      { href: '/dashboard/doctors', label: 'Doctors', icon: Stethoscope },
       { href: '/dashboard/import', label: 'Import', icon: Upload },
     ],
     'Hospital Staff': [
@@ -32,6 +33,7 @@ export function MainNav() {
       { href: '/dashboard/companies', label: 'Companies', icon: Factory },
       { href: '/dashboard/tpas', label: 'TPAs', icon: Briefcase },
       { href: '/dashboard/staff', label: 'Staff', icon: Users },
+      { href: '/dashboard/doctors', label: 'Doctors', icon: Stethoscope },
       { href: '/dashboard/import', label: 'Import', icon: Upload },
     ],
   };
