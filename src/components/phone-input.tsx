@@ -2,6 +2,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
@@ -257,23 +258,15 @@ const countries = [
     { code: "+263", name: "ZW" }
 ];
 
-function countryCodeToFlag(isoCode: string) {
-  if (!isoCode || isoCode.length !== 2) {
-    return '';
-  }
-  return String.fromCodePoint(
-    ...isoCode
-      .toUpperCase()
-      .split('')
-      .map(char => 0x1F1A5 + char.charCodeAt(0))
-  );
-}
-
 export function PhoneInput({ name, defaultValue = "", className, ...props }: PhoneInputProps) {
   const [countryCode, setCountryCode] = React.useState("+91");
   const [number, setNumber] = React.useState(defaultValue);
 
   const fullNumber = `${countryCode}${number}`;
+  
+  const getCountryIsoCode = (code: string) => {
+    return countries.find(c => c.code === code)?.name.toLowerCase();
+  }
 
   return (
     <div className={cn("flex items-center", className)}>
@@ -282,7 +275,7 @@ export function PhoneInput({ name, defaultValue = "", className, ...props }: Pho
         <SelectTrigger className="w-[120px] rounded-r-none focus:ring-0">
           <SelectValue placeholder="Code">
             <span className="flex items-center gap-2">
-                {countryCodeToFlag(countries.find(c => c.code === countryCode)?.name || '')}
+                <Image src={`https://flagcdn.com/16x12/${getCountryIsoCode(countryCode)}.png`} width={16} height={12} alt="Country Flag" />
                 {countryCode}
             </span>
           </SelectValue>
@@ -291,7 +284,7 @@ export function PhoneInput({ name, defaultValue = "", className, ...props }: Pho
             {countries.map((country) => (
                 <SelectItem key={country.name} value={country.code}>
                     <span className="flex items-center gap-2">
-                        {countryCodeToFlag(country.name)}
+                        <Image src={`https://flagcdn.com/16x12/${country.name.toLowerCase()}.png`} width={16} height={12} alt={`${country.name} Flag`} />
                         {country.name} ({country.code})
                     </span>
                 </SelectItem>
@@ -309,5 +302,4 @@ export function PhoneInput({ name, defaultValue = "", className, ...props }: Pho
     </div>
   );
 }
-
     
