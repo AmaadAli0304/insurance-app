@@ -898,8 +898,5 @@ export async function getChiefComplaints(patientId: number) {
         return [];
     }
 }
-    
-
-    
 
     

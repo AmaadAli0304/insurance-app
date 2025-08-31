@@ -21,6 +21,7 @@ import { format } from "date-fns";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
+import { PhoneInput } from "@/components/phone-input";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -270,11 +271,11 @@ export default function NewRequestPage() {
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="phone_number">Registered mobile number <span className="text-destructive">*</span></Label>
-                                    <Input id="phone_number" name="phone_number" defaultValue={patientDetails.phoneNumber ?? ''} required maxLength={10} />
+                                    <PhoneInput name="phone_number" defaultValue={patientDetails.phoneNumber ?? ''} required />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="alternative_number">Alternate contact number</Label>
-                                    <Input id="alternative_number" name="alternative_number" defaultValue={patientDetails.alternative_number ?? ''} maxLength={10} />
+                                    <PhoneInput name="alternative_number" defaultValue={patientDetails.alternative_number ?? ''} />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="gender">Gender <span className="text-destructive">*</span></Label>
@@ -365,7 +366,7 @@ export default function NewRequestPage() {
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="family_doctor_phone">Family physician contact</Label>
-                                    <Input id="family_doctor_phone" name="family_doctor_phone" defaultValue={patientDetails.family_doctor_phone ?? ''} maxLength={10} />
+                                    <PhoneInput name="family_doctor_phone" defaultValue={patientDetails.family_doctor_phone ?? ''} />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="payer_email">Proposer/Payer email ID <span className="text-destructive">*</span></Label>
@@ -373,7 +374,7 @@ export default function NewRequestPage() {
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="payer_phone">Proposer/Payer phone number <span className="text-destructive">*</span></Label>
-                                    <Input id="payer_phone" name="payer_phone" defaultValue={patientDetails.payer_phone ?? ''} required maxLength={10} />
+                                    <PhoneInput name="payer_phone" defaultValue={patientDetails.payer_phone ?? ''} required />
                                 </div>
                                  <div className="space-y-2">
                                     <Label htmlFor="tpaName">TPA</Label>
@@ -385,7 +386,7 @@ export default function NewRequestPage() {
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="treat_doc_number">Treating doctor’s contact <span className="text-destructive">*</span></Label>
-                                    <Input id="treat_doc_number" name="treat_doc_number" defaultValue={patientDetails.treat_doc_number ?? ''} required maxLength={10} />
+                                    <PhoneInput name="treat_doc_number" defaultValue={patientDetails.treat_doc_number ?? ''} required />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="treat_doc_qualification">Doctor’s qualification <span className="text-destructive">*</span></Label>
@@ -543,7 +544,7 @@ export default function NewRequestPage() {
                                     </CardContent>
                                 </AccordionContent>
                             </AccordionItem>
-                            </Card>
+                             </Card>
 
                              <Card>
                             <AccordionItem value="cost-info">
@@ -668,7 +669,7 @@ export default function NewRequestPage() {
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="patientDeclarationContact">Contact number</Label>
-                                                <Input id="patientDeclarationContact" name="patientDeclarationContact" defaultValue={patientDetails.phoneNumber ?? ''} />
+                                                <PhoneInput name="patientDeclarationContact" defaultValue={patientDetails.phoneNumber ?? ''} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="patientDeclarationEmail">Email ID</Label>
@@ -758,3 +759,5 @@ export default function NewRequestPage() {
         </div>
     );
 }
+
+    
