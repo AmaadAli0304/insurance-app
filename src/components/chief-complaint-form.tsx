@@ -6,8 +6,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, PlusCircle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Trash2 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export interface Complaint {
   id: number;
@@ -18,15 +18,16 @@ export interface Complaint {
 }
 
 const initialComplaints: Omit<Complaint, 'id' | 'selected' | 'durationValue' | 'durationUnit'>[] = [
-  { name: 'FEVER' },
-  { name: 'BODY ACHE' },
-  { name: 'COLD' },
-  { name: 'VOMITING' },
-  { name: 'COUGH' },
-  { name: 'DIARRHEA' },
-  { name: 'SORE THROAT' },
-  { name: 'LOSS OF SMELL OR TASTE' },
-  { name: 'BREATHLESSNESS' },
+    { name: 'Diabetes' },
+    { name: 'Hypertension' },
+    { name: 'Heart disease' },
+    { name: 'Hyperlipidemia' },
+    { name: 'Osteoarthritis' },
+    { name: 'Asthma/COPD/Bronchitis' },
+    { name: 'Cancer' },
+    { name: 'Alcohol or drug abuse' },
+    { name: 'HIV/STD/related' },
+    { name: 'Any other chronic ailment (specify and since when)' },
 ];
 
 interface ChiefComplaintFormProps {
