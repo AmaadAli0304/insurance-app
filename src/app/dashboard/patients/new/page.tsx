@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useActionState, useEffect, useState, useRef } from "react";
@@ -24,6 +23,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { IctCodeSearch } from "@/components/ict-code-search";
 import { ChiefComplaintForm } from "@/components/chief-complaint-form";
 import { PhoneInput } from "@/components/phone-input";
+import { DoctorSearch } from "@/components/doctor-search";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -409,11 +409,11 @@ export default function NewPatientPage() {
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="treat_doc_name">Treating doctor’s name <span className="text-destructive">*</span></Label>
-                                        <Input id="treat_doc_name" name="treat_doc_name" required />
+                                        <DoctorSearch />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="treat_doc_number">Treating doctor’s contact <span className="text-destructive">*</span></Label>
-                                        <PhoneInput name="treat_doc_number" required />
+                                        <PhoneInput id="treat_doc_number" name="treat_doc_number" required />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="treat_doc_qualification">Doctor’s qualification <span className="text-destructive">*</span></Label>
@@ -698,11 +698,11 @@ export default function NewPatientPage() {
                                         <Label>Attachments to enclose</Label>
                                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                             {['ID proof', 'Policy copy', 'Doctor’s notes', 'Investigations', 'Estimate'].map(item => (
-                                                    <div key={item} className="flex items-center space-x-2">
-                                                    <Checkbox id={`att-${item}`} name="attachments" value={item} />
-                                                    <Label htmlFor={`att-${item}`} className="font-normal">{item}</Label>
-                                                </div>
-                                            ))}
+                                                     <div key={item} className="flex items-center space-x-2">
+                                                        <Checkbox id={`att-${item}`} name="attachments" value={item} />
+                                                        <Label htmlFor={`att-${item}`} className="font-normal">{item}</Label>
+                                                    </div>
+                                                ))}
                                         </div>
                                     </div>
                                 </CardContent>
@@ -721,5 +721,3 @@ export default function NewPatientPage() {
         </div>
     );
 }
-
-    

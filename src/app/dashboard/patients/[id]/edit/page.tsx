@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useActionState, useEffect, useState, useRef } from "react";
@@ -24,6 +23,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { IctCodeSearch } from "@/components/ict-code-search";
 import { ChiefComplaintForm, Complaint } from "@/components/chief-complaint-form";
 import { PhoneInput } from "@/components/phone-input";
+import { DoctorSearch } from "@/components/doctor-search";
 
 
 function SubmitButton() {
@@ -462,11 +462,18 @@ export default function EditPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_name">Treating doctor’s name <span className="text-destructive">*</span></Label>
-                                            <Input id="treat_doc_name" name="treat_doc_name" defaultValue={patient.treat_doc_name ?? ''} required />
+                                            <DoctorSearch
+                                                defaultDoctor={{ 
+                                                    name: patient.treat_doc_name ?? '',
+                                                    phone: patient.treat_doc_number ?? '',
+                                                    qualification: patient.treat_doc_qualification ?? '',
+                                                    reg_no: patient.treat_doc_reg_no ?? ''
+                                                }} 
+                                            />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_number">Treating doctor’s contact <span className="text-destructive">*</span></Label>
-                                            <PhoneInput name="treat_doc_number" defaultValue={patient.treat_doc_number ?? ''} required />
+                                            <PhoneInput id="treat_doc_number" name="treat_doc_number" defaultValue={patient.treat_doc_number ?? ''} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_qualification">Doctor’s qualification <span className="text-destructive">*</span></Label>
@@ -774,5 +781,3 @@ export default function EditPatientPage() {
         </div>
     );
 }
-
-    
