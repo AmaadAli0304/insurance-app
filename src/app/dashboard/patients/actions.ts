@@ -143,6 +143,7 @@ const basePatientFormSchema = z.object({
   hospitalDeclarationDate: z.string().optional().nullable(),
   hospitalDeclarationTime: z.string().optional().nullable(),
   attachments: z.array(z.string()).optional().nullable(),
+  chiefComplaints: z.string().optional().nullable(),
 });
 
 const addPatientFormSchema = basePatientFormSchema;
@@ -380,6 +381,36 @@ const buildObjectFromFormData = (formData: FormData) => {
     return data;
 };
 
+async function handleSaveChiefComplaints(transaction: sql.Transaction, patientId: number, complaintsJson: string) {
+    if (!complaintsJson) return;
+
+    const complaints = JSON.parse(complaintsJson);
+    if (!Array.isArray(complaints) || complaints.length === 0) return;
+    
+    // Clear existing complaints for the patient
+    const deleteRequest = new sql.Request(transaction);
+    await deleteRequest
+      .input('patient_id', sql.Int, patientId)
+      .query('DELETE FROM chief_complaints WHERE patient_id = @patient_id');
+
+    // Insert new complaints
+    for (const complaint of complaints) {
+        if(complaint.selected && complaint.name){
+            const insertRequest = new sql.Request(transaction);
+            await insertRequest
+                .input('patient_id', sql.Int, patientId)
+                .input('complaint_name', sql.NVarChar, complaint.name)
+                .input('duration_value', sql.NVarChar, complaint.durationValue)
+                .input('duration_unit', sql.NVarChar, complaint.durationUnit)
+                .query(`
+                    INSERT INTO chief_complaints (patient_id, complaint_name, duration_value, duration_unit)
+                    VALUES (@patient_id, @complaint_name, @duration_value, @duration_unit)
+                `);
+        }
+    }
+}
+
+
 export async function handleAddPatient(prevState: { message: string, type?: string }, formData: FormData) {
   const formObject = buildObjectFromFormData(formData);
   const validatedFields = addPatientFormSchema.safeParse(formObject);
@@ -566,6 +597,8 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
             @hospitalDeclarationDoctorName, @hospitalDeclarationDate, @hospitalDeclarationTime, @attachments
           )
       `);
+      
+    await handleSaveChiefComplaints(transaction, patientId, data.chiefComplaints);
 
     await transaction.commit();
 
@@ -761,6 +794,8 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
                 WHERE patient_id = @patient_id
             `);
 
+        await handleSaveChiefComplaints(transaction, Number(patientId), data.chiefComplaints);
+
         await transaction.commit();
 
     } catch (error) {
@@ -786,6 +821,10 @@ export async function handleDeletePatient(prevState: { message: string, type?: s
         await poolConnect;
         transaction = new sql.Transaction(pool);
         await transaction.begin();
+        
+        await new sql.Request(transaction)
+          .input('patient_id', sql.Int, Number(id))
+          .query('DELETE FROM chief_complaints WHERE patient_id = @patient_id');
 
         await new sql.Request(transaction)
           .input('patient_id', sql.Int, Number(id))
@@ -826,6 +865,28 @@ export async function searchIctCodes(query: string): Promise<{ shortcode: string
     console.error('Error searching ICT codes:', error);
     return [];
   }
+}
+
+export async function getChiefComplaints(patientId: number) {
+    if(!patientId) return [];
+    try {
+        await poolConnect;
+        const result = await pool.request()
+            .input('patient_id', sql.Int, patientId)
+            .query('SELECT * FROM chief_complaints WHERE patient_id = @patient_id');
+        
+        return result.recordset.map(c => ({
+            id: c.id,
+            name: c.complaint_name,
+            selected: true,
+            durationValue: c.duration_value,
+            durationUnit: c.duration_unit
+        }));
+
+    } catch (error) {
+        console.error('Error fetching chief complaints:', error);
+        return [];
+    }
 }
     
 
