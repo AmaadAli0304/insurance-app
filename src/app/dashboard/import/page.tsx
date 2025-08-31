@@ -4,24 +4,13 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useFormStatus } from "react-dom";
-import { handleImportIctCodes, handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable } from "./actions";
+import { handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable } from "./actions";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble } from "lucide-react";
+import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble, Info } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 
-
-function SubmitImportButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" disabled={pending}>
-            <Upload className="mr-2 h-4 w-4" />
-            {pending ? "Importing..." : "Import ICT Codes"}
-        </Button>
-    );
-}
 
 function SubmitTableButton() {
     const { pending } = useFormStatus();
@@ -106,7 +95,6 @@ function SubmitIctCodeTableButton() {
 
 export default function ImportPage() {
     const { role } = useAuth();
-    const [importState, importAction] = useActionState(handleImportIctCodes, { message: "", type: undefined });
     const [createTableState, createTableAction] = useActionState(handleCreateTable, { message: "", type: undefined });
     const [createRelationshipTableState, createRelationshipTableAction] = useActionState(handleCreateRelationshipTables, { message: "", type: undefined });
     const [createHospitalTableState, createHospitalTableAction] = useActionState(handleCreateHospitalTable, { message: "", type: undefined });
@@ -118,7 +106,6 @@ export default function ImportPage() {
 
 
     const { toast } = useToast();
-    const importFormRef = useRef<HTMLFormElement>(null);
 
     const useToastEffect = (state: { type?: string; message: string; }, title: string) => {
         useEffect(() => {
@@ -130,7 +117,6 @@ export default function ImportPage() {
         }, [state, toast, title]);
     };
 
-    useToastEffect(importState, "Import ICT Codes");
     useToastEffect(createTableState, "Database Action");
     useToastEffect(createRelationshipTableState, "Database Action");
     useToastEffect(createHospitalTableState, "Database Action");
@@ -145,25 +131,24 @@ export default function ImportPage() {
         <div className="space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Import ICT Codes</CardTitle>
+                    <CardTitle>Import Large Datasets</CardTitle>
                     <CardDescription>
-                        Upload an XLSX file with ICT code data. Ensure the file has columns
-                        for &quot;shortcode&quot; and &quot;description&quot;.
+                        Guidance for importing large data files like ICT codes.
                     </CardDescription>
                 </CardHeader>
-                <form action={importAction} ref={importFormRef}>
-                    <CardContent className="space-y-4">
-                         <div className="space-y-2">
-                            <Label htmlFor="file">XLSX File</Label>
-                             <div className="flex items-center gap-2">
-                                <Input id="file" name="file" type="file" required accept=".xlsx" className="w-full md:w-auto" />
-                            </div>
-                        </div>
-
-                        {importState.type === 'error' && <p className="text-sm text-destructive">{importState.message}</p>}
-                        <SubmitImportButton />
-                    </CardContent>
-                </form>
+                <CardContent>
+                    <Alert>
+                        <Info className="h-4 w-4" />
+                        <AlertTitle>Important Note for Large File Imports</AlertTitle>
+                        <AlertDescription>
+                            Importing very large Excel files (e.g., 78,000+ rows) directly through the web interface can cause server timeouts. For the most reliable and efficient import of large datasets, we strongly recommend using a dedicated database management tool.
+                            <ul className="list-disc pl-5 mt-2">
+                                <li><b>Recommended Tool:</b> SQL Server Management Studio (SSMS) Import and Export Wizard.</li>
+                                <li><b>Process:</b> This wizard provides a user-friendly interface to map your Excel columns directly to the `ict_code` database table, ensuring a stable and fast import.</li>
+                            </ul>
+                        </AlertDescription>
+                    </Alert>
+                </CardContent>
             </Card>
 
             <Card>
