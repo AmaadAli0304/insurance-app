@@ -20,6 +20,7 @@ import React from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { IctCodeSearch } from "@/components/ict-code-search";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -443,7 +444,7 @@ export default function NewPatientPage() {
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="icd10Codes">ICD-10 diagnosis code(s) <span className="text-destructive">*</span></Label>
-                                        <Input id="icd10Codes" name="icd10Codes" required/>
+                                        <IctCodeSearch name="icd10Codes" required />
                                     </div>
                                     <div className="space-y-2 md:col-span-2">
                                         <Label>Proposed line of treatment <span className="text-destructive">*</span></Label>

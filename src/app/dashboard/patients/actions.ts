@@ -811,7 +811,22 @@ export async function handleDeletePatient(prevState: { message: string, type?: s
     return { message: "Patient deleted successfully.", type: 'success' };
 }
 
-
+export async function searchIctCodes(query: string): Promise<{ shortcode: string; description: string; }[]> {
+  try {
+    await poolConnect;
+    const result = await pool.request()
+      .input('query', sql.NVarChar, `%${query}%`)
+      .query(`
+        SELECT TOP 20 shortcode, description 
+        FROM ict_code 
+        WHERE shortcode LIKE @query OR description LIKE @query
+      `);
+    return result.recordset;
+  } catch (error) {
+    console.error('Error searching ICT codes:', error);
+    return [];
+  }
+}
     
 
     
