@@ -79,8 +79,7 @@ export function IctCodeSearch({ name, defaultValue = "", required = false }: Ict
                 className="p-2 hover:bg-accent cursor-pointer"
                 onClick={() => handleSelect(code.shortcode)}
               >
-                <div className="font-semibold">{code.shortcode}</div>
-                <div className="text-sm text-muted-foreground">{code.description}</div>
+                <div className="text-sm">{code.description}</div>
               </li>
             ))}
           </ul>
