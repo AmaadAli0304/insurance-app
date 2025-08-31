@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useActionState, useEffect, useState, useRef } from "react";
@@ -21,6 +22,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { IctCodeSearch } from "@/components/ict-code-search";
+import { ChiefComplaintForm } from "@/components/chief-complaint-form";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -642,27 +644,7 @@ export default function NewPatientPage() {
                         </AccordionItem>
                         </Card>
                         
-                        <Card>
-                        <AccordionItem value="history-info">
-                            <AccordionTrigger className="p-6">
-                                <CardTitle>H. Medical History <span className="text-destructive">*</span></CardTitle>
-                            </AccordionTrigger>
-                            <AccordionContent>
-                                <CardContent className="grid md:grid-cols-2 gap-x-8 gap-y-4">
-                                    <Input name="diabetesSince" placeholder="Diabetes – since (MM/YY)" required />
-                                    <Input name="hypertensionSince" placeholder="Hypertension – since (MM/YY)" required />
-                                    <Input name="heartDiseaseSince" placeholder="Heart disease – since (MM/YY)" required />
-                                    <Input name="hyperlipidemiaSince" placeholder="Hyperlipidemia – since (MM/YY)" required />
-                                    <Input name="osteoarthritisSince" placeholder="Osteoarthritis – since (MM/YY)" required />
-                                    <Input name="asthmaCopdSince" placeholder="Asthma/COPD – since (MM/YY)" required />
-                                    <Input name="cancerSince" placeholder="Cancer – since (MM/YY)" required />
-                                    <Input name="alcoholDrugAbuseSince" placeholder="Alcohol/drug abuse – since (MM/YY)" required />
-                                    <Input name="hivSince" placeholder="HIV/STD – since (MM/YY)" required />
-                                    <Input name="otherChronicAilment" placeholder="Any other chronic ailment (specify and since when)" required />
-                                </CardContent>
-                            </AccordionContent>
-                        </AccordionItem>
-                        </Card>
+                        <ChiefComplaintForm />
                         
                         <Card>
                         <AccordionItem value="declarations-info">

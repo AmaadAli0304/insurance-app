@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleUpdatePatient, getPatientById, handleUploadPatientFile } from "../../actions";
+import { handleUpdatePatient, getPatientById, handleUploadPatientFile, getChiefComplaints } from "../../actions";
 import Link from "next/link";
 import { ArrowLeft, Upload, User as UserIcon, Loader2, Eye, File as FileIcon } from "lucide-react";
 import { notFound, useParams, useRouter } from "next/navigation";
@@ -21,6 +21,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { IctCodeSearch } from "@/components/ict-code-search";
+import { ChiefComplaintForm, Complaint } from "@/components/chief-complaint-form";
 
 
 function SubmitButton() {
@@ -92,6 +93,7 @@ export default function EditPatientPage() {
     const [patient, setPatient] = useState<Patient | null>(null);
     const [companies, setCompanies] = useState<Pick<Company, "id" | "name">[]>([]);
     const [tpas, setTpas] = useState<Pick<TPA, "id" | "name">[]>([]);
+    const [chiefComplaints, setChiefComplaints] = useState<Complaint[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     
     const [photoUrl, setPhotoUrl] = useState<string | null>(null);
@@ -139,10 +141,11 @@ export default function EditPatientPage() {
     useEffect(() => {
         async function loadData() {
             try {
-                const [patientData, companyList, tpaList] = await Promise.all([
+                const [patientData, companyList, tpaList, complaintData] = await Promise.all([
                     getPatientById(id),
                     getCompaniesForForm(),
-                    getTPAsForForm()
+                    getTPAsForForm(),
+                    getChiefComplaints(Number(id)),
                 ]);
 
                 if (!patientData) {
@@ -153,6 +156,8 @@ export default function EditPatientPage() {
                 setPatient(patientData);
                 setCompanies(companyList);
                 setTpas(tpaList);
+                setChiefComplaints(complaintData);
+
                 if (patientData.photo && typeof patientData.photo === 'object') {
                     setPhotoUrl(patientData.photo.url);
                     setPhotoName(patientData.photo.name);
@@ -691,27 +696,7 @@ export default function EditPatientPage() {
                             </AccordionItem>
                         </Card>
                         
-                        <Card>
-                            <AccordionItem value="history-info">
-                                <AccordionTrigger className="p-6">
-                                    <CardTitle>H. Medical History <span className="text-destructive">*</span></CardTitle>
-                                </AccordionTrigger>
-                                <AccordionContent>
-                                    <CardContent className="grid md:grid-cols-2 gap-x-8 gap-y-4">
-                                        <Input name="diabetesSince" placeholder="Diabetes – since (MM/YY)" defaultValue={patient.diabetesSince ?? ''} required />
-                                        <Input name="hypertensionSince" placeholder="Hypertension – since (MM/YY)" defaultValue={patient.hypertensionSince ?? ''} required />
-                                        <Input name="heartDiseaseSince" placeholder="Heart disease – since (MM/YY)" defaultValue={patient.heartDiseaseSince ?? ''} required />
-                                        <Input name="hyperlipidemiaSince" placeholder="Hyperlipidemia – since (MM/YY)" defaultValue={patient.hyperlipidemiaSince ?? ''} required />
-                                        <Input name="osteoarthritisSince" placeholder="Osteoarthritis – since (MM/YY)" defaultValue={patient.osteoarthritisSince ?? ''} required />
-                                        <Input name="asthmaCopdSince" placeholder="Asthma/COPD – since (MM/YY)" defaultValue={patient.asthmaCopdSince ?? ''} required />
-                                        <Input name="cancerSince" placeholder="Cancer – since (MM/YY)" defaultValue={patient.cancerSince ?? ''} required />
-                                        <Input name="alcoholDrugAbuseSince" placeholder="Alcohol/drug abuse – since (MM/YY)" defaultValue={patient.alcoholDrugAbuseSince ?? ''} required />
-                                        <Input name="hivSince" placeholder="HIV/STD – since (MM/YY)" defaultValue={patient.hivSince ?? ''} required />
-                                        <Input name="otherChronicAilment" placeholder="Any other chronic ailment (specify and since when)" defaultValue={patient.otherChronicAilment ?? ''} required />
-                                    </CardContent>
-                                </AccordionContent>
-                            </AccordionItem>
-                        </Card>
+                        <ChiefComplaintForm initialData={chiefComplaints} patientId={id} />
                         
                         <Card>
                             <AccordionItem value="declarations-info">
