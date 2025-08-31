@@ -62,16 +62,6 @@ export function ChiefComplaintForm({ initialData, patientId }: ChiefComplaintFor
     );
   };
 
-  const addComplaint = () => {
-    setComplaints([...complaints, { 
-        id: Date.now(), 
-        name: '', 
-        selected: true, 
-        durationValue: '', 
-        durationUnit: 'Day' 
-    }]);
-  };
-  
   const removeComplaint = (id: number) => {
     setComplaints(complaints.filter(c => c.id !== id));
   }
@@ -81,8 +71,7 @@ export function ChiefComplaintForm({ initialData, patientId }: ChiefComplaintFor
         <CardHeader>
              <div className="flex justify-between items-center">
                 <div>
-                    <CardTitle>H. Chief Complaint</CardTitle>
-                    <CardDescription>Select complaints and specify their duration.</CardDescription>
+                    <CardTitle>Medical History</CardTitle>
                 </div>
             </div>
         </CardHeader>
