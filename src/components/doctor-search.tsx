@@ -1,12 +1,9 @@
-
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Input } from "@/components/ui/input";
+import React, { useState, useEffect, useCallback } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getDoctors, Doctor } from "@/app/dashboard/doctors/actions";
-import { Loader2 } from "lucide-react";
-import { useDebounce } from "@/hooks/use-debounce";
-import { Label } from "./ui/label";
+import { Input } from "@/components/ui/input";
 
 interface DoctorSearchProps {
   defaultDoctor?: {
@@ -18,105 +15,79 @@ interface DoctorSearchProps {
 }
 
 export function DoctorSearch({ defaultDoctor }: DoctorSearchProps) {
-  const [query, setQuery] = useState(defaultDoctor?.name || "");
-  const [results, setResults] = useState<Doctor[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
-  const debouncedQuery = useDebounce(query, 300);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const handleSearch = useCallback(async () => {
-    if (debouncedQuery.length < 2) {
-      setResults([]);
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const doctors = await getDoctors(); // Fetches all doctors
-      const filteredDoctors = doctors.filter(doctor => 
-        doctor.name.toLowerCase().includes(debouncedQuery.toLowerCase())
-      );
-      setResults(filteredDoctors);
-    } catch (error) {
-      console.error("Failed to fetch doctors", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [debouncedQuery]);
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    handleSearch();
-  }, [handleSearch]);
+    async function fetchDoctors() {
+      try {
+        const fetchedDoctors = await getDoctors();
+        setDoctors(fetchedDoctors);
+        
+        // Set default selection if defaultDoctor is provided and found in the list
+        if (defaultDoctor?.name) {
+          const foundDoctor = fetchedDoctors.find(d => d.name === defaultDoctor.name);
+          if (foundDoctor) {
+            setSelectedDoctorId(String(foundDoctor.id));
+          }
+        }
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+      } catch (error) {
+        console.error("Failed to fetch doctors", error);
+      } finally {
+        setIsLoading(false);
       }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  const handleSelect = (doctor: Doctor) => {
-    setQuery(doctor.name);
-
-    // Find the form and update the other doctor fields
-    const form = containerRef.current?.closest('form');
-    if (form) {
-      (form.querySelector('#treat_doc_number') as HTMLInputElement).value = doctor.phone || '';
-      (form.querySelector('#treat_doc_qualification') as HTMLInputElement).value = doctor.qualification || '';
-      (form.querySelector('#treat_doc_reg_no') as HTMLInputElement).value = doctor.reg_no || '';
     }
-
-    setIsOpen(false);
-  };
-  
-  // Effect to populate form if defaultDoctor is provided and changes
-  useEffect(() => {
-    if (defaultDoctor?.name) {
-       setQuery(defaultDoctor.name);
-    }
+    fetchDoctors();
   }, [defaultDoctor]);
 
+  const handleSelect = (doctorId: string) => {
+    setSelectedDoctorId(doctorId);
+    const selectedDoctor = doctors.find(d => String(d.id) === doctorId);
+
+    const form = document.querySelector('form');
+    if (form && selectedDoctor) {
+        (form.querySelector('#treat_doc_name') as HTMLInputElement).value = selectedDoctor.name || '';
+        (form.querySelector('#treat_doc_number') as HTMLInputElement).value = selectedDoctor.phone || '';
+        (form.querySelector('#treat_doc_qualification') as HTMLInputElement).value = selectedDoctor.qualification || '';
+        (form.querySelector('#treat_doc_reg_no') as HTMLInputElement).value = selectedDoctor.reg_no || '';
+    } else if (form && !selectedDoctor) {
+        // Clear fields if no doctor is selected
+        (form.querySelector('#treat_doc_name') as HTMLInputElement).value = '';
+        (form.querySelector('#treat_doc_number') as HTMLInputElement).value = '';
+        (form.querySelector('#treat_doc_qualification') as HTMLInputElement).value = '';
+        (form.querySelector('#treat_doc_reg_no') as HTMLInputElement).value = '';
+    }
+  };
+
+  // This hidden input will hold the doctor's name for the form submission
+  const selectedDoctorName = doctors.find(d => String(d.id) === selectedDoctorId)?.name || defaultDoctor?.name || "";
+
   return (
-    <div className="relative" ref={containerRef}>
-        <Input
-            type="text"
-            id="treat_doc_name"
-            name="treat_doc_name"
-            value={query}
-            onChange={(e) => {
-                setQuery(e.target.value);
-                if (!isOpen) setIsOpen(true);
-            }}
-            onFocus={() => setIsOpen(true)}
+    <div>
+        <input type="hidden" id="treat_doc_name" name="treat_doc_name" value={selectedDoctorName} />
+        <Select
+            value={selectedDoctorId}
+            onValueChange={handleSelect}
             required
-            placeholder="Search for a doctor..."
-            autoComplete="off"
-        />
-        {isOpen && (
-            <div className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
-            {isLoading && <div className="p-2 flex items-center justify-center"><Loader2 className="h-5 w-5 animate-spin" /></div>}
-            {!isLoading && debouncedQuery.length > 1 && results.length === 0 && (
-                <div className="p-2 text-sm text-muted-foreground">No results found.</div>
-            )}
-            <ul>
-                {results.map((doctor) => (
-                <li
-                    key={doctor.id}
-                    className="p-2 hover:bg-accent cursor-pointer text-sm"
-                    onClick={() => handleSelect(doctor)}
-                >
-                    <p className="font-medium">{doctor.name}</p>
-                    <p className="text-xs text-muted-foreground">{doctor.qualification}</p>
-                </li>
-                ))}
-            </ul>
-            </div>
-        )}
+            disabled={isLoading}
+        >
+            <SelectTrigger>
+                <SelectValue placeholder="Select a doctor" />
+            </SelectTrigger>
+            <SelectContent>
+                {isLoading ? (
+                    <SelectItem value="loading" disabled>Loading doctors...</SelectItem>
+                ) : (
+                    doctors.map((doctor) => (
+                        <SelectItem key={doctor.id} value={String(doctor.id)}>
+                            {doctor.name}
+                        </SelectItem>
+                    ))
+                )}
+            </SelectContent>
+        </Select>
     </div>
   );
 }
