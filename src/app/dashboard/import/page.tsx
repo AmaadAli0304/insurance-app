@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useFormStatus } from "react-dom";
-import { handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable } from "./actions";
+import { handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable, handleCreateDoctorsTable } from "./actions";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble, Info } from "lucide-react";
+import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble, Info, Stethoscope } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 
 
@@ -92,6 +92,16 @@ function SubmitIctCodeTableButton() {
     );
 }
 
+function SubmitDoctorsTableButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending} variant="secondary">
+             <Stethoscope className="mr-2 h-4 w-4" />
+            {pending ? "Creating..." : "Create Doctors Table"}
+        </Button>
+    );
+}
+
 
 export default function ImportPage() {
     const { role } = useAuth();
@@ -103,6 +113,7 @@ export default function ImportPage() {
     const [createFieldOptionsTableState, createFieldOptionsTableAction] = useActionState(handleCreateFieldOptionsTable, { message: "", type: undefined });
     const [createAdmissionsTableState, createAdmissionsTableAction] = useActionState(handleCreateAdmissionsTable, { message: "", type: undefined });
     const [createIctCodeTableState, createIctCodeTableAction] = useActionState(handleCreateIctCodeTable, { message: "", type: undefined });
+    const [createDoctorsTableState, createDoctorsTableAction] = useActionState(handleCreateDoctorsTable, { message: "", type: undefined });
 
 
     const { toast } = useToast();
@@ -125,6 +136,7 @@ export default function ImportPage() {
     useToastEffect(createFieldOptionsTableState, "Database Action");
     useToastEffect(createAdmissionsTableState, "Database Action");
     useToastEffect(createIctCodeTableState, "Database Action");
+    useToastEffect(createDoctorsTableState, "Database Action");
     
 
     return (
@@ -182,6 +194,9 @@ export default function ImportPage() {
                     </form>
                     <form action={createIctCodeTableAction}>
                         <SubmitIctCodeTableButton />
+                    </form>
+                    <form action={createDoctorsTableAction}>
+                        <SubmitDoctorsTableButton />
                     </form>
                 </CardContent>
             </Card>

@@ -430,3 +430,32 @@ export async function handleCreateIctCodeTable(prevState: { message: string, typ
     return { message: `Error creating ICT Code table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
+
+export async function handleCreateDoctorsTable(prevState: { message: string, type?: string }, formData: FormData) {
+  try {
+    await poolConnect;
+    const request = pool.request();
+    const createDoctorsTableQuery = `
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='doctors' and xtype='U')
+      BEGIN
+        CREATE TABLE doctors (
+          id INT IDENTITY(1,1) PRIMARY KEY,
+          name NVARCHAR(255) NOT NULL,
+          specialty NVARCHAR(255),
+          registration_number NVARCHAR(100) UNIQUE,
+          contact_number NVARCHAR(50),
+          email NVARCHAR(255) UNIQUE,
+          hospital_id NVARCHAR(255),
+          created_at DATETIME DEFAULT GETDATE(),
+          updated_at DATETIME DEFAULT GETDATE()
+        );
+      END
+    `;
+    await request.query(createDoctorsTableQuery);
+    return { message: "Doctors table created successfully or already exists.", type: "success" };
+  } catch (error) {
+    const dbError = error as { message?: string };
+    console.error('Error creating Doctors table:', dbError);
+    return { message: `Error creating Doctors table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+  }
+}
