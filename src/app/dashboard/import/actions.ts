@@ -156,6 +156,9 @@ export async function handleCreatePatientsTable(prevState: { message: string, ty
           insurance_company NVARCHAR(255),
           policy_start_date DATE,
           policy_end_date DATE,
+          sum_insured DECIMAL(18, 2),
+          sum_utilized DECIMAL(18, 2),
+          total_sum DECIMAL(18, 2),
           corporate_policy_number NVARCHAR(255),
           other_policy_name NVARCHAR(255),
           family_doctor_name NVARCHAR(255),
@@ -317,6 +320,9 @@ export async function handleCreateAdmissionsTable(prevState: { message: string, 
           insurance_company NVARCHAR(255),
           policy_start_date DATE,
           policy_end_date DATE,
+          sum_insured DECIMAL(18, 2),
+          sum_utilized DECIMAL(18, 2),
+          total_sum DECIMAL(18, 2),
           corporate_policy_number NVARCHAR(255),
           other_policy_name NVARCHAR(255),
           family_doctor_name NVARCHAR(255),
@@ -483,4 +489,3 @@ export async function handleCreateChiefComplaintsTable(prevState: { message: str
         return { message: `Error creating table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
     }
 }
-    

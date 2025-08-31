@@ -426,6 +426,18 @@ export default function EditPatientPage() {
                                             <Input id="policy_end_date" name="policy_end_date" type="date" defaultValue={patient.policyEndDate ?? ''} required />
                                         </div>
                                         <div className="space-y-2">
+                                            <Label htmlFor="sumInsured">Sum Insured</Label>
+                                            <Input id="sumInsured" name="sumInsured" type="number" defaultValue={patient.sumInsured ?? ''} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="sumUtilized">Sum Utilized</Label>
+                                            <Input id="sumUtilized" name="sumUtilized" type="number" defaultValue={patient.sumUtilized ?? ''} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="totalSum">Total Sum</Label>
+                                            <Input id="totalSum" name="totalSum" type="number" defaultValue={patient.totalSum ?? ''} />
+                                        </div>
+                                        <div className="space-y-2">
                                             <Label htmlFor="corporate_policy_number">Corporate policy name/number</Label>
                                             <Input id="corporate_policy_number" name="corporate_policy_number" defaultValue={patient.corporate_policy_number ?? ''} />
                                         </div>

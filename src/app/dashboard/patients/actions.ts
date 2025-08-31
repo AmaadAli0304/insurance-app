@@ -53,6 +53,9 @@ const basePatientFormSchema = z.object({
   company_id: z.string().optional().nullable(),
   policy_start_date: z.string().optional().nullable(),
   policy_end_date: z.string().optional().nullable(),
+  sumInsured: z.coerce.number().optional().nullable(),
+  sumUtilized: z.coerce.number().optional().nullable(),
+  totalSum: z.coerce.number().optional().nullable(),
   corporate_policy_number: z.string().optional().nullable(),
   other_policy_name: z.string().optional().nullable(),
   family_doctor_name: z.string().optional().nullable(),
@@ -238,6 +241,9 @@ export async function getPatientById(id: string): Promise<Patient | null> {
           a.insurance_company as companyId,
           a.policy_start_date as policyStartDate,
           a.policy_end_date as policyEndDate,
+          a.sum_insured as sumInsured,
+          a.sum_utilized as sumUtilized,
+          a.total_sum as totalSum,
           c.name as companyName,
           t.name as tpaName
         FROM patients p
@@ -490,6 +496,9 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('insurance_company', sql.NVarChar, data.company_id) // Storing company ID
       .input('policy_start_date', data.policy_start_date ? sql.Date : sql.Date, data.policy_start_date ? new Date(data.policy_start_date) : null)
       .input('policy_end_date', data.policy_end_date ? sql.Date : sql.Date, data.policy_end_date ? new Date(data.policy_end_date) : null)
+      .input('sum_insured', sql.Decimal(18,2), data.sumInsured)
+      .input('sum_utilized', sql.Decimal(18,2), data.sumUtilized)
+      .input('total_sum', sql.Decimal(18,2), data.totalSum)
       .input('corporate_policy_number', sql.NVarChar, data.corporate_policy_number || null)
       .input('other_policy_name', sql.NVarChar, data.other_policy_name || null)
       .input('family_doctor_name', sql.NVarChar, data.family_doctor_name || null)
@@ -570,7 +579,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .query(`
           INSERT INTO admissions (
             patient_id, admission_id, relationship_policyholder, policy_number, insured_card_number, insurance_company, 
-            policy_start_date, policy_end_date, corporate_policy_number, other_policy_name, family_doctor_name, 
+            policy_start_date, policy_end_date, sum_insured, sum_utilized, total_sum, corporate_policy_number, other_policy_name, family_doctor_name, 
             family_doctor_phone, payer_email, payer_phone, tpa_id, hospital_id, treat_doc_name, treat_doc_number, 
             treat_doc_qualification, treat_doc_reg_no,
             natureOfIllness, clinicalFindings, ailmentDuration, firstConsultationDate, pastHistory, provisionalDiagnosis,
@@ -588,7 +597,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
           )
           VALUES (
             @patient_id, @admission_id, @relationship_policyholder, @policy_number, @insured_card_number, @insurance_company,
-            @policy_start_date, @policy_end_date, @corporate_policy_number, @other_policy_name, @family_doctor_name, 
+            @policy_start_date, @policy_end_date, @sum_insured, @sum_utilized, @total_sum, @corporate_policy_number, @other_policy_name, @family_doctor_name, 
             @family_doctor_phone, @payer_email, @payer_phone, @tpa_id, @hospital_id, @treat_doc_name, @treat_doc_number, 
             @treat_doc_qualification, @treat_doc_reg_no,
             @natureOfIllness, @clinicalFindings, @ailmentDuration, @firstConsultationDate, @pastHistory, @provisionalDiagnosis,
@@ -694,6 +703,9 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
             .input('insurance_company', sql.NVarChar, data.company_id)
             .input('policy_start_date', data.policy_start_date ? sql.Date : sql.Date, data.policy_start_date ? new Date(data.policy_start_date) : null)
             .input('policy_end_date', data.policy_end_date ? sql.Date : sql.Date, data.policy_end_date ? new Date(data.policy_end_date) : null)
+            .input('sum_insured', sql.Decimal(18,2), data.sumInsured)
+            .input('sum_utilized', sql.Decimal(18,2), data.sumUtilized)
+            .input('total_sum', sql.Decimal(18,2), data.totalSum)
             .input('corporate_policy_number', sql.NVarChar, data.corporate_policy_number || null)
             .input('other_policy_name', sql.NVarChar, data.other_policy_name || null)
             .input('family_doctor_name', sql.NVarChar, data.family_doctor_name || null)
@@ -775,7 +787,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
                 SET 
                 admission_id = @admission_id, relationship_policyholder = @relationship_policyholder, policy_number = @policy_number,
                 insured_card_number = @insured_card_number, insurance_company = @insurance_company, policy_start_date = @policy_start_date,
-                policy_end_date = @policy_end_date, corporate_policy_number = @corporate_policy_number, other_policy_name = @other_policy_name,
+                policy_end_date = @policy_end_date, sum_insured = @sum_insured, sum_utilized = @sum_utilized, total_sum = @total_sum, corporate_policy_number = @corporate_policy_number, other_policy_name = @other_policy_name,
                 family_doctor_name = @family_doctor_name, family_doctor_phone = @family_doctor_phone, payer_email = @payer_email,
                 payer_phone = @payer_phone, tpa_id = @tpa_id, treat_doc_name = @treat_doc_name,
                 treat_doc_number = @treat_doc_number, treat_doc_qualification = @treat_doc_qualification, treat_doc_reg_no = @treat_doc_reg_no,
@@ -898,5 +910,3 @@ export async function getChiefComplaints(patientId: number) {
         return [];
     }
 }
-
-    

@@ -78,6 +78,9 @@ export interface Patient {
   memberId?: string | null;
   policyStartDate?: string | null;
   policyEndDate?: string | null;
+  sumInsured?: number | null;
+  sumUtilized?: number | null;
+  totalSum?: number | null;
   photo?: { url: string; name: string; } | string | null;
   adhaar_path?: { url: string; name: string; } | string | null;
   pan_path?: { url: string; name: string; } | string | null;
@@ -224,6 +227,9 @@ export interface StaffingRequest {
   memberId?: string | null;
   policyStartDate?: string | null;
   policyEndDate?: string | null;
+  sumInsured?: number | null;
+  sumUtilized?: number | null;
+  totalSum?: number | null;
   admission_id?: string;
   relationship_policyholder?: string;
   corporate_policy_number?: string;
