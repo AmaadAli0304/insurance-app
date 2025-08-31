@@ -251,7 +251,7 @@ const countries = [
     { code: "+58", name: "VE" },
     { code: "+84", name: "VN" },
     { code: "+681", name: "WF" },
-    { code_m: "+212", name: "EH" },
+    { code: "+212", name: "EH" },
     { code: "+967", name: "YE" },
     { code: "+260", name: "ZM" },
     { code: "+263", name: "ZW" }
@@ -309,3 +309,5 @@ export function PhoneInput({ name, defaultValue = "", className, ...props }: Pho
     </div>
   );
 }
+
+    
