@@ -92,6 +92,16 @@ export default function NewPatientPage() {
     const [documentUrls, setDocumentUrls] = useState<Record<string, { url: string, name: string }>>({});
     const [totalCost, setTotalCost] = useState(0);
 
+    const roomCategories = [
+        "ICU", "General", "Deluxe", "MICU", "SICU", "Super Deluxe", "ICCU", "Male", 
+        "Female Ward", "Private", "Deluxe Suite", "Peadiatric", "Burns", "BMC", "OPD", 
+        "Economy1", "Dialysis", "Twin Sharing", "Ladies Ward", "NICU", "GW1", "ICU I", 
+        "ICU II", "GW I", "GW II", "Semi Deluxe", "Capped Bed", "Super deluxe 2", 
+        "Triple Sharing", "EXECUTIVE 01", "EXECUTIVE II", "EXECUTIVE I", "CLASSIC", 
+        "CLASSIC I", "CLASSIC II", "CLASSIC III", "CLASSIC SUITE I", "CLASSIC SUITE II", 
+        "CLASSIC SUITE III", "RECOVERY", "SPECIAL", "SEMI SPECIAL"
+    ];
+
     const calculateTotalCost = () => {
         const form = document.querySelector('form');
         if (!form) return;
@@ -580,7 +590,16 @@ export default function NewPatientPage() {
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="roomCategory">Requested room category <span className="text-destructive">*</span></Label>
-                                        <Input id="roomCategory" name="roomCategory" placeholder="e.g. Private, Semi-Private, General" required />
+                                        <Select name="roomCategory" required>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select a room category" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {roomCategories.map(category => (
+                                                    <SelectItem key={category} value={category}>{category}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="roomNursingDietCost">Room + Nursing + Diet (₹) <span className="text-destructive">*</span></Label>
