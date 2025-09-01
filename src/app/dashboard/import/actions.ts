@@ -117,13 +117,13 @@ export async function handleCreatePatientsTable(prevState: { message: string, ty
         CREATE TABLE patients (
           id INT IDENTITY(1,1) PRIMARY KEY,
           name NVARCHAR(255) NOT NULL,
-          email_address NVARCHAR(255) NOT NULL,
-          phone_number NVARCHAR(50) NOT NULL,
+          email_address NVARCHAR(255),
+          phone_number NVARCHAR(50),
           alternative_number NVARCHAR(50),
-          gender NVARCHAR(50) NOT NULL,
+          gender NVARCHAR(50),
           age INT,
           birth_date DATE,
-          address NVARCHAR(MAX) NOT NULL,
+          address NVARCHAR(MAX),
           occupation NVARCHAR(255),
           adhaar_path NVARCHAR(MAX),
           pan_path NVARCHAR(MAX),
@@ -489,3 +489,4 @@ export async function handleCreateChiefComplaintsTable(prevState: { message: str
         return { message: `Error creating table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
     }
 }
+
