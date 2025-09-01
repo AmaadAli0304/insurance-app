@@ -285,7 +285,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
 
     return patientData as Patient;
   } catch (error) {
-    console.error('Error fetching patient with id ${id}:', error);
+    console.error(`Error fetching patient with id ${id}:`, error);
     throw new Error("Failed to fetch patient from database.");
   }
 }
@@ -919,3 +919,6 @@ export async function getChiefComplaints(patientId: number) {
     }
 }
 
+
+
+    
