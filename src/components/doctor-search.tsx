@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -39,7 +38,7 @@ export function DoctorSearch({ doctors, defaultDoctorId }: DoctorSearchProps) {
     }
   };
 
-  const selectedDoctorName = doctors.find(d => String(d.id) === selectedDoctorId)?.name || "";
+  const selectedDoctorName = doctors?.find(d => String(d.id) === selectedDoctorId)?.name || "";
 
   return (
     <div>
@@ -49,7 +48,7 @@ export function DoctorSearch({ doctors, defaultDoctorId }: DoctorSearchProps) {
             value={selectedDoctorId}
             onValueChange={handleSelect}
             required
-            disabled={isLoading || doctors.length === 0}
+            disabled={isLoading || !doctors || doctors.length === 0}
         >
             <SelectTrigger>
                 <SelectValue placeholder="Select a doctor" />
@@ -58,7 +57,7 @@ export function DoctorSearch({ doctors, defaultDoctorId }: DoctorSearchProps) {
                 {isLoading ? (
                     <SelectItem value="loading" disabled>Loading doctors...</SelectItem>
                 ) : (
-                    doctors.map((doctor) => (
+                    doctors?.map((doctor) => (
                         <SelectItem key={doctor.id} value={String(doctor.id)}>
                             {doctor.name}
                         </SelectItem>
