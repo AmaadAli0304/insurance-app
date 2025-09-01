@@ -22,6 +22,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PhoneInput } from "@/components/phone-input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import dynamic from 'next/dynamic';
@@ -206,6 +207,9 @@ export default function NewRequestPage() {
             try {
                 const details = await getPatientWithDetailsForForm(selectedPatientId);
                 setPatientDetails(details);
+                 if (details?.tpaEmail) {
+                    setToEmail(details.tpaEmail);
+                }
             } catch (error) {
                 toast({ title: "Error", description: "Failed to fetch patient details.", variant: 'destructive' });
             } finally {
@@ -822,6 +826,18 @@ export default function NewRequestPage() {
                                   editorClassName="px-4 py-2 min-h-[150px]"
                                   toolbarClassName="border-b border-input"
                                 />
+                            </div>
+                            <div className="space-y-2">
+                                <RadioGroup defaultValue="pre-auth" name="requestType">
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="surgical" id="r1" />
+                                        <Label htmlFor="r1">Surgical Pre-Authorization Request</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="pre-auth" id="r2" />
+                                        <Label htmlFor="r2">Pre-Authorization Request</Label>
+                                    </div>
+                                </RadioGroup>
                             </div>
                         </CardContent>
                     </Card>
