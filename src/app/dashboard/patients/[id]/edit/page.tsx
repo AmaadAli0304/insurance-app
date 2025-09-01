@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useActionState, useEffect, useState, useRef } from "react";
@@ -646,7 +647,7 @@ export default function EditPatientPage() {
                                     <CardTitle>G. Admission &amp; Cost Estimate <span className="text-destructive">*</span></CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
-                                    <CardContent className="grid md:grid-cols-3 gap-4" onChange={calculateTotalCost}>
+                                    <CardContent className="grid md:grid-cols-3 gap-4" onBlur={calculateTotalCost}>
                                         <div className="space-y-2">
                                             <Label htmlFor="admissionDate">Admission date <span className="text-destructive">*</span></Label>
                                             <Input id="admissionDate" name="admissionDate" type="date" defaultValue={patient.admissionDate ?? ''} required/>

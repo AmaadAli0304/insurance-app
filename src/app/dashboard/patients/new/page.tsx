@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useActionState, useEffect, useState, useRef } from "react";
@@ -105,7 +106,7 @@ export default function NewPatientPage() {
         "CLASSIC SUITE III", "RECOVERY", "SPECIAL", "SEMI SPECIAL"
     ];
 
-    const calculateTotalCost = () => {
+    const calculateTotalCost = React.useCallback(() => {
         const form = document.querySelector('form');
         if (!form) return;
         const costs = [
@@ -120,11 +121,11 @@ export default function NewPatientPage() {
             }
         });
         setTotalCost(sum);
-    };
+    }, []);
 
     useEffect(() => {
         calculateTotalCost();
-    }, []); 
+    }, [calculateTotalCost]); 
 
     
     useEffect(() => {
@@ -586,7 +587,7 @@ export default function NewPatientPage() {
                                 <CardTitle>G. Admission &amp; Cost Estimate <span className="text-destructive">*</span></CardTitle>
                             </AccordionTrigger>
                             <AccordionContent>
-                                    <CardContent className="grid md:grid-cols-3 gap-4" onChange={calculateTotalCost}>
+                                    <CardContent className="grid md:grid-cols-3 gap-4" onBlur={calculateTotalCost}>
                                     <div className="space-y-2">
                                         <Label htmlFor="admissionDate">Admission date <span className="text-destructive">*</span></Label>
                                         <Input id="admissionDate" name="admissionDate" type="date" required />
