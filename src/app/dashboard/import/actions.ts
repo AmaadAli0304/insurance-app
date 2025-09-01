@@ -150,6 +150,7 @@ export async function handleCreatePatientsTable(prevState: { message: string, ty
         CREATE TABLE admissions (
           id INT IDENTITY(1,1) PRIMARY KEY,
           patient_id INT,
+          doctor_id INT,
           admission_id NVARCHAR(255),
           relationship_policyholder NVARCHAR(255),
           policy_number NVARCHAR(255),
@@ -314,6 +315,7 @@ export async function handleCreateAdmissionsTable(prevState: { message: string, 
         CREATE TABLE admissions (
           id INT IDENTITY(1,1) PRIMARY KEY,
           patient_id INT,
+          doctor_id INT,
           admission_id NVARCHAR(255),
           relationship_policyholder NVARCHAR(255),
           policy_number NVARCHAR(255),

@@ -66,6 +66,7 @@ const basePatientFormSchema = z.object({
   // Hospital & TPA
   tpa_id: z.coerce.number().optional().nullable(),
   hospital_id: z.string().optional().nullable(),
+  doctor_id: z.coerce.number().optional().nullable(),
   treat_doc_name: z.string().optional().nullable(),
   treat_doc_number: z.string().optional().nullable(),
   treat_doc_qualification: z.string().optional().nullable(),
@@ -247,6 +248,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
           p.other_path,
           a.id as admission_db_id,
           a.patient_id,
+          a.doctor_id,
           a.admission_id,
           a.relationship_policyholder,
           a.policy_number as policyNumber,
@@ -576,6 +578,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
     const admissionRequest = new sql.Request(transaction);
     await admissionRequest
       .input('patient_id', sql.Int, patientId)
+      .input('doctor_id', sql.Int, data.doctor_id)
       .input('admission_id', sql.NVarChar, data.admission_id)
       .input('relationship_policyholder', sql.NVarChar, data.relationship_policyholder)
       .input('policy_number', sql.NVarChar, data.policy_number)
@@ -665,7 +668,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('attachments', sql.NVarChar, data.attachments?.join(','))
       .query(`
           INSERT INTO admissions (
-            patient_id, admission_id, relationship_policyholder, policy_number, insured_card_number, insurance_company, 
+            patient_id, doctor_id, admission_id, relationship_policyholder, policy_number, insured_card_number, insurance_company, 
             policy_start_date, policy_end_date, sum_insured, sum_utilized, total_sum, corporate_policy_number, other_policy_name, family_doctor_name, 
             family_doctor_phone, payer_email, payer_phone, tpa_id, hospital_id, treat_doc_name, treat_doc_number, 
             treat_doc_qualification, treat_doc_reg_no,
@@ -683,7 +686,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
             hospitalDeclarationDoctorName, hospitalDeclarationDate, hospitalDeclarationTime, attachments
           )
           VALUES (
-            @patient_id, @admission_id, @relationship_policyholder, @policy_number, @insured_card_number, @insurance_company,
+            @patient_id, @doctor_id, @admission_id, @relationship_policyholder, @policy_number, @insured_card_number, @insurance_company,
             @policy_start_date, @policy_end_date, @sum_insured, @sum_utilized, @total_sum, @corporate_policy_number, @other_policy_name, @family_doctor_name, 
             @family_doctor_phone, @payer_email, @payer_phone, @tpa_id, @hospital_id, @treat_doc_name, @treat_doc_number, 
             @treat_doc_qualification, @treat_doc_reg_no,
@@ -782,6 +785,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
         const admissionRequest = new sql.Request(transaction);
         await admissionRequest
             .input('patient_id', sql.Int, Number(patientId))
+            .input('doctor_id', sql.Int, data.doctor_id)
             .input('admission_id', sql.NVarChar, data.admission_id)
             .input('relationship_policyholder', sql.NVarChar, data.relationship_policyholder)
             .input('policy_number', sql.NVarChar, data.policy_number)
@@ -871,6 +875,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
             .query(`
                 UPDATE admissions
                 SET 
+                doctor_id = @doctor_id,
                 admission_id = @admission_id, relationship_policyholder = @relationship_policyholder, policy_number = @policy_number,
                 insured_card_number = @insured_card_number, insurance_company = @insurance_company, policy_start_date = @policy_start_date,
                 policy_end_date = @policy_end_date, sum_insured = @sum_insured, sum_utilized = @sum_utilized, total_sum = @total_sum, corporate_policy_number = @corporate_policy_number, other_policy_name = @other_policy_name,

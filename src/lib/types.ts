@@ -99,6 +99,7 @@ export interface Patient {
   payer_email?: string;
   payer_phone?: string;
   tpa_id?: number;
+  doctor_id?: number;
   treat_doc_name?: string;
   treat_doc_number?: string;
   treat_doc_qualification?: string;
@@ -238,6 +239,7 @@ export interface StaffingRequest {
   family_doctor_phone?: string;
   payer_email?: string;
   payer_phone?: string;
+  doctor_id?: number;
   treat_doc_name?: string;
   treat_doc_number?: string;
   treat_doc_qualification?: string;

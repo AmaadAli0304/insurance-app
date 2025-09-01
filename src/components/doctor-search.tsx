@@ -12,11 +12,12 @@ interface DoctorSearchProps {
     qualification: string;
     reg_no: string;
   };
+  defaultDoctorId?: number;
 }
 
-export function DoctorSearch({ defaultDoctor }: DoctorSearchProps) {
+export function DoctorSearch({ defaultDoctor, defaultDoctorId }: DoctorSearchProps) {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [selectedDoctorId, setSelectedDoctorId] = useState<string>("");
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string>(defaultDoctorId?.toString() ?? "");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -26,7 +27,9 @@ export function DoctorSearch({ defaultDoctor }: DoctorSearchProps) {
         setDoctors(fetchedDoctors);
         
         // Set default selection if defaultDoctor is provided and found in the list
-        if (defaultDoctor?.name) {
+        if (defaultDoctorId) {
+            setSelectedDoctorId(String(defaultDoctorId));
+        } else if (defaultDoctor?.name) {
           const foundDoctor = fetchedDoctors.find(d => d.name === defaultDoctor.name);
           if (foundDoctor) {
             setSelectedDoctorId(String(foundDoctor.id));
@@ -40,7 +43,7 @@ export function DoctorSearch({ defaultDoctor }: DoctorSearchProps) {
       }
     }
     fetchDoctors();
-  }, [defaultDoctor]);
+  }, [defaultDoctor, defaultDoctorId]);
 
   const handleSelect = (doctorId: string) => {
     setSelectedDoctorId(doctorId);
@@ -62,11 +65,13 @@ export function DoctorSearch({ defaultDoctor }: DoctorSearchProps) {
   };
 
   // This hidden input will hold the doctor's name for the form submission
-  const selectedDoctorName = doctors.find(d => String(d.id) === selectedDoctorId)?.name || defaultDoctor?.name || "";
+  const selectedDoctor = doctors.find(d => String(d.id) === selectedDoctorId);
+  const selectedDoctorName = selectedDoctor?.name || defaultDoctor?.name || "";
 
   return (
     <div>
         <input type="hidden" id="treat_doc_name" name="treat_doc_name" value={selectedDoctorName} />
+        <input type="hidden" id="doctor_id" name="doctor_id" value={selectedDoctorId} />
         <Select
             value={selectedDoctorId}
             onValueChange={handleSelect}

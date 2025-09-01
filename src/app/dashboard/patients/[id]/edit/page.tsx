@@ -476,6 +476,7 @@ export default function EditPatientPage() {
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_name">Treating doctor’s name <span className="text-destructive">*</span></Label>
                                             <DoctorSearch
+                                                defaultDoctorId={patient.doctor_id ?? undefined}
                                                 defaultDoctor={{ 
                                                     name: patient.treat_doc_name ?? '',
                                                     phone: patient.treat_doc_number ?? '',
