@@ -367,11 +367,11 @@ export default function NewPatientPage() {
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="policy_start_date">Policy Start Date <span className="text-destructive">*</span></Label>
-                                        <Input id="policy_start_date" name="policy_start_date" type="date" required />
+                                        <Input id="policy_start_date" name="policy_start_date" type="date" required max={today} />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="policy_end_date">Policy End Date <span className="text-destructive">*</span></Label>
-                                        <Input id="policy_end_date" name="policy_end_date" type="date" required />
+                                        <Input id="policy_end_date" name="policy_end_date" type="date" required min={today} />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="sumInsured">Sum Insured</Label>
