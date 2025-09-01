@@ -294,8 +294,8 @@ export default function NewPatientPage() {
                                         <Input id="abha_id" name="abha_id" />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="health_id">Health ID / UHID</Label>
-                                        <Input id="health_id" name="health_id" />
+                                        <Label htmlFor="health_id">Health ID / UHID <span className="text-destructive">*</span></Label>
+                                        <Input id="health_id" name="health_id" required />
                                     </div>
                                 </CardContent>
                             </AccordionContent>
@@ -734,3 +734,5 @@ export default function NewPatientPage() {
         </div>
     );
 }
+
+    
