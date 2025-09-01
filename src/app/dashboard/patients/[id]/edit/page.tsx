@@ -8,12 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleUpdatePatient, getPatientById, handleUploadPatientFile, getChiefComplaints } from "../../actions";
+import { handleUpdatePatient, getPatientEditPageData, handleUploadPatientFile, getChiefComplaints, Doctor } from "../../actions";
 import Link from "next/link";
 import { ArrowLeft, Upload, User as UserIcon, Loader2, Eye, File as FileIcon } from "lucide-react";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getCompaniesForForm, getTPAsForForm } from "@/app/dashboard/company-hospitals/actions";
 import type { Patient, Company, TPA } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth-provider";
@@ -96,6 +95,7 @@ export default function EditPatientPage() {
     const [patient, setPatient] = useState<Patient | null>(null);
     const [companies, setCompanies] = useState<Pick<Company, "id" | "name">[]>([]);
     const [tpas, setTpas] = useState<Pick<TPA, "id" | "name">[]>([]);
+    const [doctors, setDoctors] = useState<Doctor[]>([]);
     const [chiefComplaints, setChiefComplaints] = useState<Complaint[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     
@@ -144,22 +144,20 @@ export default function EditPatientPage() {
     useEffect(() => {
         async function loadData() {
             try {
-                const [patientData, companyList, tpaList, complaintData] = await Promise.all([
-                    getPatientById(id),
-                    getCompaniesForForm(),
-                    getTPAsForForm(),
-                    getChiefComplaints(Number(id)),
-                ]);
+                const editData = await getPatientEditPageData(id);
 
-                if (!patientData) {
+                if (!editData || !editData.patient) {
                     notFound();
                     return;
                 }
                 
+                const { patient: patientData, companies, tpas, doctors, complaints } = editData;
+
                 setPatient(patientData);
-                setCompanies(companyList);
-                setTpas(tpaList);
-                setChiefComplaints(complaintData);
+                setCompanies(companies);
+                setTpas(tpas);
+                setDoctors(doctors);
+                setChiefComplaints(complaints);
 
                 if (patientData.photo && typeof patientData.photo === 'object') {
                     setPhotoUrl(patientData.photo.url);
@@ -476,13 +474,8 @@ export default function EditPatientPage() {
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_name">Treating doctor’s name <span className="text-destructive">*</span></Label>
                                             <DoctorSearch
+                                                doctors={doctors}
                                                 defaultDoctorId={patient.doctor_id ?? undefined}
-                                                defaultDoctor={{ 
-                                                    name: patient.treat_doc_name ?? '',
-                                                    phone: patient.treat_doc_number ?? '',
-                                                    qualification: patient.treat_doc_qualification ?? '',
-                                                    reg_no: patient.treat_doc_reg_no ?? ''
-                                                }} 
                                             />
                                         </div>
                                         <div className="space-y-2">

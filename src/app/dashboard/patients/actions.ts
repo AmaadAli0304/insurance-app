@@ -3,7 +3,7 @@
 "use server";
 
 import pool, { sql, poolConnect } from "@/lib/db";
-import { Patient } from "@/lib/types";
+import { Patient, Company, TPA } from "@/lib/types";
 import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
@@ -156,6 +156,26 @@ const updatePatientFormSchema = basePatientFormSchema.extend({
   id: z.string(), // Patient ID
 });
 
+export type Doctor = {
+  id: number;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  qualification?: string | null;
+  reg_no?: string | null;
+}
+
+export async function getDoctors(): Promise<Doctor[]> {
+  try {
+    await poolConnect;
+    const result = await pool.request().query('SELECT * FROM doctors');
+    return result.recordset as Doctor[];
+  } catch (error) {
+    console.error('Error fetching doctors:', error);
+    const dbError = error as Error;
+    throw new Error(`Error fetching doctors: ${dbError.message}`);
+  }
+}
 
 export async function getPatients(hospitalId?: string | null): Promise<Patient[]> {
   try {
@@ -370,6 +390,42 @@ export async function getPatientById(id: string): Promise<Patient | null> {
     console.error(`Error fetching patient with id ${id}:`, error);
     throw new Error("Failed to fetch patient from database.");
   }
+}
+
+export async function getPatientEditPageData(patientId: string) {
+    try {
+        await poolConnect;
+        const [patientData, companiesResult, tpasResult, doctorsResult, complaintsResult] = await Promise.all([
+            getPatientById(patientId),
+            pool.request().query('SELECT id, name FROM companies'),
+            pool.request().query('SELECT id, name FROM tpas'),
+            pool.request().query('SELECT * FROM doctors'),
+            pool.request().input('patient_id', sql.Int, Number(patientId)).query('SELECT * FROM chief_complaints WHERE patient_id = @patient_id')
+        ]);
+
+        if (!patientData) {
+            return null;
+        }
+
+        const complaints = complaintsResult.recordset.map(c => ({
+            id: c.id,
+            name: c.complaint_name,
+            selected: true,
+            durationValue: c.duration_value,
+            durationUnit: c.duration_unit
+        }));
+
+        return {
+            patient: patientData,
+            companies: companiesResult.recordset as Pick<Company, 'id' | 'name'>[],
+            tpas: tpasResult.recordset.map(r => ({ ...r, id: r.id.toString() })) as Pick<TPA, 'id' | 'name'>[],
+            doctors: doctorsResult.recordset as Doctor[],
+            complaints
+        };
+    } catch (error) {
+        console.error("Error fetching data for patient edit page:", error);
+        throw new Error("Failed to fetch data for patient edit page.");
+    }
 }
 
 export async function getPatientsForPreAuth(hospitalId: string): Promise<{ id: string; fullName: string; admission_id: string; }[]> {
@@ -1007,3 +1063,4 @@ export async function getChiefComplaints(patientId: number) {
     
 
     
+

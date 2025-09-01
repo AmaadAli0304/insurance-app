@@ -1,49 +1,24 @@
+
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getDoctors, Doctor } from "@/app/dashboard/doctors/actions";
-import { Input } from "@/components/ui/input";
+import { Doctor } from "@/app/dashboard/patients/actions";
 
 interface DoctorSearchProps {
-  defaultDoctor?: {
-    name: string;
-    phone: string;
-    qualification: string;
-    reg_no: string;
-  };
+  doctors: Doctor[];
   defaultDoctorId?: number;
 }
 
-export function DoctorSearch({ defaultDoctor, defaultDoctorId }: DoctorSearchProps) {
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
+export function DoctorSearch({ doctors, defaultDoctorId }: DoctorSearchProps) {
   const [selectedDoctorId, setSelectedDoctorId] = useState<string>(defaultDoctorId?.toString() ?? "");
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    async function fetchDoctors() {
-      try {
-        const fetchedDoctors = await getDoctors();
-        setDoctors(fetchedDoctors);
-        
-        // Set default selection if defaultDoctor is provided and found in the list
-        if (defaultDoctorId) {
-            setSelectedDoctorId(String(defaultDoctorId));
-        } else if (defaultDoctor?.name) {
-          const foundDoctor = fetchedDoctors.find(d => d.name === defaultDoctor.name);
-          if (foundDoctor) {
-            setSelectedDoctorId(String(foundDoctor.id));
-          }
-        }
-
-      } catch (error) {
-        console.error("Failed to fetch doctors", error);
-      } finally {
-        setIsLoading(false);
-      }
+    if (defaultDoctorId) {
+        setSelectedDoctorId(String(defaultDoctorId));
     }
-    fetchDoctors();
-  }, [defaultDoctor, defaultDoctorId]);
+  }, [defaultDoctorId]);
 
   const handleSelect = (doctorId: string) => {
     setSelectedDoctorId(doctorId);
@@ -51,32 +26,30 @@ export function DoctorSearch({ defaultDoctor, defaultDoctorId }: DoctorSearchPro
 
     const form = document.querySelector('form');
     if (form && selectedDoctor) {
-        (form.querySelector('#treat_doc_name') as HTMLInputElement).value = selectedDoctor.name || '';
-        (form.querySelector('#treat_doc_number') as HTMLInputElement).value = selectedDoctor.phone || '';
-        (form.querySelector('#treat_doc_qualification') as HTMLInputElement).value = selectedDoctor.qualification || '';
-        (form.querySelector('#treat_doc_reg_no') as HTMLInputElement).value = selectedDoctor.reg_no || '';
+        (form.querySelector<HTMLInputElement>('input[name="treat_doc_name"]'))!.value = selectedDoctor.name || '';
+        (form.querySelector<HTMLInputElement>('input[name="treat_doc_number"]'))!.value = selectedDoctor.phone || '';
+        (form.querySelector<HTMLInputElement>('input[name="treat_doc_qualification"]'))!.value = selectedDoctor.qualification || '';
+        (form.querySelector<HTMLInputElement>('input[name="treat_doc_reg_no"]'))!.value = selectedDoctor.reg_no || '';
     } else if (form && !selectedDoctor) {
         // Clear fields if no doctor is selected
-        (form.querySelector('#treat_doc_name') as HTMLInputElement).value = '';
-        (form.querySelector('#treat_doc_number') as HTMLInputElement).value = '';
-        (form.querySelector('#treat_doc_qualification') as HTMLInputElement).value = '';
-        (form.querySelector('#treat_doc_reg_no') as HTMLInputElement).value = '';
+        (form.querySelector<HTMLInputElement>('input[name="treat_doc_name"]'))!.value = '';
+        (form.querySelector<HTMLInputElement>('input[name="treat_doc_number"]'))!.value = '';
+        (form.querySelector<HTMLInputElement>('input[name="treat_doc_qualification"]'))!.value = '';
+        (form.querySelector<HTMLInputElement>('input[name="treat_doc_reg_no"]'))!.value = '';
     }
   };
 
-  // This hidden input will hold the doctor's name for the form submission
-  const selectedDoctor = doctors.find(d => String(d.id) === selectedDoctorId);
-  const selectedDoctorName = selectedDoctor?.name || defaultDoctor?.name || "";
+  const selectedDoctorName = doctors.find(d => String(d.id) === selectedDoctorId)?.name || "";
 
   return (
     <div>
-        <input type="hidden" id="treat_doc_name" name="treat_doc_name" value={selectedDoctorName} />
-        <input type="hidden" id="doctor_id" name="doctor_id" value={selectedDoctorId} />
+        <input type="hidden" name="doctor_id" value={selectedDoctorId} />
+        <input type="hidden" name="treat_doc_name" value={selectedDoctorName} />
         <Select
             value={selectedDoctorId}
             onValueChange={handleSelect}
             required
-            disabled={isLoading}
+            disabled={isLoading || doctors.length === 0}
         >
             <SelectTrigger>
                 <SelectValue placeholder="Select a doctor" />
