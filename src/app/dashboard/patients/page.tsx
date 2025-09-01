@@ -21,6 +21,7 @@ export default function PatientsPage() {
   const loadPatients = useCallback(async () => {
     setIsLoading(true);
     try {
+      // Pass the hospitalId only if the user is hospital staff
       const hospitalId = role === 'Hospital Staff' ? user?.hospitalId : null;
       const patientData = await getPatients(hospitalId);
       setPatients(patientData);
