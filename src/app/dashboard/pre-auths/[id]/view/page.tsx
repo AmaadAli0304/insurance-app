@@ -80,7 +80,7 @@ export default async function ViewPreAuthPage({ params }: { params: { id: string
                                 <p className="text-muted-foreground">{request.subject}</p>
                             </div>
                             <div className="pt-4 border-t">
-                                <p className="whitespace-pre-wrap">{request.details}</p>
+                                <div dangerouslySetInnerHTML={{ __html: request.details }} />
                             </div>
                         </CardContent>
                     </Card>

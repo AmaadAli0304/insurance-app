@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { useFormStatus } from "react-dom";
 import { handleAddRequest } from "../actions";
 import Link from "next/link";
@@ -24,6 +23,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { PhoneInput } from "@/components/phone-input";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import dynamic from "next/dynamic";
+import 'react-quill/dist/quill.snow.css';
+
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -53,6 +56,7 @@ export default function NewRequestPage() {
     const pdfFormRef = useRef<HTMLDivElement>(null);
     
     const [totalCost, setTotalCost] = useState(0);
+    const [emailBody, setEmailBody] = useState("");
 
     const roomCategories = [
         "ICU", "General", "Deluxe", "MICU", "SICU", "Super Deluxe", "ICCU", "Male", 
@@ -242,6 +246,7 @@ export default function NewRequestPage() {
                  <input type="hidden" name="patientId" value={selectedPatientId || ''} />
                  <input type="hidden" name="hospitalId" value={user?.hospitalId || ''} />
                  <input type="hidden" name="from" value={user?.email || ''} />
+                 <input type="hidden" name="details" value={emailBody} />
                 <div className="grid gap-6">
                     <Card>
                         <CardHeader>
@@ -455,11 +460,11 @@ export default function NewRequestPage() {
                                     <CardContent className="grid md:grid-cols-2 gap-4">
                                          <div className="space-y-2 md:col-span-2">
                                             <Label htmlFor="natureOfIllness">Nature of illness / presenting complaints</Label>
-                                            <Textarea id="natureOfIllness" name="natureOfIllness" defaultValue={patientDetails.natureOfIllness ?? ''} />
+                                            <Input id="natureOfIllness" name="natureOfIllness" defaultValue={patientDetails.natureOfIllness ?? ''} />
                                         </div>
                                          <div className="space-y-2 md:col-span-2">
                                             <Label htmlFor="clinicalFindings">Relevant clinical findings</Label>
-                                            <Textarea id="clinicalFindings" name="clinicalFindings" defaultValue={patientDetails.clinicalFindings ?? ''} />
+                                            <Input id="clinicalFindings" name="clinicalFindings" defaultValue={patientDetails.clinicalFindings ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="ailmentDuration">Duration of present ailment (days)</Label>
@@ -471,7 +476,7 @@ export default function NewRequestPage() {
                                         </div>
                                          <div className="space-y-2 md:col-span-2">
                                             <Label htmlFor="pastHistory">Past history of present ailment</Label>
-                                            <Textarea id="pastHistory" name="pastHistory" defaultValue={patientDetails.pastHistory ?? ''} />
+                                            <Input id="pastHistory" name="pastHistory" defaultValue={patientDetails.pastHistory ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="provisionalDiagnosis">Provisional diagnosis</Label>
@@ -493,7 +498,7 @@ export default function NewRequestPage() {
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="investigationDetails">Investigation / medical management details</Label>
-                                            <Textarea id="investigationDetails" name="investigationDetails" defaultValue={patientDetails.investigationDetails ?? ''} />
+                                            <Input id="investigationDetails" name="investigationDetails" defaultValue={patientDetails.investigationDetails ?? ''} />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="drugRoute">Route of drug administration</Label>
@@ -509,7 +514,7 @@ export default function NewRequestPage() {
                                         </div>
                                          <div className="space-y-2 md:col-span-2">
                                             <Label htmlFor="otherTreatments">Any other treatments (details)</Label>
-                                            <Textarea id="otherTreatments" name="otherTreatments" defaultValue={patientDetails.otherTreatments ?? ''} />
+                                            <Input id="otherTreatments" name="otherTreatments" defaultValue={patientDetails.otherTreatments ?? ''} />
                                         </div>
                                     </CardContent>
                                 </AccordionContent>
@@ -787,7 +792,12 @@ export default function NewRequestPage() {
 
                             <div className="space-y-2">
                                 <Label htmlFor="details">Compose Email <span className="text-destructive">*</span></Label>
-                                <Textarea id="details" name="details" placeholder="Please approve treatment for..." required rows={10}/>
+                                <ReactQuill 
+                                    theme="snow" 
+                                    value={emailBody} 
+                                    onChange={setEmailBody}
+                                    className="bg-background"
+                                />
                             </div>
                         </CardContent>
                     </Card>

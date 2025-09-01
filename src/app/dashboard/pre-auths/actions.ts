@@ -37,7 +37,7 @@ async function sendPreAuthEmail(requestData: StaffingRequest) {
         <p><strong>Total Estimated Cost:</strong> ${requestData.totalExpectedCost?.toLocaleString()}</p>
         <hr>
         <h2>Details:</h2>
-        <p>${requestData.details.replace(/\n/g, '<br>')}</p>
+        <div>${requestData.details}</div>
         <hr>
         <p>This is an automated message. Please do not reply directly to this email.</p>
     `;

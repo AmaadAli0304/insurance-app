@@ -7,7 +7,7 @@ import { Patient, Company, TPA } from "@/lib/types";
 import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+
 
 const phoneRegex = new RegExp(/^\d{10}$/);
 
@@ -473,43 +473,23 @@ export async function getPatientWithDetailsForForm(patientId: string): Promise<P
 
 export async function handleUploadPatientFile(formData: FormData): Promise<{ type: 'success', url: string, name: string } | { type: 'error', message: string }> {
     const file = formData.get("file") as File | null;
-    const fileType = formData.get("fileType") as string || 'other'; // e.g., 'photo', 'aadhaar', 'pan'
     
     if (!file || file.size === 0) {
         return { type: 'error', message: 'No file provided.' };
     }
     
-    const bucketName = process.env.AWS_S3_BUCKET_NAME;
-    const region = process.env.AWS_S3_REGION;
-    const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
-    const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
-
-    if (!bucketName || !region || !accessKeyId || !secretAccessKey) {
-        return { type: 'error', message: 'S3 credentials are not configured correctly.' };
-    }
-
+    // NOTE: This is a placeholder for file upload logic.
+    // In a real application, you would upload to a cloud storage service (e.g., S3, Firebase Storage)
+    // and return the URL. For now, we will simulate this.
     try {
-        const s3Client = new S3Client({
-            region,
-            credentials: { accessKeyId, secretAccessKey },
-        });
+        // Simulate upload delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const pseudoUrl = `/uploads/` + Date.now() + '-' + file.name;
+        console.log(`Simulating upload. File would be at: ${pseudoUrl}`);
 
-        const buffer = Buffer.from(await file.arrayBuffer());
-        const folder = fileType === 'photo' ? 'photos' : 'kyc';
-        const fileName = `patients/${folder}/${Date.now()}-${file.name.replace(/\s/g, '_')}`;
-
-        await s3Client.send(new PutObjectCommand({
-            Bucket: bucketName,
-            Key: fileName,
-            Body: buffer,
-            ContentType: file.type,
-            ACL: 'public-read',
-        }));
-
-        const imageUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${fileName}`;
-        return { type: 'success', url: imageUrl, name: file.name };
+        return { type: 'success', url: pseudoUrl, name: file.name };
     } catch (error) {
-        console.error("S3 upload error:", error);
+        console.error("Simulated upload error:", error);
         return { type: 'error', message: (error as Error).message };
     }
 }
@@ -525,7 +505,7 @@ const createDocumentJson = (url: string | undefined | null, name: string | undef
          const parsed = JSON.parse(url);
          if (parsed.url) return url;
        } catch (e) {
-         if (url.startsWith('http')) return JSON.stringify({ url, name: '' });
+         if (url.startsWith('http') || url.startsWith('/uploads')) return JSON.stringify({ url, name: '' });
          return url;
        }
     }
@@ -1083,6 +1063,7 @@ export async function getChiefComplaints(patientId: number) {
     
 
     
+
 
 
 
