@@ -168,7 +168,7 @@ export async function getPatients(hospitalId?: string | null): Promise<Patient[]
     }
 
     const result = await request.query(`
-        SELECT p.id, p.name as fullName, p.photo, p.email_address, p.phone_number as phoneNumber, a.policy_number as policyNumber, c.name as companyName
+        SELECT p.id, p.first_name, p.last_name, p.photo, p.email_address, p.phone_number as phoneNumber, a.policy_number as policyNumber, c.name as companyName
         FROM patients p
         LEFT JOIN admissions a ON p.id = a.patient_id
         LEFT JOIN companies c ON a.insurance_company = c.id
@@ -189,6 +189,7 @@ export async function getPatients(hospitalId?: string | null): Promise<Patient[]
         }
         return {
             ...record,
+            fullName: `${record.first_name || ''} ${record.last_name || ''}`.trim(),
             photo: photo?.url // only send url to client for table view
         }
     }) as Patient[];
@@ -224,7 +225,8 @@ export async function getPatientById(id: string): Promise<Patient | null> {
        .query(`
         SELECT 
           p.id,
-          p.name as fullName, 
+          p.first_name,
+          p.last_name,
           p.email_address,
           p.phone_number as phoneNumber,
           p.alternative_number,
@@ -345,10 +347,9 @@ export async function getPatientById(id: string): Promise<Patient | null> {
     }
     const patientData = result.recordset[0];
     
-    // Split fullName for the form
-    const nameParts = patientData.fullName?.split(' ') || [];
-    patientData.firstName = nameParts[0] || '';
-    patientData.lastName = nameParts.slice(1).join(' ') || '';
+    patientData.fullName = `${patientData.first_name || ''} ${patientData.last_name || ''}`.trim();
+    patientData.firstName = patientData.first_name;
+    patientData.lastName = patientData.last_name;
 
     const dateFields = ['dateOfBirth', 'policyStartDate', 'policyEndDate', 'firstConsultationDate', 'injuryDate', 'expectedDeliveryDate', 'admissionDate', 'patientDeclarationDate', 'hospitalDeclarationDate'];
     for (const field of dateFields) {
@@ -375,7 +376,7 @@ export async function getPatientsForPreAuth(hospitalId: string): Promise<{ id: s
     const result = await pool.request()
       .input('hospitalId', sql.NVarChar, hospitalId)
       .query(`
-        SELECT p.id, p.name as fullName, a.admission_id
+        SELECT p.id, p.first_name + ' ' + p.last_name as fullName, a.admission_id
         FROM patients p
         JOIN admissions a ON p.id = a.patient_id
         WHERE p.hospital_id = @hospitalId
@@ -527,8 +528,6 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
     transaction = new sql.Transaction(pool);
     await transaction.begin();
 
-    const fullName = [data.firstName, data.lastName].filter(Boolean).join(' ');
-
     const photoJson = createDocumentJson(data.photoUrl, data.photoName);
     const adhaarJson = createDocumentJson(data.adhaar_path_url, data.adhaar_path_name);
     const panJson = createDocumentJson(data.pan_path_url, data.pan_path_name);
@@ -540,7 +539,8 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
     // Insert into patients table
     const patientRequest = new sql.Request(transaction);
     const patientResult = await patientRequest
-      .input('name', sql.NVarChar, fullName)
+      .input('first_name', sql.NVarChar, data.firstName)
+      .input('last_name', sql.NVarChar, data.lastName)
       .input('email_address', sql.NVarChar, data.email_address)
       .input('phone_number', sql.NVarChar, data.phone_number || null)
       .input('alternative_number', sql.NVarChar, data.alternative_number || null)
@@ -561,9 +561,9 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('driving_licence_path', sql.NVarChar, drivingLicenceJson)
       .input('other_path', sql.NVarChar, otherJson)
       .query(`
-        INSERT INTO patients (name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id, photo, adhaar_path, pan_path, passport_path, voter_id_path, driving_licence_path, other_path)
+        INSERT INTO patients (first_name, last_name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id, photo, adhaar_path, pan_path, passport_path, voter_id_path, driving_licence_path, other_path)
         OUTPUT INSERTED.id
-        VALUES (@name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id, @photo, @adhaar_path, @pan_path, @passport_path, @voter_id_path, @driving_licence_path, @other_path)
+        VALUES (@first_name, @last_name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id, @photo, @adhaar_path, @pan_path, @passport_path, @voter_id_path, @driving_licence_path, @other_path)
       `);
     
     const patientId = patientResult.recordset[0]?.id;
@@ -733,8 +733,6 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
         transaction = new sql.Transaction(pool);
         await transaction.begin();
 
-        const fullName = [data.firstName, data.lastName].filter(Boolean).join(' ');
-
         // 1. Update Patients Table
         const photoJson = createDocumentJson(data.photoUrl, data.photoName);
         const adhaarJson = createDocumentJson(data.adhaar_path_url, data.adhaar_path_name);
@@ -747,7 +745,8 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
         const patientRequest = new sql.Request(transaction);
         await patientRequest
             .input('id', sql.Int, Number(patientId))
-            .input('name', sql.NVarChar, fullName)
+            .input('first_name', sql.NVarChar, data.firstName)
+            .input('last_name', sql.NVarChar, data.lastName)
             .input('email_address', sql.NVarChar, data.email_address)
             .input('phone_number', sql.NVarChar, data.phone_number || null)
             .input('alternative_number', sql.NVarChar, data.alternative_number || null)
@@ -770,7 +769,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
             .query(`
                 UPDATE patients 
                 SET 
-                name = @name, email_address = @email_address, phone_number = @phone_number, alternative_number = @alternative_number, 
+                first_name = @first_name, last_name = @last_name, email_address = @email_address, phone_number = @phone_number, alternative_number = @alternative_number, 
                 gender = @gender, age = @age, birth_date = @birth_date, address = @address, occupation = @occupation,
                 employee_id = @employee_id, abha_id = @abha_id, health_id = @health_id, hospital_id = @hospital_id,
                 photo = @photo, adhaar_path = @adhaar_path, pan_path = @pan_path, passport_path = @passport_path, 

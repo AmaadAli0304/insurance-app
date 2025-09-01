@@ -116,7 +116,8 @@ export async function handleCreatePatientsTable(prevState: { message: string, ty
       BEGIN
         CREATE TABLE patients (
           id INT IDENTITY(1,1) PRIMARY KEY,
-          name NVARCHAR(255) NOT NULL,
+          first_name NVARCHAR(255) NOT NULL,
+          last_name NVARCHAR(255) NOT NULL,
           email_address NVARCHAR(255),
           phone_number NVARCHAR(50),
           alternative_number NVARCHAR(50),
@@ -489,4 +490,3 @@ export async function handleCreateChiefComplaintsTable(prevState: { message: str
         return { message: `Error creating table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
     }
 }
-
