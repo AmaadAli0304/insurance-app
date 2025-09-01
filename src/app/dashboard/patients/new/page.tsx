@@ -7,11 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleAddPatient, handleUploadPatientFile } from "../actions";
+import { handleAddPatient, handleUploadPatientFile, getNewPatientPageData, Doctor } from "../actions";
 import Link from "next/link";
 import { ArrowLeft, Upload, User as UserIcon, Loader2, Eye, Check } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getCompaniesForForm, getTPAsForForm } from "../../company-hospitals/actions";
 import type { Company, TPA } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
@@ -88,6 +87,7 @@ export default function NewPatientPage() {
     const router = useRouter();
     const [companies, setCompanies] = useState<Pick<Company, "id" | "name">[]>([]);
     const [tpas, setTpas] = useState<Pick<TPA, "id" | "name">[]>([]);
+    const [doctors, setDoctors] = useState<Doctor[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [photoUrl, setPhotoUrl] = useState<string | null>(null);
     const [photoName, setPhotoName] = useState<string | null>(null);
@@ -131,12 +131,10 @@ export default function NewPatientPage() {
     useEffect(() => {
         async function loadData() {
             try {
-                const [companyList, tpaList] = await Promise.all([
-                    getCompaniesForForm(),
-                    getTPAsForForm()
-                ]);
-                setCompanies(companyList);
-                setTpas(tpaList);
+                const { companies, tpas, doctors } = await getNewPatientPageData();
+                setCompanies(companies);
+                setTpas(tpas);
+                setDoctors(doctors);
             } catch (error) {
                 toast({ title: "Error", description: "Failed to load required data.", variant: "destructive" });
             } finally {
@@ -422,7 +420,7 @@ export default function NewPatientPage() {
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="treat_doc_name">Treating doctor’s name <span className="text-destructive">*</span></Label>
-                                        <DoctorSearch />
+                                        <DoctorSearch doctors={doctors} />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="treat_doc_number">Treating doctor’s contact <span className="text-destructive">*</span></Label>

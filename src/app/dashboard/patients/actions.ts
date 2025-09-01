@@ -392,6 +392,26 @@ export async function getPatientById(id: string): Promise<Patient | null> {
   }
 }
 
+export async function getNewPatientPageData() {
+    try {
+        await poolConnect;
+        const [companiesResult, tpasResult, doctorsResult] = await Promise.all([
+            pool.request().query('SELECT id, name FROM companies'),
+            pool.request().query('SELECT id, name FROM tpas'),
+            pool.request().query('SELECT * FROM doctors'),
+        ]);
+
+        return {
+            companies: companiesResult.recordset as Pick<Company, 'id' | 'name'>[],
+            tpas: tpasResult.recordset.map(r => ({ ...r, id: r.id.toString() })) as Pick<TPA, 'id' | 'name'>[],
+            doctors: doctorsResult.recordset as Doctor[],
+        };
+    } catch (error) {
+        console.error("Error fetching data for new patient page:", error);
+        throw new Error("Failed to fetch data for new patient page.");
+    }
+}
+
 export async function getPatientEditPageData(patientId: string) {
     try {
         await poolConnect;
@@ -1063,4 +1083,5 @@ export async function getChiefComplaints(patientId: number) {
     
 
     
+
 
