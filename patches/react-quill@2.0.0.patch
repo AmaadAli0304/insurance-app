@@ -1,0 +1,30 @@
+patch-package
+--- a/node_modules/react-quill/lib/index.js
++++ b/node_modules/react-quill/lib/index.js
+@@ -512,7 +512,7 @@
+ 
+     key: 'getEditor',
+     value: function getEditor() {
+-      return this.quill;
++      return this.quill
+     }
+ 
+     /**
+@@ -530,7 +530,7 @@
+     key: 'getEditingArea',
+     value: function getEditingArea() {
+       !this.quill_1.default.findDOMNode, 'The `findDOMNode` method is not available on the version of React you are using. Please use a ref to see the editor area instead.'
+-      return this.quill_1.default.findDOMNode(this.editingArea);
++      return this.editingArea.current;
+     }
+ 
+     /**
+@@ -628,7 +628,7 @@
+         this.hookEditor(this.quill);
+       }
+ 
+-      this.editingArea = this.quill.container;
++      this.editingArea = { current: this.quill.container };
+       
+       if (this.props.value) {
+         this.quill.setContents(this.props.value, 'silent');
