@@ -5,6 +5,51 @@ import { mockStaffingRequests, mockPatients } from "@/lib/mock-data";
 import { StaffingRequest, Patient } from "@/lib/types";
 import { redirect } from 'next/navigation';
 import { getPatientById } from "../patients/actions";
+import nodemailer from "nodemailer";
+
+async function sendPreAuthEmail(requestData: StaffingRequest) {
+    const { 
+        MAILTRAP_HOST, 
+        MAILTRAP_PORT, 
+        MAILTRAP_USER, 
+        MAILTRAP_PASS 
+    } = process.env;
+
+    if (!MAILTRAP_HOST || !MAILTRAP_PORT || !MAILTRAP_USER || !MAILTRAP_PASS) {
+        console.error("Mailtrap environment variables are not set.");
+        throw new Error("Email service is not configured.");
+    }
+    
+    const transporter = nodemailer.createTransport({
+        host: MAILTRAP_HOST,
+        port: Number(MAILTRAP_PORT),
+        auth: {
+          user: MAILTRAP_USER,
+          pass: MAILTRAP_PASS
+        }
+    });
+
+    const htmlBody = `
+        <h1>Pre-Authorization Request</h1>
+        <p><strong>Request ID:</strong> ${requestData.id}</p>
+        <p><strong>Patient Name:</strong> ${requestData.fullName}</p>
+        <p><strong>Policy Number:</strong> ${requestData.policyNumber}</p>
+        <p><strong>Total Estimated Cost:</strong> ${requestData.totalExpectedCost?.toLocaleString()}</p>
+        <hr>
+        <h2>Details:</h2>
+        <p>${requestData.details.replace(/\n/g, '<br>')}</p>
+        <hr>
+        <p>This is an automated message. Please do not reply directly to this email.</p>
+    `;
+
+    await transporter.sendMail({
+        from: `"${requestData.fromEmail}" <donotreply@onestop.com>`,
+        to: requestData.email,
+        subject: requestData.subject,
+        html: htmlBody,
+    });
+}
+
 
 export async function handleAddRequest(prevState: { message: string, type?:string }, formData: FormData) {
   
@@ -151,9 +196,15 @@ export async function handleAddRequest(prevState: { message: string, type?:strin
     attachments: formData.getAll("attachments") as string[],
   };
 
-  mockStaffingRequests.push(newRequest);
-  
-  return { message: "Request sent successfully", type: 'success' };
+  try {
+    await sendPreAuthEmail(newRequest);
+    mockStaffingRequests.push(newRequest);
+    return { message: "Request sent successfully", type: 'success' };
+  } catch(error) {
+      const err = error as Error;
+      console.error("Failed to send email:", err);
+      return { message: `Failed to send email: ${err.message}`, type: 'error' };
+  }
 }
 
 
