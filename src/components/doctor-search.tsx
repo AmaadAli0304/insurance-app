@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -9,7 +10,7 @@ interface DoctorSearchProps {
   defaultDoctorId?: number;
 }
 
-export function DoctorSearch({ doctors, defaultDoctorId }: DoctorSearchProps) {
+const MemoizedDoctorSearch = ({ doctors, defaultDoctorId }: DoctorSearchProps) => {
   const [selectedDoctorId, setSelectedDoctorId] = useState<string>(defaultDoctorId?.toString() ?? "");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -68,3 +69,5 @@ export function DoctorSearch({ doctors, defaultDoctorId }: DoctorSearchProps) {
     </div>
   );
 }
+
+export const DoctorSearch = React.memo(MemoizedDoctorSearch);

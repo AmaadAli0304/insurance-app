@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -34,7 +35,7 @@ interface ChiefComplaintFormProps {
   patientId?: string;
 }
 
-export function ChiefComplaintForm({ initialData, patientId }: ChiefComplaintFormProps) {
+const MemoizedChiefComplaintForm = ({ initialData, patientId }: ChiefComplaintFormProps) => {
   const [complaints, setComplaints] = useState<Complaint[]>(() =>
     initialComplaints.map((c, index) => {
       const existing = initialData?.find(d => d.name.toUpperCase() === c.name.toUpperCase());
@@ -79,6 +80,7 @@ export function ChiefComplaintForm({ initialData, patientId }: ChiefComplaintFor
              {complaints.map((complaint) => (
                 <div key={complaint.id} className="grid grid-cols-[auto_1fr_1fr_1fr] gap-x-4 items-center mb-2">
                     <Checkbox
+                        id={`complaint-checkbox-${complaint.id}`}
                         checked={complaint.selected}
                         onCheckedChange={() => handleToggle(complaint.id)}
                     />
@@ -116,3 +118,4 @@ export function ChiefComplaintForm({ initialData, patientId }: ChiefComplaintFor
     </Card>
   );
 }
+export const ChiefComplaintForm = React.memo(MemoizedChiefComplaintForm);

@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleUpdatePatient, getPatientEditPageData, handleUploadPatientFile, getChiefComplaints, Doctor } from "../../actions";
+import { handleUpdatePatient, getPatientEditPageData, handleUploadPatientFile, Doctor } from "../../actions";
 import Link from "next/link";
 import { ArrowLeft, Upload, User as UserIcon, Loader2, Eye, File as FileIcon } from "lucide-react";
 import { notFound, useParams, useRouter } from "next/navigation";
