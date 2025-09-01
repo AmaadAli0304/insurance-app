@@ -22,6 +22,8 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PhoneInput } from "@/components/phone-input";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -48,6 +50,7 @@ export default function NewRequestPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchListOpen, setIsSearchListOpen] = useState(false);
     const searchContainerRef = useRef<HTMLDivElement>(null);
+    const pdfFormRef = useRef<HTMLDivElement>(null);
     
     const [totalCost, setTotalCost] = useState(0);
 
@@ -77,6 +80,45 @@ export default function NewRequestPage() {
         });
         setTotalCost(sum);
     }, []);
+    
+    const handleDownloadPdf = async () => {
+        const formToCapture = pdfFormRef.current;
+        if (!formToCapture || !patientDetails) {
+            toast({
+                title: "Error",
+                description: "Cannot download PDF. Please select a patient first.",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        toast({
+            title: "Generating PDF",
+            description: "Please wait while the PDF is being created...",
+        });
+
+        const canvas = await html2canvas(formToCapture, {
+            scale: 2, // Increase scale for better resolution
+            useCORS: true,
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+            orientation: 'p',
+            unit: 'mm',
+            format: 'a4',
+        });
+        
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const ratio = canvasWidth / canvasHeight;
+        const height = pdfWidth / ratio;
+
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, height);
+        pdf.save(`pre-auth-request-${patientDetails.fullName.replace(/ /g, '_')}.pdf`);
+    };
 
     useEffect(() => {
         if (patientDetails) {
@@ -251,6 +293,7 @@ export default function NewRequestPage() {
                         </div>
                     )}
                     
+                    <div ref={pdfFormRef}>
                     {patientDetails && (
                         <>
                         <Card>
@@ -718,6 +761,8 @@ export default function NewRequestPage() {
 
                         </>
                     )}
+                    </div>
+                    
 
                     <Card>
                         <CardHeader>
@@ -749,7 +794,7 @@ export default function NewRequestPage() {
 
                      <div className="flex justify-end gap-4">
                         {state.type === 'error' && <p className="text-sm text-destructive self-center">{state.message}</p>}
-                        <Button type="button" variant="outline">
+                        <Button type="button" variant="outline" onClick={handleDownloadPdf}>
                            <Download className="mr-2 h-4 w-4" />
                            Download as PDF
                         </Button>
