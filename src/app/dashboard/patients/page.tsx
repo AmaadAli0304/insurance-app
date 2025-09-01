@@ -33,8 +33,10 @@ export default function PatientsPage() {
   }, [user, role]);
 
   useEffect(() => {
-    loadPatients();
-  }, [loadPatients]);
+    if (user) { // Only load patients if user is available
+      loadPatients();
+    }
+  }, [loadPatients, user]);
 
   return (
     <div className="space-y-6">
