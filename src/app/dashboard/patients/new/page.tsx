@@ -176,6 +176,8 @@ export default function NewPatientPage() {
         setDocumentUrls(prev => ({ ...prev, [fieldName]: { url, name } }));
     };
 
+    const today = new Date().toISOString().split('T')[0];
+
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-4">
@@ -273,7 +275,7 @@ export default function NewPatientPage() {
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="birth_date">Date of birth</Label>
-                                        <Input id="birth_date" name="birth_date" type="date" />
+                                        <Input id="birth_date" name="birth_date" type="date" max={today} />
                                     </div>
                                     <div className="md:col-span-2 space-y-2">
                                         <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
