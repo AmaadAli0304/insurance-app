@@ -156,15 +156,23 @@ const updatePatientFormSchema = basePatientFormSchema.extend({
 });
 
 
-export async function getPatients(): Promise<Patient[]> {
+export async function getPatients(hospitalId?: string | null): Promise<Patient[]> {
   try {
     await poolConnect;
-    const result = await pool.request()
-      .query(`
+    const request = pool.request();
+    
+    let whereClause = '';
+    if (hospitalId) {
+      request.input('hospitalId', sql.NVarChar, hospitalId);
+      whereClause = 'WHERE p.hospital_id = @hospitalId';
+    }
+
+    const result = await request.query(`
         SELECT p.id, p.name as fullName, p.photo, p.email_address, p.phone_number as phoneNumber, a.policy_number as policyNumber, c.name as companyName
         FROM patients p
         LEFT JOIN admissions a ON p.id = a.patient_id
         LEFT JOIN companies c ON a.insurance_company = c.id
+        ${whereClause}
       `);
       
     return result.recordset.map(record => {
@@ -910,3 +918,4 @@ export async function getChiefComplaints(patientId: number) {
         return [];
     }
 }
+

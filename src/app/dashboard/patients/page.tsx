@@ -10,8 +10,10 @@ import { getPatients } from "./actions"
 import { PatientsTable } from "./patients-table"
 import type { Patient } from "@/lib/types"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { useAuth } from "@/components/auth-provider";
 
 export default function PatientsPage() {
+  const { user, role } = useAuth();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -19,7 +21,8 @@ export default function PatientsPage() {
   const loadPatients = useCallback(async () => {
     setIsLoading(true);
     try {
-      const patientData = await getPatients();
+      const hospitalId = role === 'Hospital Staff' ? user?.hospitalId : null;
+      const patientData = await getPatients(hospitalId);
       setPatients(patientData);
       setError(null);
     } catch (e: any) {
@@ -27,7 +30,7 @@ export default function PatientsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user, role]);
 
   useEffect(() => {
     loadPatients();
