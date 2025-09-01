@@ -61,27 +61,28 @@ export default function NewRequestPage() {
         "CLASSIC SUITE III", "RECOVERY", "SPECIAL", "SEMI SPECIAL"
     ];
 
-    const calculateTotalCost = () => {
+    const calculateTotalCost = React.useCallback(() => {
+        const form = document.querySelector('form');
+        if (!form) return;
         const costs = [
             'roomNursingDietCost', 'investigationCost', 'icuCost',
             'otCost', 'professionalFees', 'medicineCost', 'otherHospitalExpenses'
         ];
         let sum = 0;
-        const form = document.querySelector('form');
-        if (form) {
-            costs.forEach(id => {
-                const input = form.querySelector(`#${id}`) as HTMLInputElement;
-                if (input && input.value) {
-                    sum += parseFloat(input.value) || 0;
-                }
-            });
-        }
+        costs.forEach(id => {
+            const input = form.querySelector(`#${id}`) as HTMLInputElement;
+            if (input && input.value) {
+                sum += parseFloat(input.value) || 0;
+            }
+        });
         setTotalCost(sum);
-    };
+    }, []);
 
     useEffect(() => {
-        calculateTotalCost();
-    }, [patientDetails]);
+        if (patientDetails) {
+            calculateTotalCost();
+        }
+    }, [patientDetails, calculateTotalCost]);
 
     useEffect(() => {
         if (state.type === 'success') {
@@ -294,7 +295,7 @@ export default function NewRequestPage() {
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="birth_date">Date of birth</Label>
-                                    <Input id="birth_date" name="birth_date" type="date" defaultValue={formatDateForInput(patientDetails.dateOfBirth)} />
+                                    <Input id="birth_date" name="birth_date" type="date" defaultValue={formatDateForInput(patientDetails.dateOfBirth)} max={new Date().toISOString().split('T')[0]}/>
                                 </div>
                                 <div className="md:col-span-2 space-y-2">
                                     <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
@@ -313,8 +314,8 @@ export default function NewRequestPage() {
                                     <Input id="abha_id" name="abha_id" defaultValue={patientDetails.abha_id ?? ''} />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="health_id">Health ID / UHID</Label>
-                                    <Input id="health_id" name="health_id" defaultValue={patientDetails.health_id ?? ''} />
+                                    <Label htmlFor="health_id">Health ID / UHID <span className="text-destructive">*</span></Label>
+                                    <Input id="health_id" name="health_id" defaultValue={patientDetails.health_id ?? ''} required/>
                                 </div>
                             </CardContent>
                         </Card>
@@ -346,11 +347,11 @@ export default function NewRequestPage() {
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="policy_start_date">Policy Start Date <span className="text-destructive">*</span></Label>
-                                    <Input id="policy_start_date" name="policy_start_date" type="date" defaultValue={formatDateForInput(patientDetails.policyStartDate)} required />
+                                    <Input id="policy_start_date" name="policy_start_date" type="date" defaultValue={formatDateForInput(patientDetails.policyStartDate)} required max={new Date().toISOString().split('T')[0]} />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="policy_end_date">Policy End Date <span className="text-destructive">*</span></Label>
-                                    <Input id="policy_end_date" name="policy_end_date" type="date" defaultValue={formatDateForInput(patientDetails.policyEndDate)} required />
+                                    <Input id="policy_end_date" name="policy_end_date" type="date" defaultValue={formatDateForInput(patientDetails.policyEndDate)} required min={new Date().toISOString().split('T')[0]} />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="corporate_policy_number">Corporate policy name/number</Label>
@@ -411,61 +412,61 @@ export default function NewRequestPage() {
                                     <CardContent className="grid md:grid-cols-2 gap-4">
                                          <div className="space-y-2 md:col-span-2">
                                             <Label htmlFor="natureOfIllness">Nature of illness / presenting complaints</Label>
-                                            <Textarea id="natureOfIllness" name="natureOfIllness" />
+                                            <Textarea id="natureOfIllness" name="natureOfIllness" defaultValue={patientDetails.natureOfIllness ?? ''} />
                                         </div>
                                          <div className="space-y-2 md:col-span-2">
                                             <Label htmlFor="clinicalFindings">Relevant clinical findings</Label>
-                                            <Textarea id="clinicalFindings" name="clinicalFindings" />
+                                            <Textarea id="clinicalFindings" name="clinicalFindings" defaultValue={patientDetails.clinicalFindings ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="ailmentDuration">Duration of present ailment (days)</Label>
-                                            <Input id="ailmentDuration" name="ailmentDuration" type="number" />
+                                            <Input id="ailmentDuration" name="ailmentDuration" type="number" defaultValue={patientDetails.ailmentDuration ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="firstConsultationDate">Date of first consultation</Label>
-                                            <Input id="firstConsultationDate" name="firstConsultationDate" type="date" />
+                                            <Input id="firstConsultationDate" name="firstConsultationDate" type="date" defaultValue={formatDateForInput(patientDetails.firstConsultationDate)} />
                                         </div>
                                          <div className="space-y-2 md:col-span-2">
                                             <Label htmlFor="pastHistory">Past history of present ailment</Label>
-                                            <Textarea id="pastHistory" name="pastHistory" />
+                                            <Textarea id="pastHistory" name="pastHistory" defaultValue={patientDetails.pastHistory ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="provisionalDiagnosis">Provisional diagnosis</Label>
-                                            <Input id="provisionalDiagnosis" name="provisionalDiagnosis" />
+                                            <Input id="provisionalDiagnosis" name="provisionalDiagnosis" defaultValue={patientDetails.provisionalDiagnosis ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="icd10Codes">ICD-10 diagnosis code(s)</Label>
-                                            <Input id="icd10Codes" name="icd10Codes" />
+                                            <Input id="icd10Codes" name="icd10Codes" defaultValue={patientDetails.icd10Codes ?? ''} />
                                         </div>
                                          <div className="space-y-2 md:col-span-2">
                                             <Label>Proposed line of treatment</Label>
                                             <div className="grid md:grid-cols-2 gap-4">
-                                               <Input name="treatmentMedical" placeholder="Medical management" />
-                                               <Input name="treatmentSurgical" placeholder="Surgical management" />
-                                               <Input name="treatmentIntensiveCare" placeholder="Intensive care" />
-                                               <Input name="treatmentInvestigation" placeholder="Investigation only" />
-                                               <Input name="treatmentNonAllopathic" placeholder="Non-allopathic" />
+                                               <Input name="treatmentMedical" placeholder="Medical management" defaultValue={patientDetails.treatmentMedical ?? ''} />
+                                               <Input name="treatmentSurgical" placeholder="Surgical management" defaultValue={patientDetails.treatmentSurgical ?? ''} />
+                                               <Input name="treatmentIntensiveCare" placeholder="Intensive care" defaultValue={patientDetails.treatmentIntensiveCare ?? ''} />
+                                               <Input name="treatmentInvestigation" placeholder="Investigation only" defaultValue={patientDetails.treatmentInvestigation ?? ''} />
+                                               <Input name="treatmentNonAllopathic" placeholder="Non-allopathic" defaultValue={patientDetails.treatmentNonAllopathic ?? ''} />
                                             </div>
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="investigationDetails">Investigation / medical management details</Label>
-                                            <Textarea id="investigationDetails" name="investigationDetails" />
+                                            <Textarea id="investigationDetails" name="investigationDetails" defaultValue={patientDetails.investigationDetails ?? ''} />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="drugRoute">Route of drug administration</Label>
-                                            <Input id="drugRoute" name="drugRoute" />
+                                            <Input id="drugRoute" name="drugRoute" defaultValue={patientDetails.drugRoute ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="procedureName">Planned procedure / surgery name</Label>
-                                            <Input id="procedureName" name="procedureName" />
+                                            <Input id="procedureName" name="procedureName" defaultValue={patientDetails.procedureName ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="icd10PcsCodes">ICD-10-PCS / procedure code(s)</Label>
-                                            <Input id="icd10PcsCodes" name="icd10PcsCodes" />
+                                            <Input id="icd10PcsCodes" name="icd10PcsCodes" defaultValue={patientDetails.icd10PcsCodes ?? ''} />
                                         </div>
                                          <div className="space-y-2 md:col-span-2">
                                             <Label htmlFor="otherTreatments">Any other treatments (details)</Label>
-                                            <Textarea id="otherTreatments" name="otherTreatments" />
+                                            <Textarea id="otherTreatments" name="otherTreatments" defaultValue={patientDetails.otherTreatments ?? ''} />
                                         </div>
                                     </CardContent>
                                 </AccordionContent>
@@ -482,35 +483,35 @@ export default function NewRequestPage() {
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-3 gap-4">
                                         <div className="flex items-center space-x-2">
-                                            <Checkbox id="isInjury" name="isInjury" />
+                                            <Checkbox id="isInjury" name="isInjury" defaultChecked={patientDetails.isInjury}/>
                                             <Label htmlFor="isInjury">Due to injury/accident?</Label>
                                         </div>
                                          <div className="space-y-2 md:col-span-2">
                                             <Label htmlFor="injuryCause">How did injury occur?</Label>
-                                            <Input id="injuryCause" name="injuryCause" />
+                                            <Input id="injuryCause" name="injuryCause" defaultValue={patientDetails.injuryCause ?? ''} />
                                         </div>
                                         <div className="flex items-center space-x-2">
-                                            <Checkbox id="isRta" name="isRta" />
+                                            <Checkbox id="isRta" name="isRta" defaultChecked={patientDetails.isRta} />
                                             <Label htmlFor="isRta">Road Traffic Accident?</Label>
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="injuryDate">Date of injury</Label>
-                                            <Input id="injuryDate" name="injuryDate" type="date" />
+                                            <Input id="injuryDate" name="injuryDate" type="date" defaultValue={formatDateForInput(patientDetails.injuryDate)} />
                                         </div>
                                         <div className="flex items-center space-x-2">
-                                            <Checkbox id="isReportedToPolice" name="isReportedToPolice" />
+                                            <Checkbox id="isReportedToPolice" name="isReportedToPolice" defaultChecked={patientDetails.isReportedToPolice} />
                                             <Label htmlFor="isReportedToPolice">Reported to police?</Label>
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="firNumber">FIR number</Label>
-                                            <Input id="firNumber" name="firNumber" />
+                                            <Input id="firNumber" name="firNumber" defaultValue={patientDetails.firNumber ?? ''} />
                                         </div>
                                         <div className="flex items-center space-x-2">
-                                            <Checkbox id="isAlcoholSuspected" name="isAlcoholSuspected" />
+                                            <Checkbox id="isAlcoholSuspected" name="isAlcoholSuspected" defaultChecked={patientDetails.isAlcoholSuspected} />
                                             <Label htmlFor="isAlcoholSuspected">Alcohol/substance use?</Label>
                                         </div>
                                         <div className="flex items-center space-x-2">
-                                            <Checkbox id="isToxicologyConducted" name="isToxicologyConducted" />
+                                            <Checkbox id="isToxicologyConducted" name="isToxicologyConducted" defaultChecked={patientDetails.isToxicologyConducted} />
                                             <Label htmlFor="isToxicologyConducted">Toxicology test done?</Label>
                                         </div>
                                     </CardContent>
@@ -528,18 +529,18 @@ export default function NewRequestPage() {
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-3 gap-4">
                                          <div className="flex items-center space-x-2">
-                                            <Checkbox id="isMaternity" name="isMaternity" />
+                                            <Checkbox id="isMaternity" name="isMaternity" defaultChecked={patientDetails.isMaternity} />
                                             <Label htmlFor="isMaternity">Is this a maternity case?</Label>
                                         </div>
                                         <div className="grid grid-cols-4 gap-2 md:col-span-2">
-                                            <Input name="g" type="number" placeholder="G" />
-                                            <Input name="p" type="number" placeholder="P" />
-                                            <Input name="l" type="number" placeholder="L" />
-                                            <Input name="a" type="number" placeholder="A" />
+                                            <Input name="g" type="number" placeholder="G" defaultValue={patientDetails.g ?? ''} />
+                                            <Input name="p" type="number" placeholder="P" defaultValue={patientDetails.p ?? ''} />
+                                            <Input name="l" type="number" placeholder="L" defaultValue={patientDetails.l ?? ''} />
+                                            <Input name="a" type="number" placeholder="A" defaultValue={patientDetails.a ?? ''} />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="expectedDeliveryDate">Expected date of delivery</Label>
-                                            <Input id="expectedDeliveryDate" name="expectedDeliveryDate" type="date" />
+                                            <Input id="expectedDeliveryDate" name="expectedDeliveryDate" type="date" defaultValue={formatDateForInput(patientDetails.expectedDeliveryDate)} />
                                         </div>
                                     </CardContent>
                                 </AccordionContent>
@@ -557,27 +558,27 @@ export default function NewRequestPage() {
                                      <CardContent className="grid md:grid-cols-3 gap-4" onChange={calculateTotalCost}>
                                         <div className="space-y-2">
                                             <Label htmlFor="admissionDate">Admission date</Label>
-                                            <Input id="admissionDate" name="admissionDate" type="date" />
+                                            <Input id="admissionDate" name="admissionDate" type="date" defaultValue={formatDateForInput(patientDetails.admissionDate)} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="admissionTime">Admission time</Label>
-                                            <Input id="admissionTime" name="admissionTime" type="time" />
+                                            <Input id="admissionTime" name="admissionTime" type="time" defaultValue={patientDetails.admissionTime ?? ''} />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="admissionType">Type of admission</Label>
-                                            <Input id="admissionType" name="admissionType" placeholder="e.g. Emergency, Planned"/>
+                                            <Input id="admissionType" name="admissionType" placeholder="e.g. Emergency, Planned" defaultValue={patientDetails.admissionType ?? ''} />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="expectedStay">Expected days of stay</Label>
-                                            <Input id="expectedStay" name="expectedStay" type="number" />
+                                            <Input id="expectedStay" name="expectedStay" type="number" defaultValue={patientDetails.expectedStay ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="expectedIcuStay">Expected days in ICU</Label>
-                                            <Input id="expectedIcuStay" name="expectedIcuStay" type="number" />
+                                            <Input id="expectedIcuStay" name="expectedIcuStay" type="number" defaultValue={patientDetails.expectedIcuStay ?? ''} />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="roomCategory">Requested room category</Label>
-                                             <Select name="roomCategory">
+                                             <Select name="roomCategory" defaultValue={patientDetails.roomCategory ?? undefined}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Select a room category" />
                                                 </SelectTrigger>
@@ -590,35 +591,35 @@ export default function NewRequestPage() {
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="roomNursingDietCost">Room + Nursing + Diet (₹)</Label>
-                                            <Input id="roomNursingDietCost" name="roomNursingDietCost" type="number" />
+                                            <Input id="roomNursingDietCost" name="roomNursingDietCost" type="number" defaultValue={patientDetails.roomNursingDietCost ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="investigationCost">Diagnostics/investigations cost (₹)</Label>
-                                            <Input id="investigationCost" name="investigationCost" type="number" />
+                                            <Input id="investigationCost" name="investigationCost" type="number" defaultValue={patientDetails.investigationCost ?? ''} />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="icuCost">ICU charges (₹)</Label>
-                                            <Input id="icuCost" name="icuCost" type="number" />
+                                            <Input id="icuCost" name="icuCost" type="number" defaultValue={patientDetails.icuCost ?? ''} />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="otCost">OT charges (₹)</Label>
-                                            <Input id="otCost" name="otCost" type="number" />
+                                            <Input id="otCost" name="otCost" type="number" defaultValue={patientDetails.otCost ?? ''} />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="professionalFees">Professional fees (₹)</Label>
-                                            <Input id="professionalFees" name="professionalFees" type="number" />
+                                            <Input id="professionalFees" name="professionalFees" type="number" defaultValue={patientDetails.professionalFees ?? ''} />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="medicineCost">Medicines + consumables (₹)</Label>
-                                            <Input id="medicineCost" name="medicineCost" type="number" />
+                                            <Input id="medicineCost" name="medicineCost" type="number" defaultValue={patientDetails.medicineCost ?? ''} />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="otherHospitalExpenses">Other hospital expenses (₹)</Label>
-                                            <Input id="otherHospitalExpenses" name="otherHospitalExpenses" type="number" />
+                                            <Input id="otherHospitalExpenses" name="otherHospitalExpenses" type="number" defaultValue={patientDetails.otherHospitalExpenses ?? ''} />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="packageCharges">All-inclusive package charges (₹)</Label>
-                                            <Input id="packageCharges" name="packageCharges" type="number" />
+                                            <Input id="packageCharges" name="packageCharges" type="number" defaultValue={patientDetails.packageCharges ?? ''} />
                                         </div>
                                          <div className="space-y-2 md:col-span-3">
                                             <Label htmlFor="totalExpectedCost">Total expected cost (₹)</Label>
@@ -638,16 +639,16 @@ export default function NewRequestPage() {
                                 </CardHeader>
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-2 gap-x-8 gap-y-4">
-                                        <Input name="diabetesSince" placeholder="Diabetes – since (MM/YY)" />
-                                        <Input name="hypertensionSince" placeholder="Hypertension – since (MM/YY)" />
-                                        <Input name="heartDiseaseSince" placeholder="Heart disease – since (MM/YY)" />
-                                        <Input name="hyperlipidemiaSince" placeholder="Hyperlipidemia – since (MM/YY)" />
-                                        <Input name="osteoarthritisSince" placeholder="Osteoarthritis – since (MM/YY)" />
-                                        <Input name="asthmaCopdSince" placeholder="Asthma/COPD – since (MM/YY)" />
-                                        <Input name="cancerSince" placeholder="Cancer – since (MM/YY)" />
-                                        <Input name="alcoholDrugAbuseSince" placeholder="Alcohol/drug abuse – since (MM/YY)" />
-                                        <Input name="hivSince" placeholder="HIV/STD – since (MM/YY)" />
-                                        <Input name="otherChronicAilment" placeholder="Any other chronic ailment (specify and since when)" />
+                                        <Input name="diabetesSince" placeholder="Diabetes – since (MM/YY)" defaultValue={patientDetails.diabetesSince ?? ''} />
+                                        <Input name="hypertensionSince" placeholder="Hypertension – since (MM/YY)" defaultValue={patientDetails.hypertensionSince ?? ''} />
+                                        <Input name="heartDiseaseSince" placeholder="Heart disease – since (MM/YY)" defaultValue={patientDetails.heartDiseaseSince ?? ''} />
+                                        <Input name="hyperlipidemiaSince" placeholder="Hyperlipidemia – since (MM/YY)" defaultValue={patientDetails.hyperlipidemiaSince ?? ''} />
+                                        <Input name="osteoarthritisSince" placeholder="Osteoarthritis – since (MM/YY)" defaultValue={patientDetails.osteoarthritisSince ?? ''} />
+                                        <Input name="asthmaCopdSince" placeholder="Asthma/COPD – since (MM/YY)" defaultValue={patientDetails.asthmaCopdSince ?? ''} />
+                                        <Input name="cancerSince" placeholder="Cancer – since (MM/YY)" defaultValue={patientDetails.cancerSince ?? ''} />
+                                        <Input name="alcoholDrugAbuseSince" placeholder="Alcohol/drug abuse – since (MM/YY)" defaultValue={patientDetails.alcoholDrugAbuseSince ?? ''} />
+                                        <Input name="hivSince" placeholder="HIV/STD – since (MM/YY)" defaultValue={patientDetails.hivSince ?? ''} />
+                                        <Input name="otherChronicAilment" placeholder="Any other chronic ailment (specify and since when)" defaultValue={patientDetails.otherChronicAilment ?? ''} />
                                     </CardContent>
                                 </AccordionContent>
                             </AccordionItem>
@@ -665,37 +666,37 @@ export default function NewRequestPage() {
                                         <div className="grid md:grid-cols-3 gap-4">
                                             <div className="space-y-2">
                                                 <Label htmlFor="patientDeclarationName">Patient/insured name</Label>
-                                                <Input id="patientDeclarationName" name="patientDeclarationName" defaultValue={patientDetails.fullName}/>
+                                                <Input id="patientDeclarationName" name="patientDeclarationName" defaultValue={patientDetails.patientDeclarationName ?? patientDetails.fullName}/>
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="patientDeclarationContact">Contact number</Label>
-                                                <PhoneInput name="patientDeclarationContact" defaultValue={patientDetails.phoneNumber ?? ''} />
+                                                <PhoneInput name="patientDeclarationContact" defaultValue={patientDetails.patientDeclarationContact ?? patientDetails.phoneNumber ?? ''} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="patientDeclarationEmail">Email ID</Label>
-                                                <Input id="patientDeclarationEmail" name="patientDeclarationEmail" type="email" defaultValue={patientDetails.email_address ?? ''} />
+                                                <Input id="patientDeclarationEmail" name="patientDeclarationEmail" type="email" defaultValue={patientDetails.patientDeclarationEmail ?? patientDetails.email_address ?? ''} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="patientDeclarationDate">Declaration date</Label>
-                                                <Input id="patientDeclarationDate" name="patientDeclarationDate" type="date" />
+                                                <Input id="patientDeclarationDate" name="patientDeclarationDate" type="date" defaultValue={formatDateForInput(patientDetails.patientDeclarationDate)} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="patientDeclarationTime">Declaration time</Label>
-                                                <Input id="patientDeclarationTime" name="patientDeclarationTime" type="time" />
+                                                <Input id="patientDeclarationTime" name="patientDeclarationTime" type="time" defaultValue={patientDetails.patientDeclarationTime ?? ''} />
                                             </div>
                                         </div>
                                          <div className="grid md:grid-cols-3 gap-4 border-t pt-4">
                                             <div className="space-y-2">
                                                 <Label htmlFor="hospitalDeclarationDoctorName">Hospital declaration – doctor name</Label>
-                                                <Input id="hospitalDeclarationDoctorName" name="hospitalDeclarationDoctorName" defaultValue={patientDetails.treat_doc_name} />
+                                                <Input id="hospitalDeclarationDoctorName" name="hospitalDeclarationDoctorName" defaultValue={patientDetails.hospitalDeclarationDoctorName ?? patientDetails.treat_doc_name} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="hospitalDeclarationDate">Declaration date</Label>
-                                                <Input id="hospitalDeclarationDate" name="hospitalDeclarationDate" type="date" />
+                                                <Input id="hospitalDeclarationDate" name="hospitalDeclarationDate" type="date" defaultValue={formatDateForInput(patientDetails.hospitalDeclarationDate)} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="hospitalDeclarationTime">Declaration time</Label>
-                                                <Input id="hospitalDeclarationTime" name="hospitalDeclarationTime" type="time" />
+                                                <Input id="hospitalDeclarationTime" name="hospitalDeclarationTime" type="time" defaultValue={patientDetails.hospitalDeclarationTime ?? ''} />
                                             </div>
                                         </div>
                                          <div className="space-y-2 pt-4 border-t">
@@ -703,7 +704,7 @@ export default function NewRequestPage() {
                                             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                                 {['ID proof', 'Policy copy', 'Doctor’s notes', 'Investigations', 'Estimate'].map(item => (
                                                      <div key={item} className="flex items-center space-x-2">
-                                                        <Checkbox id={`att-${item}`} name="attachments" value={item} />
+                                                        <Checkbox id={`att-${item}`} name="attachments" value={item} defaultChecked={patientDetails.attachments?.includes(item)} />
                                                         <Label htmlFor={`att-${item}`} className="font-normal">{item}</Label>
                                                     </div>
                                                 ))}
@@ -759,5 +760,3 @@ export default function NewRequestPage() {
         </div>
     );
 }
-
-    

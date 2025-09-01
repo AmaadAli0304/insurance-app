@@ -54,11 +54,11 @@ export default async function ViewPreAuthPage({ params }: { params: { id: string
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <DetailItem label="Patient Name" value={patient?.fullName} icon={User} />
+                        <DetailItem label="Patient Name" value={request.fullName} icon={User} />
                         <DetailItem label="Hospital" value={hospital?.name} icon={Hospital} />
                         <DetailItem label="Insurance Company" value={company?.name} icon={Building} />
-                        <DetailItem label="Treating Doctor" value={patient?.doctorName} icon={Stethoscope} />
-                        <DetailItem label="Estimated Cost" value={patient ? `$${patient.estimatedCost.toLocaleString()}`: "N/A"} icon={DollarSign} />
+                        <DetailItem label="Treating Doctor" value={request.treat_doc_name} icon={Stethoscope} />
+                        <DetailItem label="Estimated Cost" value={request.totalExpectedCost ? `$${request.totalExpectedCost.toLocaleString()}`: "N/A"} icon={DollarSign} />
                          <DetailItem label="Request Date" value={new Date(request.createdAt).toLocaleString()} icon={Mail} />
                     </div>
                     

@@ -38,7 +38,9 @@ export async function handleAddRequest(prevState: { message: string, type?:strin
     requestAmount: Number(formData.get("totalExpectedCost")) || patient.estimatedCost,
 
     // Editable Patient Details
-    fullName: formData.get("name") as string,
+    fullName: `${formData.get("firstName")} ${formData.get("lastName")}`,
+    firstName: formData.get("firstName") as string,
+    lastName: formData.get("lastName") as string,
     email_address: formData.get("email_address") as string,
     phoneNumber: formData.get("phone_number") as string,
     alternative_number: formData.get("alternative_number") as string,
