@@ -23,10 +23,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { PhoneInput } from "@/components/phone-input";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import dynamic from "next/dynamic";
+import dynamic from 'next/dynamic';
 import 'react-quill/dist/quill.snow.css';
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -815,3 +816,4 @@ export default function NewRequestPage() {
         </div>
     );
 }
+
