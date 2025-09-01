@@ -456,7 +456,7 @@ export async function getPatientsForPreAuth(hospitalId: string): Promise<{ id: s
       .query(`
         SELECT p.id, p.first_name + ' ' + p.last_name as fullName, a.admission_id
         FROM patients p
-        JOIN admissions a ON p.id = a.patient_id
+        LEFT JOIN admissions a ON p.id = a.patient_id
         WHERE p.hospital_id = @hospitalId
       `);
     return result.recordset;
@@ -1083,5 +1083,6 @@ export async function getChiefComplaints(patientId: number) {
     
 
     
+
 
 

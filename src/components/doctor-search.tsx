@@ -22,7 +22,7 @@ const MemoizedDoctorSearch = ({ doctors, defaultDoctorId }: DoctorSearchProps) =
 
   const handleSelect = (doctorId: string) => {
     setSelectedDoctorId(doctorId);
-    const selectedDoctor = doctors.find(d => String(d.id) === doctorId);
+    const selectedDoctor = doctors?.find(d => String(d.id) === doctorId);
 
     const form = document.querySelector('form');
     if (form && selectedDoctor) {

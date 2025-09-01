@@ -1,5 +1,4 @@
 
-
 export type UserRole = 'Admin' | 'Hospital Staff' | 'Company Admin';
 
 export interface User {
@@ -91,6 +90,7 @@ export interface Patient {
 
   // Admission fields
   admission_id?: string;
+  admission_db_id?: number;
   relationship_policyholder?: string;
   corporate_policy_number?: string;
   other_policy_name?: string;
