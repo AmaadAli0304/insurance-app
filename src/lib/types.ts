@@ -73,6 +73,7 @@ export interface Patient {
   companyId: string;
   companyName?: string; 
   tpaName?: string;
+  tpaEmail?: string;
   policyNumber?: string | null; 
   memberId?: string | null;
   policyStartDate?: string | null;

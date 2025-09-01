@@ -356,7 +356,8 @@ export async function getPatientById(id: string): Promise<Patient | null> {
           a.hospitalDeclarationTime,
           a.attachments,
           c.name as companyName,
-          t.name as tpaName
+          t.name as tpaName,
+          t.email as tpaEmail
         FROM patients p
         LEFT JOIN admissions a ON p.id = a.patient_id
         LEFT JOIN companies c ON a.insurance_company = c.id
@@ -1063,6 +1064,7 @@ export async function getChiefComplaints(patientId: number) {
     
 
     
+
 
 
 
