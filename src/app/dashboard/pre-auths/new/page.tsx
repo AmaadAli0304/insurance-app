@@ -24,9 +24,14 @@ import { PhoneInput } from "@/components/phone-input";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import dynamic from 'next/dynamic';
-import 'react-quill/dist/quill.snow.css';
+import { EditorState, convertToRaw } from 'draft-js';
+import draftToHtml from 'draftjs-to-html';
+import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+const Editor = dynamic(
+  () => import('react-draft-wysiwyg').then(mod => mod.Editor),
+  { ssr: false }
+);
 
 
 function SubmitButton() {
@@ -57,7 +62,12 @@ export default function NewRequestPage() {
     const pdfFormRef = useRef<HTMLDivElement>(null);
     
     const [totalCost, setTotalCost] = useState(0);
+    const [editorState, setEditorState] = useState(() => EditorState.createEmpty());
     const [emailBody, setEmailBody] = useState("");
+
+    useEffect(() => {
+        setEmailBody(draftToHtml(convertToRaw(editorState.getCurrentContent())));
+    }, [editorState]);
 
     const roomCategories = [
         "ICU", "General", "Deluxe", "MICU", "SICU", "Super Deluxe", "ICCU", "Male", 
@@ -793,11 +803,12 @@ export default function NewRequestPage() {
 
                             <div className="space-y-2">
                                 <Label htmlFor="details">Compose Email <span className="text-destructive">*</span></Label>
-                                <ReactQuill 
-                                    theme="snow" 
-                                    value={emailBody} 
-                                    onChange={setEmailBody}
-                                    className="bg-background"
+                                <Editor
+                                  editorState={editorState}
+                                  onEditorStateChange={setEditorState}
+                                  wrapperClassName="rounded-md border border-input bg-background"
+                                  editorClassName="px-4 py-2 min-h-[150px]"
+                                  toolbarClassName="border-b border-input"
                                 />
                             </div>
                         </CardContent>
@@ -817,3 +828,4 @@ export default function NewRequestPage() {
     );
 }
 
+    
