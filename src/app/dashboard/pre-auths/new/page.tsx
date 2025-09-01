@@ -15,7 +15,8 @@ import { useAuth } from "@/components/auth-provider";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getPatientWithDetailsForForm, getPatientsForPreAuth } from "@/app/dashboard/patients/actions";
-import type { Patient } from "@/lib/types";
+import { getHospitalById } from "@/app/dashboard/company-hospitals/actions";
+import type { Patient, Hospital } from "@/lib/types";
 import { format } from "date-fns";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -53,6 +54,7 @@ export default function NewRequestPage() {
 
     const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
     const [patientDetails, setPatientDetails] = useState<Patient | null>(null);
+    const [hospitalDetails, setHospitalDetails] = useState<Hospital | null>(null);
     const [isLoadingPatient, setIsLoadingPatient] = useState(false);
     const [hospitalPatients, setHospitalPatients] = useState<{ id: string; fullName: string; admission_id: string; }[]>([]);
     
@@ -163,8 +165,13 @@ export default function NewRequestPage() {
 
         async function loadInitialData() {
             try {
-                const patients = await getPatientsForPreAuth(user!.hospitalId!);
+                const [patients, hospital] = await Promise.all([
+                   getPatientsForPreAuth(user!.hospitalId!),
+                   getHospitalById(user!.hospitalId!)
+                ]);
+
                 setHospitalPatients(patients);
+                setHospitalDetails(hospital);
 
                 const patientIdFromUrl = searchParams.get('patientId');
                 if (patientIdFromUrl) {
@@ -175,7 +182,7 @@ export default function NewRequestPage() {
                     }
                 }
             } catch (error) {
-                toast({ title: "Error", description: "Failed to fetch hospital patients.", variant: 'destructive' });
+                toast({ title: "Error", description: "Failed to fetch initial data.", variant: 'destructive' });
             }
         }
         
@@ -256,7 +263,7 @@ export default function NewRequestPage() {
             <form action={formAction}>
                  <input type="hidden" name="patientId" value={selectedPatientId || ''} />
                  <input type="hidden" name="hospitalId" value={user?.hospitalId || ''} />
-                 <input type="hidden" name="from" value={user?.email || ''} />
+                 <input type="hidden" name="from" value={hospitalDetails?.email || user?.email || ''} />
                  <input type="hidden" name="details" value={emailBody} />
                 <div className="grid gap-6">
                     <Card>
@@ -793,7 +800,7 @@ export default function NewRequestPage() {
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="from">From</Label>
-                                    <Input id="from-display" name="from-display" value={user?.email} readOnly disabled />
+                                    <Input id="from-display" name="from-display" value={hospitalDetails?.email || user?.email || ''} readOnly disabled />
                                 </div>
                             </div>
                             <div className="space-y-2">
@@ -827,5 +834,3 @@ export default function NewRequestPage() {
         </div>
     );
 }
-
-    
