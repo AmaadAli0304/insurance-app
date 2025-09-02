@@ -25,6 +25,7 @@ import { IctCodeSearch } from "@/components/ict-code-search";
 import { ChiefComplaintForm } from "@/components/chief-complaint-form";
 import { PhoneInput } from "@/components/phone-input";
 import { PreAuthMedicalHistory } from "@/components/pre-auths/preauth-medical-history";
+import { DoctorSearch } from "@/components/doctor-search";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -459,7 +460,7 @@ export default function NewPatientPage() {
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="treat_doc_name">Treating doctor’s name <span className="text-destructive">*</span></Label>
-                                        <Input id="treat_doc_name" name="treat_doc_name" required/>
+                                        <DoctorSearch doctors={doctors} />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="treat_doc_number">Treating doctor’s contact <span className="text-destructive">*</span></Label>

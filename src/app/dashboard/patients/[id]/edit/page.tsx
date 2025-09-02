@@ -516,7 +516,10 @@ export default function EditPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_name">Treating doctor’s name <span className="text-destructive">*</span></Label>
-                                            <Input id="treat_doc_name" name="treat_doc_name" defaultValue={patient.treat_doc_name ?? ''} required />
+                                            <DoctorSearch
+                                                doctors={doctors}
+                                                defaultDoctorId={patient.doctor_id ?? undefined}
+                                            />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_number">Treating doctor’s contact <span className="text-destructive">*</span></Label>
@@ -828,5 +831,3 @@ export default function EditPatientPage() {
         </div>
     );
 }
-
-    
