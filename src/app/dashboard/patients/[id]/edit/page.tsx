@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useActionState, useEffect, useState, useRef } from "react";
@@ -29,20 +30,20 @@ import { DoctorSearch } from "@/components/doctor-search";
 function SubmitButton() {
     const { pending } = useFormStatus();
     return (
-        <Button type="submit" disabled={pending} size="lg">
+        &lt;Button type="submit" disabled={pending} size="lg"&gt;
             {pending ? "Saving..." : "Save Changes"}
-        </Button>
+        &lt;/Button&gt;
     );
 }
 
-const FileUploadField = React.memo(({ label, name, onUploadComplete, initialData }: { label: string; name: string; onUploadComplete: (fieldName: string, name: string, url: string) => void; initialData?: { url: string | null; name: string | null } | null }) => {
+const FileUploadField = React.memo(({ label, name, onUploadComplete, initialData }: { label: string; name: string; onUploadComplete: (fieldName: string, name: string, url: string) =&gt; void; initialData?: { url: string | null; name: string | null } | null }) =&gt; {
     const [isUploading, setIsUploading] = useState(false);
-    const [fileUrl, setFileUrl] = useState<string | null>(initialData?.url || null);
-    const [fileName, setFileName] = useState<string | null>(initialData?.name || null);
+    const [fileUrl, setFileUrl] = useState&lt;string | null&gt;(initialData?.url || null);
+    const [fileName, setFileName] = useState&lt;string | null&gt;(initialData?.name || null);
     const { toast } = useToast();
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const fileInputRef = useRef&lt;HTMLInputElement&gt;(null);
 
-    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (event: React.ChangeEvent&lt;HTMLInputElement&gt;) =&gt; {
         const file = event.target.files?.[0];
         if (file) {
             setIsUploading(true);
@@ -67,7 +68,7 @@ const FileUploadField = React.memo(({ label, name, onUploadComplete, initialData
         }
     };
     
-    const handleCancelUpload = () => {
+    const handleCancelUpload = () =&gt; {
         setIsUploading(false);
         if (fileInputRef.current) {
             fileInputRef.current.value = ""; // Reset file input
@@ -76,30 +77,30 @@ const FileUploadField = React.memo(({ label, name, onUploadComplete, initialData
     };
 
     return (
-        <div className="space-y-2">
-            <Label htmlFor={name}>{label}</Label>
-            <div className="flex items-center gap-2">
-                <Input ref={fileInputRef} id={name} name={`${name}-file`} type="file" onChange={handleFileChange} disabled={isUploading} className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
+        &lt;div className="space-y-2"&gt;
+            &lt;Label htmlFor={name}&gt;{label}&lt;/Label&gt;
+            &lt;div className="flex items-center gap-2"&gt;
+                &lt;Input ref={fileInputRef} id={name} name={`${name}-file`} type="file" onChange={handleFileChange} disabled={isUploading} className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" /&gt;
                 {isUploading && (
-                    <div className="flex items-center gap-2">
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                        <Button variant="ghost" size="icon" onClick={handleCancelUpload}>
-                            <XCircle className="h-5 w-5 text-destructive" />
-                        </Button>
-                    </div>
+                    &lt;div className="flex items-center gap-2"&gt;
+                        &lt;Loader2 className="h-5 w-5 animate-spin" /&gt;
+                        &lt;Button variant="ghost" size="icon" onClick={handleCancelUpload}&gt;
+                            &lt;XCircle className="h-5 w-5 text-destructive" /&gt;
+                        &lt;/Button&gt;
+                    &lt;/div&gt;
                 )}
                 {fileUrl && !isUploading && (
-                    <div className="flex items-center gap-2">
-                        {fileName && <span className="text-sm text-muted-foreground truncate max-w-[100px]">{fileName}</span>}
-                        <Button variant="outline" size="icon" asChild>
-                            <Link href={fileUrl} target="_blank">
-                                <Eye className="h-4 w-4" />
-                            </Link>
-                        </Button>
-                    </div>
+                    &lt;div className="flex items-center gap-2"&gt;
+                        {fileName && &lt;span className="text-sm text-muted-foreground truncate max-w-[100px]"&gt;{fileName}&lt;/span&gt;}
+                        &lt;Button variant="outline" size="icon" asChild&gt;
+                            &lt;Link href={fileUrl} target="_blank"&gt;
+                                &lt;Eye className="h-4 w-4" /&gt;
+                            &lt;/Link&gt;
+                        &lt;/Button&gt;
+                    &lt;/div&gt;
                 )}
-            </div>
-        </div>
+            &lt;/div&gt;
+        &lt;/div&gt;
     );
 });
 FileUploadField.displayName = 'FileUploadField';
@@ -113,19 +114,19 @@ export default function EditPatientPage() {
     const id = params.id as string;
     
     const [state, formAction] = useActionState(handleUpdatePatient, { message: "", type: 'initial' });
-    const [patient, setPatient] = useState<Patient | null>(null);
-    const [companies, setCompanies] = useState<Pick<Company, "id" | "name">[]>([]);
-    const [tpas, setTpas] = useState<Pick<TPA, "id" | "name">[]>([]);
-    const [doctors, setDoctors] = useState<Doctor[]>([]);
-    const [chiefComplaints, setChiefComplaints] = useState<Complaint[]>([]);
+    const [patient, setPatient] = useState&lt;Patient | null&gt;(null);
+    const [companies, setCompanies] = useState&lt;Pick&lt;Company, "id" | "name"&gt;[]&gt;([]);
+    const [tpas, setTpas] = useState&lt;Pick&lt;TPA, "id" | "name"&gt;[]&gt;([]);
+    const [doctors, setDoctors] = useState&lt;Doctor[]&gt;([]);
+    const [chiefComplaints, setChiefComplaints] = useState&lt;Complaint[]&gt;([]);
     const [isLoading, setIsLoading] = useState(true);
     
-    const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-    const [photoName, setPhotoName] = useState<string | null>(null);
+    const [photoUrl, setPhotoUrl] = useState&lt;string | null&gt;(null);
+    const [photoName, setPhotoName] = useState&lt;string | null&gt;(null);
     const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-    const photoInputRef = useRef<HTMLInputElement>(null);
+    const photoInputRef = useRef&lt;HTMLInputElement&gt;(null);
 
-    const [documentUrls, setDocumentUrls] = useState<Record<string, { url: string, name: string }>>({});
+    const [documentUrls, setDocumentUrls] = useState&lt;Record&lt;string, { url: string, name: string }&gt;&gt;({});
     const [totalCost, setTotalCost] = useState(0);
 
     const roomCategories = [
@@ -138,7 +139,7 @@ export default function EditPatientPage() {
         "CLASSIC SUITE III", "RECOVERY", "SPECIAL", "SEMI SPECIAL"
     ];
 
-     const calculateTotalCost = React.useCallback(() => {
+     const calculateTotalCost = React.useCallback(() =&gt; {
         const form = document.querySelector('form');
         if (!form) return;
         const costs = [
@@ -146,7 +147,7 @@ export default function EditPatientPage() {
             'otCost', 'professionalFees', 'medicineCost', 'otherHospitalExpenses'
         ];
         let sum = 0;
-        costs.forEach(id => {
+        costs.forEach(id =&gt; {
             const input = form.querySelector(`#${id}`) as HTMLInputElement;
             if (input && input.value) {
                 sum += parseFloat(input.value) || 0;
@@ -155,14 +156,14 @@ export default function EditPatientPage() {
         setTotalCost(sum);
     }, []);
 
-    useEffect(() => {
+    useEffect(() =&gt; {
         if (patient) {
             calculateTotalCost();
         }
     }, [patient, calculateTotalCost]);
 
 
-    useEffect(() => {
+    useEffect(() =&gt; {
         async function loadData() {
             try {
                 const editData = await getPatientEditPageData(id);
@@ -185,7 +186,7 @@ export default function EditPatientPage() {
                     setPhotoName(patientData.photo.name);
                 }
                 
-                const initialDocUrls: Record<string, { url: string, name: string }> = {};
+                const initialDocUrls: Record&lt;string, { url: string, name: string }&gt; = {};
                 const docFields: (keyof Patient)[] = ['adhaar_path', 'pan_path', 'passport_path', 'voter_id_path', 'driving_licence_path', 'other_path'];
 
                 for (const field of docFields) {
@@ -205,7 +206,7 @@ export default function EditPatientPage() {
         loadData();
     }, [id, toast]);
     
-     useEffect(() => {
+     useEffect(() =&gt; {
         if (state.type === 'success') {
             toast({ title: "Patient", description: state.message, variant: "success" });
             router.push('/dashboard/patients');
@@ -217,9 +218,9 @@ export default function EditPatientPage() {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center h-full">
-                 <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-            </div>
+            &lt;div className="flex items-center justify-center h-full"&gt;
+                 &lt;div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"&gt;&lt;/div&gt;
+            &lt;/div&gt;
         );
     }
     
@@ -227,7 +228,7 @@ export default function EditPatientPage() {
         return notFound();
     }
     
-    const handlePhotoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handlePhotoChange = async (event: React.ChangeEvent&lt;HTMLInputElement&gt;) =&gt; {
         const file = event.target.files?.[0];
         if (file) {
             setIsUploadingPhoto(true);
@@ -249,7 +250,7 @@ export default function EditPatientPage() {
         }
     };
 
-    const handleCancelPhotoUpload = () => {
+    const handleCancelPhotoUpload = () =&gt; {
         setIsUploadingPhoto(false);
         if (photoInputRef.current) {
             photoInputRef.current.value = "";
@@ -258,62 +259,62 @@ export default function EditPatientPage() {
     };
 
     
-    const handleDocumentUploadComplete = (fieldName: string, name: string, url: string) => {
-        setDocumentUrls(prev => ({ ...prev, [fieldName]: { url, name } }));
+    const handleDocumentUploadComplete = (fieldName: string, name: string, url: string) =&gt; {
+        setDocumentUrls(prev =&gt; ({ ...prev, [fieldName]: { url, name } }));
     };
 
     const today = new Date().toISOString().split('T')[0];
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center gap-4">
-                <Button variant="outline" size="icon" asChild>
-                    <Link href="/dashboard/patients">
-                        <ArrowLeft className="h-4 w-4" />
-                        <span className="sr-only">Back</span>
-                    </Link>
-                </Button>
-                <h1 className="text-lg font-semibold md:text-2xl">Edit Patient</h1>
-            </div>
-            <form action={formAction}>
-                 <input type="hidden" name="id" value={patient.id} />
-                 <input type="hidden" name="hospital_id" value={user?.hospitalId || ''} />
-                 <input type="hidden" name="photoUrl" value={photoUrl || ''} />
-                 <input type="hidden" name="photoName" value={photoName || ''} />
-                 {Object.entries(documentUrls).map(([key, value]) => (
-                    <React.Fragment key={key}>
-                      <input type="hidden" name={`${key}_url`} value={value.url} />
-                      <input type="hidden" name={`${key}_name`} value={value.name} />
-                    </React.Fragment>
+        &lt;div className="space-y-6"&gt;
+            &lt;div className="flex items-center gap-4"&gt;
+                &lt;Button variant="outline" size="icon" asChild&gt;
+                    &lt;Link href="/dashboard/patients"&gt;
+                        &lt;ArrowLeft className="h-4 w-4" /&gt;
+                        &lt;span className="sr-only"&gt;Back&lt;/span&gt;
+                    &lt;/Link&gt;
+                &lt;/Button&gt;
+                &lt;h1 className="text-lg font-semibold md:text-2xl"&gt;Edit Patient&lt;/h1&gt;
+            &lt;/div&gt;
+            &lt;form action={formAction}&gt;
+                 &lt;input type="hidden" name="id" value={patient.id} /&gt;
+                 &lt;input type="hidden" name="hospital_id" value={user?.hospitalId || ''} /&gt;
+                 &lt;input type="hidden" name="photoUrl" value={photoUrl || ''} /&gt;
+                 &lt;input type="hidden" name="photoName" value={photoName || ''} /&gt;
+                 {Object.entries(documentUrls).map(([key, value]) =&gt; (
+                    &lt;React.Fragment key={key}&gt;
+                      &lt;input type="hidden" name={`${key}_url`} value={value.url} /&gt;
+                      &lt;input type="hidden" name={`${key}_name`} value={value.name} /&gt;
+                    &lt;/React.Fragment&gt;
                  ))}
-                <div className="grid gap-6">
-                    <Card className="flex flex-col items-center p-6">
-                        <Avatar className="h-32 w-32 mb-4">
+                &lt;div className="grid gap-6"&gt;
+                    &lt;Card className="flex flex-col items-center p-6"&gt;
+                        &lt;Avatar className="h-32 w-32 mb-4"&gt;
                            {isUploadingPhoto ? (
-                                <div className="flex h-full w-full items-center justify-center rounded-full bg-muted">
-                                    <Loader2 className="h-10 w-10 animate-spin" />
-                                </div>
+                                &lt;div className="flex h-full w-full items-center justify-center rounded-full bg-muted"&gt;
+                                    &lt;Loader2 className="h-10 w-10 animate-spin" /&gt;
+                                &lt;/div&gt;
                             ) : (
-                                <>
-                                    <AvatarImage src={photoUrl ?? undefined} alt={patient.fullName} />
-                                    <AvatarFallback>
-                                        <UserIcon className="h-16 w-16" />
-                                    </AvatarFallback>
-                                </>
+                                &lt;&gt;
+                                    &lt;AvatarImage src={photoUrl ?? undefined} alt={patient.fullName} /&gt;
+                                    &lt;AvatarFallback&gt;
+                                        &lt;UserIcon className="h-16 w-16" /&gt;
+                                    &lt;/AvatarFallback&gt;
+                                &lt;/&gt;
                             )}
-                        </Avatar>
-                         <div className="flex items-center gap-2">
-                            <Button type="button" variant="outline" onClick={() => photoInputRef.current?.click()} disabled={isUploadingPhoto}>
-                                <Upload className="mr-2 h-4 w-4" />
+                        &lt;/Avatar&gt;
+                         &lt;div className="flex items-center gap-2"&gt;
+                            &lt;Button type="button" variant="outline" onClick={() =&gt; photoInputRef.current?.click()} disabled={isUploadingPhoto}&gt;
+                                &lt;Upload className="mr-2 h-4 w-4" /&gt;
                                 {isUploadingPhoto ? 'Uploading...' : 'Change Photo'}
-                            </Button>
+                            &lt;/Button&gt;
                             {isUploadingPhoto && (
-                                <Button type="button" variant="ghost" size="icon" onClick={handleCancelPhotoUpload}>
-                                    <XCircle className="h-6 w-6 text-destructive" />
-                                </Button>
+                                &lt;Button type="button" variant="ghost" size="icon" onClick={handleCancelPhotoUpload}&gt;
+                                    &lt;XCircle className="h-6 w-6 text-destructive" /&gt;
+                                &lt;/Button&gt;
                             )}
-                        </div>
-                        <Input 
+                        &lt;/div&gt;
+                        &lt;Input 
                             ref={photoInputRef}
                             id="photo-upload" 
                             name="photo-upload-file" 
@@ -321,512 +322,514 @@ export default function EditPatientPage() {
                             className="hidden" 
                             accept="image/*"
                             onChange={handlePhotoChange} 
-                        />
-                    </Card>
+                        /&gt;
+                    &lt;/Card&gt;
 
-                     <Accordion type="multiple" className="w-full space-y-6" defaultValue={["patient-details", "insurance-details"]}>
-                        <Card>
-                            <AccordionItem value="patient-details">
-                                <AccordionTrigger className="p-6">
-                                    <CardTitle>A. Patient Details</CardTitle>
-                                </AccordionTrigger>
-                                <AccordionContent>
-                                    <CardContent className="grid md:grid-cols-3 gap-4">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="firstName">First Name <span className="text-destructive">*</span></Label>
-                                            <Input id="firstName" name="firstName" defaultValue={patient.firstName} required />
-                                        </div>
-                                         <div className="space-y-2">
-                                            <Label htmlFor="lastName">Last Name <span className="text-destructive">*</span></Label>
-                                            <Input id="lastName" name="lastName" defaultValue={patient.lastName} required />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="email_address">Email Address <span className="text-destructive">*</span></Label>
-                                            <Input id="email_address" name="email_address" type="email" defaultValue={patient.email_address ?? ''} required />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="phone_number">Registered mobile number <span className="text-destructive">*</span></Label>
-                                            <PhoneInput name="phone_number" defaultValue={patient.phoneNumber ?? ''} required />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="alternative_number">Alternate contact number</Label>
-                                            <PhoneInput name="alternative_number" defaultValue={patient.alternative_number ?? ''} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="gender">Gender <span className="text-destructive">*</span></Label>
-                                            <Select name="gender" defaultValue={patient.gender ?? undefined} required>
-                                                <SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="Male">Male</SelectItem>
-                                                    <SelectItem value="Female">Female</SelectItem>
-                                                    <SelectItem value="Other">Other</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="age">Age</Label>
-                                            <Input id="age" name="age" type="number" defaultValue={patient.age ?? ''} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="birth_date">Date of birth</Label>
-                                            <Input id="birth_date" name="birth_date" type="date" defaultValue={patient.dateOfBirth ?? ''} max={today} />
-                                        </div>
-                                        <div className="md:col-span-2 space-y-2">
-                                            <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
-                                            <Input id="address" name="address" defaultValue={patient.address ?? ''} required />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="occupation">Occupation</Label>
-                                            <Input id="occupation" name="occupation" defaultValue={patient.occupation ?? ''} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="employee_id">Employee ID</Label>
-                                            <Input id="employee_id" name="employee_id" defaultValue={patient.employee_id ?? ''} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="abha_id">ABHA ID</Label>
-                                            <Input id="abha_id" name="abha_id" defaultValue={patient.abha_id ?? ''} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="health_id">Health ID / UHID <span className="text-destructive">*</span></Label>
-                                            <Input id="health_id" name="health_id" defaultValue={patient.health_id ?? ''} required />
-                                        </div>
-                                    </CardContent>
-                                </AccordionContent>
-                            </AccordionItem>
-                        </Card>
+                     &lt;Accordion type="multiple" className="w-full space-y-6" defaultValue={["patient-details", "insurance-details"]}&gt;
+                        &lt;Card&gt;
+                            &lt;AccordionItem value="patient-details"&gt;
+                                &lt;AccordionTrigger className="p-6"&gt;
+                                    &lt;CardTitle&gt;A. Patient Details&lt;/CardTitle&gt;
+                                &lt;/AccordionTrigger&gt;
+                                &lt;AccordionContent&gt;
+                                    &lt;CardContent className="grid md:grid-cols-3 gap-4"&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="firstName"&gt;First Name &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="firstName" name="firstName" defaultValue={patient.firstName} required /&gt;
+                                        &lt;/div&gt;
+                                         &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="lastName"&gt;Last Name &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="lastName" name="lastName" defaultValue={patient.lastName} required /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="email_address"&gt;Email Address &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="email_address" name="email_address" type="email" defaultValue={patient.email_address ?? ''} required /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="phone_number"&gt;Registered mobile number &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;PhoneInput name="phone_number" defaultValue={patient.phoneNumber ?? ''} required /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="alternative_number"&gt;Alternate contact number&lt;/Label&gt;
+                                            &lt;PhoneInput name="alternative_number" defaultValue={patient.alternative_number ?? ''} /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="gender"&gt;Gender &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Select name="gender" defaultValue={patient.gender ?? undefined} required&gt;
+                                                &lt;SelectTrigger&gt;&lt;SelectValue placeholder="Select gender" /&gt;&lt;/SelectTrigger&gt;
+                                                &lt;SelectContent&gt;
+                                                    &lt;SelectItem value="Male"&gt;Male&lt;/SelectItem&gt;
+                                                    &lt;SelectItem value="Female"&gt;Female&lt;/SelectItem&gt;
+                                                    &lt;SelectItem value="Other"&gt;Other&lt;/SelectItem&gt;
+                                                &lt;/SelectContent&gt;
+                                            &lt;/Select&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="age"&gt;Age&lt;/Label&gt;
+                                            &lt;Input id="age" name="age" type="number" defaultValue={patient.age ?? ''} /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="birth_date"&gt;Date of birth&lt;/Label&gt;
+                                            &lt;Input id="birth_date" name="birth_date" type="date" defaultValue={patient.dateOfBirth ?? ''} max={today} /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="md:col-span-2 space-y-2"&gt;
+                                            &lt;Label htmlFor="address"&gt;Address &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="address" name="address" defaultValue={patient.address ?? ''} required /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="occupation"&gt;Occupation&lt;/Label&gt;
+                                            &lt;Input id="occupation" name="occupation" defaultValue={patient.occupation ?? ''} /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="employee_id"&gt;Employee ID&lt;/Label&gt;
+                                            &lt;Input id="employee_id" name="employee_id" defaultValue={patient.employee_id ?? ''} /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="abha_id"&gt;ABHA ID&lt;/Label&gt;
+                                            &lt;Input id="abha_id" name="abha_id" defaultValue={patient.abha_id ?? ''} /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="health_id"&gt;Health ID / UHID &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="health_id" name="health_id" defaultValue={patient.health_id ?? ''} required /&gt;
+                                        &lt;/div&gt;
+                                    &lt;/CardContent&gt;
+                                &lt;/AccordionContent&gt;
+                            &lt;/AccordionItem&gt;
+                        &lt;/Card&gt;
 
-                        <Card>
-                             <AccordionItem value="kyc-documents">
-                                <AccordionTrigger className="p-6">
-                                    <CardTitle>B. KYC &amp; Documents</CardTitle>
-                                </AccordionTrigger>
-                                <AccordionContent>
-                                    <CardContent className="grid md:grid-cols-2 gap-4">
-                                        <FileUploadField label="Aadhaar Card" name="adhaar_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.adhaar_path as {url: string, name: string} | undefined} />
-                                        <FileUploadField label="PAN Card" name="pan_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.pan_path as {url: string, name: string} | undefined} />
-                                        <FileUploadField label="Passport" name="passport_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.passport_path as {url: string, name: string} | undefined} />
-                                        <FileUploadField label="Driving License" name="driving_licence_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.driving_licence_path as {url: string, name: string} | undefined} />
-                                        <FileUploadField label="Voter ID" name="voter_id_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.voter_id_path as {url: string, name: string} | undefined} />
-                                        <FileUploadField label="Other Document" name="other_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.other_path as {url: string, name: string} | undefined} />
-                                    </CardContent>
-                                </AccordionContent>
-                            </AccordionItem>
-                        </Card>
+                        &lt;Card&gt;
+                             &lt;AccordionItem value="kyc-documents"&gt;
+                                &lt;AccordionTrigger className="p-6"&gt;
+                                    &lt;CardTitle&gt;B. KYC &amp;amp; Documents&lt;/CardTitle&gt;
+                                &lt;/AccordionTrigger&gt;
+                                &lt;AccordionContent&gt;
+                                    &lt;CardContent className="grid md:grid-cols-2 gap-4"&gt;
+                                        &lt;FileUploadField label="Aadhaar Card" name="adhaar_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.adhaar_path as {url: string, name: string} | undefined} /&gt;
+                                        &lt;FileUploadField label="PAN Card" name="pan_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.pan_path as {url: string, name: string} | undefined} /&gt;
+                                        &lt;FileUploadField label="Passport" name="passport_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.passport_path as {url: string, name: string} | undefined} /&gt;
+                                        &lt;FileUploadField label="Driving License" name="driving_licence_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.driving_licence_path as {url: string, name: string} | undefined} /&gt;
+                                        &lt;FileUploadField label="Voter ID" name="voter_id_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.voter_id_path as {url: string, name: string} | undefined} /&gt;
+                                        &lt;FileUploadField label="Other Document" name="other_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.other_path as {url: string, name: string} | undefined} /&gt;
+                                    &lt;/CardContent&gt;
+                                &lt;/AccordionContent&gt;
+                            &lt;/AccordionItem&gt;
+                        &lt;/Card&gt;
 
-                        <Card>
-                            <AccordionItem value="insurance-details">
-                                <AccordionTrigger className="p-6">
-                                    <CardTitle>C. Insurance &amp; Admission Details</CardTitle>
-                                </AccordionTrigger>
-                                <AccordionContent>
-                                    <CardContent className="grid md:grid-cols-3 gap-4">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="admission_id">Admission ID <span className="text-destructive">*</span></Label>
-                                            <Input id="admission_id" name="admission_id" defaultValue={patient.admission_id ?? ''} required />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="relationship_policyholder">Relationship to policyholder <span className="text-destructive">*</span></Label>
-                                            <Select name="relationship_policyholder" required defaultValue={patient.relationship_policyholder ?? undefined}>
-                                                <SelectTrigger><SelectValue placeholder="Select relationship" /></SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="Sister">Sister</SelectItem>
-                                                    <SelectItem value="Brother">Brother</SelectItem>
-                                                    <SelectItem value="Mother">Mother</SelectItem>
-                                                    <SelectItem value="Father">Father</SelectItem>
-                                                    <SelectItem value="Son">Son</SelectItem>
-                                                    <SelectItem value="Daughter">Daughter</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="policy_number">Policy number <span className="text-destructive">*</span></Label>
-                                            <Input id="policy_number" name="policy_number" defaultValue={patient.policyNumber ?? ''} required />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="insured_card_number">Insured member / card ID number <span className="text-destructive">*</span></Label>
-                                            <Input id="insured_card_number" name="insured_card_number" defaultValue={patient.memberId ?? ''} required />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="company_id">Insurance Company <span className="text-destructive">*</span></Label>
-                                            <Select name="company_id" required defaultValue={patient.companyId} disabled={isLoading}>
-                                                <SelectTrigger><SelectValue placeholder="Select a company" /></SelectTrigger>
-                                                <SelectContent>
-                                                    {companies.map(c => (
-                                                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        &lt;Card&gt;
+                            &lt;AccordionItem value="insurance-details"&gt;
+                                &lt;AccordionTrigger className="p-6"&gt;
+                                    &lt;CardTitle&gt;C. Insurance &amp;amp; Admission Details&lt;/CardTitle&gt;
+                                &lt;/AccordionTrigger&gt;
+                                &lt;AccordionContent&gt;
+                                    &lt;CardContent className="grid md:grid-cols-3 gap-4"&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="admission_id"&gt;Admission ID &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="admission_id" name="admission_id" defaultValue={patient.admission_id ?? ''} required /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="relationship_policyholder"&gt;Relationship to policyholder &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Select name="relationship_policyholder" required defaultValue={patient.relationship_policyholder ?? undefined}&gt;
+                                                &lt;SelectTrigger&gt;&lt;SelectValue placeholder="Select relationship" /&gt;&lt;/SelectTrigger&gt;
+                                                &lt;SelectContent&gt;
+                                                    &lt;SelectItem value="Sister"&gt;Sister&lt;/SelectItem&gt;
+                                                    &lt;SelectItem value="Brother"&gt;Brother&lt;/SelectItem&gt;
+                                                    &lt;SelectItem value="Mother"&gt;Mother&lt;/SelectItem&gt;
+                                                    &lt;SelectItem value="Father"&gt;Father&lt;/SelectItem&gt;
+                                                    &lt;SelectItem value="Son"&gt;Son&lt;/SelectItem&gt;
+                                                    &lt;SelectItem value="Daughter"&gt;Daughter&lt;/SelectItem&gt;
+                                                &lt;/SelectContent&gt;
+                                            &lt;/Select&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="policy_number"&gt;Policy number &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="policy_number" name="policy_number" defaultValue={patient.policyNumber ?? ''} required /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="insured_card_number"&gt;Insured member / card ID number &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="insured_card_number" name="insured_card_number" defaultValue={patient.memberId ?? ''} required /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="company_id"&gt;Insurance Company &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Select name="company_id" required defaultValue={patient.companyId} disabled={isLoading}&gt;
+                                                &lt;SelectTrigger&gt;&lt;SelectValue placeholder="Select a company" /&gt;&lt;/SelectTrigger&gt;
+                                                &lt;SelectContent&gt;
+                                                    {companies.map(c =&gt; (
+                                                        &lt;SelectItem key={c.id} value={c.id}&gt;{c.name}&lt;/SelectItem&gt;
                                                     ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="policy_start_date">Policy Start Date <span className="text-destructive">*</span></Label>
-                                            <Input id="policy_start_date" name="policy_start_date" type="date" defaultValue={patient.policyStartDate ?? ''} required max={today} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="policy_end_date">Policy End Date <span className="text-destructive">*</span></Label>
-                                            <Input id="policy_end_date" name="policy_end_date" type="date" defaultValue={patient.policyEndDate ?? ''} required min={today} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="sumInsured">Sum Insured</Label>
-                                            <Input id="sumInsured" name="sumInsured" type="number" defaultValue={patient.sumInsured ?? ''} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="sumUtilized">Sum Utilized</Label>
-                                            <Input id="sumUtilized" name="sumUtilized" type="number" defaultValue={patient.sumUtilized ?? ''} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="totalSum">Total Sum</Label>
-                                            <Input id="totalSum" name="totalSum" type="number" defaultValue={patient.totalSum ?? ''} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="corporate_policy_number">Corporate policy name/number</Label>
-                                            <Input id="corporate_policy_number" name="corporate_policy_number" defaultValue={patient.corporate_policy_number ?? ''} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="other_policy_name">Other active health insurance</Label>
-                                            <Input id="other_policy_name" name="other_policy_name" defaultValue={patient.other_policy_name ?? ''} placeholder="Name of other insurer" />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="family_doctor_name">Family physician name</Label>
-                                            <Input id="family_doctor_name" name="family_doctor_name" defaultValue={patient.family_doctor_name ?? ''} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="family_doctor_phone">Family physician contact</Label>
-                                            <PhoneInput name="family_doctor_phone" defaultValue={patient.family_doctor_phone ?? ''} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="payer_email">Proposer/Payer email ID <span className="text-destructive">*</span></Label>
-                                            <Input id="payer_email" name="payer_email" type="email" defaultValue={patient.payer_email ?? ''} required />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="payer_phone">Proposer/Payer phone number <span className="text-destructive">*</span></Label>
-                                            <PhoneInput name="payer_phone" defaultValue={patient.payer_phone ?? ''} required />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="tpa_id">Select TPA <span className="text-destructive">*</span></Label>
-                                            <Select name="tpa_id" disabled={isLoading} required defaultValue={patient.tpa_id?.toString() ?? undefined}>
-                                                <SelectTrigger><SelectValue placeholder="Select a TPA" /></SelectTrigger>
-                                                <SelectContent>
-                                                    {tpas.map(t => (
-                                                        <SelectItem key={t.id} value={String(t.id)}>{t.name}</SelectItem>
+                                                &lt;/SelectContent&gt;
+                                            &lt;/Select&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="policy_start_date"&gt;Policy Start Date &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="policy_start_date" name="policy_start_date" type="date" defaultValue={patient.policyStartDate ?? ''} required max={today} /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="policy_end_date"&gt;Policy End Date &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="policy_end_date" name="policy_end_date" type="date" defaultValue={patient.policyEndDate ?? ''} required min={today} /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="sumInsured"&gt;Sum Insured&lt;/Label&gt;
+                                            &lt;Input id="sumInsured" name="sumInsured" type="number" defaultValue={patient.sumInsured ?? ''} /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="sumUtilized"&gt;Sum Utilized&lt;/Label&gt;
+                                            &lt;Input id="sumUtilized" name="sumUtilized" type="number" defaultValue={patient.sumUtilized ?? ''} /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="totalSum"&gt;Total Sum&lt;/Label&gt;
+                                            &lt;Input id="totalSum" name="totalSum" type="number" defaultValue={patient.totalSum ?? ''} /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="corporate_policy_number"&gt;Corporate policy name/number&lt;/Label&gt;
+                                            &lt;Input id="corporate_policy_number" name="corporate_policy_number" defaultValue={patient.corporate_policy_number ?? ''} /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="other_policy_name"&gt;Other active health insurance&lt;/Label&gt;
+                                            &lt;Input id="other_policy_name" name="other_policy_name" defaultValue={patient.other_policy_name ?? ''} placeholder="Name of other insurer" /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="family_doctor_name"&gt;Family physician name&lt;/Label&gt;
+                                            &lt;Input id="family_doctor_name" name="family_doctor_name" defaultValue={patient.family_doctor_name ?? ''} /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="family_doctor_phone"&gt;Family physician contact&lt;/Label&gt;
+                                            &lt;PhoneInput name="family_doctor_phone" defaultValue={patient.family_doctor_phone ?? ''} /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="payer_email"&gt;Proposer/Payer email ID &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="payer_email" name="payer_email" type="email" defaultValue={patient.payer_email ?? ''} required /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="payer_phone"&gt;Proposer/Payer phone number &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;PhoneInput name="payer_phone" defaultValue={patient.payer_phone ?? ''} required /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="tpa_id"&gt;Select TPA &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Select name="tpa_id" disabled={isLoading} required defaultValue={patient.tpa_id?.toString() ?? undefined}&gt;
+                                                &lt;SelectTrigger&gt;&lt;SelectValue placeholder="Select a TPA" /&gt;&lt;/SelectTrigger&gt;
+                                                &lt;SelectContent&gt;
+                                                    {tpas.map(t =&gt; (
+                                                        &lt;SelectItem key={t.id} value={String(t.id)}&gt;{t.name}&lt;/SelectItem&gt;
                                                     ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="treat_doc_name">Treating doctor’s name <span className="text-destructive">*</span></Label>
-                                            <DoctorSearch
+                                                &lt;/SelectContent&gt;
+                                            &lt;/Select&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="treat_doc_name"&gt;Treating doctor’s name &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;DoctorSearch
                                                 doctors={doctors}
                                                 defaultDoctorId={patient.doctor_id ?? undefined}
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="treat_doc_number">Treating doctor’s contact <span className="text-destructive">*</span></Label>
-                                            <PhoneInput id="treat_doc_number" name="treat_doc_number" defaultValue={patient.treat_doc_number ?? ''} required />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="treat_doc_qualification">Doctor’s qualification <span className="text-destructive">*</span></Label>
-                                            <Input id="treat_doc_qualification" name="treat_doc_qualification" defaultValue={patient.treat_doc_qualification ?? ''} required />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="treat_doc_reg_no">Doctor’s registration no. <span className="text-destructive">*</span></Label>
-                                            <Input id="treat_doc_reg_no" name="treat_doc_reg_no" defaultValue={patient.treat_doc_reg_no ?? ''} required />
-                                        </div>
-                                    </CardContent>
-                                </AccordionContent>
-                            </AccordionItem>
-                        </Card>
+                                            /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="treat_doc_number"&gt;Treating doctor’s contact &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;PhoneInput id="treat_doc_number" name="treat_doc_number" defaultValue={patient.treat_doc_number ?? ''} required /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="treat_doc_qualification"&gt;Doctor’s qualification &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="treat_doc_qualification" name="treat_doc_qualification" defaultValue={patient.treat_doc_qualification ?? ''} required /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="treat_doc_reg_no"&gt;Doctor’s registration no. &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="treat_doc_reg_no" name="treat_doc_reg_no" defaultValue={patient.treat_doc_reg_no ?? ''} required /&gt;
+                                        &lt;/div&gt;
+                                    &lt;/CardContent&gt;
+                                &lt;/AccordionContent&gt;
+                            &lt;/AccordionItem&gt;
+                        &lt;/Card&gt;
                         
-                        <Card>
-                            <AccordionItem value="clinical-info">
-                                <AccordionTrigger className="p-6">
-                                    <CardTitle>D. Clinical Information <span className="text-destructive">*</span></CardTitle>
-                                </AccordionTrigger>
-                                <AccordionContent>
-                                    <CardContent className="grid md:grid-cols-2 gap-4">
-                                        <div className="space-y-2 md:col-span-2">
-                                            <Label htmlFor="natureOfIllness">Nature of illness / presenting complaints <span className="text-destructive">*</span></Label>
-                                            <Textarea id="natureOfIllness" name="natureOfIllness" defaultValue={patient.natureOfIllness ?? ''} required/>
-                                        </div>
-                                        <div className="space-y-2 md:col-span-2">
-                                            <Label htmlFor="clinicalFindings">Relevant clinical findings <span className="text-destructive">*</span></Label>
-                                            <Textarea id="clinicalFindings" name="clinicalFindings" defaultValue={patient.clinicalFindings ?? ''} required/>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="ailmentDuration">Duration of present ailment (days) <span className="text-destructive">*</span></Label>
-                                            <Input id="ailmentDuration" name="ailmentDuration" type="number" defaultValue={patient.ailmentDuration ?? ''} required/>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="firstConsultationDate">Date of first consultation <span className="text-destructive">*</span></Label>
-                                            <Input id="firstConsultationDate" name="firstConsultationDate" type="date" defaultValue={patient.firstConsultationDate ?? ''} required/>
-                                        </div>
-                                        <div className="space-y-2 md:col-span-2">
-                                            <Label htmlFor="pastHistory">Past history of present ailment <span className="text-destructive">*</span></Label>
-                                            <Textarea id="pastHistory" name="pastHistory" defaultValue={patient.pastHistory ?? ''} required/>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="provisionalDiagnosis">Provisional diagnosis <span className="text-destructive">*</span></Label>
-                                            <Input id="provisionalDiagnosis" name="provisionalDiagnosis" defaultValue={patient.provisionalDiagnosis ?? ''} required/>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="icd10Codes">ICD-10 diagnosis code(s) <span className="text-destructive">*</span></Label>
-                                            <IctCodeSearch name="icd10Codes" defaultValue={patient.icd10Codes ?? ''} required />
-                                        </div>
-                                        <div className="space-y-2 md:col-span-2">
-                                            <Label>Proposed line of treatment <span className="text-destructive">*</span></Label>
-                                            <div className="grid md:grid-cols-2 gap-4">
-                                               <Input name="treatmentMedical" placeholder="Medical management" defaultValue={patient.treatmentMedical ?? ''} required/>
-                                               <Input name="treatmentSurgical" placeholder="Surgical management" defaultValue={patient.treatmentSurgical ?? ''} required/>
-                                               <Input name="treatmentIntensiveCare" placeholder="Intensive care" defaultValue={patient.treatmentIntensiveCare ?? ''} required/>
-                                               <Input name="treatmentInvestigation" placeholder="Investigation only" defaultValue={patient.treatmentInvestigation ?? ''} required/>
-                                               <Input name="treatmentNonAllopathic" placeholder="Non-allopathic" defaultValue={patient.treatmentNonAllopathic ?? ''} required/>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="investigationDetails">Investigation / medical management details <span className="text-destructive">*</span></Label>
-                                            <Textarea id="investigationDetails" name="investigationDetails" defaultValue={patient.investigationDetails ?? ''} required/>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="drugRoute">Route of drug administration <span className="text-destructive">*</span></Label>
-                                            <Input id="drugRoute" name="drugRoute" defaultValue={patient.drugRoute ?? ''} required/>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="procedureName">Planned procedure / surgery name <span className="text-destructive">*</span></Label>
-                                            <Input id="procedureName" name="procedureName" defaultValue={patient.procedureName ?? ''} required/>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="icd10PcsCodes">ICD-10-PCS / procedure code(s) <span className="text-destructive">*</span></Label>
-                                            <Input id="icd10PcsCodes" name="icd10PcsCodes" defaultValue={patient.icd10PcsCodes ?? ''} required/>
-                                        </div>
-                                        <div className="space-y-2 md:col-span-2">
-                                            <Label htmlFor="otherTreatments">Any other treatments (details) <span className="text-destructive">*</span></Label>
-                                            <Textarea id="otherTreatments" name="otherTreatments" defaultValue={patient.otherTreatments ?? ''} required/>
-                                        </div>
-                                    </CardContent>
-                                </AccordionContent>
-                            </AccordionItem>
-                        </Card>
+                        &lt;Card&gt;
+                            &lt;AccordionItem value="clinical-info"&gt;
+                                &lt;AccordionTrigger className="p-6"&gt;
+                                    &lt;CardTitle&gt;D. Clinical Information &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/CardTitle&gt;
+                                &lt;/AccordionTrigger&gt;
+                                &lt;AccordionContent&gt;
+                                    &lt;CardContent className="grid md:grid-cols-2 gap-4"&gt;
+                                        &lt;div className="space-y-2 md:col-span-2"&gt;
+                                            &lt;Label htmlFor="natureOfIllness"&gt;Nature of illness / presenting complaints &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Textarea id="natureOfIllness" name="natureOfIllness" defaultValue={patient.natureOfIllness ?? ''} required/&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2 md:col-span-2"&gt;
+                                            &lt;Label htmlFor="clinicalFindings"&gt;Relevant clinical findings &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Textarea id="clinicalFindings" name="clinicalFindings" defaultValue={patient.clinicalFindings ?? ''} required/&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="ailmentDuration"&gt;Duration of present ailment (days) &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="ailmentDuration" name="ailmentDuration" type="number" defaultValue={patient.ailmentDuration ?? ''} required/&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="firstConsultationDate"&gt;Date of first consultation &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="firstConsultationDate" name="firstConsultationDate" type="date" defaultValue={patient.firstConsultationDate ?? ''} required/&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2 md:col-span-2"&gt;
+                                            &lt;Label htmlFor="pastHistory"&gt;Past history of present ailment &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Textarea id="pastHistory" name="pastHistory" defaultValue={patient.pastHistory ?? ''} required/&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="provisionalDiagnosis"&gt;Provisional diagnosis &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="provisionalDiagnosis" name="provisionalDiagnosis" defaultValue={patient.provisionalDiagnosis ?? ''} required/&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="icd10Codes"&gt;ICD-10 diagnosis code(s) &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;IctCodeSearch name="icd10Codes" defaultValue={patient.icd10Codes ?? ''} required /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2 md:col-span-2"&gt;
+                                            &lt;Label&gt;Proposed line of treatment &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;div className="grid md:grid-cols-2 gap-4"&gt;
+                                               &lt;Input name="treatmentMedical" placeholder="Medical management" defaultValue={patient.treatmentMedical ?? ''} required/&gt;
+                                               &lt;Input name="treatmentSurgical" placeholder="Surgical management" defaultValue={patient.treatmentSurgical ?? ''} required/&gt;
+                                               &lt;Input name="treatmentIntensiveCare" placeholder="Intensive care" defaultValue={patient.treatmentIntensiveCare ?? ''} required/&gt;
+                                               &lt;Input name="treatmentInvestigation" placeholder="Investigation only" defaultValue={patient.treatmentInvestigation ?? ''} required/&gt;
+                                               &lt;Input name="treatmentNonAllopathic" placeholder="Non-allopathic" defaultValue={patient.treatmentNonAllopathic ?? ''} required/&gt;
+                                            &lt;/div&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="investigationDetails"&gt;Investigation / medical management details &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Textarea id="investigationDetails" name="investigationDetails" defaultValue={patient.investigationDetails ?? ''} required/&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="drugRoute"&gt;Route of drug administration &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="drugRoute" name="drugRoute" defaultValue={patient.drugRoute ?? ''} required/&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="procedureName"&gt;Planned procedure / surgery name &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="procedureName" name="procedureName" defaultValue={patient.procedureName ?? ''} required/&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="icd10PcsCodes"&gt;ICD-10-PCS / procedure code(s) &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="icd10PcsCodes" name="icd10PcsCodes" defaultValue={patient.icd10PcsCodes ?? ''} required/&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2 md:col-span-2"&gt;
+                                            &lt;Label htmlFor="otherTreatments"&gt;Any other treatments (details) &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Textarea id="otherTreatments" name="otherTreatments" defaultValue={patient.otherTreatments ?? ''} required/&gt;
+                                        &lt;/div&gt;
+                                    &lt;/CardContent&gt;
+                                &lt;/AccordionContent&gt;
+                            &lt;/AccordionItem&gt;
+                        &lt;/Card&gt;
 
-                         <Card>
-                            <AccordionItem value="accident-info">
-                                <AccordionTrigger className="p-6">
-                                    <CardTitle>E. Accident / Medico-Legal</CardTitle>
-                                </AccordionTrigger>
-                                <AccordionContent>
-                                    <CardContent className="grid md:grid-cols-3 gap-4">
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox id="isInjury" name="isInjury" defaultChecked={patient.isInjury} />
-                                            <Label htmlFor="isInjury">Due to injury/accident?</Label>
-                                        </div>
-                                        <div className="space-y-2 md:col-span-2">
-                                            <Label htmlFor="injuryCause">How did injury occur?</Label>
-                                            <Input id="injuryCause" name="injuryCause" defaultValue={patient.injuryCause ?? ''} />
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox id="isRta" name="isRta" defaultChecked={patient.isRta} />
-                                            <Label htmlFor="isRta">Road Traffic Accident?</Label>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="injuryDate">Date of injury</Label>
-                                            <Input id="injuryDate" name="injuryDate" type="date" defaultValue={patient.injuryDate ?? ''} />
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox id="isReportedToPolice" name="isReportedToPolice" defaultChecked={patient.isReportedToPolice} />
-                                            <Label htmlFor="isReportedToPolice">Reported to police?</Label>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="firNumber">FIR number</Label>
-                                            <Input id="firNumber" name="firNumber" defaultValue={patient.firNumber ?? ''} />
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox id="isAlcoholSuspected" name="isAlcoholSuspected" defaultChecked={patient.isAlcoholSuspected} />
-                                            <Label htmlFor="isAlcoholSuspected">Alcohol/substance use?</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox id="isToxicologyConducted" name="isToxicologyConducted" defaultChecked={patient.isToxicologyConducted} />
-                                            <Label htmlFor="isToxicologyConducted">Toxicology test done?</Label>
-                                        </div>
-                                    </CardContent>
-                                </AccordionContent>
-                            </AccordionItem>
-                        </Card>
+                         &lt;Card&gt;
+                            &lt;AccordionItem value="accident-info"&gt;
+                                &lt;AccordionTrigger className="p-6"&gt;
+                                    &lt;CardTitle&gt;E. Accident / Medico-Legal&lt;/CardTitle&gt;
+                                &lt;/AccordionTrigger&gt;
+                                &lt;AccordionContent&gt;
+                                    &lt;CardContent className="grid md:grid-cols-3 gap-4"&gt;
+                                        &lt;div className="flex items-center space-x-2"&gt;
+                                            &lt;Checkbox id="isInjury" name="isInjury" defaultChecked={patient.isInjury} /&gt;
+                                            &lt;Label htmlFor="isInjury"&gt;Due to injury/accident?&lt;/Label&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2 md:col-span-2"&gt;
+                                            &lt;Label htmlFor="injuryCause"&gt;How did injury occur?&lt;/Label&gt;
+                                            &lt;Input id="injuryCause" name="injuryCause" defaultValue={patient.injuryCause ?? ''} /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="flex items-center space-x-2"&gt;
+                                            &lt;Checkbox id="isRta" name="isRta" defaultChecked={patient.isRta} /&gt;
+                                            &lt;Label htmlFor="isRta"&gt;Road Traffic Accident?&lt;/Label&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="injuryDate"&gt;Date of injury&lt;/Label&gt;
+                                            &lt;Input id="injuryDate" name="injuryDate" type="date" defaultValue={patient.injuryDate ?? ''} /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="flex items-center space-x-2"&gt;
+                                            &lt;Checkbox id="isReportedToPolice" name="isReportedToPolice" defaultChecked={patient.isReportedToPolice} /&gt;
+                                            &lt;Label htmlFor="isReportedToPolice"&gt;Reported to police?&lt;/Label&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="firNumber"&gt;FIR number&lt;/Label&gt;
+                                            &lt;Input id="firNumber" name="firNumber" defaultValue={patient.firNumber ?? ''} /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="flex items-center space-x-2"&gt;
+                                            &lt;Checkbox id="isAlcoholSuspected" name="isAlcoholSuspected" defaultChecked={patient.isAlcoholSuspected} /&gt;
+                                            &lt;Label htmlFor="isAlcoholSuspected"&gt;Alcohol/substance use?&lt;/Label&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="flex items-center space-x-2"&gt;
+                                            &lt;Checkbox id="isToxicologyConducted" name="isToxicologyConducted" defaultChecked={patient.isToxicologyConducted} /&gt;
+                                            &lt;Label htmlFor="isToxicologyConducted"&gt;Toxicology test done?&lt;/Label&gt;
+                                        &lt;/div&gt;
+                                    &lt;/CardContent&gt;
+                                &lt;/AccordionContent&gt;
+                            &lt;/AccordionItem&gt;
+                        &lt;/Card&gt;
                         
-                        <Card>
-                            <AccordionItem value="maternity-info">
-                                <AccordionTrigger className="p-6">
-                                    <CardTitle>F. Maternity</CardTitle>
-                                </AccordionTrigger>
-                                <AccordionContent>
-                                    <CardContent className="grid md:grid-cols-3 gap-4">
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox id="isMaternity" name="isMaternity" defaultChecked={patient.isMaternity} />
-                                            <Label htmlFor="isMaternity">Is this a maternity case?</Label>
-                                        </div>
-                                        <div className="grid grid-cols-4 gap-2 md:col-span-2">
-                                            <Input name="g" type="number" placeholder="G" defaultValue={patient.g ?? ''} />
-                                            <Input name="p" type="number" placeholder="P" defaultValue={patient.p ?? ''} />
-                                            <Input name="l" type="number" placeholder="L" defaultValue={patient.l ?? ''} />
-                                            <Input name="a" type="number" placeholder="A" defaultValue={patient.a ?? ''} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="expectedDeliveryDate">Expected date of delivery</Label>
-                                            <Input id="expectedDeliveryDate" name="expectedDeliveryDate" type="date" defaultValue={patient.expectedDeliveryDate ?? ''} />
-                                        </div>
-                                    </CardContent>
-                                </AccordionContent>
-                            </AccordionItem>
-                        </Card>
+                        &lt;Card&gt;
+                            &lt;AccordionItem value="maternity-info"&gt;
+                                &lt;AccordionTrigger className="p-6"&gt;
+                                    &lt;CardTitle&gt;F. Maternity&lt;/CardTitle&gt;
+                                &lt;/AccordionTrigger&gt;
+                                &lt;AccordionContent&gt;
+                                    &lt;CardContent className="grid md:grid-cols-3 gap-4"&gt;
+                                        &lt;div className="flex items-center space-x-2"&gt;
+                                            &lt;Checkbox id="isMaternity" name="isMaternity" defaultChecked={patient.isMaternity} /&gt;
+                                            &lt;Label htmlFor="isMaternity"&gt;Is this a maternity case?&lt;/Label&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="grid grid-cols-4 gap-2 md:col-span-2"&gt;
+                                            &lt;Input name="g" type="number" placeholder="G" defaultValue={patient.g ?? ''} /&gt;
+                                            &lt;Input name="p" type="number" placeholder="P" defaultValue={patient.p ?? ''} /&gt;
+                                            &lt;Input name="l" type="number" placeholder="L" defaultValue={patient.l ?? ''} /&gt;
+                                            &lt;Input name="a" type="number" placeholder="A" defaultValue={patient.a ?? ''} /&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="expectedDeliveryDate"&gt;Expected date of delivery&lt;/Label&gt;
+                                            &lt;Input id="expectedDeliveryDate" name="expectedDeliveryDate" type="date" defaultValue={patient.expectedDeliveryDate ?? ''} /&gt;
+                                        &lt;/div&gt;
+                                    &lt;/CardContent&gt;
+                                &lt;/AccordionContent&gt;
+                            &lt;/AccordionItem&gt;
+                        &lt;/Card&gt;
 
-                        <Card>
-                            <AccordionItem value="cost-info">
-                                <AccordionTrigger className="p-6">
-                                    <CardTitle>G. Admission &amp; Cost Estimate <span className="text-destructive">*</span></CardTitle>
-                                </AccordionTrigger>
-                                <AccordionContent>
-                                    <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={calculateTotalCost}>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="admissionDate">Admission date <span className="text-destructive">*</span></Label>
-                                            <Input id="admissionDate" name="admissionDate" type="date" defaultValue={patient.admissionDate ?? ''} required/>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="admissionTime">Admission time <span className="text-destructive">*</span></Label>
-                                            <Input id="admissionTime" name="admissionTime" type="time" defaultValue={patient.admissionTime ?? ''} required/>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="admissionType">Type of admission <span className="text-destructive">*</span></Label>
-                                            <Input id="admissionType" name="admissionType" placeholder="e.g. Emergency, Planned" defaultValue={patient.admissionType ?? ''} required/>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="expectedStay">Expected days of stay <span className="text-destructive">*</span></Label>
-                                            <Input id="expectedStay" name="expectedStay" type="number" defaultValue={patient.expectedStay ?? ''} required/>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="expectedIcuStay">Expected days in ICU <span className="text-destructive">*</span></Label>
-                                            <Input id="expectedIcuStay" name="expectedIcuStay" type="number" defaultValue={patient.expectedIcuStay ?? ''} required/>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="roomCategory">Requested room category <span className="text-destructive">*</span></Label>
-                                             <Select name="roomCategory" required defaultValue={patient.roomCategory ?? undefined}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select a room category" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {roomCategories.map(category => (
-                                                        <SelectItem key={category} value={category}>{category}</SelectItem>
+                        &lt;Card&gt;
+                            &lt;AccordionItem value="cost-info"&gt;
+                                &lt;AccordionTrigger className="p-6"&gt;
+                                    &lt;CardTitle&gt;G. Admission &amp;amp; Cost Estimate &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/CardTitle&gt;
+                                &lt;/AccordionTrigger&gt;
+                                &lt;AccordionContent&gt;
+                                    &lt;CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={calculateTotalCost}&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="admissionDate"&gt;Admission date &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="admissionDate" name="admissionDate" type="date" defaultValue={patient.admissionDate ?? ''} required/&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="admissionTime"&gt;Admission time &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="admissionTime" name="admissionTime" type="time" defaultValue={patient.admissionTime ?? ''} required/&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="admissionType"&gt;Type of admission &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="admissionType" name="admissionType" placeholder="e.g. Emergency, Planned" defaultValue={patient.admissionType ?? ''} required/&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="expectedStay"&gt;Expected days of stay &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="expectedStay" name="expectedStay" type="number" defaultValue={patient.expectedStay ?? ''} required/&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="expectedIcuStay"&gt;Expected days in ICU &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="expectedIcuStay" name="expectedIcuStay" type="number" defaultValue={patient.expectedIcuStay ?? ''} required/&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="roomCategory"&gt;Requested room category &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                             &lt;Select name="roomCategory" required defaultValue={patient.roomCategory ?? undefined}&gt;
+                                                &lt;SelectTrigger&gt;
+                                                    &lt;SelectValue placeholder="Select a room category" /&gt;
+                                                &lt;/SelectTrigger&gt;
+                                                &lt;SelectContent&gt;
+                                                    {roomCategories.map(category =&gt; (
+                                                        &lt;SelectItem key={category} value={category}&gt;{category}&lt;/SelectItem&gt;
                                                     ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="roomNursingDietCost">Room + Nursing + Diet (₹) <span className="text-destructive">*</span></Label>
-                                            <Input id="roomNursingDietCost" name="roomNursingDietCost" type="number" defaultValue={patient.roomNursingDietCost ?? ''} required/>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="investigationCost">Diagnostics/investigations cost (₹) <span className="text-destructive">*</span></Label>
-                                            <Input id="investigationCost" name="investigationCost" type="number" defaultValue={patient.investigationCost ?? ''} required/>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="icuCost">ICU charges (₹) <span className="text-destructive">*</span></Label>
-                                            <Input id="icuCost" name="icuCost" type="number" defaultValue={patient.icuCost ?? ''} required/>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="otCost">OT charges (₹) <span className="text-destructive">*</span></Label>
-                                            <Input id="otCost" name="otCost" type="number" defaultValue={patient.otCost ?? ''} required/>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="professionalFees">Professional fees (₹) <span className="text-destructive">*</span></Label>
-                                            <Input id="professionalFees" name="professionalFees" type="number" defaultValue={patient.professionalFees ?? ''} required/>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="medicineCost">Medicines + consumables (₹) <span className="text-destructive">*</span></Label>
-                                            <Input id="medicineCost" name="medicineCost" type="number" defaultValue={patient.medicineCost ?? ''} required/>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="otherHospitalExpenses">Other hospital expenses (₹) <span className="text-destructive">*</span></Label>
-                                            <Input id="otherHospitalExpenses" name="otherHospitalExpenses" type="number" defaultValue={patient.otherHospitalExpenses ?? ''} required/>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="packageCharges">All-inclusive package charges (₹) <span className="text-destructive">*</span></Label>
-                                            <Input id="packageCharges" name="packageCharges" type="number" defaultValue={patient.packageCharges ?? ''} required/>
-                                        </div>
-                                        <div className="space-y-2 md:col-span-3">
-                                            <Label htmlFor="totalExpectedCost">Total expected cost (₹)</Label>
-                                            <Input id="totalExpectedCost" name="totalExpectedCost" type="number" value={totalCost} readOnly className="font-bold text-lg" />
-                                        </div>
-                                    </CardContent>
-                                </AccordionContent>
-                            </AccordionItem>
-                        </Card>
+                                                &lt;/SelectContent&gt;
+                                            &lt;/Select&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="roomNursingDietCost"&gt;Room + Nursing + Diet (₹) &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="roomNursingDietCost" name="roomNursingDietCost" type="number" defaultValue={patient.roomNursingDietCost ?? ''} required/&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="investigationCost"&gt;Diagnostics/investigations cost (₹) &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="investigationCost" name="investigationCost" type="number" defaultValue={patient.investigationCost ?? ''} required/&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="icuCost"&gt;ICU charges (₹) &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="icuCost" name="icuCost" type="number" defaultValue={patient.icuCost ?? ''} required/&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="otCost"&gt;OT charges (₹) &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="otCost" name="otCost" type="number" defaultValue={patient.otCost ?? ''} required/&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="professionalFees"&gt;Professional fees (₹) &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="professionalFees" name="professionalFees" type="number" defaultValue={patient.professionalFees ?? ''} required/&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="medicineCost"&gt;Medicines + consumables (₹) &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="medicineCost" name="medicineCost" type="number" defaultValue={patient.medicineCost ?? ''} required/&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="otherHospitalExpenses"&gt;Other hospital expenses (₹) &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="otherHospitalExpenses" name="otherHospitalExpenses" type="number" defaultValue={patient.otherHospitalExpenses ?? ''} required/&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2"&gt;
+                                            &lt;Label htmlFor="packageCharges"&gt;All-inclusive package charges (₹) &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                            &lt;Input id="packageCharges" name="packageCharges" type="number" defaultValue={patient.packageCharges ?? ''} required/&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2 md:col-span-3"&gt;
+                                            &lt;Label htmlFor="totalExpectedCost"&gt;Total expected cost (₹)&lt;/Label&gt;
+                                            &lt;Input id="totalExpectedCost" name="totalExpectedCost" type="number" value={totalCost} readOnly className="font-bold text-lg" /&gt;
+                                        &lt;/div&gt;
+                                    &lt;/CardContent&gt;
+                                &lt;/AccordionContent&gt;
+                            &lt;/AccordionItem&gt;
+                        &lt;/Card&gt;
                         
-                        <ChiefComplaintForm initialData={chiefComplaints} patientId={id} />
+                        &lt;ChiefComplaintForm initialData={chiefComplaints} patientId={id} /&gt;
                         
-                        <Card>
-                            <AccordionItem value="declarations-info">
-                                <AccordionTrigger className="p-6">
-                                    <CardTitle>I. Declarations &amp; Attachments <span className="text-destructive">*</span></CardTitle>
-                                </AccordionTrigger>
-                                <AccordionContent>
-                                    <CardContent className="space-y-4">
-                                        <div className="grid md:grid-cols-3 gap-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="patientDeclarationName">Patient/insured name <span className="text-destructive">*</span></Label>
-                                                <Input id="patientDeclarationName" name="patientDeclarationName" defaultValue={patient.patientDeclarationName ?? ''} required />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="patientDeclarationContact">Contact number <span className="text-destructive">*</span></Label>
-                                                <PhoneInput name="patientDeclarationContact" defaultValue={patient.patientDeclarationContact ?? ''} required />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="patientDeclarationEmail">Email ID <span className="text-destructive">*</span></Label>
-                                                <Input id="patientDeclarationEmail" name="patientDeclarationEmail" type="email" defaultValue={patient.patientDeclarationEmail ?? ''} required />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="patientDeclarationDate">Declaration date <span className="text-destructive">*</span></Label>
-                                                <Input id="patientDeclarationDate" name="patientDeclarationDate" type="date" defaultValue={patient.patientDeclarationDate ?? ''} required />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="patientDeclarationTime">Declaration time <span className="text-destructive">*</span></Label>
-                                                <Input id="patientDeclarationTime" name="patientDeclarationTime" type="time" defaultValue={patient.patientDeclarationTime ?? ''} required />
-                                            </div>
-                                        </div>
-                                        <div className="grid md:grid-cols-3 gap-4 border-t pt-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="hospitalDeclarationDoctorName">Hospital declaration – doctor name <span className="text-destructive">*</span></Label>
-                                                <Input id="hospitalDeclarationDoctorName" name="hospitalDeclarationDoctorName" defaultValue={patient.hospitalDeclarationDoctorName ?? ''} required />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="hospitalDeclarationDate">Declaration date <span className="text-destructive">*</span></Label>
-                                                <Input id="hospitalDeclarationDate" name="hospitalDeclarationDate" type="date" defaultValue={patient.hospitalDeclarationDate ?? ''} required />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="hospitalDeclarationTime">Declaration time <span className="text-destructive">*</span></Label>
-                                                <Input id="hospitalDeclarationTime" name="hospitalDeclarationTime" type="time" defaultValue={patient.hospitalDeclarationTime ?? ''} required />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2 pt-4 border-t">
-                                            <Label>Attachments to enclose</Label>
-                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                                {['ID proof', 'Policy copy', 'Doctor’s notes', 'Investigations', 'Estimate'].map(item => (
-                                                    <div key={item} className="flex items-center space-x-2">
-                                                        <Checkbox id={`att-${item}`} name="attachments" value={item} defaultChecked={patient.attachments?.includes(item)} />
-                                                        <Label htmlFor={`att-${item}`} className="font-normal">{item}</Label>
-                                                    </div>
+                        &lt;Card&gt;
+                            &lt;AccordionItem value="declarations-info"&gt;
+                                &lt;AccordionTrigger className="p-6"&gt;
+                                    &lt;CardTitle&gt;I. Declarations &amp;amp; Attachments &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/CardTitle&gt;
+                                &lt;/AccordionTrigger&gt;
+                                &lt;AccordionContent&gt;
+                                    &lt;CardContent className="space-y-4"&gt;
+                                        &lt;div className="grid md:grid-cols-3 gap-4"&gt;
+                                            &lt;div className="space-y-2"&gt;
+                                                &lt;Label htmlFor="patientDeclarationName"&gt;Patient/insured name &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                                &lt;Input id="patientDeclarationName" name="patientDeclarationName" defaultValue={patient.patientDeclarationName ?? ''} required /&gt;
+                                            &lt;/div&gt;
+                                            &lt;div className="space-y-2"&gt;
+                                                &lt;Label htmlFor="patientDeclarationContact"&gt;Contact number &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                                &lt;PhoneInput name="patientDeclarationContact" defaultValue={patient.patientDeclarationContact ?? ''} required /&gt;
+                                            &lt;/div&gt;
+                                            &lt;div className="space-y-2"&gt;
+                                                &lt;Label htmlFor="patientDeclarationEmail"&gt;Email ID &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                                &lt;Input id="patientDeclarationEmail" name="patientDeclarationEmail" type="email" defaultValue={patient.patientDeclarationEmail ?? ''} required /&gt;
+                                            &lt;/div&gt;
+                                            &lt;div className="space-y-2"&gt;
+                                                &lt;Label htmlFor="patientDeclarationDate"&gt;Declaration date &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                                &lt;Input id="patientDeclarationDate" name="patientDeclarationDate" type="date" defaultValue={patient.patientDeclarationDate ?? ''} required /&gt;
+                                            &lt;/div&gt;
+                                            &lt;div className="space-y-2"&gt;
+                                                &lt;Label htmlFor="patientDeclarationTime"&gt;Declaration time &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                                &lt;Input id="patientDeclarationTime" name="patientDeclarationTime" type="time" defaultValue={patient.patientDeclarationTime ?? ''} required /&gt;
+                                            &lt;/div&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="grid md:grid-cols-3 gap-4 border-t pt-4"&gt;
+                                            &lt;div className="space-y-2"&gt;
+                                                &lt;Label htmlFor="hospitalDeclarationDoctorName"&gt;Hospital declaration – doctor name &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                                &lt;Input id="hospitalDeclarationDoctorName" name="hospitalDeclarationDoctorName" defaultValue={patient.hospitalDeclarationDoctorName ?? ''} required /&gt;
+                                            &lt;/div&gt;
+                                            &lt;div className="space-y-2"&gt;
+                                                &lt;Label htmlFor="hospitalDeclarationDate"&gt;Declaration date &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                                &lt;Input id="hospitalDeclarationDate" name="hospitalDeclarationDate" type="date" defaultValue={patient.hospitalDeclarationDate ?? ''} required /&gt;
+                                            &lt;/div&gt;
+                                            &lt;div className="space-y-2"&gt;
+                                                &lt;Label htmlFor="hospitalDeclarationTime"&gt;Declaration time &lt;span className="text-destructive"&gt;*&lt;/span&gt;&lt;/Label&gt;
+                                                &lt;Input id="hospitalDeclarationTime" name="hospitalDeclarationTime" type="time" defaultValue={patient.hospitalDeclarationTime ?? ''} required /&gt;
+                                            &lt;/div&gt;
+                                        &lt;/div&gt;
+                                        &lt;div className="space-y-2 pt-4 border-t"&gt;
+                                            &lt;Label&gt;Attachments to enclose&lt;/Label&gt;
+                                            &lt;div className="grid grid-cols-2 md:grid-cols-3 gap-2"&gt;
+                                                {['ID proof', 'Policy copy', 'Doctor’s notes', 'Investigations', 'Estimate'].map(item =&gt; (
+                                                    &lt;div key={item} className="flex items-center space-x-2"&gt;
+                                                        &lt;Checkbox id={`att-${item}`} name="attachments" value={item} defaultChecked={patient.attachments?.includes(item)} /&gt;
+                                                        &lt;Label htmlFor={`att-${item}`} className="font-normal"&gt;{item}&lt;/Label&gt;
+                                                    &lt;/div&gt;
                                                 ))}
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </AccordionContent>
-                            </AccordionItem>
-                        </Card>
-                    </Accordion>
+                                            &lt;/div&gt;
+                                        &lt;/div&gt;
+                                    &lt;/CardContent&gt;
+                                &lt;/AccordionContent&gt;
+                            &lt;/AccordionItem&gt;
+                        &lt;/Card&gt;
+                    &lt;/Accordion&gt;
 
 
-                    <div className="flex justify-end">
-                        {state.type === 'error' && <p className="text-sm text-destructive self-center mr-4">{state.message}</p>}
-                        <SubmitButton />
-                    </div>
-                </div>
-            </form>
-        </div>
+                    &lt;div className="flex justify-end"&gt;
+                        {state.type === 'error' && &lt;p className="text-sm text-destructive self-center mr-4"&gt;{state.message}&lt;/p&gt;}
+                        &lt;SubmitButton /&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/form&gt;
+        &lt;/div&gt;
     );
 }
+
+    

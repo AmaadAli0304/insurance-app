@@ -271,14 +271,14 @@ export async function getPatientById(id: string): Promise<Patient | null> {
           a.patient_id,
           a.admission_id,
           a.relationship_policyholder,
-          a.policy_number as policyNumber,
-          a.insured_card_number as memberId,
-          a.insurance_company as companyId,
-          a.policy_start_date as policyStartDate,
-          a.policy_end_date as policyEndDate,
-          a.sum_insured as sumInsured,
-          a.sum_utilized as sumUtilized,
-          a.total_sum as totalSum,
+          a.policy_number,
+          a.insured_card_number,
+          a.insurance_company,
+          a.policy_start_date,
+          a.policy_end_date,
+          a.sum_insured,
+          a.sum_utilized,
+          a.total_sum,
           a.corporate_policy_number,
           a.other_policy_name,
           a.family_doctor_name,
@@ -368,28 +368,132 @@ export async function getPatientById(id: string): Promise<Patient | null> {
     if (result.recordset.length === 0) {
       return null;
     }
-    const patientData = result.recordset[0];
+    const record = result.recordset[0];
     
-    patientData.id = patientData.id.toString();
-    patientData.fullName = `${patientData.first_name || ''} ${patientData.last_name || ''}`.trim();
-    patientData.firstName = patientData.first_name;
-    patientData.lastName = patientData.last_name;
-    patientData.phoneNumber = patientData.phone_number;
-    patientData.dateOfBirth = patientData.birth_date;
+    const patientData: Patient = {
+        id: record.id.toString(),
+        fullName: `${record.first_name || ''} ${record.last_name || ''}`.trim(),
+        firstName: record.first_name,
+        lastName: record.last_name,
+        email_address: record.email_address,
+        phoneNumber: record.phone_number,
+        alternative_number: record.alternative_number,
+        gender: record.gender,
+        age: record.age,
+        dateOfBirth: record.birth_date,
+        address: record.address,
+        occupation: record.occupation,
+        employee_id: record.employee_id,
+        abha_id: record.abha_id,
+        health_id: record.health_id,
+        photo: getDocumentData(record.photo),
+        adhaar_path: getDocumentData(record.adhaar_path),
+        pan_path: getDocumentData(record.pan_path),
+        passport_path: getDocumentData(record.passport_path),
+        voter_id_path: getDocumentData(record.voter_id_path),
+        driving_licence_path: getDocumentData(record.driving_licence_path),
+        other_path: getDocumentData(record.other_path),
+        admission_id: record.admission_id,
+        relationship_policyholder: record.relationship_policyholder,
+        policyNumber: record.policy_number,
+        memberId: record.insured_card_number,
+        companyId: record.insurance_company,
+        policyStartDate: record.policy_start_date,
+        policyEndDate: record.policy_end_date,
+        sumInsured: record.sum_insured,
+        sumUtilized: record.sum_utilized,
+        totalSum: record.total_sum,
+        corporate_policy_number: record.corporate_policy_number,
+        other_policy_name: record.other_policy_name,
+        family_doctor_name: record.family_doctor_name,
+        family_doctor_phone: record.family_doctor_phone,
+        payer_email: record.payer_email,
+        payer_phone: record.payer_phone,
+        tpa_id: record.tpa_id,
+        treat_doc_name: record.treat_doc_name,
+        treat_doc_number: record.treat_doc_number,
+        treat_doc_qualification: record.treat_doc_qualification,
+        treat_doc_reg_no: record.treat_doc_reg_no,
+        natureOfIllness: record.natureOfIllness,
+        clinicalFindings: record.clinicalFindings,
+        ailmentDuration: record.ailmentDuration,
+        firstConsultationDate: record.firstConsultationDate,
+        pastHistory: record.pastHistory,
+        provisionalDiagnosis: record.provisionalDiagnosis,
+        icd10Codes: record.icd10Codes,
+        treatmentMedical: record.treatmentMedical,
+        treatmentSurgical: record.treatmentSurgical,
+        treatmentIntensiveCare: record.treatmentIntensiveCare,
+        treatmentInvestigation: record.treatmentInvestigation,
+        treatmentNonAllopathic: record.treatmentNonAllopathic,
+        investigationDetails: record.investigationDetails,
+        drugRoute: record.drugRoute,
+        procedureName: record.procedureName,
+        icd10PcsCodes: record.icd10PcsCodes,
+        otherTreatments: record.otherTreatments,
+        isInjury: record.isInjury,
+        injuryCause: record.injuryCause,
+        isRta: record.isRta,
+        injuryDate: record.injuryDate,
+        isReportedToPolice: record.isReportedToPolice,
+        firNumber: record.firNumber,
+        isAlcoholSuspected: record.isAlcoholSuspected,
+        isToxicologyConducted: record.isToxicologyConducted,
+        isMaternity: record.isMaternity,
+        g: record.g,
+        p: record.p,
+        l: record.l,
+        a: record.a,
+        expectedDeliveryDate: record.expectedDeliveryDate,
+        admissionDate: record.admissionDate,
+        admissionTime: record.admissionTime,
+        admissionType: record.admissionType,
+        expectedStay: record.expectedStay,
+        expectedIcuStay: record.expectedIcuStay,
+        roomCategory: record.roomCategory,
+        roomNursingDietCost: record.roomNursingDietCost,
+        investigationCost: record.investigationCost,
+        icuCost: record.icuCost,
+        otCost: record.otCost,
+        professionalFees: record.professionalFees,
+        medicineCost: record.medicineCost,
+        otherHospitalExpenses: record.otherHospitalExpenses,
+        packageCharges: record.packageCharges,
+        totalExpectedCost: record.totalExpectedCost,
+        diabetesSince: record.diabetesSince,
+        hypertensionSince: record.hypertensionSince,
+        heartDiseaseSince: record.heartDiseaseSince,
+        hyperlipidemiaSince: record.hyperlipidemiaSince,
+        osteoarthritisSince: record.osteoarthritisSince,
+        asthmaCopdSince: record.asthmaCopdSince,
+        cancerSince: record.cancerSince,
+        alcoholDrugAbuseSince: record.alcoholDrugAbuseSince,
+        hivSince: record.hivSince,
+        otherChronicAilment: record.otherChronicAilment,
+        patientDeclarationName: record.patientDeclarationName,
+        patientDeclarationContact: record.patientDeclarationContact,
+        patientDeclarationEmail: record.patientDeclarationEmail,
+        patientDeclarationDate: record.patientDeclarationDate,
+        patientDeclarationTime: record.patientDeclarationTime,
+        hospitalDeclarationDoctorName: record.hospitalDeclarationDoctorName,
+        hospitalDeclarationDate: record.hospitalDeclarationDate,
+        hospitalDeclarationTime: record.hospitalDeclarationTime,
+        attachments: record.attachments ? record.attachments.split(',') : [],
+        companyName: record.companyName,
+        tpaName: record.tpaName,
+        tpaEmail: record.tpaEmail,
+    };
 
-    const dateFields = ['dateOfBirth', 'policyStartDate', 'policyEndDate', 'firstConsultationDate', 'injuryDate', 'expectedDeliveryDate', 'admissionDate', 'patientDeclarationDate', 'hospitalDeclarationDate'];
+
+    const dateFields: (keyof Patient)[] = ['dateOfBirth', 'policyStartDate', 'policyEndDate', 'firstConsultationDate', 'injuryDate', 'expectedDeliveryDate', 'admissionDate', 'patientDeclarationDate', 'hospitalDeclarationDate'];
     for (const field of dateFields) {
         if (patientData[field]) {
+            // @ts-ignore
             patientData[field] = new Date(patientData[field]).toISOString().split('T')[0];
         }
     }
     
-    const docFields = ['photo', 'adhaar_path', 'pan_path', 'passport_path', 'voter_id_path', 'driving_licence_path', 'other_path'];
-    for (const field of docFields) {
-        patientData[field] = getDocumentData(patientData[field]);
-    }
-
-    return patientData as Patient;
+    return patientData;
   } catch (error) {
     console.error(`Error fetching patient with id ${id}:`, error);
     throw new Error("Failed to fetch patient from database.");
@@ -406,8 +510,8 @@ export async function getNewPatientPageData() {
         ]);
 
         return {
-            companies: companiesResult.recordset as Pick<Company, 'id' | 'name'>[],
-            tpas: tpasResult.recordset.map(r => ({ ...r, id: r.id.toString() })) as Pick<TPA, 'id' | 'name'>[],
+            companies: companiesResult.recordset as Pick&lt;Company, 'id' | 'name'&gt;[],
+            tpas: tpasResult.recordset.map(r =&gt; ({ ...r, id: r.id.toString() })) as Pick&lt;TPA, 'id' | 'name'&gt;[],
             doctors: doctorsResult.recordset as Doctor[],
         };
     } catch (error) {
@@ -431,7 +535,7 @@ export async function getPatientEditPageData(patientId: string) {
             return null;
         }
 
-        const complaints = complaintsResult.recordset.map(c => ({
+        const complaints = complaintsResult.recordset.map(c =&gt; ({
             id: c.id,
             name: c.complaint_name,
             selected: true,
@@ -441,8 +545,8 @@ export async function getPatientEditPageData(patientId: string) {
 
         return {
             patient: patientData,
-            companies: companiesResult.recordset as Pick<Company, 'id' | 'name'>[],
-            tpas: tpasResult.recordset.map(r => ({ ...r, id: r.id.toString() })) as Pick<TPA, 'id' | 'name'>[],
+            companies: companiesResult.recordset as Pick&lt;Company, 'id' | 'name'&gt;[],
+            tpas: tpasResult.recordset.map(r =&gt; ({ ...r, id: r.id.toString() })) as Pick&lt;TPA, 'id' | 'name'&gt;[],
             doctors: doctorsResult.recordset as Doctor[],
             complaints
         };
@@ -452,7 +556,7 @@ export async function getPatientEditPageData(patientId: string) {
     }
 }
 
-export async function getPatientsForPreAuth(hospitalId: string): Promise<{ id: string; fullName: string; admission_id: string; }[]> {
+export async function getPatientsForPreAuth(hospitalId: string): Promise&lt;{ id: string; fullName: string; admission_id: string; }[]&gt; {
   try {
     await poolConnect;
     const result = await pool.request()
@@ -463,19 +567,19 @@ export async function getPatientsForPreAuth(hospitalId: string): Promise<{ id: s
         LEFT JOIN admissions a ON p.id = a.patient_id
         WHERE p.hospital_id = @hospitalId
       `);
-    return result.recordset.map(r => ({...r, id: r.id.toString()}));
+    return result.recordset.map(r =&gt; ({...r, id: r.id.toString()}));
   } catch (error) {
     const dbError = error as Error;
     throw new Error(`Error fetching patients for pre-auth: ${dbError.message}`);
   }
 }
 
-export async function getPatientWithDetailsForForm(patientId: string): Promise<Patient | null> {
+export async function getPatientWithDetailsForForm(patientId: string): Promise&lt;Patient | null&gt; {
     if (!patientId) return null;
     return getPatientById(patientId);
 }
 
-export async function handleUploadPatientFile(formData: FormData): Promise<{ type: 'success', url: string, name: string } | { type: 'error', message: string }> {
+export async function handleUploadPatientFile(formData: FormData): Promise&lt;{ type: 'success', url: string, name: string } | { type: 'error', message: string }&gt; {
     const file = formData.get("file") as File | null;
     
     if (!file || file.size === 0) {
@@ -495,7 +599,7 @@ export async function handleUploadPatientFile(formData: FormData): Promise<{ typ
 
 
 // Helper to create a JSON string from a URL and name
-const createDocumentJson = (url: string | undefined | null, name: string | undefined | null): string | null => {
+const createDocumentJson = (url: string | undefined | null, name: string | undefined | null): string | null =&gt; {
     if (url && name) {
         return JSON.stringify({ url, name });
     }
@@ -506,10 +610,10 @@ const createDocumentJson = (url: string | undefined | null, name: string | undef
 };
 
 // Helper function to build the object from FormData
-const buildObjectFromFormData = (formData: FormData) => {
+const buildObjectFromFormData = (formData: FormData) =&gt; {
     const data: { [key: string]: any } = {};
     
-    formData.forEach((value, key) => {
+    formData.forEach((value, key) =&gt; {
       if (!key.endsWith('-file')) { // exclude raw file inputs
         if (key === 'attachments') {
           if (!data[key]) {
@@ -567,7 +671,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
   const validatedFields = addPatientFormSchema.safeParse(formObject);
   
   if (!validatedFields.success) {
-    const errorMessages = validatedFields.error.errors.map(e => `${e.path.join('.')} - ${e.message}`).join(', ');
+    const errorMessages = validatedFields.error.errors.map(e =&gt; `${e.path.join('.')} - ${e.message}`).join(', ');
     return { message: `Invalid data: ${errorMessages}`, type: 'error' };
   }
   
@@ -747,8 +851,8 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
             @admissionDate, @admissionTime, @admissionType, @expectedStay, @expectedIcuStay, @roomCategory, @roomNursingDietCost,
             @investigationCost, @icuCost, @otCost, @professionalFees, @medicineCost, @otherHospitalExpenses, @packageCharges,
             @totalExpectedCost,
-            @diabetesSince, @hypertensionSince, @heartDiseaseSince, @hyperlipidemiaSince, @osteoarthritisSince, @asthmaCopdSince,
-            @cancerSince, @alcoholDrugAbuseSince, @hivSince,
+            @diabetesSince, hypertensionSince, heartDiseaseSince, hyperlipidemiaSince, osteoarthritisSince, asthmaCopdSince,
+            @cancerSince, alcoholDrugAbuseSince, hivSince,
             @patientDeclarationName, @patientDeclarationContact, @patientDeclarationEmail, @patientDeclarationDate, @patientDeclarationTime,
             @hospitalDeclarationDoctorName, @hospitalDeclarationDate, @hospitalDeclarationTime, @attachments
           )
@@ -772,7 +876,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
     const validatedFields = updatePatientFormSchema.safeParse(formObject);
 
     if (!validatedFields.success) {
-        const errorMessages = validatedFields.error.errors.map(e => `${e.path.join('.')} - ${e.message}`).join(', ');
+        const errorMessages = validatedFields.error.errors.map(e =&gt; `${e.path.join('.')} - ${e.message}`).join(', ');
         return { message: `Invalid data: ${errorMessages}`, type: 'error' };
     }
 
@@ -1013,7 +1117,7 @@ export async function handleDeletePatient(prevState: { message: string, type?: s
     return { message: "Patient deleted successfully.", type: 'success' };
 }
 
-export async function searchIctCodes(query: string): Promise<{ shortcode: string; description: string; }[]> {
+export async function searchIctCodes(query: string): Promise&lt;{ shortcode: string; description: string; }[]&gt; {
   try {
     await poolConnect;
     const result = await pool.request()
@@ -1038,7 +1142,7 @@ export async function getChiefComplaints(patientId: number) {
             .input('patient_id', sql.Int, patientId)
             .query('SELECT * FROM chief_complaints WHERE patient_id = @patient_id');
         
-        return result.recordset.map(c => ({
+        return result.recordset.map(c =&gt; ({
             id: c.id,
             name: c.complaint_name,
             selected: true,
@@ -1051,3 +1155,5 @@ export async function getChiefComplaints(patientId: number) {
         return [];
     }
 }
+
+    
