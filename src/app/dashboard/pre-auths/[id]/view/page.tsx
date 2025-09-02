@@ -1,11 +1,10 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
 import { notFound, useParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Mail, User, Hospital, Building, DollarSign, Stethoscope, Loader2 } from 'lucide-react';
+import { Mail, User, Hospital, Building, DollarSign, Stethoscope, Loader2, Edit } from 'lucide-react';
 import type { StaffingRequest } from "@/lib/types";
 import { getPreAuthRequestById } from "../../actions";
 import { Button } from "@/components/ui/button";
@@ -28,6 +27,7 @@ const getStatusVariant = (status: StaffingRequest['status']) => {
       case 'Rejected':
         return 'destructive';
       case 'Pending':
+      case 'Draft':
         return 'secondary';
       default:
         return 'secondary';
@@ -78,7 +78,9 @@ export default function ViewPreAuthPage() {
                         </div>
                         <div className="flex items-center gap-4">
                             <Button asChild variant="outline">
-                                <Link href={`/dashboard/pre-auths/${id}/edit`}>Edit Status</Link>
+                                <Link href={`/dashboard/pre-auths/${id}/edit`} className="flex items-center gap-2">
+                                  <Edit className="h-4 w-4" /> Edit Status
+                                </Link>
                             </Button>
                             <Badge variant={getStatusVariant(request.status)} className={`text-lg px-4 py-1 ${request.status === 'Approved' ? 'bg-accent text-accent-foreground' : ''}`}>{request.status}</Badge>
                         </div>

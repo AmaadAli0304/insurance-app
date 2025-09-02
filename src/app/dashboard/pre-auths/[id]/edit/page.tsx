@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
@@ -95,6 +94,7 @@ export default function EditPreAuthPage() {
                                     <SelectValue placeholder="Select a status" />
                                 </SelectTrigger>
                                 <SelectContent>
+                                    <SelectItem value="Draft">Draft</SelectItem>
                                     <SelectItem value="Pending">Pending</SelectItem>
                                     <SelectItem value="Approved">Approved</SelectItem>
                                     <SelectItem value="Rejected">Rejected</SelectItem>

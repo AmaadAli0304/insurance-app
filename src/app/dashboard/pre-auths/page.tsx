@@ -1,11 +1,10 @@
-
 "use client"
 
 import { useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal, PlusCircle, Trash, Eye, AlertTriangle } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Trash, Eye, Edit, AlertTriangle } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
 import { handleDeleteRequest, getPreAuthRequests } from "./actions"
@@ -62,6 +61,20 @@ export default function PreAuthsPage() {
     router.push(`/dashboard/pre-auths/${requestId}/view`);
   };
 
+  const getStatusVariant = (status: StaffingRequest['status']) => {
+    switch (status) {
+      case 'Approved':
+        return 'default';
+      case 'Rejected':
+        return 'destructive';
+      case 'Pending':
+      case 'Draft':
+        return 'secondary';
+      default:
+        return 'secondary';
+    }
+}
+
   return (
     <div className="space-y-6">
        <Card>
@@ -105,7 +118,7 @@ export default function PreAuthsPage() {
                   <TableCell>{r.subject}</TableCell>
                   <TableCell>{r.email}</TableCell>
                   <TableCell>
-                    <Badge variant={r.status === 'Approved' ? 'default' : r.status === 'Rejected' ? 'destructive' : 'secondary'} className={r.status === 'Approved' ? 'bg-accent text-accent-foreground' : ''}>{r.status}</Badge>
+                    <Badge variant={getStatusVariant(r.status)} className={r.status === 'Approved' ? 'bg-accent text-accent-foreground' : ''}>{r.status}</Badge>
                   </TableCell>
                   <TableCell>{new Date(r.createdAt).toLocaleDateString()}</TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
@@ -117,6 +130,11 @@ export default function PreAuthsPage() {
                            <DropdownMenuItem asChild>
                              <Link href={`/dashboard/pre-auths/${r.id}/view`} className="flex items-center gap-2 cursor-pointer">
                                 <Eye className="h-4 w-4" /> View Details
+                             </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                             <Link href={`/dashboard/pre-auths/${r.id}/edit`} className="flex items-center gap-2 cursor-pointer">
+                                <Edit className="h-4 w-4" /> Edit Status
                              </Link>
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />

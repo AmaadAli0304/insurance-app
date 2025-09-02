@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useActionState, useEffect, useMemo, useRef } from "react";
@@ -8,9 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleAddRequest } from "../actions";
+import { handleAddRequest, handleSaveDraftRequest } from "../actions";
 import Link from "next/link";
-import { ArrowLeft, Loader2, Download, Send, Check } from "lucide-react";
+import { ArrowLeft, Loader2, Download, Send, Check, Save } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -44,10 +43,21 @@ function SubmitButton() {
     return (
         <Button type="submit" disabled={pending}>
             <Send className="mr-2 h-4 w-4" />
-            {pending ? "Submitting..." : "Send Request"}
+            {pending ? "Submitting..." : "Save & Send Request"}
         </Button>
     );
 }
+
+function SaveDraftButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" formAction={handleSaveDraftRequest} disabled={pending} variant="secondary">
+            <Save className="mr-2 h-4 w-4" />
+            {pending ? "Saving..." : "Save as Draft"}
+        </Button>
+    );
+}
+
 
 export default function NewRequestPage() {
     const { user } = useAuth();
@@ -403,7 +413,7 @@ export default function NewRequestPage() {
                         
                         <Card>
                             <CardHeader>
-                                <CardTitle>B. Insurance & Admission Details</CardTitle>
+                                <CardTitle>B. Insurance &amp; Admission Details</CardTitle>
                             </CardHeader>
                             <CardContent className="grid md:grid-cols-3 gap-4">
                                 <div className="space-y-2">
@@ -648,7 +658,7 @@ export default function NewRequestPage() {
                             <AccordionItem value="cost-info">
                                 <CardHeader>
                                     <AccordionTrigger>
-                                        <CardTitle>F. Admission & Cost Estimate</CardTitle>
+                                        <CardTitle>F. Admission &amp; Cost Estimate</CardTitle>
                                     </AccordionTrigger>
                                 </CardHeader>
                                 <AccordionContent>
@@ -733,7 +743,7 @@ export default function NewRequestPage() {
                              <AccordionItem value="declarations-info">
                                 <CardHeader>
                                     <AccordionTrigger>
-                                        <CardTitle>H. Declarations & Attachments</CardTitle>
+                                        <CardTitle>H. Declarations &amp; Attachments</CardTitle>
                                     </AccordionTrigger>
                                 </CardHeader>
                                 <AccordionContent>
@@ -845,6 +855,7 @@ export default function NewRequestPage() {
 
                      <div className="flex justify-end gap-4">
                         {state.type === 'error' && <p className="text-sm text-destructive self-center">{state.message}</p>}
+                        <SaveDraftButton />
                         <Button type="button" variant="outline" onClick={handleDownloadPdf}>
                            <Download className="mr-2 h-4 w-4" />
                            Download as PDF

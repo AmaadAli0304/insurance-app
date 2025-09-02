@@ -1,4 +1,3 @@
-
 "use server";
 
 import { redirect } from 'next/navigation';
@@ -17,6 +16,10 @@ const preAuthSchema = z.object({
     details: z.string().min(1, "Email body is required"),
     requestType: z.string(),
     totalExpectedCost: z.coerce.number().optional().nullable(),
+});
+
+const saveDraftSchema = preAuthSchema.extend({
+    status: z.string().optional().default('Draft'),
 });
 
 async function sendPreAuthEmail(requestData: { from: string, to: string, subject: string, html: string }) {
@@ -49,8 +52,8 @@ async function sendPreAuthEmail(requestData: { from: string, to: string, subject
     });
 }
 
-export async function handleAddRequest(prevState: { message: string, type?:string }, formData: FormData) {
-  const validatedFields = preAuthSchema.safeParse(Object.fromEntries(formData.entries()));
+async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft' = 'Pending', shouldSendEmail: boolean) {
+  const validatedFields = saveDraftSchema.safeParse(Object.fromEntries(formData.entries()));
 
   if (!validatedFields.success) {
     return { message: `Invalid data: ${JSON.stringify(validatedFields.error.flatten().fieldErrors)}`, type: 'error' };
@@ -148,7 +151,7 @@ export async function handleAddRequest(prevState: { message: string, type?:strin
           a.hospitalDeclarationTime,
           a.attachments
         FROM patients p
-        JOIN admissions a ON p.id = a.patient_id
+        LEFT JOIN admissions a ON p.id = a.patient_id
         LEFT JOIN hospitals h ON a.hospital_id = h.id
         WHERE p.id = @patient_id ORDER BY a.id DESC
       `);
@@ -162,6 +165,7 @@ export async function handleAddRequest(prevState: { message: string, type?:strin
     const preAuthRequest = new sql.Request(transaction)
         .input('patient_id', sql.Int, patientId)
         .input('admission_id', sql.NVarChar, fullPatientData.admission_id)
+        .input('status', sql.NVarChar, status)
         .input('first_name', sql.NVarChar, fullPatientData.first_name)
         .input('last_name', sql.NVarChar, fullPatientData.last_name)
         .input('email_address', sql.NVarChar, fullPatientData.email_address)
@@ -261,9 +265,9 @@ export async function handleAddRequest(prevState: { message: string, type?:strin
         .input('hospitalDeclarationTime', sql.NVarChar, fullPatientData.hospitalDeclarationTime)
         .input('attachments', sql.NVarChar, fullPatientData.attachments)
         .query(`INSERT INTO preauth_request (
-            patient_id, admission_id, first_name, last_name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, photo, adhaar_path, pan_path, passport_path, voter_id_path, driving_licence_path, other_path, relationship_policyholder, policy_number, insured_card_number, company_id, policy_start_date, policy_end_date, sum_insured, sum_utilized, total_sum, corporate_policy_number, other_policy_name, family_doctor_name, family_doctor_phone, payer_email, payer_phone, tpa_id, hospital_id, hospital_name, doctor_id, treat_doc_name, treat_doc_number, treat_doc_qualification, treat_doc_reg_no, natureOfIllness, clinicalFindings, ailmentDuration, firstConsultationDate, pastHistory, provisionalDiagnosis, icd10Codes, treatmentMedical, treatmentSurgical, treatmentIntensiveCare, treatmentInvestigation, treatmentNonAllopathic, investigationDetails, drugRoute, procedureName, icd10PcsCodes, otherTreatments, isInjury, injuryCause, isRta, injuryDate, isReportedToPolice, firNumber, isAlcoholSuspected, isToxicologyConducted, isMaternity, g, p, l, a, expectedDeliveryDate, admissionDate, admissionTime, admissionType, expectedStay, expectedIcuStay, roomCategory, roomNursingDietCost, investigationCost, icuCost, otCost, professionalFees, medicineCost, otherHospitalExpenses, packageCharges, totalExpectedCost, patientDeclarationName, patientDeclarationContact, patientDeclarationEmail, patientDeclarationDate, patientDeclarationTime, hospitalDeclarationDoctorName, hospitalDeclarationDate, hospitalDeclarationTime, attachments
+            patient_id, admission_id, status, first_name, last_name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, photo, adhaar_path, pan_path, passport_path, voter_id_path, driving_licence_path, other_path, relationship_policyholder, policy_number, insured_card_number, company_id, policy_start_date, policy_end_date, sum_insured, sum_utilized, total_sum, corporate_policy_number, other_policy_name, family_doctor_name, family_doctor_phone, payer_email, payer_phone, tpa_id, hospital_id, hospital_name, doctor_id, treat_doc_name, treat_doc_number, treat_doc_qualification, treat_doc_reg_no, natureOfIllness, clinicalFindings, ailmentDuration, firstConsultationDate, pastHistory, provisionalDiagnosis, icd10Codes, treatmentMedical, treatmentSurgical, treatmentIntensiveCare, treatmentInvestigation, treatmentNonAllopathic, investigationDetails, drugRoute, procedureName, icd10PcsCodes, otherTreatments, isInjury, injuryCause, isRta, injuryDate, isReportedToPolice, firNumber, isAlcoholSuspected, isToxicologyConducted, isMaternity, g, p, l, a, expectedDeliveryDate, admissionDate, admissionTime, admissionType, expectedStay, expectedIcuStay, roomCategory, roomNursingDietCost, investigationCost, icuCost, otCost, professionalFees, medicineCost, otherHospitalExpenses, packageCharges, totalExpectedCost, patientDeclarationName, patientDeclarationContact, patientDeclarationEmail, patientDeclarationDate, patientDeclarationTime, hospitalDeclarationDoctorName, hospitalDeclarationDate, hospitalDeclarationTime, attachments
         ) OUTPUT INSERTED.id VALUES (
-            @patient_id, @admission_id, @first_name, @last_name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @photo, @adhaar_path, @pan_path, @passport_path, @voter_id_path, @driving_licence_path, @other_path, @relationship_policyholder, @policy_number, @insured_card_number, @company_id, @policy_start_date, @policy_end_date, @sum_insured, @sum_utilized, @total_sum, @corporate_policy_number, @other_policy_name, @family_doctor_name, @family_doctor_phone, @payer_email, @payer_phone, @tpa_id, @hospital_id, @hospital_name, @doctor_id, @treat_doc_name, @treat_doc_number, @treat_doc_qualification, @treat_doc_reg_no, @natureOfIllness, @clinicalFindings, @ailmentDuration, @firstConsultationDate, @pastHistory, @provisionalDiagnosis, @icd10Codes, @treatmentMedical, @treatmentSurgical, @treatmentIntensiveCare, @treatmentInvestigation, @treatmentNonAllopathic, @investigationDetails, @drugRoute, @procedureName, @icd10PcsCodes, @otherTreatments, @isInjury, @injuryCause, @isRta, @injuryDate, @isReportedToPolice, @firNumber, @isAlcoholSuspected, @isToxicologyConducted, @isMaternity, @g, @p, @l, @a, @expectedDeliveryDate, @admissionDate, @admissionTime, @admissionType, @expectedStay, @expectedIcuStay, @roomCategory, @roomNursingDietCost, @investigationCost, @icuCost, @otCost, @professionalFees, @medicineCost, @otherHospitalExpenses, @packageCharges, @totalExpectedCost, @patientDeclarationName, @patientDeclarationContact, @patientDeclarationEmail, @patientDeclarationDate, @patientDeclarationTime, @hospitalDeclarationDoctorName, @hospitalDeclarationDate, @hospitalDeclarationTime, @attachments
+            @patient_id, @admission_id, @status, @first_name, @last_name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @photo, @adhaar_path, @pan_path, @passport_path, @voter_id_path, @driving_licence_path, @other_path, @relationship_policyholder, @policy_number, @insured_card_number, @company_id, @policy_start_date, @policy_end_date, @sum_insured, @sum_utilized, @total_sum, @corporate_policy_number, @other_policy_name, @family_doctor_name, @family_doctor_phone, @payer_email, @payer_phone, @tpa_id, @hospital_id, @hospital_name, @doctor_id, @treat_doc_name, @treat_doc_number, @treat_doc_qualification, @treat_doc_reg_no, @natureOfIllness, @clinicalFindings, @ailmentDuration, @firstConsultationDate, @pastHistory, @provisionalDiagnosis, @icd10Codes, @treatmentMedical, @treatmentSurgical, @treatmentIntensiveCare, @treatmentInvestigation, @treatmentNonAllopathic, @investigationDetails, @drugRoute, @procedureName, @icd10PcsCodes, @otherTreatments, @isInjury, @injuryCause, @isRta, @injuryDate, @isReportedToPolice, @firNumber, @isAlcoholSuspected, @isToxicologyConducted, @isMaternity, @g, @p, @l, @a, @expectedDeliveryDate, @admissionDate, @admissionTime, @admissionType, @expectedStay, @expectedIcuStay, @roomCategory, @roomNursingDietCost, @investigationCost, @icuCost, @otCost, @professionalFees, @medicineCost, @otherHospitalExpenses, @packageCharges, @totalExpectedCost, @patientDeclarationName, @patientDeclarationContact, @patientDeclarationEmail, @patientDeclarationDate, @patientDeclarationTime, @hospitalDeclarationDoctorName, @hospitalDeclarationDate, @hospitalDeclarationTime, @attachments
         )`);
     const preAuthId = preAuthRequest.recordset[0].id;
 
@@ -291,8 +295,10 @@ export async function handleAddRequest(prevState: { message: string, type?:strin
         .input('request_type', sql.NVarChar, requestType)
         .query('INSERT INTO chat (preauth_id, from_email, to_email, subject, body, request_type) VALUES (@preauth_id, @from_email, @to_email, @subject, @body, @request_type)');
         
-    // 5. Send email
-    await sendPreAuthEmail({ from, to, subject, html: details });
+    // 5. Send email if required
+    if (shouldSendEmail) {
+      await sendPreAuthEmail({ from, to, subject, html: details });
+    }
     
     await transaction.commit();
 
@@ -306,6 +312,15 @@ export async function handleAddRequest(prevState: { message: string, type?:strin
   revalidatePath('/dashboard/pre-auths');
   redirect('/dashboard/pre-auths');
 }
+
+export async function handleAddRequest(prevState: { message: string, type?:string }, formData: FormData) {
+    return savePreAuthRequest(formData, 'Pending', true);
+}
+
+export async function handleSaveDraftRequest(prevState: { message: string, type?:string }, formData: FormData) {
+    return savePreAuthRequest(formData, 'Draft', false);
+}
+
 
 export async function getPreAuthRequests(hospitalId: string | null | undefined): Promise<StaffingRequest[]> {
     if (!hospitalId) return [];
@@ -410,7 +425,7 @@ export async function handleDeleteRequest(formData: FormData) {
 
 export async function handleUpdateRequest(prevState: { message: string, type?:string }, formData: FormData) {
     const id = formData.get('id') as string;
-    const status = formData.get('status') as 'Pending' | 'Approved' | 'Rejected';
+    const status = formData.get('status') as 'Pending' | 'Approved' | 'Rejected' | 'Draft';
 
     if (!id || !status) {
         return { message: 'Missing required fields for update.', type: 'error' };
