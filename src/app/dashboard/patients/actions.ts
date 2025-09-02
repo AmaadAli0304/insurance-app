@@ -8,6 +8,15 @@ import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+
+const s3 = new S3Client({
+  region: "ap-south-1", // change if needed
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+  },
+});
 
 const phoneRegex = new RegExp(/^\d{10}$/);
 
@@ -599,28 +608,47 @@ export async function getPatientWithDetailsForForm(patientId: string): Promise<P
     return getPatientById(patientId);
 }
 
-export async function handleUploadPatientFile(formData: FormData): Promise<{ type: 'success', url: string, name: string } | { type: 'error', message: string }> {
-    const file = formData.get('file') as File | null;
-    
-    if (!file) {
-        return { type: 'error', message: 'No file provided.' };
-    }
-    
-    // In a real scenario, you would upload the file to S3
-    // For this placeholder, we simulate success by returning a public S3 url.
-    try {
-        const simulatedFileName = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
-        const simulatedUrl = `https://inurance-app.s3.ap-south-1.amazonaws.com/uploads/${simulatedFileName}`;
-        
-        // Simulate a delay for the upload
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        return { type: 'success', url: simulatedUrl, name: file.name };
 
-    } catch (error) {
-        console.error("File handling error:", error);
-        return { type: 'error', message: (error as Error).message };
-    }
+
+export async function handleUploadPatientFile(
+  formData: FormData
+): Promise<
+  | { type: "success"; url: string; name: string }
+  | { type: "error"; message: string }
+> {
+  const file = formData.get("file") as File | null;
+
+  if (!file) {
+    return { type: "error", message: "No file provided." };
+  }
+
+  try {
+    // Generate a safe unique filename
+    const fileName = `uploads/${Date.now()}-${file.name.replace(/\s/g, "_")}`;
+
+    // Convert File → Buffer (browser FormData gives you File/Blob)
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Upload to S3
+    const command = new PutObjectCommand({
+      Bucket: "inurance-app", // 👈 your bucket name
+      Key: fileName,
+      Body: buffer,
+      ContentType: file.type,
+      ACL: "public-read", // 👈 makes the file public
+    });
+
+    await s3.send(command);
+
+    // Public file URL
+    const url = `https://inurance-app.s3.ap-south-1.amazonaws.com/${fileName}`;
+
+    return { type: "success", url, name: file.name };
+  } catch (error: any) {
+    console.error("S3 upload error:", error);
+    return { type: "error", message: error.message };
+  }
 }
 
 
