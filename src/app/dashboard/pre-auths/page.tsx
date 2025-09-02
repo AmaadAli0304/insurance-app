@@ -36,7 +36,10 @@ export default function PreAuthsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const loadRequests = useCallback(async () => {
-    if (!user?.hospitalId) return;
+    if (!user?.hospitalId) {
+      setIsLoading(false);
+      return;
+    };
     setIsLoading(true);
     try {
       const data = await getPreAuthRequests(user.hospitalId);
@@ -49,8 +52,10 @@ export default function PreAuthsPage() {
   }, [user?.hospitalId]);
 
   useEffect(() => {
-    loadRequests();
-  }, [loadRequests]);
+    if(user) {
+      loadRequests();
+    }
+  }, [user, loadRequests]);
 
 
   const handleRowClick = (requestId: string) => {

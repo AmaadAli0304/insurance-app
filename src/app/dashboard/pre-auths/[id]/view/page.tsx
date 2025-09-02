@@ -112,7 +112,7 @@ export default function ViewPreAuthPage() {
                                 <p className="text-muted-foreground">{request.subject}</p>
                             </div>
                             <div className="pt-4 border-t">
-                                <div dangerouslySetInnerHTML={{ __html: request.details }} />
+                                <div dangerouslySetInnerHTML={{ __html: request.details || '' }} />
                             </div>
                         </CardContent>
                     </Card>
