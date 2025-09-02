@@ -1,4 +1,4 @@
-      
+
 "use server";
 
 import pool, { sql, poolConnect } from "@/lib/db";
@@ -26,23 +26,23 @@ const basePatientFormSchema = z.object({
   abha_id: z.string().optional().nullable(),
   health_id: z.string().optional().nullable(),
   
-  photoUrl: z.string().url().optional().nullable().or(z.literal('')),
-  photoName: z.string().optional().nullable().or(z.literal('')),
+  photoUrl: z.string().optional().nullable(),
+  photoName: z.string().optional().nullable(),
 
 
   // KYC Documents - now expect pairs of url/name
-  adhaar_path_url: z.string().url().optional().or(z.literal('')),
-  adhaar_path_name: z.string().optional().or(z.literal('')),
-  pan_path_url: z.string().url().optional().or(z.literal('')),
-  pan_path_name: z.string().optional().or(z.literal('')),
-  passport_path_url: z.string().url().optional().or(z.literal('')),
-  passport_path_name: z.string().optional().or(z.literal('')),
-  voter_id_path_url: z.string().url().optional().or(z.literal('')),
-  voter_id_path_name: z.string().optional().or(z.literal('')),
-  driving_licence_path_url: z.string().url().optional().or(z.literal('')),
-  driving_licence_path_name: z.string().optional().or(z.literal('')),
-  other_path_url: z.string().url().optional().or(z.literal('')),
-  other_path_name: z.string().optional().or(z.literal('')),
+  adhaar_path_url: z.string().optional().nullable(),
+  adhaar_path_name: z.string().optional().nullable(),
+  pan_path_url: z.string().optional().nullable(),
+  pan_path_name: z.string().optional().nullable(),
+  passport_path_url: z.string().optional().nullable(),
+  passport_path_name: z.string().optional().nullable(),
+  voter_id_path_url: z.string().optional().nullable(),
+  voter_id_path_name: z.string().optional().nullable(),
+  driving_licence_path_url: z.string().optional().nullable(),
+  driving_licence_path_name: z.string().optional().nullable(),
+  other_path_url: z.string().optional().nullable(),
+  other_path_name: z.string().optional().nullable(),
 
   // Insurance Details
   admission_id: z.string().optional().nullable(),
@@ -520,7 +520,7 @@ const buildObjectFromFormData = (formData: FormData) => {
           }
           data[key].push(value);
         } else {
-          data[key] = value;
+          data[key] = value === '' ? null : value;
         }
       }
     });
@@ -1071,5 +1071,7 @@ export async function getChiefComplaints(patientId: number) {
 
 
 
+
+    
 
     
