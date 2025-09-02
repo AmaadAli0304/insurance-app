@@ -281,7 +281,7 @@ export function PhoneInput({ name, defaultValue = "", className, ...props }: Pho
         </SelectTrigger>
         <SelectContent>
             {countries.map((country) => (
-                <SelectItem key={country.name} value={country.code}>
+                <SelectItem key={`${country.name}-${country.code}`} value={country.code}>
                     <span className="flex items-center gap-2">
                         <Image src={`https://flagcdn.com/16x12/${country.name.toLowerCase()}.png`} width={16} height={12} alt={`${country.name} Flag`} />
                         {country.name} ({country.code})
