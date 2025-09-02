@@ -1,5 +1,4 @@
 
-
 "use server";
 
 import { redirect } from 'next/navigation';
@@ -22,13 +21,6 @@ const preAuthSchema = z.object({
 
 const saveDraftSchema = preAuthSchema.extend({
     status: z.string().optional().default('Draft'),
-});
-
-const emailSchema = z.object({
-  from: z.string().email(),
-  to: z.string().email(),
-  subject: z.string().min(1, "Subject is required"),
-  details: z.string().min(1, "Email body is required"),
 });
 
 async function sendPreAuthEmail(requestData: { from: string, to: string, subject: string, html: string }) {
@@ -59,27 +51,6 @@ async function sendPreAuthEmail(requestData: { from: string, to: string, subject
         subject: requestData.subject,
         html: requestData.html,
     });
-}
-
-
-export async function handleSendEmail(prevState: { message: string, type?:string }, formData: FormData) {
-  const validatedFields = emailSchema.safeParse(Object.fromEntries(formData.entries()));
-  
-  if (!validatedFields.success) {
-    return { message: `Invalid data: ${JSON.stringify(validatedFields.error.flatten().fieldErrors)}`, type: 'error' };
-  }
-
-  const { from, to, subject, details } = validatedFields.data;
-
-  try {
-    await sendPreAuthEmail({ from, to, subject, html: details });
-  } catch(error) {
-      const err = error as Error;
-      console.error("Failed to send email:", err);
-      return { message: `Failed to send email: ${err.message}`, type: 'error' };
-  }
-
-  return { message: "Email sent successfully!", type: 'success' };
 }
 
 
@@ -191,7 +162,12 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
     }
     const fullPatientData = patientDetailsResult.recordset[0];
     
-    // 2. Insert into preauth_request
+    // 2. Send email first if required
+    if (shouldSendEmail) {
+      await sendPreAuthEmail({ from, to, subject, html: details });
+    }
+
+    // 3. Insert into preauth_request
     const preAuthRequest = new sql.Request(transaction)
         .input('patient_id', sql.Int, patientId)
         .input('admission_id', sql.NVarChar, fullPatientData.admission_id)
@@ -300,7 +276,7 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
         )`);
     const preAuthId = preAuthRequest.recordset[0].id;
 
-    // 3. Insert into medical table (copying from chief_complaints)
+    // 4. Insert into medical table (copying from chief_complaints)
     const complaintsResult = await new sql.Request(transaction)
         .input('patient_id', sql.Int, patientId)
         .query('SELECT * FROM chief_complaints WHERE patient_id = @patient_id');
@@ -314,7 +290,7 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
             .query('INSERT INTO medical (preauth_id, complaint_name, duration_value, duration_unit) VALUES (@preauth_id, @complaint_name, @duration_value, @duration_unit)');
     }
 
-    // 4. Insert into chat table
+    // 5. Insert into chat table
     await new sql.Request(transaction)
         .input('preauth_id', sql.Int, preAuthId)
         .input('from_email', sql.NVarChar, from)
@@ -324,17 +300,19 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
         .input('request_type', sql.NVarChar, requestType)
         .query('INSERT INTO chat (preauth_id, from_email, to_email, subject, body, request_type) VALUES (@preauth_id, @from_email, @to_email, @subject, @body, @request_type)');
         
-    // 5. Send email if required
-    if (shouldSendEmail) {
-      await sendPreAuthEmail({ from, to, subject, html: details });
-    }
-    
     await transaction.commit();
 
   } catch(error) {
-      if (transaction) await transaction.rollback();
+      if (transaction) {
+        try {
+          await transaction.rollback();
+        } catch (rollbackError) {
+          console.error("Error during transaction rollback:", rollbackError);
+        }
+      }
       const err = error as Error;
       console.error("Failed to create pre-auth request:", err);
+      // Re-throw the original error to be caught by the action handler
       return { message: `Failed to create request: ${err.message}`, type: 'error' };
   }
 
