@@ -1,13 +1,25 @@
 
 "use server";
 
-import { mockStaffingRequests, mockPatients } from "@/lib/mock-data";
-import { StaffingRequest, Patient } from "@/lib/types";
 import { redirect } from 'next/navigation';
-import { getPatientById } from "../patients/actions";
+import { revalidatePath } from 'next/cache';
+import pool, { sql, poolConnect } from "@/lib/db";
+import type { StaffingRequest } from "@/lib/types";
+import { z } from 'zod';
 import nodemailer from "nodemailer";
 
-async function sendPreAuthEmail(requestData: StaffingRequest) {
+const preAuthSchema = z.object({
+    patientId: z.coerce.number(),
+    hospitalId: z.string().optional().nullable(),
+    from: z.string().email(),
+    to: z.string().email(),
+    subject: z.string().min(1, "Subject is required"),
+    details: z.string().min(1, "Email body is required"),
+    requestType: z.string(),
+    totalExpectedCost: z.coerce.number().optional().nullable(),
+});
+
+async function sendPreAuthEmail(requestData: { from: string, to: string, subject: string, html: string }) {
     const { 
         MAILTRAP_HOST, 
         MAILTRAP_PORT, 
@@ -29,184 +41,199 @@ async function sendPreAuthEmail(requestData: StaffingRequest) {
         }
     });
 
-    const htmlBody = `
-        <h1>Pre-Authorization Request</h1>
-        <p><strong>Request ID:</strong> ${requestData.id}</p>
-        <p><strong>Patient Name:</strong> ${requestData.fullName}</p>
-        <p><strong>Policy Number:</strong> ${requestData.policyNumber}</p>
-        <p><strong>Total Estimated Cost:</strong> ${requestData.totalExpectedCost?.toLocaleString()}</p>
-        <hr>
-        <h2>Details:</h2>
-        <div>${requestData.details}</div>
-        <hr>
-        <p>This is an automated message. Please do not reply directly to this email.</p>
-    `;
-
     await transporter.sendMail({
-        from: `"${requestData.fromEmail}" <donotreply@onestop.com>`,
-        to: requestData.email,
+        from: `"${requestData.from}" <donotreply@onestop.com>`,
+        to: requestData.to,
         subject: requestData.subject,
-        html: htmlBody,
+        html: requestData.html,
     });
 }
 
-
 export async function handleAddRequest(prevState: { message: string, type?:string }, formData: FormData) {
+  const validatedFields = preAuthSchema.safeParse(Object.fromEntries(formData.entries()));
+
+  if (!validatedFields.success) {
+    return { message: `Invalid data: ${validatedFields.error.flatten().fieldErrors}`, type: 'error' };
+  }
   
-  const patientId = formData.get("patientId") as string;
-  const toEmail = formData.get("to") as string;
-  const subject = formData.get("subject") as string;
-  const details = formData.get("details") as string;
-  const hospitalId = formData.get("hospitalId") as string;
-  const fromEmail = formData.get("from") as string;
+  const { from, to, subject, details, requestType, patientId } = validatedFields.data;
 
-  if (!patientId || !toEmail || !subject || !details || !hospitalId) {
-    return { message: `Please fill all required fields.`, type: 'error' };
-  }
-
-  const patient = await getPatientById(patientId);
-  if (!patient) {
-    return { message: "Selected patient not found.", type: 'error' };
-  }
-
-  const newRequest: StaffingRequest = {
-    id: `req-${Date.now()}`,
-    patientId: patient.id,
-    hospitalId: hospitalId,
-    companyId: patient.companyId,
-    status: 'Pending',
-    createdAt: new Date().toISOString(),
-    details: details,
-    subject: subject,
-    email: toEmail,
-    fromEmail: fromEmail,
-    requestAmount: Number(formData.get("totalExpectedCost")) || patient.estimatedCost,
-
-    // Editable Patient Details
-    fullName: `${formData.get("firstName")} ${formData.get("lastName")}`,
-    firstName: formData.get("firstName") as string,
-    lastName: formData.get("lastName") as string,
-    email_address: formData.get("email_address") as string,
-    phoneNumber: formData.get("phone_number") as string,
-    alternative_number: formData.get("alternative_number") as string,
-    gender: formData.get("gender") as 'Male' | 'Female' | 'Other',
-    age: Number(formData.get("age")),
-    dateOfBirth: formData.get("birth_date") as string,
-    address: formData.get("address") as string,
-    occupation: formData.get("occupation") as string,
-    employee_id: formData.get("employee_id") as string,
-    abha_id: formData.get("abha_id") as string,
-    health_id: formData.get("health_id") as string,
-
-    // Admission Details
-    admission_id: formData.get("admission_id") as string,
-    relationship_policyholder: formData.get("relationship_policyholder") as string,
-    policyNumber: formData.get("policy_number") as string,
-    memberId: formData.get("insured_card_number") as string,
-    policyStartDate: formData.get("policy_start_date") as string,
-    policyEndDate: formData.get("policy_end_date") as string,
-    sumInsured: Number(formData.get("sumInsured")),
-    sumUtilized: Number(formData.get("sumUtilized")),
-    totalSum: Number(formData.get("totalSum")),
-    corporate_policy_number: formData.get("corporate_policy_number") as string,
-    other_policy_name: formData.get("other_policy_name") as string,
-    family_doctor_name: formData.get("family_doctor_name") as string,
-    family_doctor_phone: formData.get("family_doctor_phone") as string,
-    payer_email: formData.get("payer_email") as string,
-    payer_phone: formData.get("payer_phone") as string,
-    hospitalName: formData.get("hospitalName") as string,
-
-    // Treatment details
-    treat_doc_name: formData.get("treat_doc_name") as string,
-    treat_doc_number: formData.get("treat_doc_number") as string,
-    treat_doc_qualification: formData.get("treat_doc_qualification") as string,
-    treat_doc_reg_no: formData.get("treat_doc_reg_no") as string,
-
-     // C. Clinical Information
-    natureOfIllness: formData.get("natureOfIllness") as string,
-    clinicalFindings: formData.get("clinicalFindings") as string,
-    ailmentDuration: Number(formData.get("ailmentDuration")),
-    firstConsultationDate: formData.get("firstConsultationDate") as string,
-    pastHistory: formData.get("pastHistory") as string,
-    provisionalDiagnosis: formData.get("provisionalDiagnosis") as string,
-    icd10Codes: formData.get("icd10Codes") as string,
-    treatmentMedical: formData.get("treatmentMedical") as string,
-    treatmentSurgical: formData.get("treatmentSurgical") as string,
-    treatmentIntensiveCare: formData.get("treatmentIntensiveCare") as string,
-    treatmentInvestigation: formData.get("treatmentInvestigation") as string,
-    treatmentNonAllopathic: formData.get("treatmentNonAllopathic") as string,
-    investigationDetails: formData.get("investigationDetails") as string,
-    drugRoute: formData.get("drugRoute") as string,
-    procedureName: formData.get("procedureName") as string,
-    icd10PcsCodes: formData.get("icd10PcsCodes") as string,
-    otherTreatments: formData.get("otherTreatments") as string,
-
-    // D. Accident / Medico-Legal
-    isInjury: formData.get("isInjury") === 'on',
-    injuryCause: formData.get("injuryCause") as string,
-    isRta: formData.get("isRta") === 'on',
-    injuryDate: formData.get("injuryDate") as string,
-    isReportedToPolice: formData.get("isReportedToPolice") === 'on',
-    firNumber: formData.get("firNumber") as string,
-    isAlcoholSuspected: formData.get("isAlcoholSuspected") === 'on',
-    isToxicologyConducted: formData.get("isToxicologyConducted") === 'on',
-
-    // E. Maternity
-    isMaternity: formData.get("isMaternity") === 'on',
-    g: Number(formData.get("g")),
-    p: Number(formData.get("p")),
-    l: Number(formData.get("l")),
-    a: Number(formData.get("a")),
-    expectedDeliveryDate: formData.get("expectedDeliveryDate") as string,
-
-    // F. Admission & Cost Estimate
-    admissionDate: formData.get("admissionDate") as string,
-    admissionTime: formData.get("admissionTime") as string,
-    admissionType: formData.get("admissionType") as string,
-    expectedStay: Number(formData.get("expectedStay")),
-    expectedIcuStay: Number(formData.get("expectedIcuStay")),
-    roomCategory: formData.get("roomCategory") as string,
-    roomNursingDietCost: Number(formData.get("roomNursingDietCost")),
-    investigationCost: Number(formData.get("investigationCost")),
-    icuCost: Number(formData.get("icuCost")),
-    otCost: Number(formData.get("otCost")),
-    professionalFees: Number(formData.get("professionalFees")),
-    medicineCost: Number(formData.get("medicineCost")),
-    otherHospitalExpenses: Number(formData.get("otherHospitalExpenses")),
-    packageCharges: Number(formData.get("packageCharges")),
-    totalExpectedCost: Number(formData.get("totalExpectedCost")),
-
-    // G. Medical History - Handled by chiefComplaints JSON
-    
-
-    // H. Declarations & Attachments
-    patientDeclarationName: formData.get("patientDeclarationName") as string,
-    patientDeclarationContact: formData.get("patientDeclarationContact") as string,
-    patientDeclarationEmail: formData.get("patientDeclarationEmail") as string,
-    patientDeclarationDate: formData.get("patientDeclarationDate") as string,
-    patientDeclarationTime: formData.get("patientDeclarationTime") as string,
-    hospitalDeclarationDoctorName: formData.get("hospitalDeclarationDoctorName") as string,
-    hospitalDeclarationDate: formData.get("hospitalDeclarationDate") as string,
-    hospitalDeclarationTime: formData.get("hospitalDeclarationTime") as string,
-    attachments: formData.getAll("attachments") as string[],
-  };
-
+  let transaction;
   try {
-    await sendPreAuthEmail(newRequest);
-    mockStaffingRequests.push(newRequest);
-    return { message: "Request sent successfully", type: 'success' };
+    await poolConnect;
+    transaction = new sql.Transaction(pool);
+    await transaction.begin();
+
+    // 1. Get latest patient details from admissions table
+    const patientDetailsResult = await new sql.Request(transaction)
+      .input('patient_id', sql.Int, patientId)
+      .query('SELECT TOP 1 * FROM admissions WHERE patient_id = @patient_id ORDER BY id DESC');
+    
+    if (patientDetailsResult.recordset.length === 0) {
+        throw new Error("No admission record found for this patient.");
+    }
+    const admissionDetails = patientDetailsResult.recordset[0];
+    
+    // 2. Insert into preauth_request
+    const preAuthRequest = new sql.Request(transaction);
+    const preAuthResult = await preAuthRequest
+        .input('patient_id', sql.Int, patientId)
+        .input('admission_id', sql.NVarChar, admissionDetails.admission_id)
+        // ... (copy all fields from admissionDetails to preAuthRequest inputs) ...
+        .query(`INSERT INTO preauth_request (...) OUTPUT INSERTED.id VALUES (...)`); // Add all fields
+    const preAuthId = preAuthResult.recordset[0].id;
+
+    // 3. Insert into medical table (copying from chief_complaints)
+    const complaintsResult = await new sql.Request(transaction)
+        .input('patient_id', sql.Int, patientId)
+        .query('SELECT * FROM chief_complaints WHERE patient_id = @patient_id');
+        
+    for (const complaint of complaintsResult.recordset) {
+        await new sql.Request(transaction)
+            .input('preauth_id', sql.Int, preAuthId)
+            .input('complaint_name', sql.NVarChar, complaint.complaint_name)
+            .input('duration_value', sql.NVarChar, complaint.duration_value)
+            .input('duration_unit', sql.NVarChar, complaint.duration_unit)
+            .query('INSERT INTO medical (preauth_id, complaint_name, duration_value, duration_unit) VALUES (@preauth_id, @complaint_name, @duration_value, @duration_unit)');
+    }
+
+    // 4. Insert into chat table
+    await new sql.Request(transaction)
+        .input('preauth_id', sql.Int, preAuthId)
+        .input('from_email', sql.NVarChar, from)
+        .input('to_email', sql.NVarChar, to)
+        .input('subject', sql.NVarChar, subject)
+        .input('body', sql.NVarChar, details)
+        .input('request_type', sql.NVarChar, requestType)
+        .query('INSERT INTO chat (preauth_id, from_email, to_email, subject, body, request_type) VALUES (@preauth_id, @from_email, @to_email, @subject, @body, @request_type)');
+        
+    // 5. Send email
+    await sendPreAuthEmail({ from, to, subject, html: details });
+    
+    await transaction.commit();
+
   } catch(error) {
+      if (transaction) await transaction.rollback();
       const err = error as Error;
-      console.error("Failed to send email:", err);
-      return { message: `Failed to send email: ${err.message}`, type: 'error' };
+      console.error("Failed to create pre-auth request:", err);
+      return { message: `Failed to create request: ${err.message}`, type: 'error' };
   }
+
+  revalidatePath('/dashboard/pre-auths');
+  redirect('/dashboard/pre-auths');
+}
+
+export async function getPreAuthRequests(hospitalId: string | null | undefined): Promise<StaffingRequest[]> {
+    if (!hospitalId) return [];
+    try {
+        await poolConnect;
+        const result = await pool.request()
+            .input('hospitalId', sql.NVarChar, hospitalId)
+            .query(`
+                SELECT 
+                    pr.id, 
+                    pr.patient_id as patientId, 
+                    pr.hospital_id as hospitalId,
+                    pr.status, 
+                    pr.created_at as createdAt,
+                    p.first_name + ' ' + p.last_name as fullName,
+                    c.subject,
+                    c.to_email as email
+                FROM preauth_request pr
+                JOIN patients p ON pr.patient_id = p.id
+                OUTER APPLY (
+                    SELECT TOP 1 subject, to_email 
+                    FROM chat 
+                    WHERE preauth_id = pr.id 
+                    ORDER BY created_at ASC
+                ) c
+                WHERE pr.hospital_id = @hospitalId
+                ORDER BY pr.created_at DESC
+            `);
+        return result.recordset as StaffingRequest[];
+    } catch (error) {
+        console.error("Error fetching pre-auth requests:", error);
+        throw new Error("Could not fetch pre-auth requests from database.");
+    }
+}
+
+export async function getPreAuthRequestById(id: string): Promise<StaffingRequest | null> {
+    try {
+        await poolConnect;
+        const result = await pool.request()
+            .input('id', sql.Int, Number(id))
+            .query(`
+                 SELECT 
+                    pr.*, 
+                    pr.patient_id as patientId,
+                    c.body as details,
+                    c.subject,
+                    c.to_email as email,
+                    c.from_email as fromEmail,
+                    p.first_name + ' ' + p.last_name as fullName
+                FROM preauth_request pr
+                LEFT JOIN patients p ON pr.patient_id = p.id
+                OUTER APPLY (
+                    SELECT TOP 1 *
+                    FROM chat 
+                    WHERE preauth_id = pr.id 
+                    ORDER BY created_at ASC
+                ) c
+                WHERE pr.id = @id
+            `);
+        if (result.recordset.length === 0) return null;
+        return result.recordset[0] as StaffingRequest;
+    } catch (error) {
+        console.error("Error fetching pre-auth request by ID:", error);
+        throw new Error("Could not fetch pre-auth request details.");
+    }
 }
 
 
 export async function handleDeleteRequest(formData: FormData) {
     const id = formData.get("id") as string;
-    const index = mockStaffingRequests.findIndex(r => r.id === id);
-    if (index > -1) {
-        mockStaffingRequests.splice(index, 1);
+    let transaction;
+    try {
+        await poolConnect;
+        transaction = new sql.Transaction(pool);
+        await transaction.begin();
+
+        await new sql.Request(transaction).input('id', sql.Int, Number(id)).query('DELETE FROM chat WHERE preauth_id = @id');
+        await new sql.Request(transaction).input('id', sql.Int, Number(id)).query('DELETE FROM medical WHERE preauth_id = @id');
+        await new sql.Request(transaction).input('id', sql.Int, Number(id)).query('DELETE FROM preauth_request WHERE id = @id');
+        
+        await transaction.commit();
+        
+    } catch (error) {
+        if(transaction) await transaction.rollback();
+        console.error("Error deleting pre-auth request:", error);
+        throw new Error("Database error during deletion.");
     }
+    revalidatePath('/dashboard/pre-auths');
+}
+
+export async function handleUpdateRequest(prevState: { message: string, type?:string }, formData: FormData) {
+    // This is a placeholder for a more complex update logic
+    // For now, we'll just update the status
+    const id = formData.get('id') as string;
+    const status = formData.get('status') as 'Pending' | 'Approved' | 'Rejected';
+
+    if (!id || !status) {
+        return { message: 'Missing required fields for update.', type: 'error' };
+    }
+
+    try {
+        await poolConnect;
+        await pool.request()
+            .input('id', sql.Int, Number(id))
+            .input('status', sql.NVarChar, status)
+            .query('UPDATE preauth_request SET status = @status WHERE id = @id');
+    } catch (error) {
+        console.error("Error updating pre-auth status:", error);
+        return { message: 'Database error while updating status.', type: 'error' };
+    }
+
+    revalidatePath(`/dashboard/pre-auths/${id}/view`);
+    revalidatePath('/dashboard/pre-auths');
+    return { message: 'Status updated successfully.', type: 'success' };
 }

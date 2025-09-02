@@ -5,11 +5,10 @@ import { useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal, PlusCircle, Trash, Eye } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Trash, Eye, AlertTriangle } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
-import { mockStaffingRequests, mockPatients } from "@/lib/mock-data"
 import Link from "next/link"
-import { handleDeleteRequest } from "./actions"
+import { handleDeleteRequest, getPreAuthRequests } from "./actions"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,26 +23,36 @@ import {
 import { useAuth } from "@/components/auth-provider"
 import { Badge } from "@/components/ui/badge"
 import { useRouter } from "next/navigation"
+import type { StaffingRequest } from "@/lib/types";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
 
 export default function PreAuthsPage() {
   const { user } = useAuth();
   const router = useRouter();
   
-  const [requests, setRequests] = useState(() => mockStaffingRequests.filter(p => p.hospitalId === user?.hospitalId));
+  const [requests, setRequests] = useState<StaffingRequest[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const refreshRequests = useCallback(() => {
-    setRequests(mockStaffingRequests.filter(p => p.hospitalId === user?.hospitalId));
+  const loadRequests = useCallback(async () => {
+    if (!user?.hospitalId) return;
+    setIsLoading(true);
+    try {
+      const data = await getPreAuthRequests(user.hospitalId);
+      setRequests(data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
   }, [user?.hospitalId]);
 
   useEffect(() => {
-    refreshRequests();
-  }, [refreshRequests]);
+    loadRequests();
+  }, [loadRequests]);
 
 
-  const getPatientName = (patientId: string) => {
-    return mockPatients.find(p => p.id === patientId)?.fullName || 'N/A';
-  }
-  
   const handleRowClick = (requestId: string) => {
     router.push(`/dashboard/pre-auths/${requestId}/view`);
   };
@@ -64,6 +73,15 @@ export default function PreAuthsPage() {
           </Button>
         </CardHeader>
         <CardContent>
+           {isLoading ? (
+             <p>Loading requests...</p>
+           ) : error ? (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Error Fetching Data</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+           ) : (
           <Table>
             <TableHeader>
               <TableRow>
@@ -78,7 +96,7 @@ export default function PreAuthsPage() {
             <TableBody>
               {requests.map(r => (
                 <TableRow key={r.id} onClick={() => handleRowClick(r.id)} className="cursor-pointer">
-                  <TableCell className="font-medium">{getPatientName(r.patientId)}</TableCell>
+                  <TableCell className="font-medium">{r.fullName}</TableCell>
                   <TableCell>{r.subject}</TableCell>
                   <TableCell>{r.email}</TableCell>
                   <TableCell>
@@ -115,7 +133,7 @@ export default function PreAuthsPage() {
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
                            <form action={async (formData) => {
                              await handleDeleteRequest(formData);
-                             refreshRequests();
+                             loadRequests();
                            }}>
                               <input type="hidden" name="id" value={r.id} />
                               <AlertDialogAction type="submit">Continue</AlertDialogAction>
@@ -128,6 +146,7 @@ export default function PreAuthsPage() {
               ))}
             </TableBody>
           </Table>
+           )}
         </CardContent>
       </Card>
     </div>

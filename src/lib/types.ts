@@ -202,8 +202,8 @@ export interface Patient {
 export interface StaffingRequest {
   id: string;
   patientId: string;
-  hospitalId: string;
-  companyId: string;
+  hospitalId?: string | null;
+  companyId?: string | null;
   status: 'Pending' | 'Approved' | 'Rejected';
   createdAt: string; // ISO date string
   details: string; 
