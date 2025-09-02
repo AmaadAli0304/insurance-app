@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useFormStatus } from "react-dom";
-import { handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable, handleCreateDoctorsTable, handleCreateChiefComplaintsTable } from "./actions";
+import { handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable, handleCreateDoctorsTable, handleCreateChiefComplaintsTable, handleCreatePreAuthTable, handleCreateMedicalTable, handleCreateChatTable } from "./actions";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble, Info, Stethoscope, FileHeart } from "lucide-react";
+import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble, Info, Stethoscope, FileHeart, Shield, MessageSquare, Pill } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 
 
@@ -112,6 +112,35 @@ function SubmitChiefComplaintsTableButton() {
     );
 }
 
+function SubmitPreAuthTableButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending} variant="secondary">
+             <Shield className="mr-2 h-4 w-4" />
+            {pending ? "Creating..." : "Create PreAuth Table"}
+        </Button>
+    );
+}
+
+function SubmitMedicalTableButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending} variant="secondary">
+             <Pill className="mr-2 h-4 w-4" />
+            {pending ? "Creating..." : "Create Medical Table"}
+        </Button>
+    );
+}
+
+function SubmitChatTableButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending} variant="secondary">
+             <MessageSquare className="mr-2 h-4 w-4" />
+            {pending ? "Creating..." : "Create Chat Table"}
+        </Button>
+    );
+}
 
 
 export default function ImportPage() {
@@ -126,6 +155,9 @@ export default function ImportPage() {
     const [createIctCodeTableState, createIctCodeTableAction] = useActionState(handleCreateIctCodeTable, { message: "", type: undefined });
     const [createDoctorsTableState, createDoctorsTableAction] = useActionState(handleCreateDoctorsTable, { message: "", type: undefined });
     const [createChiefComplaintsTableState, createChiefComplaintsTableAction] = useActionState(handleCreateChiefComplaintsTable, { message: "", type: undefined });
+    const [createPreAuthTableState, createPreAuthTableAction] = useActionState(handleCreatePreAuthTable, { message: "", type: undefined });
+    const [createMedicalTableState, createMedicalTableAction] = useActionState(handleCreateMedicalTable, { message: "", type: undefined });
+    const [createChatTableState, createChatTableAction] = useActionState(handleCreateChatTable, { message: "", type: undefined });
 
 
 
@@ -151,6 +183,9 @@ export default function ImportPage() {
     useToastEffect(createIctCodeTableState, "Database Action");
     useToastEffect(createDoctorsTableState, "Database Action");
     useToastEffect(createChiefComplaintsTableState, "Database Action");
+    useToastEffect(createPreAuthTableState, "Database Action");
+    useToastEffect(createMedicalTableState, "Database Action");
+    useToastEffect(createChatTableState, "Database Action");
 
     
 
@@ -193,6 +228,15 @@ export default function ImportPage() {
                     </form>
                     <form action={createChiefComplaintsTableAction}>
                         <SubmitChiefComplaintsTableButton />
+                    </form>
+                     <form action={createPreAuthTableAction}>
+                        <SubmitPreAuthTableButton />
+                    </form>
+                     <form action={createMedicalTableAction}>
+                        <SubmitMedicalTableButton />
+                    </form>
+                     <form action={createChatTableAction}>
+                        <SubmitChatTableButton />
                     </form>
                 </CardContent>
             </Card>
