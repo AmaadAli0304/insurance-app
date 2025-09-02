@@ -644,7 +644,12 @@ export async function handleCreateMedicalTable(prevState: { message: string, typ
             END
             ELSE
             BEGIN
-                ALTER TABLE medical ADD CONSTRAINT FK__medical__preauth FOREIGN KEY (preauth_id) REFERENCES preauth_request(id) ON DELETE CASCADE;
+                -- This part might not be strictly necessary if the table already exists with the correct FK, but it's safe to have.
+                -- First, ensure the FK doesn't exist with the wrong reference before adding the correct one.
+                IF OBJECT_ID('FK__medical__preauth', 'F') IS NULL
+                BEGIN
+                    ALTER TABLE medical ADD CONSTRAINT FK__medical__preauth FOREIGN KEY (preauth_id) REFERENCES preauth_request(id) ON DELETE CASCADE;
+                END
             END
         `;
         await request.query(query);
@@ -680,7 +685,12 @@ export async function handleCreateChatTable(prevState: { message: string, type?:
             END
             ELSE
             BEGIN
-                 ALTER TABLE chat ADD CONSTRAINT FK__chat__preauth FOREIGN KEY (preauth_id) REFERENCES preauth_request(id) ON DELETE CASCADE;
+                 -- This part might not be strictly necessary if the table already exists with the correct FK, but it's safe to have.
+                -- First, ensure the FK doesn't exist with the wrong reference before adding the correct one.
+                 IF OBJECT_ID('FK__chat__preauth', 'F') IS NULL
+                 BEGIN
+                    ALTER TABLE chat ADD CONSTRAINT FK__chat__preauth FOREIGN KEY (preauth_id) REFERENCES preauth_request(id) ON DELETE CASCADE;
+                 END
             END
         `;
         await request.query(query);
