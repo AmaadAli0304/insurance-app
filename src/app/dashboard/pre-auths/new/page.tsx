@@ -30,6 +30,7 @@ import { EditorState, convertToRaw } from 'draft-js';
 import draftToHtml from 'draftjs-to-html';
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import { ChiefComplaintForm, Complaint } from "@/components/chief-complaint-form";
+import { PreAuthMedicalHistory } from "@/components/pre-auths/preauth-medical-history";
 
 
 const Editor = dynamic(
@@ -710,7 +711,7 @@ export default function NewRequestPage() {
                             </AccordionItem>
                              </Card>
                              
-                            <ChiefComplaintForm initialData={chiefComplaints} />
+                            <PreAuthMedicalHistory initialData={chiefComplaints} />
                              
                               <Card>
                              <AccordionItem value="declarations-info">
@@ -839,3 +840,4 @@ export default function NewRequestPage() {
         </div>
     );
 }
+
