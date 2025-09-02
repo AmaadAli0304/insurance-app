@@ -706,28 +706,28 @@ export default function NewRequestPage() {
                              </Card>
                              
                              <Card>
-                             <AccordionItem value="history-info">
-                                <CardHeader>
-                                    <AccordionTrigger>
-                                        <CardTitle>G. Medical History</CardTitle>
-                                    </AccordionTrigger>
-                                </CardHeader>
-                                <AccordionContent>
-                                    <CardContent className="grid md:grid-cols-2 gap-x-8 gap-y-4">
-                                        <Input name="diabetesSince" placeholder="Diabetes – since (MM/YY)" defaultValue={patientDetails.diabetesSince ?? ''} />
-                                        <Input name="hypertensionSince" placeholder="Hypertension – since (MM/YY)" defaultValue={patientDetails.hypertensionSince ?? ''} />
-                                        <Input name="heartDiseaseSince" placeholder="Heart disease – since (MM/YY)" defaultValue={patientDetails.heartDiseaseSince ?? ''} />
-                                        <Input name="hyperlipidemiaSince" placeholder="Hyperlipidemia – since (MM/YY)" defaultValue={patientDetails.hyperlipidemiaSince ?? ''} />
-                                        <Input name="osteoarthritisSince" placeholder="Osteoarthritis – since (MM/YY)" defaultValue={patientDetails.osteoarthritisSince ?? ''} />
-                                        <Input name="asthmaCopdSince" placeholder="Asthma/COPD – since (MM/YY)" defaultValue={patientDetails.asthmaCopdSince ?? ''} />
-                                        <Input name="cancerSince" placeholder="Cancer – since (MM/YY)" defaultValue={patientDetails.cancerSince ?? ''} />
-                                        <Input name="alcoholDrugAbuseSince" placeholder="Alcohol/drug abuse – since (MM/YY)" defaultValue={patientDetails.alcoholDrugAbuseSince ?? ''} />
-                                        <Input name="hivSince" placeholder="HIV/STD – since (MM/YY)" defaultValue={patientDetails.hivSince ?? ''} />
-                                        <Input name="otherChronicAilment" placeholder="Any other chronic ailment (specify and since when)" defaultValue={patientDetails.otherChronicAilment ?? ''} />
-                                    </CardContent>
-                                </AccordionContent>
-                            </AccordionItem>
-                             </Card>
+                                <AccordionItem value="medical-history">
+                                    <CardHeader>
+                                        <AccordionTrigger>
+                                            <CardTitle>G. Medical History</CardTitle>
+                                        </AccordionTrigger>
+                                    </CardHeader>
+                                    <AccordionContent>
+                                        <CardContent className="grid md:grid-cols-2 gap-x-8 gap-y-4">
+                                            <Input name="diabetesSince" placeholder="Diabetes – since (MM/YY)" defaultValue={patientDetails.diabetesSince ?? ''} />
+                                            <Input name="hypertensionSince" placeholder="Hypertension – since (MM/YY)" defaultValue={patientDetails.hypertensionSince ?? ''} />
+                                            <Input name="heartDiseaseSince" placeholder="Heart disease – since (MM/YY)" defaultValue={patientDetails.heartDiseaseSince ?? ''} />
+                                            <Input name="hyperlipidemiaSince" placeholder="Hyperlipidemia – since (MM/YY)" defaultValue={patientDetails.hyperlipidemiaSince ?? ''} />
+                                            <Input name="osteoarthritisSince" placeholder="Osteoarthritis – since (MM/YY)" defaultValue={patientDetails.osteoarthritisSince ?? ''} />
+                                            <Input name="asthmaCopdSince" placeholder="Asthma/COPD – since (MM/YY)" defaultValue={patientDetails.asthmaCopdSince ?? ''} />
+                                            <Input name="cancerSince" placeholder="Cancer – since (MM/YY)" defaultValue={patientDetails.cancerSince ?? ''} />
+                                            <Input name="alcoholDrugAbuseSince" placeholder="Alcohol/drug abuse – since (MM/YY)" defaultValue={patientDetails.alcoholDrugAbuseSince ?? ''} />
+                                            <Input name="hivSince" placeholder="HIV/STD – since (MM/YY)" defaultValue={patientDetails.hivSince ?? ''} />
+                                            <Input name="otherChronicAilment" placeholder="Any other chronic ailment (specify and since when)" defaultValue={patientDetails.otherChronicAilment ?? ''} />
+                                        </CardContent>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            </Card>
                              
                               <Card>
                              <AccordionItem value="declarations-info">
