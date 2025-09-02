@@ -9,7 +9,7 @@ import { z } from 'zod';
 import nodemailer from "nodemailer";
 
 const preAuthSchema = z.object({
-    patientId: z.coerce.number(),
+    patientId: z.coerce.number().optional().nullable(),
     hospitalId: z.string().optional().nullable(),
     from: z.string().email(),
     to: z.string().email(),
@@ -63,6 +63,11 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
   }
   
   const { from, to, subject, details, requestType, patientId, totalExpectedCost, doctor_id } = validatedFields.data;
+
+  if (!patientId) {
+    return { message: 'Please select a patient before saving.', type: 'error' };
+  }
+
   let transaction;
   try {
     const db = await poolConnect;
