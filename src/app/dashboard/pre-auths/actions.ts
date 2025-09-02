@@ -24,6 +24,13 @@ const saveDraftSchema = preAuthSchema.extend({
     status: z.string().optional().default('Draft'),
 });
 
+const emailSchema = z.object({
+  from: z.string().email(),
+  to: z.string().email(),
+  subject: z.string().min(1, "Subject is required"),
+  details: z.string().min(1, "Email body is required"),
+});
+
 async function sendPreAuthEmail(requestData: { from: string, to: string, subject: string, html: string }) {
     const { 
         MAILTRAP_HOST, 
@@ -53,6 +60,28 @@ async function sendPreAuthEmail(requestData: { from: string, to: string, subject
         html: requestData.html,
     });
 }
+
+
+export async function handleSendEmail(prevState: { message: string, type?:string }, formData: FormData) {
+  const validatedFields = emailSchema.safeParse(Object.fromEntries(formData.entries()));
+  
+  if (!validatedFields.success) {
+    return { message: `Invalid data: ${JSON.stringify(validatedFields.error.flatten().fieldErrors)}`, type: 'error' };
+  }
+
+  const { from, to, subject, details } = validatedFields.data;
+
+  try {
+    await sendPreAuthEmail({ from, to, subject, html: details });
+  } catch(error) {
+      const err = error as Error;
+      console.error("Failed to send email:", err);
+      return { message: `Failed to send email: ${err.message}`, type: 'error' };
+  }
+
+  return { message: "Email sent successfully!", type: 'success' };
+}
+
 
 async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft' = 'Pending', shouldSendEmail: boolean) {
   const validatedFields = saveDraftSchema.safeParse(Object.fromEntries(formData.entries()));

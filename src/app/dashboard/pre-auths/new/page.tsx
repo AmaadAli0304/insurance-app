@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useActionState, useEffect, useMemo, useRef } from "react";
@@ -7,9 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleAddRequest, handleSaveDraftRequest } from "../actions";
+import { handleSendEmail } from "../actions";
 import Link from "next/link";
-import { ArrowLeft, Loader2, Download, Send, Check, Save } from "lucide-react";
+import { ArrowLeft, Loader2, Download, Send, Check } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -28,7 +29,7 @@ import dynamic from 'next/dynamic';
 import { EditorState, convertToRaw } from 'draft-js';
 import draftToHtml from 'draftjs-to-html';
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
-import { ChiefComplaintForm, Complaint } from "@/components/chief-complaint-form";
+import { Complaint } from "@/components/chief-complaint-form";
 import { PreAuthMedicalHistory } from "@/components/pre-auths/preauth-medical-history";
 
 
@@ -43,17 +44,7 @@ function SubmitButton() {
     return (
         <Button type="submit" disabled={pending}>
             <Send className="mr-2 h-4 w-4" />
-            {pending ? "Submitting..." : "Save & Send Request"}
-        </Button>
-    );
-}
-
-function SaveDraftButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" formAction={handleSaveDraftRequest} disabled={pending} variant="secondary">
-            <Save className="mr-2 h-4 w-4" />
-            {pending ? "Saving..." : "Save as Draft"}
+            {pending ? "Sending..." : "Send Email"}
         </Button>
     );
 }
@@ -61,7 +52,7 @@ function SaveDraftButton() {
 
 export default function NewRequestPage() {
     const { user } = useAuth();
-    const [state, formAction] = useActionState(handleAddRequest, { message: "" });
+    const [state, formAction] = useActionState(handleSendEmail, { message: "" });
     const { toast } = useToast();
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -855,7 +846,6 @@ export default function NewRequestPage() {
 
                      <div className="flex justify-end gap-4">
                         {state.type === 'error' && <p className="text-sm text-destructive self-center">{state.message}</p>}
-                        <SaveDraftButton />
                         <Button type="button" variant="outline" onClick={handleDownloadPdf}>
                            <Download className="mr-2 h-4 w-4" />
                            Download as PDF
