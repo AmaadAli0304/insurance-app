@@ -267,10 +267,15 @@ export function PhoneInput({ name, defaultValue = "", className, ...props }: Pho
     return countries.find(c => c.code === code)?.name.toLowerCase();
   }
 
+  const handleValueChange = (uniqueValue: string) => {
+    const code = uniqueValue.split('-').slice(1).join('-');
+    setCountryCode(code);
+  };
+
   return (
     <div className={cn("flex items-center", className)}>
       <input type="hidden" name={name} value={fullNumber} />
-      <Select value={countryCode} onValueChange={setCountryCode}>
+      <Select value={`${getCountryIsoCode(countryCode)}-${countryCode}`} onValueChange={handleValueChange}>
         <SelectTrigger className="w-[120px] rounded-r-none focus:ring-0">
           <SelectValue placeholder="Code">
             <span className="flex items-center gap-2">
@@ -283,7 +288,7 @@ export function PhoneInput({ name, defaultValue = "", className, ...props }: Pho
             {countries.map((country) => {
               const uniqueValue = `${country.name}-${country.code}`;
               return (
-                <SelectItem key={uniqueValue} value={country.code}>
+                <SelectItem key={uniqueValue} value={uniqueValue}>
                     <span className="flex items-center gap-2">
                         <Image src={`https://flagcdn.com/16x12/${country.name.toLowerCase()}.png`} width={16} height={12} alt={`${country.name} Flag`} />
                         {country.name} ({country.code})
