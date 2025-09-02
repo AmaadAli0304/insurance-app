@@ -12,7 +12,6 @@ interface DoctorSearchProps {
 
 const MemoizedDoctorSearch = ({ doctors, defaultDoctorId }: DoctorSearchProps) => {
   const [selectedDoctorId, setSelectedDoctorId] = useState<string>(defaultDoctorId?.toString() ?? "");
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (defaultDoctorId) {
@@ -49,21 +48,17 @@ const MemoizedDoctorSearch = ({ doctors, defaultDoctorId }: DoctorSearchProps) =
             value={selectedDoctorId}
             onValueChange={handleSelect}
             required
-            disabled={isLoading || !doctors || doctors.length === 0}
+            disabled={!doctors || doctors.length === 0}
         >
             <SelectTrigger>
                 <SelectValue placeholder="Select a doctor" />
             </SelectTrigger>
             <SelectContent>
-                {isLoading ? (
-                    <SelectItem value="loading" disabled>Loading doctors...</SelectItem>
-                ) : (
-                    doctors?.map((doctor) => (
-                        <SelectItem key={doctor.id} value={String(doctor.id)}>
-                            {doctor.name}
-                        </SelectItem>
-                    ))
-                )}
+                {doctors?.map((doctor) => (
+                    <SelectItem key={doctor.id} value={String(doctor.id)}>
+                        {doctor.name}
+                    </SelectItem>
+                ))}
             </SelectContent>
         </Select>
     </div>

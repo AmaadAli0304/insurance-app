@@ -734,5 +734,3 @@ export default function NewPatientPage() {
         </div>
     );
 }
-
-    

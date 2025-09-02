@@ -167,8 +167,8 @@ export type Doctor = {
 
 export async function getDoctors(): Promise<Doctor[]> {
   try {
-    const db = await poolConnect;
-    const result = await db.request().query('SELECT * FROM doctors');
+    await poolConnect;
+    const result = await pool.request().query('SELECT * FROM doctors');
     return result.recordset as Doctor[];
   } catch (error) {
     console.error('Error fetching doctors:', error);
@@ -179,8 +179,8 @@ export async function getDoctors(): Promise<Doctor[]> {
 
 export async function getPatients(hospitalId?: string | null): Promise<Patient[]> {
   try {
-    const db = await poolConnect;
-    const request = db.request();
+    await poolConnect;
+    const request = pool.request();
     
     let whereClause = '';
     if (hospitalId) {
@@ -210,6 +210,7 @@ export async function getPatients(hospitalId?: string | null): Promise<Patient[]
         }
         return {
             ...record,
+            id: record.id.toString(), // Ensure id is a string
             fullName: `${record.first_name || ''} ${record.last_name || ''}`.trim(),
             photo: photo?.url // only send url to client for table view
         }
@@ -240,8 +241,8 @@ const getDocumentData = (jsonString: string | null | undefined): { url: string; 
 
 export async function getPatientById(id: string): Promise<Patient | null> {
   try {
-    const db = await poolConnect;
-    const result = await db.request()
+    await poolConnect;
+    const result = await pool.request()
       .input('id', sql.Int, Number(id))
        .query(`
         SELECT 
@@ -370,6 +371,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
     }
     const patientData = result.recordset[0];
     
+    patientData.id = patientData.id.toString();
     patientData.fullName = `${patientData.first_name || ''} ${patientData.last_name || ''}`.trim();
     patientData.firstName = patientData.first_name;
     patientData.lastName = patientData.last_name;
@@ -395,11 +397,11 @@ export async function getPatientById(id: string): Promise<Patient | null> {
 
 export async function getNewPatientPageData() {
     try {
-        const db = await poolConnect;
+        await poolConnect;
         const [companiesResult, tpasResult, doctorsResult] = await Promise.all([
-            db.request().query('SELECT id, name FROM companies'),
-            db.request().query('SELECT id, name FROM tpas'),
-            db.request().query('SELECT * FROM doctors'),
+            pool.request().query('SELECT id, name FROM companies'),
+            pool.request().query('SELECT id, name FROM tpas'),
+            pool.request().query('SELECT * FROM doctors'),
         ]);
 
         return {
@@ -415,13 +417,13 @@ export async function getNewPatientPageData() {
 
 export async function getPatientEditPageData(patientId: string) {
     try {
-        const db = await poolConnect;
+        await poolConnect;
         const [patientData, companiesResult, tpasResult, doctorsResult, complaintsResult] = await Promise.all([
             getPatientById(patientId),
-            db.request().query('SELECT id, name FROM companies'),
-            db.request().query('SELECT id, name FROM tpas'),
-            db.request().query('SELECT * FROM doctors'),
-            db.request().input('patient_id', sql.Int, Number(patientId)).query('SELECT * FROM chief_complaints WHERE patient_id = @patient_id')
+            pool.request().query('SELECT id, name FROM companies'),
+            pool.request().query('SELECT id, name FROM tpas'),
+            pool.request().query('SELECT * FROM doctors'),
+            pool.request().input('patient_id', sql.Int, Number(patientId)).query('SELECT * FROM chief_complaints WHERE patient_id = @patient_id')
         ]);
 
         if (!patientData) {
@@ -451,8 +453,8 @@ export async function getPatientEditPageData(patientId: string) {
 
 export async function getPatientsForPreAuth(hospitalId: string): Promise<{ id: string; fullName: string; admission_id: string; }[]> {
   try {
-    const db = await poolConnect;
-    const result = await db.request()
+    await poolConnect;
+    const result = await pool.request()
       .input('hospitalId', sql.NVarChar, hospitalId)
       .query(`
         SELECT p.id, p.first_name + ' ' + p.last_name as fullName, a.admission_id
@@ -460,7 +462,7 @@ export async function getPatientsForPreAuth(hospitalId: string): Promise<{ id: s
         LEFT JOIN admissions a ON p.id = a.patient_id
         WHERE p.hospital_id = @hospitalId
       `);
-    return result.recordset;
+    return result.recordset.map(r => ({...r, id: r.id.toString()}));
   } catch (error) {
     const dbError = error as Error;
     throw new Error(`Error fetching patients for pre-auth: ${dbError.message}`);
@@ -583,7 +585,8 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
   let transaction;
   
   try {
-    const db = await poolConnect;
+    await poolConnect;
+    const db = pool;
     transaction = new sql.Transaction(db);
     await transaction.begin();
 
@@ -789,7 +792,8 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
     let transaction;
 
     try {
-        const db = await poolConnect;
+        await poolConnect;
+        const db = pool;
         transaction = new sql.Transaction(db);
         await transaction.begin();
 
@@ -988,7 +992,8 @@ export async function handleDeletePatient(prevState: { message: string, type?: s
     let transaction;
 
     try {
-        const db = await poolConnect;
+        await poolConnect;
+        const db = pool;
         transaction = new sql.Transaction(db);
         await transaction.begin();
         
@@ -1022,8 +1027,8 @@ export async function handleDeletePatient(prevState: { message: string, type?: s
 
 export async function searchIctCodes(query: string): Promise<{ shortcode: string; description: string; }[]> {
   try {
-    const db = await poolConnect;
-    const result = await db.request()
+    await poolConnect;
+    const result = await pool.request()
       .input('query', sql.NVarChar, `%${query}%`)
       .query(`
         SELECT TOP 20 shortcode, description 
@@ -1040,8 +1045,8 @@ export async function searchIctCodes(query: string): Promise<{ shortcode: string
 export async function getChiefComplaints(patientId: number) {
     if(!patientId) return [];
     try {
-        const db = await poolConnect;
-        const result = await db.request()
+        await poolConnect;
+        const result = await pool.request()
             .input('patient_id', sql.Int, patientId)
             .query('SELECT * FROM chief_complaints WHERE patient_id = @patient_id');
         
@@ -1064,6 +1069,7 @@ export async function getChiefComplaints(patientId: number) {
     
 
     
+
 
 
 
