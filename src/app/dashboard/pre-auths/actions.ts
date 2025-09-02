@@ -174,7 +174,8 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
     }
 
     // 3. Insert into preauth_request
-    const preAuthRequest = new sql.Request(transaction)
+    const preAuthInsertRequest = new sql.Request(transaction);
+    const preAuthRequestResult = await preAuthInsertRequest
         .input('patient_id', sql.Int, patientId)
         .input('admission_id', sql.NVarChar, fullPatientData.admission_id)
         .input('doctor_id', sql.Int, doctor_id)
@@ -282,18 +283,20 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
             @patient_id, @admission_id, @doctor_id, @status, @first_name, @last_name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @photo, @adhaar_path, @pan_path, @passport_path, @voter_id_path, @driving_licence_path, @other_path, @relationship_policyholder, @policy_number, @insured_card_number, @company_id, @policy_start_date, @policy_end_date, @sum_insured, @sum_utilized, @total_sum, @corporate_policy_number, @other_policy_name, @family_doctor_name, @family_doctor_phone, @payer_email, @payer_phone, @tpa_id, @hospital_id, @hospital_name, @treat_doc_name, @treat_doc_number, @treat_doc_qualification, @treat_doc_reg_no, @natureOfIllness, @clinicalFindings, @ailmentDuration, @firstConsultationDate, @pastHistory, @provisionalDiagnosis, @icd10Codes, @treatmentMedical, @treatmentSurgical, @treatmentIntensiveCare, @treatmentInvestigation, @treatmentNonAllopathic, @investigationDetails, @drugRoute, @procedureName, @icd10PcsCodes, @otherTreatments, @isInjury, @injuryCause, @isRta, @injuryDate, @isReportedToPolice, @firNumber, @isAlcoholSuspected, @isToxicologyConducted, @isMaternity, @g, @p, @l, @a, @expectedDeliveryDate, @admissionDate, @admissionTime, @admissionType, @expectedStay, @expectedIcuStay, @roomCategory, @roomNursingDietCost, @investigationCost, @icuCost, @otCost, @professionalFees, @medicineCost, @otherHospitalExpenses, @packageCharges, @totalExpectedCost, @patientDeclarationName, @patientDeclarationContact, @patientDeclarationEmail, @patientDeclarationDate, @patientDeclarationTime, @hospitalDeclarationDoctorName, @hospitalDeclarationDate, @hospitalDeclarationTime, @attachments
         )`);
     
-    if (preAuthRequest.recordset.length === 0) {
+    if (preAuthRequestResult.recordset.length === 0) {
         throw new Error("Failed to create pre-auth request record or retrieve its ID.");
     }
-    const preAuthId = preAuthRequest.recordset[0].id;
+    const preAuthId = preAuthRequestResult.recordset[0].id;
 
     // 4. Insert into medical table (copying from chief_complaints)
-    const complaintsResult = await new sql.Request(transaction)
+    const complaintsResultRequest = new sql.Request(transaction);
+    const complaintsResult = await complaintsResultRequest
         .input('patient_id', sql.Int, patientId)
         .query('SELECT * FROM chief_complaints WHERE patient_id = @patient_id');
         
     for (const complaint of complaintsResult.recordset) {
-        await new sql.Request(transaction)
+        const medicalInsertRequest = new sql.Request(transaction);
+        await medicalInsertRequest
             .input('preauth_id', sql.Int, preAuthId)
             .input('complaint_name', sql.NVarChar, complaint.complaint_name)
             .input('duration_value', sql.NVarChar, complaint.duration_value)
@@ -302,7 +305,8 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
     }
 
     // 5. Insert into chat table
-    await new sql.Request(transaction)
+    const chatInsertRequest = new sql.Request(transaction);
+    await chatInsertRequest
         .input('preauth_id', sql.Int, preAuthId)
         .input('from_email', sql.NVarChar, from)
         .input('to_email', sql.NVarChar, to)
