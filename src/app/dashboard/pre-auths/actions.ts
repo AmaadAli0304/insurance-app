@@ -116,7 +116,6 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
         .input('patient_id', sql.Int, patientId)
         .input('admission_id', sql.NVarChar, fullPatientData.admission_id)
         .input('doctor_id', sql.Int, doctor_id)
-        .input('status', sql.NVarChar, status)
         .input('first_name', sql.NVarChar, fullPatientData.first_name)
         .input('last_name', sql.NVarChar, fullPatientData.last_name)
         .input('email_address', sql.NVarChar, fullPatientData.email_address)
@@ -213,14 +212,14 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
         .input('hospitalDeclarationDate', sql.Date, fullPatientData.hospitalDeclarationDate)
         .input('hospitalDeclarationTime', sql.NVarChar, fullPatientData.hospitalDeclarationTime)
         .input('attachments', sql.NVarChar, fullPatientData.attachments)
-        .query(`INSERT INTO preauth (
-            patient_id, admission_id, doctor_id, status, first_name, last_name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, photo, adhaar_path, pan_path, passport_path, voter_id_path, driving_licence_path, other_path, relationship_policyholder, policy_number, insured_card_number, company_id, policy_start_date, policy_end_date, sum_insured, sum_utilized, total_sum, corporate_policy_number, other_policy_name, family_doctor_name, family_doctor_phone, payer_email, payer_phone, tpa_id, hospital_id, treat_doc_name, treat_doc_number, treat_doc_qualification, treat_doc_reg_no, natureOfIllness, clinicalFindings, ailmentDuration, firstConsultationDate, pastHistory, provisionalDiagnosis, icd10Codes, treatmentMedical, treatmentSurgical, treatmentIntensiveCare, treatmentInvestigation, treatmentNonAllopathic, investigationDetails, drugRoute, procedureName, icd10PcsCodes, otherTreatments, isInjury, injuryCause, isRta, injuryDate, isReportedToPolice, firNumber, isAlcoholSuspected, isToxicologyConducted, isMaternity, g, p, l, a, expectedDeliveryDate, admissionDate, admissionTime, admissionType, expectedStay, expectedIcuStay, roomCategory, roomNursingDietCost, investigationCost, icuCost, otCost, professionalFees, medicineCost, otherHospitalExpenses, packageCharges, totalExpectedCost, patientDeclarationName, patientDeclarationContact, patientDeclarationEmail, patientDeclarationDate, patientDeclarationTime, hospitalDeclarationDoctorName, hospitalDeclarationDate, hospitalDeclarationTime, attachments
+        .query(`INSERT INTO preauth_request (
+            patient_id, admission_id, doctor_id, first_name, last_name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, photo, adhaar_path, pan_path, passport_path, voter_id_path, driving_licence_path, other_path, relationship_policyholder, policy_number, insured_card_number, company_id, policy_start_date, policy_end_date, sum_insured, sum_utilized, total_sum, corporate_policy_number, other_policy_name, family_doctor_name, family_doctor_phone, payer_email, payer_phone, tpa_id, hospital_id, treat_doc_name, treat_doc_number, treat_doc_qualification, treat_doc_reg_no, natureOfIllness, clinicalFindings, ailmentDuration, firstConsultationDate, pastHistory, provisionalDiagnosis, icd10Codes, treatmentMedical, treatmentSurgical, treatmentIntensiveCare, treatmentInvestigation, treatmentNonAllopathic, investigationDetails, drugRoute, procedureName, icd10PcsCodes, otherTreatments, isInjury, injuryCause, isRta, injuryDate, isReportedToPolice, firNumber, isAlcoholSuspected, isToxicologyConducted, isMaternity, g, p, l, a, expectedDeliveryDate, admissionDate, admissionTime, admissionType, expectedStay, expectedIcuStay, roomCategory, roomNursingDietCost, investigationCost, icuCost, otCost, professionalFees, medicineCost, otherHospitalExpenses, packageCharges, totalExpectedCost, patientDeclarationName, patientDeclarationContact, patientDeclarationEmail, patientDeclarationDate, patientDeclarationTime, hospitalDeclarationDoctorName, hospitalDeclarationDate, hospitalDeclarationTime, attachments
         ) OUTPUT INSERTED.id VALUES (
-            @patient_id, @admission_id, @doctor_id, @status, @first_name, @last_name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @photo, @adhaar_path, @pan_path, @passport_path, @voter_id_path, @driving_licence_path, @other_path, @relationship_policyholder, @policy_number, @insured_card_number, @company_id, @policy_start_date, @policy_end_date, @sum_insured, @sum_utilized, @total_sum, @corporate_policy_number, @other_policy_name, @family_doctor_name, @family_doctor_phone, @payer_email, @payer_phone, @tpa_id, @hospital_id, @treat_doc_name, @treat_doc_number, @treat_doc_qualification, @treat_doc_reg_no, @natureOfIllness, @clinicalFindings, @ailmentDuration, @firstConsultationDate, @pastHistory, @provisionalDiagnosis, @icd10Codes, @treatmentMedical, @treatmentSurgical, @treatmentIntensiveCare, @treatmentInvestigation, @treatmentNonAllopathic, @investigationDetails, @drugRoute, @procedureName, @icd10PcsCodes, @otherTreatments, @isInjury, @injuryCause, @isRta, @injuryDate, @isReportedToPolice, @firNumber, @isAlcoholSuspected, @isToxicologyConducted, @isMaternity, @g, @p, @l, @a, @expectedDeliveryDate, @admissionDate, @admissionTime, @admissionType, @expectedStay, @expectedIcuStay, @roomCategory, @roomNursingDietCost, @investigationCost, @icuCost, @otCost, @professionalFees, @medicineCost, @otherHospitalExpenses, @packageCharges, @totalExpectedCost, @patientDeclarationName, @patientDeclarationContact, @patientDeclarationEmail, @patientDeclarationDate, @patientDeclarationTime, @hospitalDeclarationDoctorName, @hospitalDeclarationDate, @hospitalDeclarationTime, @attachments
+            @patient_id, @admission_id, @doctor_id, @first_name, @last_name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @photo, @adhaar_path, @pan_path, @passport_path, @voter_id_path, @driving_licence_path, @other_path, @relationship_policyholder, @policy_number, @insured_card_number, @company_id, @policy_start_date, @policy_end_date, @sum_insured, @sum_utilized, @total_sum, @corporate_policy_number, @other_policy_name, @family_doctor_name, @family_doctor_phone, @payer_email, @payer_phone, @tpa_id, @hospital_id, @treat_doc_name, @treat_doc_number, @treat_doc_qualification, @treat_doc_reg_no, @natureOfIllness, @clinicalFindings, @ailmentDuration, @firstConsultationDate, @pastHistory, @provisionalDiagnosis, @icd10Codes, @treatmentMedical, @treatmentSurgical, @treatmentIntensiveCare, @treatmentInvestigation, @treatmentNonAllopathic, @investigationDetails, @drugRoute, @procedureName, @icd10PcsCodes, @otherTreatments, @isInjury, @injuryCause, @isRta, @injuryDate, @isReportedToPolice, @firNumber, @isAlcoholSuspected, @isToxicologyConducted, @isMaternity, @g, @p, @l, @a, @expectedDeliveryDate, @admissionDate, @admissionTime, @admissionType, @expectedStay, @expectedIcuStay, @roomCategory, @roomNursingDietCost, @investigationCost, @icuCost, @otCost, @professionalFees, @medicineCost, @otherHospitalExpenses, @packageCharges, @totalExpectedCost, @patientDeclarationName, @patientDeclarationContact, @patientDeclarationEmail, @patientDeclarationDate, @patientDeclarationTime, @hospitalDeclarationDoctorName, @hospitalDeclarationDate, @hospitalDeclarationTime, @attachments
         )`);
     
     if (preAuthRequestResult.recordset.length === 0) {
-        throw new Error("Failed to create pre-auth record or retrieve its ID.");
+        throw new Error("Failed to create pre-auth request record or retrieve its ID.");
     }
     const preAuthId = preAuthRequestResult.recordset[0].id;
 
@@ -293,7 +292,7 @@ export async function getPreAuthRequests(hospitalId: string | null | undefined):
                     pr.first_name + ' ' + pr.last_name as fullName,
                     c.subject,
                     c.to_email as email
-                FROM preauth pr
+                FROM preauth_request pr
                 OUTER APPLY (
                     SELECT TOP 1 subject, to_email 
                     FROM chat 
@@ -324,7 +323,7 @@ export async function getPreAuthRequestById(id: string): Promise<StaffingRequest
                     c.subject,
                     c.to_email as email,
                     c.from_email as fromEmail
-                FROM preauth pr
+                FROM preauth_request pr
                 OUTER APPLY (
                     SELECT TOP 1 *
                     FROM chat 
@@ -361,7 +360,7 @@ export async function handleDeleteRequest(formData: FormData) {
 
         await new sql.Request(transaction).input('id', sql.Int, Number(id)).query('DELETE FROM chat WHERE preauth_id = @id');
         await new sql.Request(transaction).input('id', sql.Int, Number(id)).query('DELETE FROM medical WHERE preauth_id = @id');
-        const result = await new sql.Request(transaction).input('id', sql.Int, Number(id)).query('DELETE FROM preauth WHERE id = @id');
+        const result = await new sql.Request(transaction).input('id', sql.Int, Number(id)).query('DELETE FROM preauth_request WHERE id = @id');
         
         if (result.rowsAffected[0] === 0) {
            await transaction.rollback();
@@ -391,7 +390,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?:st
         await pool.request()
             .input('id', sql.Int, Number(id))
             .input('status', sql.NVarChar, status)
-            .query('UPDATE preauth SET status = @status WHERE id = @id');
+            .query('UPDATE preauth_request SET status = @status WHERE id = @id');
     } catch (error) {
         console.error("Error updating pre-auth status:", error);
         return { message: 'Database error while updating status.', type: 'error' };
@@ -401,6 +400,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?:st
     revalidatePath('/dashboard/pre-auths');
     return { message: 'Status updated successfully.', type: 'success' };
 }
+
 
 
 
