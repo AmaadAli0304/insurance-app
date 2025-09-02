@@ -172,17 +172,8 @@ export async function handleAddRequest(prevState: { message: string, type?:strin
     packageCharges: Number(formData.get("packageCharges")),
     totalExpectedCost: Number(formData.get("totalExpectedCost")),
 
-    // G. Medical History
-    diabetesSince: formData.get("diabetesSince") as string,
-    hypertensionSince: formData.get("hypertensionSince") as string,
-    heartDiseaseSince: formData.get("heartDiseaseSince") as string,
-    hyperlipidemiaSince: formData.get("hyperlipidemiaSince") as string,
-    osteoarthritisSince: formData.get("osteoarthritisSince") as string,
-    asthmaCopdSince: formData.get("asthmaCopdSince") as string,
-    cancerSince: formData.get("cancerSince") as string,
-    alcoholDrugAbuseSince: formData.get("alcoholDrugAbuseSince") as string,
-    hivSince: formData.get("hivSince") as string,
-    otherChronicAilment: formData.get("otherChronicAilment") as string,
+    // G. Medical History - Handled by chiefComplaints JSON
+    
 
     // H. Declarations & Attachments
     patientDeclarationName: formData.get("patientDeclarationName") as string,

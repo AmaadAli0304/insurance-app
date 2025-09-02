@@ -14,7 +14,7 @@ import { ArrowLeft, Loader2, Download, Send, Check } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getPatientWithDetailsForForm, getPatientsForPreAuth } from "@/app/dashboard/patients/actions";
+import { getPatientWithDetailsForForm, getPatientsForPreAuth, getChiefComplaints } from "@/app/dashboard/patients/actions";
 import { getHospitalById } from "@/app/dashboard/company-hospitals/actions";
 import type { Patient, Hospital } from "@/lib/types";
 import { format } from "date-fns";
@@ -29,6 +29,8 @@ import dynamic from 'next/dynamic';
 import { EditorState, convertToRaw } from 'draft-js';
 import draftToHtml from 'draftjs-to-html';
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
+import { ChiefComplaintForm, Complaint } from "@/components/chief-complaint-form";
+
 
 const Editor = dynamic(
   () => import('react-draft-wysiwyg').then(mod => mod.Editor),
@@ -68,6 +70,7 @@ export default function NewRequestPage() {
     const [editorState, setEditorState] = useState(() => EditorState.createEmpty());
     const [emailBody, setEmailBody] = useState("");
     const [toEmail, setToEmail] = useState("");
+    const [chiefComplaints, setChiefComplaints] = useState<Complaint[]>([]);
 
     useEffect(() => {
         setEmailBody(draftToHtml(convertToRaw(editorState.getCurrentContent())));
@@ -207,6 +210,8 @@ export default function NewRequestPage() {
             try {
                 const details = await getPatientWithDetailsForForm(selectedPatientId);
                 setPatientDetails(details);
+                const complaints = await getChiefComplaints(Number(selectedPatientId));
+                setChiefComplaints(complaints);
                  if (details?.tpaEmail) {
                     setToEmail(details.tpaEmail);
                 }
@@ -705,29 +710,7 @@ export default function NewRequestPage() {
                             </AccordionItem>
                              </Card>
                              
-                             <Card>
-                                <AccordionItem value="medical-history">
-                                    <CardHeader>
-                                        <AccordionTrigger>
-                                            <CardTitle>G. Medical History</CardTitle>
-                                        </AccordionTrigger>
-                                    </CardHeader>
-                                    <AccordionContent>
-                                        <CardContent className="grid md:grid-cols-2 gap-x-8 gap-y-4">
-                                            <Input name="diabetesSince" placeholder="Diabetes – since (MM/YY)" defaultValue={patientDetails.diabetesSince ?? ''} />
-                                            <Input name="hypertensionSince" placeholder="Hypertension – since (MM/YY)" defaultValue={patientDetails.hypertensionSince ?? ''} />
-                                            <Input name="heartDiseaseSince" placeholder="Heart disease – since (MM/YY)" defaultValue={patientDetails.heartDiseaseSince ?? ''} />
-                                            <Input name="hyperlipidemiaSince" placeholder="Hyperlipidemia – since (MM/YY)" defaultValue={patientDetails.hyperlipidemiaSince ?? ''} />
-                                            <Input name="osteoarthritisSince" placeholder="Osteoarthritis – since (MM/YY)" defaultValue={patientDetails.osteoarthritisSince ?? ''} />
-                                            <Input name="asthmaCopdSince" placeholder="Asthma/COPD – since (MM/YY)" defaultValue={patientDetails.asthmaCopdSince ?? ''} />
-                                            <Input name="cancerSince" placeholder="Cancer – since (MM/YY)" defaultValue={patientDetails.cancerSince ?? ''} />
-                                            <Input name="alcoholDrugAbuseSince" placeholder="Alcohol/drug abuse – since (MM/YY)" defaultValue={patientDetails.alcoholDrugAbuseSince ?? ''} />
-                                            <Input name="hivSince" placeholder="HIV/STD – since (MM/YY)" defaultValue={patientDetails.hivSince ?? ''} />
-                                            <Input name="otherChronicAilment" placeholder="Any other chronic ailment (specify and since when)" defaultValue={patientDetails.otherChronicAilment ?? ''} />
-                                        </CardContent>
-                                    </AccordionContent>
-                                </AccordionItem>
-                            </Card>
+                            <ChiefComplaintForm initialData={chiefComplaints} />
                              
                               <Card>
                              <AccordionItem value="declarations-info">
