@@ -3,6 +3,7 @@
 "use client";
 
 import { useActionState, useEffect, useState, useRef } from "react";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,7 +18,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth-provider";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import React from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -115,6 +115,21 @@ export default function NewPatientPage() {
     const photoInputRef = useRef<HTMLInputElement>(null);
     const [documentUrls, setDocumentUrls] = useState<Record<string, { url: string, name: string }>>({});
     const [totalCost, setTotalCost] = useState(0);
+    const [doctorContact, setDoctorContact] = useState('');
+
+    const handleDoctorSelect = (doctor: Doctor | null) => {
+        if (doctor) {
+            setDoctorContact(doctor.phone ?? '');
+            const form = document.querySelector('form');
+            if(form) {
+                (form.querySelector<HTMLInputElement>('input[name="treat_doc_qualification"]'))!.value = doctor.qualification || '';
+                (form.querySelector<HTMLInputElement>('input[name="treat_doc_reg_no"]'))!.value = doctor.reg_no || '';
+            }
+        } else {
+            setDoctorContact('');
+        }
+    };
+
 
     const roomCategories = [
         "ICU", "General", "Deluxe", "MICU", "SICU", "Super Deluxe", "ICCU", "Male", 
@@ -460,11 +475,11 @@ export default function NewPatientPage() {
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="treat_doc_name">Treating doctor’s name <span className="text-destructive">*</span></Label>
-                                        <DoctorSearch doctors={doctors} />
+                                        <DoctorSearch doctors={doctors} onDoctorSelect={handleDoctorSelect} />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="treat_doc_number">Treating doctor’s contact <span className="text-destructive">*</span></Label>
-                                        <PhoneInput id="treat_doc_number" name="treat_doc_number" required />
+                                        <PhoneInput id="treat_doc_number" name="treat_doc_number" defaultValue={doctorContact} required />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="treat_doc_qualification">Doctor’s qualification <span className="text-destructive">*</span></Label>

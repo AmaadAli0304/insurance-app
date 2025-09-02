@@ -129,6 +129,22 @@ export default function EditPatientPage() {
     const [documentUrls, setDocumentUrls] = useState<Record<string, { url: string, name: string }>>({});
     const [totalCost, setTotalCost] = useState(0);
 
+    const [doctorContact, setDoctorContact] = useState('');
+
+    const handleDoctorSelect = (doctor: Doctor | null) => {
+        if (doctor) {
+            setDoctorContact(doctor.phone ?? '');
+            const form = document.querySelector('form');
+            if(form) {
+                (form.querySelector<HTMLInputElement>('input[name="treat_doc_qualification"]'))!.value = doctor.qualification || '';
+                (form.querySelector<HTMLInputElement>('input[name="treat_doc_reg_no"]'))!.value = doctor.reg_no || '';
+            }
+        } else {
+            setDoctorContact('');
+        }
+    };
+
+
     const roomCategories = [
         "ICU", "General", "Deluxe", "MICU", "SICU", "Super Deluxe", "ICCU", "Male", 
         "Female Ward", "Private", "Deluxe Suite", "Peadiatric", "Burns", "BMC", "OPD", 
@@ -180,6 +196,7 @@ export default function EditPatientPage() {
                 setTpas(tpas);
                 setDoctors(doctors);
                 setChiefComplaints(complaints);
+                setDoctorContact(patientData.treat_doc_number ?? '');
 
                 if (patientData.photo && typeof patientData.photo === 'object') {
                     setPhotoUrl(patientData.photo.url);
@@ -519,11 +536,12 @@ export default function EditPatientPage() {
                                             <DoctorSearch
                                                 doctors={doctors}
                                                 defaultDoctorId={patient.doctor_id ?? undefined}
+                                                onDoctorSelect={handleDoctorSelect}
                                             />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_number">Treating doctor’s contact <span className="text-destructive">*</span></Label>
-                                            <PhoneInput id="treat_doc_number" name="treat_doc_number" defaultValue={patient.treat_doc_number ?? ''} required />
+                                            <PhoneInput id="treat_doc_number" name="treat_doc_number" defaultValue={doctorContact} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_qualification">Doctor’s qualification <span className="text-destructive">*</span></Label>

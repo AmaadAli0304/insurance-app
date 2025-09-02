@@ -8,9 +8,10 @@ import { Doctor } from "@/app/dashboard/patients/actions";
 interface DoctorSearchProps {
   doctors: Doctor[];
   defaultDoctorId?: number;
+  onDoctorSelect: (doctor: Doctor | null) => void;
 }
 
-const MemoizedDoctorSearch = ({ doctors, defaultDoctorId }: DoctorSearchProps) => {
+const MemoizedDoctorSearch = ({ doctors, defaultDoctorId, onDoctorSelect }: DoctorSearchProps) => {
   const [selectedDoctorId, setSelectedDoctorId] = useState<string>(defaultDoctorId?.toString() ?? "");
 
   useEffect(() => {
@@ -21,21 +22,8 @@ const MemoizedDoctorSearch = ({ doctors, defaultDoctorId }: DoctorSearchProps) =
 
   const handleSelect = (doctorId: string) => {
     setSelectedDoctorId(doctorId);
-    const selectedDoctor = doctors?.find(d => String(d.id) === doctorId);
-
-    const form = document.querySelector('form');
-    if (form && selectedDoctor) {
-        (form.querySelector<HTMLInputElement>('input[name="treat_doc_name"]'))!.value = selectedDoctor.name || '';
-        (form.querySelector<HTMLInputElement>('input[name="treat_doc_number"]'))!.value = selectedDoctor.phone || '';
-        (form.querySelector<HTMLInputElement>('input[name="treat_doc_qualification"]'))!.value = selectedDoctor.qualification || '';
-        (form.querySelector<HTMLInputElement>('input[name="treat_doc_reg_no"]'))!.value = selectedDoctor.reg_no || '';
-    } else if (form && !selectedDoctor) {
-        // Clear fields if no doctor is selected
-        (form.querySelector<HTMLInputElement>('input[name="treat_doc_name"]'))!.value = '';
-        (form.querySelector<HTMLInputElement>('input[name="treat_doc_number"]'))!.value = '';
-        (form.querySelector<HTMLInputElement>('input[name="treat_doc_qualification"]'))!.value = '';
-        (form.querySelector<HTMLInputElement>('input[name="treat_doc_reg_no"]'))!.value = '';
-    }
+    const selectedDoctor = doctors?.find(d => String(d.id) === doctorId) || null;
+    onDoctorSelect(selectedDoctor);
   };
 
   const selectedDoctorName = doctors?.find(d => String(d.id) === selectedDoctorId)?.name || "";
