@@ -26,7 +26,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import dynamic from 'next/dynamic';
-import { EditorState, convertToRaw } from 'draft-js';
+import { EditorState, convertToRaw, ContentState } from 'draft-js';
 import draftToHtml from 'draftjs-to-html';
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import { Complaint } from "@/components/chief-complaint-form";
@@ -37,6 +37,11 @@ const Editor = dynamic(
   () => import('react-draft-wysiwyg').then(mod => mod.Editor),
   { ssr: false }
 );
+
+let htmlToDraft: any = null;
+if (typeof window === 'object') {
+  htmlToDraft = require('html-to-draftjs').default;
+}
 
 
 function SubmitButton() {
@@ -71,6 +76,8 @@ export default function NewRequestPage() {
     const [totalCost, setTotalCost] = useState(0);
     const [editorState, setEditorState] = useState(() => EditorState.createEmpty());
     const [emailBody, setEmailBody] = useState("");
+    const [subject, setSubject] = useState("");
+    const [requestType, setRequestType] = useState("pre-auth");
     const [toEmail, setToEmail] = useState("");
     const [chiefComplaints, setChiefComplaints] = useState<Complaint[]>([]);
 
@@ -260,6 +267,73 @@ export default function NewRequestPage() {
             return '';
         }
     };
+    
+    useEffect(() => {
+        if (!patientDetails || !hospitalDetails || !htmlToDraft) return;
+
+        const claimNo = patientDetails.admission_id || '[______]';
+        const hospitalName = hospitalDetails.name || '[Hospital Name]';
+        
+        let newSubject = '';
+        let newBodyHtml = '';
+
+        const commonDetails = `
+            <p><strong>Patient Details</strong></p>
+            <ul>
+                <li>Patient Name: ${patientDetails.fullName || '____________________'}</li>
+                <li>Patient ID / Insurance No.: ${patientDetails.memberId || '____________________'}</li>
+                <li>Date of Admission: ${patientDetails.admissionDate ? formatDateForInput(patientDetails.admissionDate) : '____________________'}</li>
+                <li>Time of Admission: ${patientDetails.admissionTime || '____________________'}</li>
+                <li>Admitting Consultant: ${patientDetails.treat_doc_name || '____________________'}</li>
+                <li>Diagnosis / Treatment Proposed: ${patientDetails.provisionalDiagnosis || '____________________'}</li>
+                <li>Room Category / Class: ${patientDetails.roomCategory || '____________________'}</li>
+                <li>Estimated Length of Stay: ${patientDetails.expectedStay ? `${patientDetails.expectedStay} days` : '____________________'}</li>
+            </ul>
+            <p><strong>Estimated Financials</strong></p>
+            <ul>
+                <li>Estimated Cost of Treatment: ₹${totalCost.toLocaleString() || '__________________'}</li>
+                <li>In Words: ____________________</li>
+            </ul>
+            <p>Breakup of Estimated Charges:</p>
+            <ul>
+                <li>Room Charges: ${patientDetails.roomNursingDietCost || '____________________'}</li>
+                <li>Doctor Visit Charges: ${patientDetails.professionalFees || '____________________'}</li>
+                <li>Medicine Charges: ${patientDetails.medicineCost || '____________________'}</li>
+                <li>Consumables / Disposables: ____________________</li>
+                <li>Investigations: ${patientDetails.investigationCost || '____________________'}</li>
+                <li>Blood Charges: ____________________</li>
+                <li>Procedure Charges: ${patientDetails.packageCharges || '____________________'}</li>
+            </ul>
+            <p>We request you to kindly process this pre-authorization request at the earliest to facilitate the patient’s admission and treatment.</p>
+            <p>Please find attached the required supporting documents and medical reports for your review.</p>
+            <p>Thank you for your prompt attention and support.</p>
+            <br/>
+            <p>Warm Regards,</p>
+            <br/>
+            <p>${user?.name || '[Staff Name]'}</p>
+            <p>${user?.designation || '[Designation]'}</p>
+            <p>${hospitalName}</p>
+            <p>${user?.number || '[Contact No.]'}</p>
+        `;
+
+        if (requestType === 'pre-auth') {
+            newSubject = `Pre-Authorization Request – Claim No. ${claimNo} | ${hospitalName}`;
+            newBodyHtml = `<p>Dear Sir/Madam,</p><p>Greetings from ${hospitalName}.</p><p>Hope this email finds you well.</p><p>We are submitting a pre-authorization request under Claim No. ${claimNo} for your kind consideration and approval. Please find the details below:</p>${commonDetails}`;
+        } else if (requestType === 'surgical') {
+             newSubject = `Surgical Pre-Authorization Request – Claim No. ${claimNo} | ${hospitalName}`;
+             newBodyHtml = `<p>Dear Sir/Madam,</p><p>Greetings from ${hospitalName}.</p><p>This is a request for surgical pre-authorization for Claim No. ${claimNo}. Please find the details below:</p>${commonDetails}`;
+        }
+
+        setSubject(newSubject);
+        
+        const contentBlock = htmlToDraft(newBodyHtml);
+        if (contentBlock) {
+            const contentState = ContentState.createFromBlockArray(contentBlock.contentBlocks);
+            const newEditorState = EditorState.createWithContent(contentState);
+            setEditorState(newEditorState);
+        }
+
+    }, [requestType, patientDetails, hospitalDetails, totalCost, user]);
 
 
     return (
@@ -802,7 +876,7 @@ export default function NewRequestPage() {
                          <CardContent className="space-y-4">
                             <div className="space-y-2">
                                 <Label>Request Type</Label>
-                                <RadioGroup defaultValue="pre-auth" name="requestType">
+                                <RadioGroup value={requestType} onValueChange={setRequestType}>
                                     <div className="flex items-center space-x-2">
                                         <RadioGroupItem value="surgical" id="r1" />
                                         <Label htmlFor="r1">Surgical Pre-Authorization Request</Label>
@@ -825,7 +899,7 @@ export default function NewRequestPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="subject">Subject <span className="text-destructive">*</span></Label>
-                                <Input id="subject" name="subject" placeholder="Pre-Authorization Request for..." required />
+                                <Input id="subject" name="subject" placeholder="Pre-Authorization Request for..." value={subject} onChange={(e) => setSubject(e.target.value)} required />
                             </div>
 
                             <div className="space-y-2">

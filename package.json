@@ -41,6 +41,7 @@
     "draft-js": "^0.11.7",
     "draftjs-to-html": "^0.9.1",
     "embla-carousel-react": "^8.6.0",
+    "html-to-draftjs": "^1.5.0",
     "html2canvas": "^1.4.1",
     "jose": "^5.6.3",
     "js-cookie": "^3.0.5",
@@ -66,6 +67,7 @@
   "devDependencies": {
     "@types/draft-js": "^0.11.18",
     "@types/draftjs-to-html": "^0.8.4",
+    "@types/html-to-draftjs": "^1.4.3",
     "@types/js-cookie": "^3.0.6",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/mssql": "^9.1.5",
