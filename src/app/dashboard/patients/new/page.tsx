@@ -42,39 +42,23 @@ const FileUploadField = React.memo(({ label, name, onUploadComplete }: { label: 
     const { toast } = useToast();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const getFileAsDataURL = (file: File): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = (error) => reject(error);
-            reader.readAsDataURL(file);
-        });
-    };
-
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
             setIsUploading(true);
-            try {
-                const dataUrl = await getFileAsDataURL(file);
-                const formData = new FormData();
-                formData.append('dataUrl', dataUrl);
-                formData.append('fileName', file.name);
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const result = await handleUploadPatientFile(formData);
 
-                const result = await handleUploadPatientFile(formData);
-
-                if (result.type === 'success' && result.url) {
-                    setFileUrl(result.url);
-                    onUploadComplete(name, result.name, result.url);
-                    toast({ title: "Success", description: `${label} uploaded.`, variant: "success" });
-                } else if(result.type === 'error') {
-                    toast({ title: "Error", description: result.message, variant: "destructive" });
-                }
-            } catch (error) {
-                 toast({ title: "Error", description: `File processing failed: ${(error as Error).message}`, variant: "destructive" });
-            } finally {
-                setIsUploading(false);
+            if (result.type === 'success' && result.url) {
+                setFileUrl(result.url);
+                onUploadComplete(name, result.name, result.url);
+                toast({ title: "Success", description: `${label} uploaded.`, variant: "success" });
+            } else if(result.type === 'error') {
+                toast({ title: "Error", description: result.message, variant: "destructive" });
             }
+            setIsUploading(false);
         }
     };
 
@@ -194,32 +178,19 @@ export default function NewPatientPage() {
         const file = event.target.files?.[0];
         if (file) {
             setIsUploadingPhoto(true);
-            try {
-                const dataUrl = await new Promise<string>((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result as string);
-                    reader.onerror = (error) => reject(error);
-                    reader.readAsDataURL(file);
-                });
+            const formData = new FormData();
+            formData.append('file', file);
 
-                const formData = new FormData();
-                formData.append('dataUrl', dataUrl);
-                formData.append('fileName', file.name);
+            const result = await handleUploadPatientFile(formData);
 
-                const result = await handleUploadPatientFile(formData);
-
-                if (result.type === 'success' && result.url) {
-                    setPhotoUrl(result.url);
-                    setPhotoName(result.name)
-                    toast({ title: "Success", description: "Photo uploaded.", variant: "success" });
-                } else if(result.type === 'error') {
-                    toast({ title: "Error", description: result.message, variant: "destructive" });
-                }
-            } catch (error) {
-                toast({ title: "Error", description: `File processing failed: ${(error as Error).message}`, variant: "destructive" });
-            } finally {
-                setIsUploadingPhoto(false);
+            if (result.type === 'success' && result.url) {
+                setPhotoUrl(result.url);
+                setPhotoName(result.name)
+                toast({ title: "Success", description: "Photo uploaded.", variant: "success" });
+            } else if(result.type === 'error') {
+                toast({ title: "Error", description: result.message, variant: "destructive" });
             }
+            setIsUploadingPhoto(false);
         }
     };
 

@@ -66,7 +66,6 @@ const basePatientFormSchema = z.object({
   // Hospital & TPA
   tpa_id: z.coerce.number().optional().nullable(),
   hospital_id: z.string().optional().nullable(),
-  treat_doc_name: z.string().optional().nullable(),
   treat_doc_number: z.string().optional().nullable(),
   treat_doc_qualification: z.string().optional().nullable(),
   treat_doc_reg_no: z.string().optional().nullable(),
@@ -87,7 +86,7 @@ const basePatientFormSchema = z.object({
   treatmentNonAllopathic: z.string().optional().nullable(),
   investigationDetails: z.string().optional().nullable(),
   drugRoute: z.string().optional().nullable(),
-  procedureName: zstring().optional().nullable(),
+  procedureName: z.string().optional().nullable(),
   icd10PcsCodes: z.string().optional().nullable(),
   otherTreatments: z.string().optional().nullable(),
 
@@ -117,7 +116,6 @@ const basePatientFormSchema = z.object({
   expectedIcuStay: z.coerce.number().optional().nullable(),
   roomCategory: z.string().optional().nullable(),
   roomNursingDietCost: z.coerce.number().optional().nullable(),
-  investigationCost: z.coerce.number().optional().nullable(),
   icuCost: z.coerce.number().optional().nullable(),
   otCost: z.coerce.number().optional().nullable(),
   professionalFees: z.coerce.number().optional().nullable(),
@@ -149,6 +147,14 @@ const basePatientFormSchema = z.object({
   hospitalDeclarationTime: z.string().optional().nullable(),
   attachments: z.array(z.string()).optional().nullable(),
   chiefComplaints: z.string().optional().nullable(),
+  
+  // Note: treat_doc_name is now handled by the doctor_id and DoctorSearch component
+  // It is submitted separately in the form so it does not need to be in the zod schema
+  // treat_doc_name: z.string().optional().nullable(),
+
+}).refine(data => data.investigationCost !== undefined, {
+    message: "Investigation Cost is required",
+    path: ["investigationCost"],
 });
 
 const addPatientFormSchema = basePatientFormSchema;
@@ -516,12 +522,11 @@ export async function getNewPatientPageData() {
         type TpasType = Pick<TPA, 'id' | 'name'>[];
         type DoctorsType = Doctor[];
 
-        const typedData = {
+        return {
             companies: companiesResult.recordset as CompaniesType,
             tpas: tpasResult.recordset.map(r => ({ ...r, id: r.id.toString() })) as TpasType,
             doctors: doctorsResult.recordset as DoctorsType,
         };
-        return typedData;
     } catch (error) {
         console.error("Error fetching data for new patient page:", error);
         throw new Error("Failed to fetch data for new patient page.");
@@ -592,19 +597,23 @@ export async function getPatientWithDetailsForForm(patientId: string): Promise<P
 }
 
 export async function handleUploadPatientFile(formData: FormData): Promise<{ type: 'success', url: string, name: string } | { type: 'error', message: string }> {
-    const dataUrl = formData.get("dataUrl") as string | null;
-    const fileName = formData.get("fileName") as string | null;
+    const file = formData.get('file') as File | null;
     
-    if (!dataUrl || !fileName) {
-        return { type: 'error', message: 'No file data provided.' };
+    if (!file) {
+        return { type: 'error', message: 'No file provided.' };
     }
     
-    // In a real scenario, you would upload the dataUrl (or the file buffer) to S3
-    // and return the S3 URL. For this placeholder, we just return the dataUrl back.
+    // In a real scenario, you would upload the file to S3
+    // For this placeholder, we simulate success by returning a public S3 url.
     try {
-        // Here you would add your S3 upload logic
-        // For now, we simulate success by returning the data URL.
-        return { type: 'success', url: dataUrl, name: fileName };
+        const simulatedFileName = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
+        const simulatedUrl = `https://inurance-app.s3.ap-south-1.amazonaws.com/uploads/${simulatedFileName}`;
+        
+        // Simulate a delay for the upload
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        return { type: 'success', url: simulatedUrl, name: file.name };
+
     } catch (error) {
         console.error("File handling error:", error);
         return { type: 'error', message: (error as Error).message };
@@ -765,7 +774,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('payer_phone', sql.NVarChar, data.payer_phone)
       .input('tpa_id', sql.Int, data.tpa_id)
       .input('hospital_id', sql.NVarChar, data.hospital_id || null)
-      .input('treat_doc_name', sql.NVarChar, data.treat_doc_name)
+      .input('treat_doc_name', sql.NVarChar, formData.get('treat_doc_name'))
       .input('treat_doc_number', sql.NVarChar, data.treat_doc_number)
       .input('treat_doc_qualification', sql.NVarChar, data.treat_doc_qualification)
       .input('treat_doc_reg_no', sql.NVarChar, data.treat_doc_reg_no)
@@ -972,7 +981,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
             .input('payer_email', sql.NVarChar, data.payer_email)
             .input('payer_phone', sql.NVarChar, data.payer_phone)
             .input('tpa_id', sql.Int, data.tpa_id)
-            .input('treat_doc_name', sql.NVarChar, data.treat_doc_name)
+            .input('treat_doc_name', sql.NVarChar, formData.get('treat_doc_name'))
             .input('treat_doc_number', sql.NVarChar, data.treat_doc_number)
             .input('treat_doc_qualification', sql.NVarChar, data.treat_doc_qualification)
             .input('treat_doc_reg_no', sql.NVarChar, data.treat_doc_reg_no)
