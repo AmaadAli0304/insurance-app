@@ -289,14 +289,12 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
     const preAuthId = preAuthRequestResult.recordset[0].id;
 
     // 4. Insert into medical table (copying from chief_complaints)
-    const complaintsResultRequest = new sql.Request(transaction);
-    const complaintsResult = await complaintsResultRequest
+    const complaintsResult = await new sql.Request(transaction)
         .input('patient_id', sql.Int, patientId)
         .query('SELECT * FROM chief_complaints WHERE patient_id = @patient_id');
         
     for (const complaint of complaintsResult.recordset) {
-        const medicalInsertRequest = new sql.Request(transaction);
-        await medicalInsertRequest
+        await new sql.Request(transaction)
             .input('preauth_id', sql.Int, preAuthId)
             .input('complaint_name', sql.NVarChar, complaint.complaint_name)
             .input('duration_value', sql.NVarChar, complaint.duration_value)
@@ -305,8 +303,7 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
     }
 
     // 5. Insert into chat table
-    const chatInsertRequest = new sql.Request(transaction);
-    await chatInsertRequest
+    await new sql.Request(transaction)
         .input('preauth_id', sql.Int, preAuthId)
         .input('from_email', sql.NVarChar, from)
         .input('to_email', sql.NVarChar, to)
