@@ -510,6 +510,8 @@ export async function handleCreatePreAuthTable(prevState: { message: string, typ
                 id INT IDENTITY(1,1) PRIMARY KEY,
                 patient_id INT,
                 admission_id NVARCHAR(255),
+                doctor_id INT,
+                status NVARCHAR(50),
                 -- Patient Details
                 first_name NVARCHAR(255),
                 last_name NVARCHAR(255),
@@ -551,7 +553,6 @@ export async function handleCreatePreAuthTable(prevState: { message: string, typ
                 tpa_id INT,
                 hospital_id NVARCHAR(255),
                 hospital_name NVARCHAR(255),
-                doctor_id INT,
                 treat_doc_name NVARCHAR(255),
                 treat_doc_number NVARCHAR(50),
                 treat_doc_qualification NVARCHAR(255),
