@@ -1,4 +1,5 @@
 
+
 "use server";
 
 import pool, { sql, poolConnect } from "@/lib/db";
@@ -482,8 +483,7 @@ export async function handleUploadPatientFile(formData: FormData): Promise<{ typ
     // In a real application, you would upload to a cloud storage service (e.g., S3, Firebase Storage)
     // and return the URL. For now, we will simulate this.
     try {
-        // Simulate upload delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // The artificial 1-second delay has been removed.
         const pseudoUrl = `/uploads/` + Date.now() + '-' + file.name;
         console.log(`Simulating upload. File would be at: ${pseudoUrl}`);
 
@@ -1051,3 +1051,4 @@ export async function getChiefComplaints(patientId: number) {
         return [];
     }
 }
+
