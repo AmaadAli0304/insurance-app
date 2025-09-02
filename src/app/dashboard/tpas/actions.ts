@@ -20,8 +20,8 @@ const tpaUpdateSchema = tpaSchema.extend({
 
 export async function getTPAs(): Promise<TPA[]> {
   try {
-    await poolConnect;
-    const result = await pool.request().query('SELECT * FROM tpas');
+    const db = await poolConnect;
+    const result = await db.request().query('SELECT * FROM tpas');
     // Map DB result to TPA type, especially for tpaId
     return result.recordset.map(record => ({ ...record, tpaId: String(record.id) }));
   } catch (error) {
@@ -33,13 +33,13 @@ export async function getTPAs(): Promise<TPA[]> {
 
 export async function getTPAById(id: number): Promise<TPA | null> {
   try {
-    await poolConnect;
+    const db = await poolConnect;
     
     const [tpaResult, hospitalsResult] = await Promise.all([
-        pool.request()
+        db.request()
           .input('id', sql.Int, id)
           .query('SELECT * FROM tpas WHERE id = @id'),
-        pool.request()
+        db.request()
           .input('tpa_id', sql.Int, id)
           .query('SELECT h.id, h.name FROM hospitals h JOIN hospital_tpas ht ON h.id = ht.hospital_id WHERE ht.tpa_id = @tpa_id')
     ]);
@@ -73,8 +73,8 @@ export async function handleAddTPA(prevState: { message: string, type?: string }
   }
 
   try {
-    await poolConnect;
-    await pool.request()
+    const db = await poolConnect;
+    await db.request()
       .input('name', sql.NVarChar, validatedFields.data.name)
       .input('email', sql.NVarChar, validatedFields.data.email)
       .input('phone', sql.NVarChar, validatedFields.data.phone)
@@ -111,8 +111,8 @@ export async function handleUpdateTPA(prevState: { message: string, type?: strin
   const { id, ...updatedData } = parsed.data;
 
   try {
-    await poolConnect;
-    const request = pool.request();
+    const db = await poolConnect;
+    const request = db.request();
     const setClauses = Object.entries(updatedData)
       .map(([key, value]) => (value !== null && value !== undefined && value !== '') ? `${key} = @${key}` : null)
       .filter(Boolean)
@@ -150,8 +150,8 @@ export async function handleDeleteTPA(prevState: { message: string, type?: strin
     }
 
     try {
-        await poolConnect;
-        const result = await pool.request()
+        const db = await poolConnect;
+        const result = await db.request()
             .input('id', sql.Int, Number(id))
             .query('DELETE FROM tpas WHERE id = @id');
 

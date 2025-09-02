@@ -167,8 +167,8 @@ export type Doctor = {
 
 export async function getDoctors(): Promise<Doctor[]> {
   try {
-    await poolConnect;
-    const result = await pool.request().query('SELECT * FROM doctors');
+    const db = await poolConnect;
+    const result = await db.request().query('SELECT * FROM doctors');
     return result.recordset as Doctor[];
   } catch (error) {
     console.error('Error fetching doctors:', error);
@@ -179,8 +179,8 @@ export async function getDoctors(): Promise<Doctor[]> {
 
 export async function getPatients(hospitalId?: string | null): Promise<Patient[]> {
   try {
-    await poolConnect;
-    const request = pool.request();
+    const db = await poolConnect;
+    const request = db.request();
     
     let whereClause = '';
     if (hospitalId) {
@@ -240,8 +240,8 @@ const getDocumentData = (jsonString: string | null | undefined): { url: string; 
 
 export async function getPatientById(id: string): Promise<Patient | null> {
   try {
-    await poolConnect;
-    const result = await pool.request()
+    const db = await poolConnect;
+    const result = await db.request()
       .input('id', sql.Int, Number(id))
        .query(`
         SELECT 
@@ -395,11 +395,11 @@ export async function getPatientById(id: string): Promise<Patient | null> {
 
 export async function getNewPatientPageData() {
     try {
-        await poolConnect;
+        const db = await poolConnect;
         const [companiesResult, tpasResult, doctorsResult] = await Promise.all([
-            pool.request().query('SELECT id, name FROM companies'),
-            pool.request().query('SELECT id, name FROM tpas'),
-            pool.request().query('SELECT * FROM doctors'),
+            db.request().query('SELECT id, name FROM companies'),
+            db.request().query('SELECT id, name FROM tpas'),
+            db.request().query('SELECT * FROM doctors'),
         ]);
 
         return {
@@ -415,13 +415,13 @@ export async function getNewPatientPageData() {
 
 export async function getPatientEditPageData(patientId: string) {
     try {
-        await poolConnect;
+        const db = await poolConnect;
         const [patientData, companiesResult, tpasResult, doctorsResult, complaintsResult] = await Promise.all([
             getPatientById(patientId),
-            pool.request().query('SELECT id, name FROM companies'),
-            pool.request().query('SELECT id, name FROM tpas'),
-            pool.request().query('SELECT * FROM doctors'),
-            pool.request().input('patient_id', sql.Int, Number(patientId)).query('SELECT * FROM chief_complaints WHERE patient_id = @patient_id')
+            db.request().query('SELECT id, name FROM companies'),
+            db.request().query('SELECT id, name FROM tpas'),
+            db.request().query('SELECT * FROM doctors'),
+            db.request().input('patient_id', sql.Int, Number(patientId)).query('SELECT * FROM chief_complaints WHERE patient_id = @patient_id')
         ]);
 
         if (!patientData) {
@@ -451,8 +451,8 @@ export async function getPatientEditPageData(patientId: string) {
 
 export async function getPatientsForPreAuth(hospitalId: string): Promise<{ id: string; fullName: string; admission_id: string; }[]> {
   try {
-    await poolConnect;
-    const result = await pool.request()
+    const db = await poolConnect;
+    const result = await db.request()
       .input('hospitalId', sql.NVarChar, hospitalId)
       .query(`
         SELECT p.id, p.first_name + ' ' + p.last_name as fullName, a.admission_id
@@ -583,8 +583,8 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
   let transaction;
   
   try {
-    await poolConnect;
-    transaction = new sql.Transaction(pool);
+    const db = await poolConnect;
+    transaction = new sql.Transaction(db);
     await transaction.begin();
 
     const photoJson = createDocumentJson(data.photoUrl, data.photoName);
@@ -789,8 +789,8 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
     let transaction;
 
     try {
-        await poolConnect;
-        transaction = new sql.Transaction(pool);
+        const db = await poolConnect;
+        transaction = new sql.Transaction(db);
         await transaction.begin();
 
         // 1. Update Patients Table
@@ -988,8 +988,8 @@ export async function handleDeletePatient(prevState: { message: string, type?: s
     let transaction;
 
     try {
-        await poolConnect;
-        transaction = new sql.Transaction(pool);
+        const db = await poolConnect;
+        transaction = new sql.Transaction(db);
         await transaction.begin();
         
         await new sql.Request(transaction)
@@ -1022,8 +1022,8 @@ export async function handleDeletePatient(prevState: { message: string, type?: s
 
 export async function searchIctCodes(query: string): Promise<{ shortcode: string; description: string; }[]> {
   try {
-    await poolConnect;
-    const result = await pool.request()
+    const db = await poolConnect;
+    const result = await db.request()
       .input('query', sql.NVarChar, `%${query}%`)
       .query(`
         SELECT TOP 20 shortcode, description 
@@ -1040,8 +1040,8 @@ export async function searchIctCodes(query: string): Promise<{ shortcode: string
 export async function getChiefComplaints(patientId: number) {
     if(!patientId) return [];
     try {
-        await poolConnect;
-        const result = await pool.request()
+        const db = await poolConnect;
+        const result = await db.request()
             .input('patient_id', sql.Int, patientId)
             .query('SELECT * FROM chief_complaints WHERE patient_id = @patient_id');
         
@@ -1064,6 +1064,7 @@ export async function getChiefComplaints(patientId: number) {
     
 
     
+
 
 
 

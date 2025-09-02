@@ -24,8 +24,8 @@ const hospitalUpdateSchema = hospitalSchema.extend({
 // Data fetching functions
 export async function getStaff(): Promise<Pick<Staff, 'id' | 'name'>[]> {
   try {
-    await poolConnect;
-    const result = await pool.request().query("SELECT uid as id, name FROM users WHERE role = 'Hospital Staff'");
+    const db = await poolConnect;
+    const result = await db.request().query("SELECT uid as id, name FROM users WHERE role = 'Hospital Staff'");
     return result.recordset as Pick<Staff, 'id' | 'name'>[];
   } catch (error) {
     const dbError = error as Error;
@@ -35,8 +35,8 @@ export async function getStaff(): Promise<Pick<Staff, 'id' | 'name'>[]> {
 
 export async function getCompaniesForForm(): Promise<Pick<Company, 'id' | 'name'>[]> {
   try {
-    await poolConnect;
-    const result = await pool.request().query('SELECT id, name FROM companies');
+    const db = await poolConnect;
+    const result = await db.request().query('SELECT id, name FROM companies');
     return result.recordset;
   } catch (error) {
     const dbError = error as Error;
@@ -46,8 +46,8 @@ export async function getCompaniesForForm(): Promise<Pick<Company, 'id' | 'name'
 
 export async function getTPAsForForm(): Promise<Pick<TPA, 'id' | 'name'>[]> {
   try {
-    await poolConnect;
-    const result = await pool.request().query('SELECT id, name FROM tpas');
+    const db = await poolConnect;
+    const result = await db.request().query('SELECT id, name FROM tpas');
     return result.recordset.map(r => ({ ...r, id: r.id.toString() }));
   } catch (error) {
     const dbError = error as Error;
@@ -57,8 +57,8 @@ export async function getTPAsForForm(): Promise<Pick<TPA, 'id' | 'name'>[]> {
 
 export async function getHospitals(): Promise<Hospital[]> {
     try {
-        await poolConnect;
-        const result = await pool.request().query('SELECT id, name, location, address, contact_person as contactPerson, email, phone FROM hospitals');
+        const db = await poolConnect;
+        const result = await db.request().query('SELECT id, name, location, address, contact_person as contactPerson, email, phone FROM hospitals');
         return result.recordset as Hospital[];
     } catch (error) {
         const dbError = error as Error;
@@ -68,8 +68,8 @@ export async function getHospitals(): Promise<Hospital[]> {
 
 export async function getHospitalById(id: string): Promise<Hospital | null> {
     try {
-        await poolConnect;
-        const hospitalResult = await pool.request()
+        const db = await poolConnect;
+        const hospitalResult = await db.request()
             .input('id', sql.NVarChar, id)
             .query('SELECT id, name, location, address, contact_person as contactPerson, email, phone FROM hospitals WHERE id = @id');
 
@@ -80,9 +80,9 @@ export async function getHospitalById(id: string): Promise<Hospital | null> {
         const hospital = hospitalResult.recordset[0] as Hospital;
 
         const [companiesResult, tpasResult, staffResult] = await Promise.all([
-            pool.request().input('hospital_id', sql.NVarChar, id).query('SELECT company_id FROM hospital_companies WHERE hospital_id = @hospital_id'),
-            pool.request().input('hospital_id', sql.NVarChar, id).query('SELECT tpa_id FROM hospital_tpas WHERE hospital_id = @hospital_id'),
-            pool.request().input('hospital_id', sql.NVarChar, id).query('SELECT staff_id FROM hospital_staff WHERE hospital_id = @hospital_id')
+            db.request().input('hospital_id', sql.NVarChar, id).query('SELECT company_id FROM hospital_companies WHERE hospital_id = @hospital_id'),
+            db.request().input('hospital_id', sql.NVarChar, id).query('SELECT tpa_id FROM hospital_tpas WHERE hospital_id = @hospital_id'),
+            db.request().input('hospital_id', sql.NVarChar, id).query('SELECT staff_id FROM hospital_staff WHERE hospital_id = @hospital_id')
         ]);
         
         hospital.assignedCompanies = companiesResult.recordset.map(r => r.company_id);
@@ -120,8 +120,8 @@ export async function handleAddHospital(prevState: { message: string, type?:stri
     let transaction;
 
     try {
-        await poolConnect;
-        transaction = new sql.Transaction(pool);
+        const db = await poolConnect;
+        transaction = new sql.Transaction(db);
         await transaction.begin();
 
         const hospitalRequest = new sql.Request(transaction);
@@ -179,8 +179,8 @@ export async function handleUpdateHospital(prevState: { message: string, type?:s
     
     let transaction;
     try {
-        await poolConnect;
-        transaction = new sql.Transaction(pool);
+        const db = await poolConnect;
+        transaction = new sql.Transaction(db);
         await transaction.begin();
 
         const hospitalRequest = new sql.Request(transaction);
@@ -229,8 +229,8 @@ export async function handleDeleteHospital(prevState: { message: string, type?:s
     
     let transaction;
     try {
-        await poolConnect;
-        transaction = new sql.Transaction(pool);
+        const db = await poolConnect;
+        transaction = new sql.Transaction(db);
         await transaction.begin();
 
         // Delete from relationship tables first

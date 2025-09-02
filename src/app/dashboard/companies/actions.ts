@@ -35,8 +35,8 @@ export async function handleAddCompany(prevState: { message: string, type?: stri
 
   try {
     const id = `comp-${Date.now()}`;
-    await poolConnect;
-    await pool.request()
+    const db = await poolConnect;
+    await db.request()
       .input('id', sql.NVarChar, id)
       .input('name', sql.NVarChar, validatedFields.data.name)
       .input('contactPerson', sql.NVarChar, validatedFields.data.contactPerson)
@@ -90,8 +90,8 @@ export async function handleUpdateCompany(prevState: { message: string, type?: s
   const { id, ...updatedData } = parsed.data;
 
   try {
-    await poolConnect;
-    const request = pool.request();
+    const db = await poolConnect;
+    const request = db.request();
     const setClauses = Object.entries(updatedData)
       .map(([key, value]) => (value !== null && value !== undefined && value !== '') ? `${key} = @${key}` : null)
       .filter(Boolean)
@@ -129,8 +129,8 @@ export async function handleDeleteCompany(prevState: { message: string, type?: s
     }
 
     try {
-        await poolConnect;
-        const result = await pool.request()
+        const db = await poolConnect;
+        const result = await db.request()
             .input('id', sql.NVarChar, id)
             .query('DELETE FROM companies WHERE id = @id');
 
@@ -148,13 +148,13 @@ export async function handleDeleteCompany(prevState: { message: string, type?: s
 
 export async function getCompanyById(id: string): Promise<Company | null> {
   try {
-    await poolConnect;
+    const db = await poolConnect;
 
     const [companyResult, hospitalsResult] = await Promise.all([
-        pool.request()
+        db.request()
           .input('id', sql.NVarChar, id)
           .query('SELECT * FROM companies WHERE id = @id'),
-        pool.request()
+        db.request()
           .input('company_id', sql.NVarChar, id)
           .query('SELECT h.id, h.name FROM hospitals h JOIN hospital_companies hc ON h.id = hc.hospital_id WHERE hc.company_id = @company_id')
     ]);

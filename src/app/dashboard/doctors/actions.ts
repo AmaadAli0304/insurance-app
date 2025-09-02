@@ -30,8 +30,8 @@ const doctorUpdateSchema = doctorSchema.extend({
 // Fetch all doctors
 export async function getDoctors(): Promise<Doctor[]> {
   try {
-    await poolConnect;
-    const result = await pool.request().query('SELECT * FROM doctors');
+    const db = await poolConnect;
+    const result = await db.request().query('SELECT * FROM doctors');
     return result.recordset as Doctor[];
   } catch (error) {
     console.error('Error fetching doctors:', error);
@@ -43,8 +43,8 @@ export async function getDoctors(): Promise<Doctor[]> {
 // Fetch a single doctor by ID
 export async function getDoctorById(id: number): Promise<Doctor | null> {
     try {
-        await poolConnect;
-        const result = await pool.request()
+        const db = await poolConnect;
+        const result = await db.request()
             .input('id', sql.Int, id)
             .query('SELECT * FROM doctors WHERE id = @id');
         
@@ -77,8 +77,8 @@ export async function handleAddDoctor(prevState: { message: string, type?: strin
   const { name, qualification, email, phone, reg_no } = validatedFields.data;
 
   try {
-    await poolConnect;
-    await pool.request()
+    const db = await poolConnect;
+    await db.request()
       .input('name', sql.NVarChar, name)
       .input('qualification', sql.NVarChar, qualification)
       .input('email', sql.NVarChar, email)
@@ -116,8 +116,8 @@ export async function handleUpdateDoctor(prevState: { message: string, type?: st
   const { id, ...dataToUpdate } = parsed.data;
 
   try {
-    await poolConnect;
-    const request = pool.request();
+    const db = await poolConnect;
+    const request = db.request();
     const setClauses = Object.entries(dataToUpdate)
       .map(([key, value]) => (value != null && value !== '') ? `${key} = @${key}` : null)
       .filter(Boolean)
@@ -157,8 +157,8 @@ export async function handleDeleteDoctor(prevState: { message: string, type?: st
     }
 
     try {
-        await poolConnect;
-        const result = await pool.request()
+        const db = await poolConnect;
+        const result = await db.request()
             .input('id', sql.Int, Number(id))
             .query('DELETE FROM doctors WHERE id = @id');
 

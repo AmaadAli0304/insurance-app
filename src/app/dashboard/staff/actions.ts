@@ -30,8 +30,8 @@ const staffUpdateSchema = staffSchema.extend({
 
 export async function getStaff(): Promise<Staff[]> {
   try {
-    await poolConnect;
-    const result = await pool.request()
+    const db = await poolConnect;
+    const result = await db.request()
       .query(`
         SELECT u.uid as id, u.name, u.email, u.designation, u.department, u.status, h.name as hospitalName
         FROM users u
@@ -48,8 +48,8 @@ export async function getStaff(): Promise<Staff[]> {
 
 export async function getHospitalsForForm(): Promise<Pick<Hospital, 'id' | 'name'>[]> {
   try {
-    await poolConnect;
-    const result = await pool.request().query('SELECT id, name FROM hospitals');
+    const db = await poolConnect;
+    const result = await db.request().query('SELECT id, name FROM hospitals');
     return result.recordset.filter(h => h.id && h.id.trim() !== '');
   } catch (error) {
     const dbError = error as Error;
@@ -59,9 +59,9 @@ export async function getHospitalsForForm(): Promise<Pick<Hospital, 'id' | 'name
 
 export async function getStaffById(id: string): Promise<Staff | null> {
   try {
-    await poolConnect;
+    const db = await poolConnect;
     
-    const staffResult = await pool.request()
+    const staffResult = await db.request()
           .input('uid', sql.NVarChar, id)
           .query(`
             SELECT u.*, u.uid as id, h.name as hospitalName
@@ -78,7 +78,7 @@ export async function getStaffById(id: string): Promise<Staff | null> {
     const staff = staffResult.recordset[0] as Staff;
     
     // Fetch hospital assignment separately to get the ID for the edit form
-    const hospitalAssignmentResult = await pool.request()
+    const hospitalAssignmentResult = await db.request()
         .input('staff_id', sql.NVarChar, id)
         .query('SELECT hospital_id FROM hospital_staff WHERE staff_id = @staff_id');
         
@@ -125,8 +125,8 @@ export async function handleAddStaff(prevState: { message: string, type?: string
   let transaction;
 
   try {
-    await poolConnect;
-    transaction = new sql.Transaction(pool);
+    const db = await poolConnect;
+    transaction = new sql.Transaction(db);
     await transaction.begin();
 
     const userRequest = new sql.Request(transaction);
@@ -194,8 +194,8 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
   let transaction;
 
   try {
-    await poolConnect;
-    transaction = new sql.Transaction(pool);
+    const db = await poolConnect;
+    transaction = new sql.Transaction(db);
     await transaction.begin();
 
     const request = new sql.Request(transaction);
@@ -262,8 +262,8 @@ export async function handleDeleteStaff(prevState: { message: string, type?: str
     let transaction;
 
     try {
-        await poolConnect;
-        transaction = new sql.Transaction(pool);
+        const db = await poolConnect;
+        transaction = new sql.Transaction(db);
         await transaction.begin();
 
         // Delete from hospital_staff first
