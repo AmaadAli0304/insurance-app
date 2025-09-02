@@ -35,7 +35,7 @@ function SubmitButton() {
     );
 }
 
-const FileUploadField = ({ label, name, onUploadComplete, initialData }: { label: string; name: string; onUploadComplete: (fieldName: string, name: string, url: string) => void; initialData?: { url: string | null; name: string | null } | null }) => {
+const FileUploadField = React.memo(({ label, name, onUploadComplete, initialData }: { label: string; name: string; onUploadComplete: (fieldName: string, name: string, url: string) => void; initialData?: { url: string | null; name: string | null } | null }) => {
     const [isUploading, setIsUploading] = useState(false);
     const [fileUrl, setFileUrl] = useState<string | null>(initialData?.url || null);
     const [fileName, setFileName] = useState<string | null>(initialData?.name || null);
@@ -81,7 +81,8 @@ const FileUploadField = ({ label, name, onUploadComplete, initialData }: { label
             </div>
         </div>
     );
-};
+});
+FileUploadField.displayName = 'FileUploadField';
 
 
 export default function EditPatientPage() {
@@ -363,12 +364,12 @@ export default function EditPatientPage() {
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-2 gap-4">
-                                        <FileUploadField label="Aadhaar Card" name="adhaar_path" onUploadComplete={(name, url) => handleDocumentUploadComplete("adhaar_path", name, url)} initialData={patient.adhaar_path as {url: string, name: string} | undefined} />
-                                        <FileUploadField label="PAN Card" name="pan_path" onUploadComplete={(name, url) => handleDocumentUploadComplete("pan_path", name, url)} initialData={patient.pan_path as {url: string, name: string} | undefined} />
-                                        <FileUploadField label="Passport" name="passport_path" onUploadComplete={(name, url) => handleDocumentUploadComplete("passport_path", name, url)} initialData={patient.passport_path as {url: string, name: string} | undefined} />
-                                        <FileUploadField label="Driving License" name="driving_licence_path" onUploadComplete={(name, url) => handleDocumentUploadComplete("driving_licence_path", name, url)} initialData={patient.driving_licence_path as {url: string, name: string} | undefined} />
-                                        <FileUploadField label="Voter ID" name="voter_id_path" onUploadComplete={(name, url) => handleDocumentUploadComplete("voter_id_path", name, url)} initialData={patient.voter_id_path as {url: string, name: string} | undefined} />
-                                        <FileUploadField label="Other Document" name="other_path" onUploadComplete={(name, url) => handleDocumentUploadComplete("other_path", name, url)} initialData={patient.other_path as {url: string, name: string} | undefined} />
+                                        <FileUploadField label="Aadhaar Card" name="adhaar_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.adhaar_path as {url: string, name: string} | undefined} />
+                                        <FileUploadField label="PAN Card" name="pan_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.pan_path as {url: string, name: string} | undefined} />
+                                        <FileUploadField label="Passport" name="passport_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.passport_path as {url: string, name: string} | undefined} />
+                                        <FileUploadField label="Driving License" name="driving_licence_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.driving_licence_path as {url: string, name: string} | undefined} />
+                                        <FileUploadField label="Voter ID" name="voter_id_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.voter_id_path as {url: string, name: string} | undefined} />
+                                        <FileUploadField label="Other Document" name="other_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.other_path as {url: string, name: string} | undefined} />
                                     </CardContent>
                                 </AccordionContent>
                             </AccordionItem>
@@ -643,7 +644,7 @@ export default function EditPatientPage() {
                                     <CardTitle>G. Admission &amp; Cost Estimate <span className="text-destructive">*</span></CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
-                                    <CardContent className="grid md:grid-cols-3 gap-4" onBlur={calculateTotalCost}>
+                                    <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={calculateTotalCost}>
                                         <div className="space-y-2">
                                             <Label htmlFor="admissionDate">Admission date <span className="text-destructive">*</span></Label>
                                             <Input id="admissionDate" name="admissionDate" type="date" defaultValue={patient.admissionDate ?? ''} required/>
@@ -790,5 +791,3 @@ export default function EditPatientPage() {
         </div>
     );
 }
-
-    

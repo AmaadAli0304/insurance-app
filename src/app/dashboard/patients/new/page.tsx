@@ -35,7 +35,7 @@ function SubmitButton() {
     );
 }
 
-const FileUploadField = ({ label, name, onUploadComplete }: { label: string; name: string, onUploadComplete: (fieldName: string, name: string, url: string) => void }) => {
+const FileUploadField = React.memo(({ label, name, onUploadComplete }: { label: string; name: string, onUploadComplete: (fieldName: string, name: string, url: string) => void }) => {
     const [isUploading, setIsUploading] = useState(false);
     const [fileUrl, setFileUrl] = useState<string | null>(null);
     const [fileName, setFileName] = useState<string | null>(null);
@@ -78,7 +78,8 @@ const FileUploadField = ({ label, name, onUploadComplete }: { label: string; nam
             </div>
         </div>
     );
-};
+});
+FileUploadField.displayName = 'FileUploadField';
 
 
 export default function NewPatientPage() {

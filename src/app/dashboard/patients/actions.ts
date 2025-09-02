@@ -503,14 +503,8 @@ const createDocumentJson = (url: string | undefined | null, name: string | undef
     if (url && name) {
         return JSON.stringify({ url, name });
     }
-     if(url) {
-       try {
-         const parsed = JSON.parse(url);
-         if (parsed.url) return url;
-       } catch (e) {
-         if (url.startsWith('http') || url.startsWith('/uploads')) return JSON.stringify({ url, name: '' });
-         return url;
-       }
+    if (url) {
+        return JSON.stringify({ url, name: 'file' });
     }
     return null;
 };
@@ -1069,6 +1063,7 @@ export async function getChiefComplaints(patientId: number) {
     
 
     
+
 
 
 
