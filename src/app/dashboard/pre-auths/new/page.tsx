@@ -435,6 +435,18 @@ export default function NewRequestPage() {
                                     <Input id="policy_end_date" name="policy_end_date" type="date" defaultValue={formatDateForInput(patientDetails.policyEndDate)} required min={new Date().toISOString().split('T')[0]} />
                                 </div>
                                 <div className="space-y-2">
+                                    <Label htmlFor="sumInsured">Sum Insured</Label>
+                                    <Input id="sumInsured" name="sumInsured" type="number" defaultValue={patientDetails.sumInsured ?? ''} readOnly />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="sumUtilized">Sum Utilized</Label>
+                                    <Input id="sumUtilized" name="sumUtilized" type="number" defaultValue={patientDetails.sumUtilized ?? ''} readOnly />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="totalSum">Total Sum</Label>
+                                    <Input id="totalSum" name="totalSum" type="number" defaultValue={patientDetails.totalSum ?? ''} readOnly />
+                                </div>
+                                <div className="space-y-2">
                                     <Label htmlFor="corporate_policy_number">Corporate policy name/number</Label>
                                     <Input id="corporate_policy_number" name="corporate_policy_number" defaultValue={patientDetails.corporate_policy_number ?? ''} />
                                 </div>
