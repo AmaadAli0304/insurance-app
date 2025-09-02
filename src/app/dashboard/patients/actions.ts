@@ -66,6 +66,7 @@ const basePatientFormSchema = z.object({
   // Hospital & TPA
   tpa_id: z.coerce.number().optional().nullable(),
   hospital_id: z.string().optional().nullable(),
+  doctor_id: z.coerce.number().optional().nullable(),
   treat_doc_name: z.string().optional().nullable(),
   treat_doc_number: z.string().optional().nullable(),
   treat_doc_qualification: z.string().optional().nullable(),
@@ -135,7 +136,6 @@ const basePatientFormSchema = z.object({
   cancerSince: z.string().optional().nullable(),
   alcoholDrugAbuseSince: z.string().optional().nullable(),
   hivSince: z.string().optional().nullable(),
-  // otherChronicAilment is handled via chief complaints form
 
   // H. Declarations & Attachments
   patientDeclarationName: z.string().optional().nullable(),
@@ -483,8 +483,8 @@ export async function handleUploadPatientFile(formData: FormData): Promise<{ typ
     }
     
     try {
-        // Using a fast and reliable placeholder service for demonstration.
-        // This generates a real, publicly accessible image URL.
+        // This generates a real, publicly accessible image URL from a placeholder service.
+        // In a real application, this would be your S3 upload logic returning the S3 URL.
         const pseudoUrl = `https://placehold.co/200x200.png?text=${encodeURIComponent(file.name)}`;
         return { type: 'success', url: pseudoUrl, name: file.name };
     } catch (error) {
@@ -628,6 +628,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
     const admissionRequest = new sql.Request(transaction);
     await admissionRequest
       .input('patient_id', sql.Int, patientId)
+      .input('doctor_id', sql.Int, data.doctor_id)
       .input('admission_id', sql.NVarChar, data.admission_id)
       .input('relationship_policyholder', sql.NVarChar, data.relationship_policyholder)
       .input('policy_number', sql.NVarChar, data.policy_number)
@@ -705,7 +706,6 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('cancerSince', sql.NVarChar, data.cancerSince)
       .input('alcoholDrugAbuseSince', sql.NVarChar, data.alcoholDrugAbuseSince)
       .input('hivSince', sql.NVarChar, data.hivSince)
-      .input('otherChronicAilment', sql.NVarChar, data.otherChronicAilment)
       .input('patientDeclarationName', sql.NVarChar, data.patientDeclarationName)
       .input('patientDeclarationContact', sql.NVarChar, data.patientDeclarationContact)
       .input('patientDeclarationEmail', sql.NVarChar, data.patientDeclarationEmail)
@@ -717,7 +717,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('attachments', sql.NVarChar, data.attachments?.join(','))
       .query(`
           INSERT INTO admissions (
-            patient_id, admission_id, relationship_policyholder, policy_number, insured_card_number, insurance_company, 
+            patient_id, doctor_id, admission_id, relationship_policyholder, policy_number, insured_card_number, insurance_company, 
             policy_start_date, policy_end_date, sum_insured, sum_utilized, total_sum, corporate_policy_number, other_policy_name, family_doctor_name, 
             family_doctor_phone, payer_email, payer_phone, tpa_id, hospital_id, treat_doc_name, treat_doc_number, 
             treat_doc_qualification, treat_doc_reg_no,
@@ -730,12 +730,12 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
             investigationCost, icuCost, otCost, professionalFees, medicineCost, otherHospitalExpenses, packageCharges,
             totalExpectedCost,
             diabetesSince, hypertensionSince, heartDiseaseSince, hyperlipidemiaSince, osteoarthritisSince, asthmaCopdSince,
-            cancerSince, alcoholDrugAbuseSince, hivSince, otherChronicAilment,
+            cancerSince, alcoholDrugAbuseSince, hivSince,
             patientDeclarationName, patientDeclarationContact, patientDeclarationEmail, patientDeclarationDate, patientDeclarationTime,
             hospitalDeclarationDoctorName, hospitalDeclarationDate, hospitalDeclarationTime, attachments
           )
           VALUES (
-            @patient_id, @admission_id, @relationship_policyholder, @policy_number, @insured_card_number, @insurance_company,
+            @patient_id, @doctor_id, @admission_id, @relationship_policyholder, @policy_number, @insured_card_number, @insurance_company,
             @policy_start_date, @policy_end_date, @sum_insured, @sum_utilized, @total_sum, @corporate_policy_number, @other_policy_name, @family_doctor_name, 
             @family_doctor_phone, @payer_email, @payer_phone, @tpa_id, @hospital_id, @treat_doc_name, @treat_doc_number, 
             @treat_doc_qualification, @treat_doc_reg_no,
@@ -748,7 +748,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
             @investigationCost, @icuCost, @otCost, @professionalFees, @medicineCost, @otherHospitalExpenses, @packageCharges,
             @totalExpectedCost,
             @diabetesSince, @hypertensionSince, @heartDiseaseSince, @hyperlipidemiaSince, @osteoarthritisSince, @asthmaCopdSince,
-            @cancerSince, @alcoholDrugAbuseSince, @hivSince, @otherChronicAilment,
+            @cancerSince, @alcoholDrugAbuseSince, @hivSince,
             @patientDeclarationName, @patientDeclarationContact, @patientDeclarationEmail, @patientDeclarationDate, @patientDeclarationTime,
             @hospitalDeclarationDoctorName, @hospitalDeclarationDate, @hospitalDeclarationTime, @attachments
           )
@@ -835,6 +835,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
         const admissionRequest = new sql.Request(transaction);
         await admissionRequest
             .input('patient_id', sql.Int, Number(patientId))
+            .input('doctor_id', sql.Int, data.doctor_id)
             .input('admission_id', sql.NVarChar, data.admission_id)
             .input('relationship_policyholder', sql.NVarChar, data.relationship_policyholder)
             .input('policy_number', sql.NVarChar, data.policy_number)
@@ -911,7 +912,6 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
             .input('cancerSince', sql.NVarChar, data.cancerSince)
             .input('alcoholDrugAbuseSince', sql.NVarChar, data.alcoholDrugAbuseSince)
             .input('hivSince', sql.NVarChar, data.hivSince)
-            .input('otherChronicAilment', sql.NVarChar, data.otherChronicAilment)
             .input('patientDeclarationName', sql.NVarChar, data.patientDeclarationName)
             .input('patientDeclarationContact', sql.NVarChar, data.patientDeclarationContact)
             .input('patientDeclarationEmail', sql.NVarChar, data.patientDeclarationEmail)
@@ -924,6 +924,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
             .query(`
                 UPDATE admissions
                 SET 
+                doctor_id = @doctor_id,
                 admission_id = @admission_id, relationship_policyholder = @relationship_policyholder, policy_number = @policy_number,
                 insured_card_number = @insured_card_number, insurance_company = @insurance_company, policy_start_date = @policy_start_date,
                 policy_end_date = @policy_end_date, sum_insured = @sum_insured, sum_utilized = @sum_utilized, total_sum = @total_sum, corporate_policy_number = @corporate_policy_number, other_policy_name = @other_policy_name,
@@ -946,7 +947,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
                 totalExpectedCost = @totalExpectedCost, 
                 diabetesSince = @diabetesSince, hypertensionSince = @hypertensionSince, heartDiseaseSince = @heartDiseaseSince, 
                 hyperlipidemiaSince = @hyperlipidemiaSince, osteoarthritisSince = @osteoarthritisSince, asthmaCopdSince = @asthmaCopdSince, 
-                cancerSince = @cancerSince, alcoholDrugAbuseSince = @alcoholDrugAbuseSince, hivSince = @hivSince, otherChronicAilment = @otherChronicAilment, 
+                cancerSince = @cancerSince, alcoholDrugAbuseSince = @alcoholDrugAbuseSince, hivSince = @hivSince,
                 patientDeclarationName = @patientDeclarationName, patientDeclarationContact = @patientDeclarationContact, patientDeclarationEmail = @patientDeclarationEmail, 
                 patientDeclarationDate = @patientDeclarationDate, patientDeclarationTime = @patientDeclarationTime, 
                 hospitalDeclarationDoctorName = @hospitalDeclarationDoctorName, hospitalDeclarationDate = @hospitalDeclarationDate, 
