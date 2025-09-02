@@ -11,7 +11,7 @@ import { z } from 'zod';
 
 const phoneRegex = new RegExp(/^\d{10}$/);
 
-const basePatientFormSchema = z.object({
+const basePatientObjectSchema = z.object({
   // Patient Details
   firstName: z.string().min(1, 'First Name is required'),
   lastName: z.string().min(1, 'Last Name is required'),
@@ -116,6 +116,7 @@ const basePatientFormSchema = z.object({
   expectedIcuStay: z.coerce.number().optional().nullable(),
   roomCategory: z.string().optional().nullable(),
   roomNursingDietCost: z.coerce.number().optional().nullable(),
+  investigationCost: z.coerce.number().optional().nullable(),
   icuCost: z.coerce.number().optional().nullable(),
   otCost: z.coerce.number().optional().nullable(),
   professionalFees: z.coerce.number().optional().nullable(),
@@ -151,16 +152,18 @@ const basePatientFormSchema = z.object({
   // Note: treat_doc_name is now handled by the doctor_id and DoctorSearch component
   // It is submitted separately in the form so it does not need to be in the zod schema
   // treat_doc_name: z.string().optional().nullable(),
+});
 
-}).refine(data => data.investigationCost !== undefined, {
+const refinedSchema = (schema: z.ZodObject<any, any>) => schema.refine(data => data.investigationCost !== undefined && data.investigationCost !== null, {
     message: "Investigation Cost is required",
     path: ["investigationCost"],
 });
 
-const addPatientFormSchema = basePatientFormSchema;
-const updatePatientFormSchema = basePatientFormSchema.extend({
+const addPatientFormSchema = refinedSchema(basePatientObjectSchema);
+const updatePatientFormSchema = refinedSchema(basePatientObjectSchema.extend({
   id: z.string(), // Patient ID
-});
+}));
+
 
 export type Doctor = {
   id: number;
