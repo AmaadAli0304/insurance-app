@@ -117,7 +117,7 @@ function SubmitPreAuthTableButton() {
     return (
         <Button type="submit" disabled={pending} variant="secondary">
              <Shield className="mr-2 h-4 w-4" />
-            {pending ? "Creating..." : "Create PreAuth Table"}
+            {pending ? "Creating..." : "Create Pre-Auth Request Table"}
         </Button>
     );
 }
