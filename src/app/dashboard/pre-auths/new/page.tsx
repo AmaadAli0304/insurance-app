@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useActionState, useEffect, useMemo, useRef } from "react";
-import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -463,11 +462,11 @@ export default function NewRequestPage() {
                             <CardContent className="grid md:grid-cols-3 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="firstName">First Name <span className="text-destructive">*</span></Label>
-                                    <Input id="firstName" name="firstName" defaultValue={patientDetails.firstName} required />
+                                    <Input id="firstName" name="first_name" defaultValue={patientDetails.firstName} required />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="lastName">Last Name <span className="text-destructive">*</span></Label>
-                                    <Input id="lastName" name="lastName" defaultValue={patientDetails.lastName} required />
+                                    <Input id="lastName" name="last_name" defaultValue={patientDetails.lastName} required />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="email_address">Email Address <span className="text-destructive">*</span></Label>
@@ -979,3 +978,5 @@ export default function NewRequestPage() {
         </div>
     );
 }
+
+    
