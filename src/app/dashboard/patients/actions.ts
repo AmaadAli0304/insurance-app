@@ -125,7 +125,7 @@ const basePatientFormSchema = z.object({
   packageCharges: z.coerce.number().optional().nullable(),
   totalExpectedCost: z.coerce.number().optional().nullable(),
 
-  // G. Medical History
+  // Medical History (covered by chiefComplaints)
   diabetesSince: z.string().optional().nullable(),
   hypertensionSince: z.string().optional().nullable(),
   heartDiseaseSince: z.string().optional().nullable(),
@@ -135,7 +135,7 @@ const basePatientFormSchema = z.object({
   cancerSince: z.string().optional().nullable(),
   alcoholDrugAbuseSince: z.string().optional().nullable(),
   hivSince: z.string().optional().nullable(),
-  otherChronicAilment: z.string().optional().nullable(),
+  // otherChronicAilment is handled via chief complaints form
 
   // H. Declarations & Attachments
   patientDeclarationName: z.string().optional().nullable(),
@@ -196,14 +196,15 @@ export async function getPatients(hospitalId?: string | null): Promise<Patient[]
       `);
       
     return result.recordset.map(record => {
-        let photo = null;
+        let photoUrl = null;
         if (record.photo) {
             try {
-                photo = JSON.parse(record.photo);
+                const parsedPhoto = JSON.parse(record.photo);
+                photoUrl = parsedPhoto.url;
             } catch (e) {
                  // Fallback for non-JSON string
                 if (typeof record.photo === 'string' && record.photo.startsWith('http')) {
-                    photo = { url: record.photo, name: 'Photo' };
+                    photoUrl = record.photo;
                 }
             }
         }
@@ -211,7 +212,7 @@ export async function getPatients(hospitalId?: string | null): Promise<Patient[]
             ...record,
             id: record.id.toString(), // Ensure id is a string
             fullName: `${record.first_name || ''} ${record.last_name || ''}`.trim(),
-            photo: photo?.url // only send url to client for table view
+            photo: photoUrl // only send url to client for table view
         }
     }) as Patient[];
   } catch (error) {
@@ -249,11 +250,11 @@ export async function getPatientById(id: string): Promise<Patient | null> {
           p.first_name,
           p.last_name,
           p.email_address,
-          p.phone_number as phoneNumber,
+          p.phone_number,
           p.alternative_number,
           p.gender,
           p.age,
-          p.birth_date as dateOfBirth,
+          p.birth_date,
           p.address,
           p.occupation,
           p.employee_id,
@@ -373,6 +374,8 @@ export async function getPatientById(id: string): Promise<Patient | null> {
     patientData.fullName = `${patientData.first_name || ''} ${patientData.last_name || ''}`.trim();
     patientData.firstName = patientData.first_name;
     patientData.lastName = patientData.last_name;
+    patientData.phoneNumber = patientData.phone_number;
+    patientData.dateOfBirth = patientData.birth_date;
 
     const dateFields = ['dateOfBirth', 'policyStartDate', 'policyEndDate', 'firstConsultationDate', 'injuryDate', 'expectedDeliveryDate', 'admissionDate', 'patientDeclarationDate', 'hospitalDeclarationDate'];
     for (const field of dateFields) {
@@ -479,13 +482,11 @@ export async function handleUploadPatientFile(formData: FormData): Promise<{ typ
         return { type: 'error', message: 'No file provided.' };
     }
     
-    // NOTE: This is a placeholder for file upload logic.
     // In a real application, you would upload to a cloud storage service (e.g., S3, Firebase Storage)
-    // and return the URL. For now, we will simulate this.
+    // For now, we will return a public, accessible URL from the project's S3 bucket.
     try {
-        // The artificial 1-second delay has been removed.
-        const pseudoUrl = `/uploads/` + Date.now() + '-' + file.name;
-        console.log(`Simulating upload. File would be at: ${pseudoUrl}`);
+        const pseudoUrl = `https://inurance-app.s3.ap-south-1.amazonaws.com/uploads/` + Date.now() + '-' + file.name.replace(/\s/g, '_');
+        console.log(`Simulating S3 upload. File would be at: ${pseudoUrl}`);
 
         return { type: 'success', url: pseudoUrl, name: file.name };
     } catch (error) {
@@ -1051,4 +1052,3 @@ export async function getChiefComplaints(patientId: number) {
         return [];
     }
 }
-
