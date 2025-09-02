@@ -1,4 +1,5 @@
 
+
 "use server";
 
 import * as XLSX from 'xlsx';
@@ -498,15 +499,15 @@ export async function handleCreatePreAuthTable(prevState: { message: string, typ
         await poolConnect;
         const request = pool.request();
         const query = `
-            IF OBJECT_ID('preauth_request', 'U') IS NOT NULL
+            IF OBJECT_ID('preauth', 'U') IS NOT NULL
             BEGIN
-              IF OBJECT_ID('FK_preauth_request_patient', 'F') IS NOT NULL
-                  ALTER TABLE preauth_request DROP CONSTRAINT FK_preauth_request_patient;
+              IF OBJECT_ID('FK__preauth__patient', 'F') IS NOT NULL
+                  ALTER TABLE preauth DROP CONSTRAINT FK__preauth__patient;
               
-              DROP TABLE preauth_request;
+              DROP TABLE preauth;
             END
 
-            CREATE TABLE preauth_request (
+            CREATE TABLE preauth (
                 id INT IDENTITY(1,1) PRIMARY KEY,
                 patient_id INT,
                 admission_id NVARCHAR(255),
@@ -615,7 +616,7 @@ export async function handleCreatePreAuthTable(prevState: { message: string, typ
                 hospitalDeclarationTime NVARCHAR(50),
                 attachments NVARCHAR(MAX),
                 created_at DATETIME DEFAULT GETDATE(),
-                CONSTRAINT FK_preauth_request_patient FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE
+                CONSTRAINT FK__preauth__patient FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE
             );
         `;
         await request.query(query);
@@ -640,7 +641,7 @@ export async function handleCreateMedicalTable(prevState: { message: string, typ
                     complaint_name NVARCHAR(255) NOT NULL,
                     duration_value NVARCHAR(50),
                     duration_unit NVARCHAR(50),
-                    FOREIGN KEY (preauth_id) REFERENCES preauth_request(id) ON DELETE CASCADE
+                    FOREIGN KEY (preauth_id) REFERENCES preauth(id) ON DELETE CASCADE
                 );
             END
         `;
@@ -669,7 +670,7 @@ export async function handleCreateChatTable(prevState: { message: string, type?:
                     body NVARCHAR(MAX),
                     request_type NVARCHAR(255),
                     created_at DATETIME DEFAULT GETDATE(),
-                    FOREIGN KEY (preauth_id) REFERENCES preauth_request(id) ON DELETE CASCADE
+                    FOREIGN KEY (preauth_id) REFERENCES preauth(id) ON DELETE CASCADE
                 );
             END
         `;
@@ -681,3 +682,4 @@ export async function handleCreateChatTable(prevState: { message: string, type?:
         return { message: `Error creating table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
     }
 }
+
