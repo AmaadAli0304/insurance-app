@@ -163,7 +163,6 @@ const countries = [
     { code: "+674", name: "NR" },
     { code: "+977", name: "NP" },
     { code: "+31", name: "NL" },
-    { code: "+599", name: "AN" },
     { code: "+687", name: "NC" },
     { code: "+64", name: "NZ" },
     { code: "+505", name: "NI" },
