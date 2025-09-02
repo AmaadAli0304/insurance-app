@@ -100,7 +100,6 @@ export interface Patient {
   payer_email?: string;
   payer_phone?: string;
   tpa_id?: number;
-  doctor_id?: number;
   treat_doc_name?: string;
   treat_doc_number?: string;
   treat_doc_qualification?: string;
@@ -204,7 +203,7 @@ export interface StaffingRequest {
   patientId: string;
   hospitalId?: string | null;
   companyId?: string | null;
-  status: 'Pending' | 'Approved' | 'Rejected';
+  status: 'Pending' | 'Approved' | 'Rejected' | 'Draft';
   createdAt: string; // ISO date string
   details: string; 
   subject: string;
@@ -243,7 +242,6 @@ export interface StaffingRequest {
   payer_email?: string;
   payer_phone?: string;
   hospitalName?: string;
-  doctor_id?: number;
   treat_doc_name?: string;
   treat_doc_number?: string;
   treat_doc_qualification?: string;
