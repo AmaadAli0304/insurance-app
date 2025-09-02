@@ -1,4 +1,5 @@
 
+
 "use server";
 
 import { redirect } from 'next/navigation';
@@ -74,89 +75,26 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
     transaction = new sql.Transaction(db);
     await transaction.begin();
 
-    // 1. Get latest patient and admission details together
     const patientDetailsResult = await new sql.Request(transaction)
       .input('patient_id', sql.Int, patientId)
       .query(`
         SELECT TOP 1 
           p.*,
-          a.id as admission_db_id,
-          a.patient_id as admission_patient_id,
-          a.admission_id,
-          a.relationship_policyholder,
-          a.policy_number,
-          a.insured_card_number,
-          a.insurance_company,
-          a.policy_start_date,
-          a.policy_end_date,
-          a.sum_insured,
-          a.sum_utilized,
-          a.total_sum,
-          a.corporate_policy_number,
-          a.other_policy_name,
-          a.family_doctor_name,
-          a.family_doctor_phone,
-          a.payer_email,
-          a.payer_phone,
-          a.tpa_id,
-          a.hospital_id as admission_hospital_id,
-          h.name as hospitalName,
-          a.treat_doc_name,
-          a.treat_doc_number,
-          a.treat_doc_qualification,
-          a.treat_doc_reg_no,
-          a.natureOfIllness,
-          a.clinicalFindings,
-          a.ailmentDuration,
-          a.firstConsultationDate,
-          a.pastHistory,
-          a.provisionalDiagnosis,
-          a.icd10Codes,
-          a.treatmentMedical,
-          a.treatmentSurgical,
-          a.treatmentIntensiveCare,
-          a.treatmentInvestigation,
-          a.treatmentNonAllopathic,
-          a.investigationDetails,
-          a.drugRoute,
-          a.procedureName,
-          a.icd10PcsCodes,
-          a.otherTreatments,
-          a.isInjury,
-          a.injuryCause,
-          a.isRta,
-          a.injuryDate,
-          a.isReportedToPolice,
-          a.firNumber,
-          a.isAlcoholSuspected,
-          a.isToxicologyConducted,
-          a.isMaternity,
-          a.g, a.p, a.l, a.a,
-          a.expectedDeliveryDate,
-          a.admissionDate,
-          a.admissionTime,
-          a.admissionType,
-          a.expectedStay,
-          a.expectedIcuStay,
-          a.roomCategory,
-          a.roomNursingDietCost,
-          a.investigationCost,
-          a.icuCost,
-          a.otCost,
-          a.professionalFees,
-          a.medicineCost,
-          a.otherHospitalExpenses,
-          a.packageCharges,
-          a.totalExpectedCost as admissionTotalCost,
-          a.patientDeclarationName,
-          a.patientDeclarationContact,
-          a.patientDeclarationEmail,
-          a.patientDeclarationDate,
-          a.patientDeclarationTime,
-          a.hospitalDeclarationDoctorName,
-          a.hospitalDeclarationDate,
-          a.hospitalDeclarationTime,
-          a.attachments
+          a.id as admission_db_id, a.patient_id as admission_patient_id, a.admission_id, a.relationship_policyholder, a.policy_number,
+          a.insured_card_number, a.insurance_company, a.policy_start_date, a.policy_end_date, a.sum_insured, a.sum_utilized,
+          a.total_sum, a.corporate_policy_number, a.other_policy_name, a.family_doctor_name, a.family_doctor_phone,
+          a.payer_email, a.payer_phone, a.tpa_id, a.hospital_id as admission_hospital_id, h.name as hospitalName, a.treat_doc_name,
+          a.treat_doc_number, a.treat_doc_qualification, a.treat_doc_reg_no, a.natureOfIllness, a.clinicalFindings,
+          a.ailmentDuration, a.firstConsultationDate, a.pastHistory, a.provisionalDiagnosis, a.icd10Codes, a.treatmentMedical,
+          a.treatmentSurgical, a.treatmentIntensiveCare, a.treatmentInvestigation, a.treatmentNonAllopathic,
+          a.investigationDetails, a.drugRoute, a.procedureName, a.icd10PcsCodes, a.otherTreatments, a.isInjury,
+          a.injuryCause, a.isRta, a.injuryDate, a.isReportedToPolice, a.firNumber, a.isAlcoholSuspected,
+          a.isToxicologyConducted, a.isMaternity, a.g, a.p, a.l, a.a, a.expectedDeliveryDate, a.admissionDate,
+          a.admissionTime, a.admissionType, a.expectedStay, a.expectedIcuStay, a.roomCategory, a.roomNursingDietCost,
+          a.investigationCost, a.icuCost, a.otCost, a.professionalFees, a.medicineCost, a.otherHospitalExpenses,
+          a.packageCharges, a.totalExpectedCost as admissionTotalCost, a.patientDeclarationName, a.patientDeclarationContact,
+          a.patientDeclarationEmail, a.patientDeclarationDate, a.patientDeclarationTime, a.hospitalDeclarationDoctorName,
+          a.hospitalDeclarationDate, a.hospitalDeclarationTime, a.attachments
         FROM patients p
         LEFT JOIN admissions a ON p.id = a.patient_id
         LEFT JOIN hospitals h ON a.hospital_id = h.id
@@ -168,12 +106,10 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
     }
     const fullPatientData = patientDetailsResult.recordset[0];
     
-    // 2. Send email first if required
     if (shouldSendEmail) {
       await sendPreAuthEmail({ from, to, subject, html: details });
     }
 
-    // 3. Insert into preauth_request
     const preAuthInsertRequest = new sql.Request(transaction);
     const preAuthRequestResult = await preAuthInsertRequest
         .input('patient_id', sql.Int, patientId)
@@ -288,13 +224,13 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
     }
     const preAuthId = preAuthRequestResult.recordset[0].id;
 
-    // 4. Insert into medical table (copying from chief_complaints)
     const complaintsResult = await new sql.Request(transaction)
         .input('patient_id', sql.Int, patientId)
         .query('SELECT * FROM chief_complaints WHERE patient_id = @patient_id');
         
     for (const complaint of complaintsResult.recordset) {
-        await new sql.Request(transaction)
+        const medicalInsertRequest = new sql.Request(transaction);
+        await medicalInsertRequest
             .input('preauth_id', sql.Int, preAuthId)
             .input('complaint_name', sql.NVarChar, complaint.complaint_name)
             .input('duration_value', sql.NVarChar, complaint.duration_value)
@@ -302,8 +238,8 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
             .query('INSERT INTO medical (preauth_id, complaint_name, duration_value, duration_unit) VALUES (@preauth_id, @complaint_name, @duration_value, @duration_unit)');
     }
 
-    // 5. Insert into chat table
-    await new sql.Request(transaction)
+    const chatInsertRequest = new sql.Request(transaction);
+    await chatInsertRequest
         .input('preauth_id', sql.Int, preAuthId)
         .input('from_email', sql.NVarChar, from)
         .input('to_email', sql.NVarChar, to)
@@ -324,7 +260,6 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
       }
       const err = error as Error;
       console.error("Failed to create pre-auth request:", err);
-      // Re-throw the original error to be caught by the action handler
       return { message: `Failed to create request: ${err.message}`, type: 'error' };
   }
 
@@ -465,3 +400,4 @@ export async function handleUpdateRequest(prevState: { message: string, type?:st
     revalidatePath('/dashboard/pre-auths');
     return { message: 'Status updated successfully.', type: 'success' };
 }
+
