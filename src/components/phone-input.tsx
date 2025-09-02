@@ -280,14 +280,16 @@ export function PhoneInput({ name, defaultValue = "", className, ...props }: Pho
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
-            {countries.map((country) => (
-                <SelectItem key={`${country.name}-${country.code}`} value={country.code}>
+            {countries.map((country) => {
+              const uniqueValue = `${country.name}-${country.code}`;
+              return (
+                <SelectItem key={uniqueValue} value={country.code}>
                     <span className="flex items-center gap-2">
                         <Image src={`https://flagcdn.com/16x12/${country.name.toLowerCase()}.png`} width={16} height={12} alt={`${country.name} Flag`} />
                         {country.name} ({country.code})
                     </span>
                 </SelectItem>
-            ))}
+            )})}
         </SelectContent>
       </Select>
       <Input
@@ -301,4 +303,6 @@ export function PhoneInput({ name, defaultValue = "", className, ...props }: Pho
     </div>
   );
 }
+    
+
     
