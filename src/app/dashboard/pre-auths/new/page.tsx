@@ -828,6 +828,7 @@ export default function NewRequestPage() {
                                 />
                             </div>
                             <div className="space-y-2">
+                                <Label>Request Type</Label>
                                 <RadioGroup defaultValue="pre-auth" name="requestType">
                                     <div className="flex items-center space-x-2">
                                         <RadioGroupItem value="surgical" id="r1" />
@@ -855,3 +856,5 @@ export default function NewRequestPage() {
         </div>
     );
 }
+
+    
