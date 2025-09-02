@@ -499,128 +499,123 @@ export async function handleCreatePreAuthTable(prevState: { message: string, typ
         await poolConnect;
         const request = pool.request();
         const query = `
-            IF OBJECT_ID('preauth_request', 'U') IS NOT NULL
+            IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='preauth_request' and xtype='U')
             BEGIN
-              IF OBJECT_ID('FK__preauth_request__patient', 'F') IS NOT NULL
-                  ALTER TABLE preauth_request DROP CONSTRAINT FK__preauth_request__patient;
-              
-              DROP TABLE preauth_request;
+              CREATE TABLE preauth_request (
+                  id INT IDENTITY(1,1) PRIMARY KEY,
+                  patient_id INT,
+                  admission_id NVARCHAR(255),
+                  doctor_id INT,
+                  status NVARCHAR(50),
+                  -- Patient Details
+                  first_name NVARCHAR(255),
+                  last_name NVARCHAR(255),
+                  email_address NVARCHAR(255),
+                  phone_number NVARCHAR(50),
+                  alternative_number NVARCHAR(50),
+                  gender NVARCHAR(50),
+                  age INT,
+                  birth_date DATE,
+                  address NVARCHAR(MAX),
+                  occupation NVARCHAR(255),
+                  employee_id NVARCHAR(255),
+                  abha_id NVARCHAR(255),
+                  health_id NVARCHAR(255),
+                  photo NVARCHAR(MAX),
+                  -- KYC
+                  adhaar_path NVARCHAR(MAX),
+                  pan_path NVARCHAR(MAX),
+                  passport_path NVARCHAR(MAX),
+                  voter_id_path NVARCHAR(MAX),
+                  driving_licence_path NVARCHAR(MAX),
+                  other_path NVARCHAR(MAX),
+                  -- Insurance
+                  relationship_policyholder NVARCHAR(255),
+                  policy_number NVARCHAR(255),
+                  insured_card_number NVARCHAR(255),
+                  company_id NVARCHAR(255),
+                  policy_start_date DATE,
+                  policy_end_date DATE,
+                  sum_insured DECIMAL(18, 2),
+                  sum_utilized DECIMAL(18, 2),
+                  total_sum DECIMAL(18, 2),
+                  corporate_policy_number NVARCHAR(255),
+                  other_policy_name NVARCHAR(255),
+                  family_doctor_name NVARCHAR(255),
+                  family_doctor_phone NVARCHAR(50),
+                  payer_email NVARCHAR(255),
+                  payer_phone NVARCHAR(50),
+                  tpa_id INT,
+                  hospital_id NVARCHAR(255),
+                  hospital_name NVARCHAR(255),
+                  treat_doc_name NVARCHAR(255),
+                  treat_doc_number NVARCHAR(50),
+                  treat_doc_qualification NVARCHAR(255),
+                  treat_doc_reg_no NVARCHAR(255),
+                  -- Clinical Info
+                  natureOfIllness NVARCHAR(MAX),
+                  clinicalFindings NVARCHAR(MAX),
+                  ailmentDuration INT,
+                  firstConsultationDate DATE,
+                  pastHistory NVARCHAR(MAX),
+                  provisionalDiagnosis NVARCHAR(MAX),
+                  icd10Codes NVARCHAR(255),
+                  treatmentMedical NVARCHAR(MAX),
+                  treatmentSurgical NVARCHAR(MAX),
+                  treatmentIntensiveCare NVARCHAR(MAX),
+                  treatmentInvestigation NVARCHAR(MAX),
+                  treatmentNonAllopathic NVARCHAR(MAX),
+                  investigationDetails NVARCHAR(MAX),
+                  drugRoute NVARCHAR(255),
+                  procedureName NVARCHAR(MAX),
+                  icd10PcsCodes NVARCHAR(255),
+                  otherTreatments NVARCHAR(MAX),
+                  isInjury BIT,
+                  injuryCause NVARCHAR(MAX),
+                  isRta BIT,
+                  injuryDate DATE,
+                  isReportedToPolice BIT,
+                  firNumber NVARCHAR(255),
+                  isAlcoholSuspected BIT,
+                  isToxicologyConducted BIT,
+                  isMaternity BIT,
+                  g INT,
+                  p INT,
+                  l INT,
+                  a INT,
+                  expectedDeliveryDate DATE,
+                  admissionDate DATE,
+                  admissionTime NVARCHAR(50),
+                  admissionType NVARCHAR(255),
+                  expectedStay INT,
+                  expectedIcuStay INT,
+                  roomCategory NVARCHAR(255),
+                  roomNursingDietCost DECIMAL(18, 2),
+                  investigationCost DECIMAL(18, 2),
+                  icuCost DECIMAL(18, 2),
+                  otCost DECIMAL(18, 2),
+                  professionalFees DECIMAL(18, 2),
+                  medicineCost DECIMAL(18, 2),
+                  otherHospitalExpenses DECIMAL(18, 2),
+                  packageCharges DECIMAL(18, 2),
+                  totalExpectedCost DECIMAL(18, 2),
+                  -- Declarations
+                  patientDeclarationName NVARCHAR(255),
+                  patientDeclarationContact NVARCHAR(50),
+                  patientDeclarationEmail NVARCHAR(255),
+                  patientDeclarationDate DATE,
+                  patientDeclarationTime NVARCHAR(50),
+                  hospitalDeclarationDoctorName NVARCHAR(255),
+                  hospitalDeclarationDate DATE,
+                  hospitalDeclarationTime NVARCHAR(50),
+                  attachments NVARCHAR(MAX),
+                  created_at DATETIME DEFAULT GETDATE(),
+                  CONSTRAINT FK__preauth_request__patient FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE NO ACTION
+              );
             END
-
-            CREATE TABLE preauth_request (
-                id INT IDENTITY(1,1) PRIMARY KEY,
-                patient_id INT,
-                admission_id NVARCHAR(255),
-                doctor_id INT,
-                status NVARCHAR(50),
-                -- Patient Details
-                first_name NVARCHAR(255),
-                last_name NVARCHAR(255),
-                email_address NVARCHAR(255),
-                phone_number NVARCHAR(50),
-                alternative_number NVARCHAR(50),
-                gender NVARCHAR(50),
-                age INT,
-                birth_date DATE,
-                address NVARCHAR(MAX),
-                occupation NVARCHAR(255),
-                employee_id NVARCHAR(255),
-                abha_id NVARCHAR(255),
-                health_id NVARCHAR(255),
-                photo NVARCHAR(MAX),
-                -- KYC
-                adhaar_path NVARCHAR(MAX),
-                pan_path NVARCHAR(MAX),
-                passport_path NVARCHAR(MAX),
-                voter_id_path NVARCHAR(MAX),
-                driving_licence_path NVARCHAR(MAX),
-                other_path NVARCHAR(MAX),
-                -- Insurance
-                relationship_policyholder NVARCHAR(255),
-                policy_number NVARCHAR(255),
-                insured_card_number NVARCHAR(255),
-                company_id NVARCHAR(255),
-                policy_start_date DATE,
-                policy_end_date DATE,
-                sum_insured DECIMAL(18, 2),
-                sum_utilized DECIMAL(18, 2),
-                total_sum DECIMAL(18, 2),
-                corporate_policy_number NVARCHAR(255),
-                other_policy_name NVARCHAR(255),
-                family_doctor_name NVARCHAR(255),
-                family_doctor_phone NVARCHAR(50),
-                payer_email NVARCHAR(255),
-                payer_phone NVARCHAR(50),
-                tpa_id INT,
-                hospital_id NVARCHAR(255),
-                hospital_name NVARCHAR(255),
-                treat_doc_name NVARCHAR(255),
-                treat_doc_number NVARCHAR(50),
-                treat_doc_qualification NVARCHAR(255),
-                treat_doc_reg_no NVARCHAR(255),
-                -- Clinical Info
-                natureOfIllness NVARCHAR(MAX),
-                clinicalFindings NVARCHAR(MAX),
-                ailmentDuration INT,
-                firstConsultationDate DATE,
-                pastHistory NVARCHAR(MAX),
-                provisionalDiagnosis NVARCHAR(MAX),
-                icd10Codes NVARCHAR(255),
-                treatmentMedical NVARCHAR(MAX),
-                treatmentSurgical NVARCHAR(MAX),
-                treatmentIntensiveCare NVARCHAR(MAX),
-                treatmentInvestigation NVARCHAR(MAX),
-                treatmentNonAllopathic NVARCHAR(MAX),
-                investigationDetails NVARCHAR(MAX),
-                drugRoute NVARCHAR(255),
-                procedureName NVARCHAR(MAX),
-                icd10PcsCodes NVARCHAR(255),
-                otherTreatments NVARCHAR(MAX),
-                isInjury BIT,
-                injuryCause NVARCHAR(MAX),
-                isRta BIT,
-                injuryDate DATE,
-                isReportedToPolice BIT,
-                firNumber NVARCHAR(255),
-                isAlcoholSuspected BIT,
-                isToxicologyConducted BIT,
-                isMaternity BIT,
-                g INT,
-                p INT,
-                l INT,
-                a INT,
-                expectedDeliveryDate DATE,
-                admissionDate DATE,
-                admissionTime NVARCHAR(50),
-                admissionType NVARCHAR(255),
-                expectedStay INT,
-                expectedIcuStay INT,
-                roomCategory NVARCHAR(255),
-                roomNursingDietCost DECIMAL(18, 2),
-                investigationCost DECIMAL(18, 2),
-                icuCost DECIMAL(18, 2),
-                otCost DECIMAL(18, 2),
-                professionalFees DECIMAL(18, 2),
-                medicineCost DECIMAL(18, 2),
-                otherHospitalExpenses DECIMAL(18, 2),
-                packageCharges DECIMAL(18, 2),
-                totalExpectedCost DECIMAL(18, 2),
-                -- Declarations
-                patientDeclarationName NVARCHAR(255),
-                patientDeclarationContact NVARCHAR(50),
-                patientDeclarationEmail NVARCHAR(255),
-                patientDeclarationDate DATE,
-                patientDeclarationTime NVARCHAR(50),
-                hospitalDeclarationDoctorName NVARCHAR(255),
-                hospitalDeclarationDate DATE,
-                hospitalDeclarationTime NVARCHAR(50),
-                attachments NVARCHAR(MAX),
-                created_at DATETIME DEFAULT GETDATE(),
-                CONSTRAINT FK__preauth_request__patient FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE
-            );
         `;
         await request.query(query);
-        return { message: "Pre-Auth Request table re-created successfully.", type: "success" };
+        return { message: "Pre-Auth Request table created successfully.", type: "success" };
     } catch (error) {
         const dbError = error as { message?: string };
         console.error('Error creating Pre-Auth table:', dbError);
@@ -633,6 +628,9 @@ export async function handleCreateMedicalTable(prevState: { message: string, typ
         await poolConnect;
         const request = pool.request();
         const query = `
+            IF OBJECT_ID('FK__medical__preauth', 'F') IS NOT NULL
+                ALTER TABLE medical DROP CONSTRAINT FK__medical__preauth;
+
             IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='medical' AND xtype='U')
             BEGIN
                 CREATE TABLE medical (
@@ -641,12 +639,16 @@ export async function handleCreateMedicalTable(prevState: { message: string, typ
                     complaint_name NVARCHAR(255) NOT NULL,
                     duration_value NVARCHAR(50),
                     duration_unit NVARCHAR(50),
-                    FOREIGN KEY (preauth_id) REFERENCES preauth_request(id) ON DELETE CASCADE
+                    CONSTRAINT FK__medical__preauth FOREIGN KEY (preauth_id) REFERENCES preauth_request(id) ON DELETE CASCADE
                 );
+            END
+            ELSE
+            BEGIN
+                ALTER TABLE medical ADD CONSTRAINT FK__medical__preauth FOREIGN KEY (preauth_id) REFERENCES preauth_request(id) ON DELETE CASCADE;
             END
         `;
         await request.query(query);
-        return { message: "Medical table created successfully or already exists.", type: "success" };
+        return { message: "Medical table created/updated successfully or already exists.", type: "success" };
     } catch (error) {
         const dbError = error as { message?: string };
         console.error('Error creating Medical table:', dbError);
@@ -659,6 +661,9 @@ export async function handleCreateChatTable(prevState: { message: string, type?:
         await poolConnect;
         const request = pool.request();
         const query = `
+             IF OBJECT_ID('FK__chat__preauth', 'F') IS NOT NULL
+                ALTER TABLE chat DROP CONSTRAINT FK__chat__preauth;
+
             IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='chat' AND xtype='U')
             BEGIN
                 CREATE TABLE chat (
@@ -670,12 +675,16 @@ export async function handleCreateChatTable(prevState: { message: string, type?:
                     body NVARCHAR(MAX),
                     request_type NVARCHAR(255),
                     created_at DATETIME DEFAULT GETDATE(),
-                    FOREIGN KEY (preauth_id) REFERENCES preauth_request(id) ON DELETE CASCADE
+                    CONSTRAINT FK__chat__preauth FOREIGN KEY (preauth_id) REFERENCES preauth_request(id) ON DELETE CASCADE
                 );
+            END
+            ELSE
+            BEGIN
+                 ALTER TABLE chat ADD CONSTRAINT FK__chat__preauth FOREIGN KEY (preauth_id) REFERENCES preauth_request(id) ON DELETE CASCADE;
             END
         `;
         await request.query(query);
-        return { message: "Chat table created successfully or already exists.", type: "success" };
+        return { message: "Chat table created/updated successfully or already exists.", type: "success" };
     } catch (error) {
         const dbError = error as { message?: string };
         console.error('Error creating Chat table:', dbError);
