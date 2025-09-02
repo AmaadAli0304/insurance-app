@@ -1,4 +1,3 @@
-
       
 "use server";
 
@@ -752,8 +751,8 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
             @admissionDate, @admissionTime, @admissionType, @expectedStay, @expectedIcuStay, @roomCategory, @roomNursingDietCost,
             @investigationCost, @icuCost, @otCost, @professionalFees, @medicineCost, @otherHospitalExpenses, @packageCharges,
             @totalExpectedCost,
-            @diabetesSince, @hypertensionSince, @heartDiseaseSince, @hyperlipidemiaSince, @osteoarthritisSince, @asthmaCopdSince,
-            @cancerSince, @alcoholDrugAbuseSince, @hivSince, @otherChronicAilment,
+            @diabetesSince, hypertensionSince, heartDiseaseSince, hyperlipidemiaSince, osteoarthritisSince, asthmaCopdSince,
+            @cancerSince, alcoholDrugAbuseSince, hivSince, otherChronicAilment,
             @patientDeclarationName, @patientDeclarationContact, @patientDeclarationEmail, @patientDeclarationDate, @patientDeclarationTime,
             @hospitalDeclarationDoctorName, @hospitalDeclarationDate, @hospitalDeclarationTime, @attachments
           )
@@ -1071,3 +1070,6 @@ export async function getChiefComplaints(patientId: number) {
 
 
 
+
+
+    
