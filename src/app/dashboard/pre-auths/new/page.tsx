@@ -8,13 +8,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleSendEmail } from "../actions";
+import { handleAddRequest, handleSaveDraftRequest } from "../actions";
 import Link from "next/link";
-import { ArrowLeft, Loader2, Download, Send, Check } from "lucide-react";
+import { ArrowLeft, Loader2, Download, Send, Check, Save } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getPatientWithDetailsForForm, getPatientsForPreAuth, getChiefComplaints } from "@/app/dashboard/patients/actions";
+import { getPatientWithDetailsForForm, getPatientsForPreAuth } from "@/app/dashboard/patients/actions";
 import { getHospitalById } from "@/app/dashboard/company-hospitals/actions";
 import type { Patient, Hospital } from "@/lib/types";
 import { format } from "date-fns";
@@ -22,7 +22,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PhoneInput } from "@/components/phone-input";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import dynamic from 'next/dynamic';
@@ -43,13 +43,22 @@ if (typeof window === 'object') {
   htmlToDraft = require('html-to-draftjs').default;
 }
 
-
-function SubmitButton() {
+function SubmitButton({ formAction }: { formAction: (payload: FormData) => void }) {
     const { pending } = useFormStatus();
     return (
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending} formAction={formAction}>
             <Send className="mr-2 h-4 w-4" />
-            {pending ? "Sending..." : "Send Email"}
+            {pending ? "Sending..." : "Save & Send Request"}
+        </Button>
+    );
+}
+
+function SaveDraftButton({ formAction }: { formAction: (payload: FormData) => void }) {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" variant="secondary" disabled={pending} formAction={formAction}>
+             <Save className="mr-2 h-4 w-4" />
+            {pending ? "Saving..." : "Save as Draft"}
         </Button>
     );
 }
@@ -57,7 +66,8 @@ function SubmitButton() {
 
 export default function NewRequestPage() {
     const { user } = useAuth();
-    const [state, formAction] = useActionState(handleSendEmail, { message: "" });
+    const [addState, addAction] = useActionState(handleAddRequest, { message: "" });
+    const [draftState, draftAction] = useActionState(handleSaveDraftRequest, { message: "" });
     const { toast } = useToast();
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -79,7 +89,6 @@ export default function NewRequestPage() {
     const [subject, setSubject] = useState("");
     const [requestType, setRequestType] = useState("pre-auth");
     const [toEmail, setToEmail] = useState("");
-    const [chiefComplaints, setChiefComplaints] = useState<Complaint[]>([]);
 
     useEffect(() => {
         setEmailBody(draftToHtml(convertToRaw(editorState.getCurrentContent())));
@@ -96,15 +105,14 @@ export default function NewRequestPage() {
     ];
 
     const calculateTotalCost = React.useCallback(() => {
-        const form = document.querySelector('form');
-        if (!form) return;
+        if (!pdfFormRef.current) return;
         const costs = [
             'roomNursingDietCost', 'investigationCost', 'icuCost',
             'otCost', 'professionalFees', 'medicineCost', 'otherHospitalExpenses'
         ];
         let sum = 0;
         costs.forEach(id => {
-            const input = form.querySelector(`#${id}`) as HTMLInputElement;
+            const input = pdfFormRef.current?.querySelector(`#${id}`) as HTMLInputElement;
             if (input && input.value) {
                 sum += parseFloat(input.value) || 0;
             }
@@ -156,8 +164,9 @@ export default function NewRequestPage() {
             calculateTotalCost();
         }
     }, [patientDetails, calculateTotalCost]);
-
+    
     useEffect(() => {
+        const state = addState.type === 'initial' ? draftState : addState;
         if (state.type === 'success') {
             toast({
                 title: "Pre-Authorization",
@@ -172,7 +181,7 @@ export default function NewRequestPage() {
                 variant: "destructive"
             });
         }
-    }, [state, toast, router]);
+    }, [addState, draftState, toast, router]);
 
     useEffect(() => {
         if (!user?.hospitalId) return;
@@ -216,8 +225,6 @@ export default function NewRequestPage() {
             try {
                 const details = await getPatientWithDetailsForForm(selectedPatientId);
                 setPatientDetails(details);
-                const complaints = await getChiefComplaints(Number(selectedPatientId));
-                setChiefComplaints(complaints);
                  if (details?.tpaEmail) {
                     setToEmail(details.tpaEmail);
                 }
@@ -277,7 +284,9 @@ export default function NewRequestPage() {
         let newSubject = '';
         let newBodyHtml = '';
 
-        const commonDetails = `
+        if (requestType === 'pre-auth') {
+            newSubject = `Pre-Authorization Request – Claim No. ${claimNo} | ${hospitalName}`;
+            newBodyHtml = `<p>Dear Sir/Madam,</p><p>Greetings from ${hospitalName}.</p><p>Hope this email finds you well.</p><p>We are submitting a pre-authorization request under Claim No. ${claimNo} for your kind consideration and approval. Please find the details below:</p>
             <p><strong>Patient Details</strong></p>
             <ul>
                 <li>Patient Name: ${patientDetails.fullName || '____________________'}</li>
@@ -313,15 +322,52 @@ export default function NewRequestPage() {
             <p>${user?.name || '[Staff Name]'}</p>
             <p>${user?.designation || '[Designation]'}</p>
             <p>${hospitalName}</p>
-            <p>${user?.number || '[Contact No.]'}</p>
-        `;
-
-        if (requestType === 'pre-auth') {
-            newSubject = `Pre-Authorization Request – Claim No. ${claimNo} | ${hospitalName}`;
-            newBodyHtml = `<p>Dear Sir/Madam,</p><p>Greetings from ${hospitalName}.</p><p>Hope this email finds you well.</p><p>We are submitting a pre-authorization request under Claim No. ${claimNo} for your kind consideration and approval. Please find the details below:</p>${commonDetails}`;
+            <p>${user?.number || '[Contact No.]'}</p>`;
         } else if (requestType === 'surgical') {
              newSubject = `Surgical Pre-Authorization Request – Claim No. ${claimNo} | ${hospitalName}`;
-             newBodyHtml = `<p>Dear Sir/Madam,</p><p>Greetings from ${hospitalName}.</p><p>This is a request for surgical pre-authorization for Claim No. ${claimNo}. Please find the details below:</p>${commonDetails}`;
+             newBodyHtml = `<p>Dear Sir/Madam,</p><p>Greetings from ${hospitalName}.</p><p>Hope this email finds you well.</p><p>We are submitting a surgical pre-authorization request under Claim No. ${claimNo} for your kind consideration and approval. Please find the details below:</p>
+            <p><strong>Patient Details</strong></p>
+            <ul>
+                <li>Patient Name: ${patientDetails.fullName || '____________________'}</li>
+                <li>Patient ID / Insurance No.: ${patientDetails.memberId || '____________________'}</li>
+                <li>Date of Admission: ${patientDetails.admissionDate ? formatDateForInput(patientDetails.admissionDate) : '____________________'}</li>
+                <li>Time of Admission: ${patientDetails.admissionTime || '____________________'}</li>
+                <li>Admitting Consultant / Surgeon: ${patientDetails.treat_doc_name || '____________________'}</li>
+                <li>Diagnosis: ${patientDetails.provisionalDiagnosis || '____________________'}</li>
+                <li>Proposed Surgery / Procedure: ${patientDetails.procedureName || '____________________'}</li>
+                <li>Scheduled Date & Time of Surgery: ____________________</li>
+                <li>Room Category / Class: ${patientDetails.roomCategory || '____________________'}</li>
+                <li>Estimated Length of Stay: ${patientDetails.expectedStay ? `${patientDetails.expectedStay} days` : '____________________'}</li>
+            </ul>
+            <p><strong>Estimated Financials</strong></p>
+            <ul>
+                <li>Estimated Cost of Surgery & Hospitalization: ₹${totalCost.toLocaleString() || '__________________'}</li>
+                <li>In Words: ____________________</li>
+            </ul>
+            <p>Breakup of Estimated Charges:</p>
+            <ul>
+                <li>Room & Nursing Charges: ${patientDetails.roomNursingDietCost || '____________________'}</li>
+                <li>Surgeon Fees: ${patientDetails.professionalFees || '____________________'}</li>
+                <li>Assistant Surgeon Fees: ____________________</li>
+                <li>Anesthetist Fees: ____________________</li>
+                <li>Operation Theatre Charges: ${patientDetails.otCost || '____________________'}</li>
+                <li>Implants / Prosthesis (if applicable): ____________________</li>
+                <li>Medicines & Consumables: ${patientDetails.medicineCost || '____________________'}</li>
+                <li>Investigations & Diagnostics: ${patientDetails.investigationCost || '____________________'}</li>
+                <li>Blood & Transfusion Charges: ____________________</li>
+                <li>Post-Operative Care Charges: ____________________</li>
+                <li>Any Other (Specify): ____________________</li>
+            </ul>
+            <p>We request you to kindly process this surgical pre-authorization request at the earliest to ensure timely surgical intervention for the patient.</p>
+            <p>Please find attached all supporting medical documents, investigation reports, and consent forms for your review.</p>
+            <p>Thank you for your prompt attention and support.</p>
+            <br/>
+            <p>Warm Regards,</p>
+            <br/>
+            <p>${user?.name || '[Staff Name]'}</p>
+            <p>${user?.designation || '[Designation]'}</p>
+            <p>${hospitalName}</p>
+            <p>${user?.number || '[Contact No.]'}</p>`;
         }
 
         setSubject(newSubject);
@@ -347,11 +393,14 @@ export default function NewRequestPage() {
                 </Button>
                 <h1 className="text-lg font-semibold md:text-2xl">New Pre-Authorization</h1>
             </div>
-            <form action={formAction}>
+            <form>
                  <input type="hidden" name="patientId" value={selectedPatientId || ''} />
                  <input type="hidden" name="hospitalId" value={user?.hospitalId || ''} />
                  <input type="hidden" name="from" value={hospitalDetails?.email || user?.email || ''} />
                  <input type="hidden" name="details" value={emailBody} />
+                 <input type="hidden" name="requestType" value={requestType} />
+                 <input type="hidden" name="totalExpectedCost" value={totalCost} />
+
                 <div className="grid gap-6">
                     <Card>
                         <CardHeader>
@@ -724,7 +773,7 @@ export default function NewRequestPage() {
                                     </AccordionTrigger>
                                 </CardHeader>
                                 <AccordionContent>
-                                     <CardContent className="grid md:grid-cols-3 gap-4" onChange={calculateTotalCost}>
+                                     <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={calculateTotalCost}>
                                         <div className="space-y-2">
                                             <Label htmlFor="admissionDate">Admission date</Label>
                                             <Input id="admissionDate" name="admissionDate" type="date" defaultValue={formatDateForInput(patientDetails.admissionDate)} />
@@ -792,14 +841,14 @@ export default function NewRequestPage() {
                                         </div>
                                          <div className="space-y-2 md:col-span-3">
                                             <Label htmlFor="totalExpectedCost">Total expected cost (₹)</Label>
-                                            <Input id="totalExpectedCost" name="totalExpectedCost" type="number" value={totalCost} readOnly className="font-bold text-lg" />
+                                            <Input id="totalExpectedCost" name="totalExpectedCost-display" type="number" value={totalCost} readOnly className="font-bold text-lg" />
                                         </div>
                                     </CardContent>
                                 </AccordionContent>
                             </AccordionItem>
                              </Card>
                              
-                            <PreAuthMedicalHistory initialData={chiefComplaints} />
+                            <PreAuthMedicalHistory initialData={patientDetails.complaints} />
                              
                               <Card>
                              <AccordionItem value="declarations-info">
@@ -916,12 +965,13 @@ export default function NewRequestPage() {
                     </Card>
 
                      <div className="flex justify-end gap-4">
-                        {state.type === 'error' && <p className="text-sm text-destructive self-center">{state.message}</p>}
+                        {(addState.type === 'error' || draftState.type === 'error') && <p className="text-sm text-destructive self-center">{addState.message || draftState.message}</p>}
                         <Button type="button" variant="outline" onClick={handleDownloadPdf}>
                            <Download className="mr-2 h-4 w-4" />
                            Download as PDF
                         </Button>
-                        <SubmitButton />
+                        <SaveDraftButton formAction={draftAction} />
+                        <SubmitButton formAction={addAction} />
                      </div>
                 </div>
             </form>
