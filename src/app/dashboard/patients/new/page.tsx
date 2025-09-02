@@ -117,6 +117,10 @@ export default function NewPatientPage() {
     const [totalCost, setTotalCost] = useState(0);
     const [doctorContact, setDoctorContact] = useState('');
 
+    const [sumInsured, setSumInsured] = useState<number | string>('');
+    const [sumUtilized, setSumUtilized] = useState<number | string>('');
+    const [totalSum, setTotalSum] = useState<number | string>('');
+
     const handleDoctorSelect = (doctor: Doctor | null) => {
         if (doctor) {
             setDoctorContact(doctor.phone ?? '');
@@ -221,6 +225,19 @@ export default function NewPatientPage() {
     const handleDocumentUploadComplete = (fieldName: string, name: string, url: string) => {
         setDocumentUrls(prev => ({ ...prev, [fieldName]: { url, name } }));
     };
+
+    useEffect(() => {
+        const insured = typeof sumInsured === 'string' ? parseFloat(sumInsured) : sumInsured;
+        const utilized = typeof sumUtilized === 'string' ? parseFloat(sumUtilized) : sumUtilized;
+        
+        if (!isNaN(insured) && !isNaN(utilized)) {
+            setTotalSum(insured - utilized);
+        } else if (!isNaN(insured)) {
+            setTotalSum(insured);
+        } else {
+            setTotalSum('');
+        }
+    }, [sumInsured, sumUtilized]);
 
     const today = new Date().toISOString().split('T')[0];
 
@@ -428,15 +445,15 @@ export default function NewPatientPage() {
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="sumInsured">Sum Insured</Label>
-                                        <Input id="sumInsured" name="sumInsured" type="number" />
+                                        <Input id="sumInsured" name="sumInsured" type="number" value={sumInsured} onChange={(e) => setSumInsured(e.target.value)} />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="sumUtilized">Sum Utilized</Label>
-                                        <Input id="sumUtilized" name="sumUtilized" type="number" />
+                                        <Input id="sumUtilized" name="sumUtilized" type="number" value={sumUtilized} onChange={(e) => setSumUtilized(e.target.value)} />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="totalSum">Total Sum</Label>
-                                        <Input id="totalSum" name="totalSum" type="number" />
+                                        <Input id="totalSum" name="totalSum" type="number" value={totalSum} readOnly />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="corporate_policy_number">Corporate policy name/number</Label>
@@ -787,4 +804,3 @@ export default function NewPatientPage() {
         </div>
     );
 }
-    
