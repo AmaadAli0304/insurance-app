@@ -42,33 +42,37 @@ const FileUploadField = React.memo(({ label, name, onUploadComplete, initialData
     const [fileName, setFileName] = useState<string | null>(initialData?.name || null);
     const { toast } = useToast();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const uploadCancelledRef = useRef(false);
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
             setIsUploading(true);
+            uploadCancelledRef.current = false;
             const formData = new FormData();
             formData.append('file', file);
             formData.append('fileType', name);
             
             const result = await handleUploadPatientFile(formData);
 
-            // Check if still uploading (i.e., not cancelled)
-            if (fileInputRef.current) {
-                if (result.type === 'success' && result.url) {
-                    setFileUrl(result.url);
-                    setFileName(result.name);
-                    onUploadComplete(name, result.name, result.url);
-                    toast({ title: "Success", description: `${label} uploaded.`, variant: "success" });
-                } else if(result.type === 'error') {
-                    toast({ title: "Error", description: result.message, variant: "destructive" });
-                }
-                setIsUploading(false);
+            if (uploadCancelledRef.current) {
+                return;
             }
+
+            if (result.type === 'success' && result.url) {
+                setFileUrl(result.url);
+                setFileName(result.name);
+                onUploadComplete(name, result.name, result.url);
+                toast({ title: "Success", description: `${label} uploaded.`, variant: "success" });
+            } else if(result.type === 'error') {
+                toast({ title: "Error", description: result.message, variant: "destructive" });
+            }
+            setIsUploading(false);
         }
     };
     
     const handleCancelUpload = () => {
+        uploadCancelledRef.current = true;
         setIsUploading(false);
         if (fileInputRef.current) {
             fileInputRef.current.value = ""; // Reset file input
@@ -125,9 +129,30 @@ export default function EditPatientPage() {
     const [photoName, setPhotoName] = useState<string | null>(null);
     const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
     const photoInputRef = useRef<HTMLInputElement>(null);
+    const photoUploadCancelledRef = useRef(false);
 
     const [documentUrls, setDocumentUrls] = useState<Record<string, { url: string, name: string }>>({});
     const [totalCost, setTotalCost] = useState(0);
+
+    const [doctorContact, setDoctorContact] = useState('');
+
+    const [sumInsured, setSumInsured] = useState<number | string>('');
+    const [sumUtilized, setSumUtilized] = useState<number | string>('');
+    const [totalSum, setTotalSum] = useState<number | string>('');
+
+    const handleDoctorSelect = (doctor: Doctor | null) => {
+        if (doctor) {
+            setDoctorContact(doctor.phone ?? '');
+            const form = document.querySelector('form');
+            if(form) {
+                (form.querySelector<HTMLInputElement>('input[name="treat_doc_qualification"]'))!.value = doctor.qualification || '';
+                (form.querySelector<HTMLInputElement>('input[name="treat_doc_reg_no"]'))!.value = doctor.reg_no || '';
+            }
+        } else {
+            setDoctorContact('');
+        }
+    };
+
 
     const roomCategories = [
         "ICU", "General", "Deluxe", "MICU", "SICU", "Super Deluxe", "ICCU", "Male", 
@@ -180,6 +205,11 @@ export default function EditPatientPage() {
                 setTpas(tpas);
                 setDoctors(doctors);
                 setChiefComplaints(complaints);
+                setDoctorContact(patientData.treat_doc_number ?? '');
+
+                setSumInsured(patientData.sumInsured ?? '');
+                setSumUtilized(patientData.sumUtilized ?? '');
+                setTotalSum(patientData.totalSum ?? '');
 
                 if (patientData.photo && typeof patientData.photo === 'object') {
                     setPhotoUrl(patientData.photo.url);
@@ -215,6 +245,19 @@ export default function EditPatientPage() {
         }
     }, [state, toast, router]);
 
+    useEffect(() => {
+        const insured = typeof sumInsured === 'string' ? parseFloat(sumInsured) : sumInsured;
+        const utilized = typeof sumUtilized === 'string' ? parseFloat(sumUtilized) : sumUtilized;
+        
+        if (!isNaN(insured) && !isNaN(utilized)) {
+            setTotalSum(insured - utilized);
+        } else if (!isNaN(insured)) {
+            setTotalSum(insured);
+        } else {
+            setTotalSum('');
+        }
+    }, [sumInsured, sumUtilized]);
+
 
     if (isLoading) {
         return (
@@ -232,12 +275,15 @@ export default function EditPatientPage() {
         const file = event.target.files?.[0];
         if (file) {
             setIsUploadingPhoto(true);
+            photoUploadCancelledRef.current = false;
             const formData = new FormData();
             formData.append('file', file);
             formData.append('fileType', 'photo');
             const result = await handleUploadPatientFile(formData);
 
-            if (photoInputRef.current) { // Check if not cancelled
+            if (photoUploadCancelledRef.current) {
+                return;
+            }
                 if (result.type === 'success' && result.url) {
                     setPhotoUrl(result.url);
                     setPhotoName(result.name);
@@ -246,11 +292,12 @@ export default function EditPatientPage() {
                     toast({ title: "Error", description: result.message, variant: "destructive" });
                 }
                 setIsUploadingPhoto(false);
-            }
+            
         }
     };
 
     const handleCancelPhotoUpload = () => {
+        photoUploadCancelledRef.current = true;
         setIsUploadingPhoto(false);
         if (photoInputRef.current) {
             photoInputRef.current.value = "";
@@ -469,15 +516,15 @@ export default function EditPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="sumInsured">Sum Insured</Label>
-                                            <Input id="sumInsured" name="sumInsured" type="number" defaultValue={patient.sumInsured ?? ''} />
+                                            <Input id="sumInsured" name="sumInsured" type="number" value={sumInsured} onChange={(e) => setSumInsured(e.target.value)} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="sumUtilized">Sum Utilized</Label>
-                                            <Input id="sumUtilized" name="sumUtilized" type="number" defaultValue={patient.sumUtilized ?? ''} />
+                                            <Input id="sumUtilized" name="sumUtilized" type="number" value={sumUtilized} onChange={(e) => setSumUtilized(e.target.value)} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="totalSum">Total Sum</Label>
-                                            <Input id="totalSum" name="totalSum" type="number" defaultValue={patient.totalSum ?? ''} />
+                                            <Input id="totalSum" name="totalSum" type="number" value={totalSum} readOnly />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="corporate_policy_number">Corporate policy name/number</Label>
@@ -519,11 +566,12 @@ export default function EditPatientPage() {
                                             <DoctorSearch
                                                 doctors={doctors}
                                                 defaultDoctorId={patient.doctor_id ?? undefined}
+                                                onDoctorSelect={handleDoctorSelect}
                                             />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_number">Treating doctor’s contact <span className="text-destructive">*</span></Label>
-                                            <PhoneInput id="treat_doc_number" name="treat_doc_number" defaultValue={patient.treat_doc_number ?? ''} required />
+                                            <PhoneInput id="treat_doc_number" name="treat_doc_number" defaultValue={doctorContact} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_qualification">Doctor’s qualification <span className="text-destructive">*</span></Label>

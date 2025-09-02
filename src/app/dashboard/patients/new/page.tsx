@@ -41,31 +41,36 @@ const FileUploadField = React.memo(({ label, name, onUploadComplete }: { label: 
     const [fileUrl, setFileUrl] = useState<string | null>(null);
     const { toast } = useToast();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const uploadCancelledRef = useRef(false);
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
             setIsUploading(true);
+            uploadCancelledRef.current = false;
             const formData = new FormData();
             formData.append('file', file);
             formData.append('fileType', name); // e.g. 'adhaar_path'
             
             const result = await handleUploadPatientFile(formData);
-
-            if (fileInputRef.current) { // Check if not cancelled
-                if (result.type === 'success' && result.url) {
-                    setFileUrl(result.url);
-                    onUploadComplete(name, result.name, result.url);
-                    toast({ title: "Success", description: `${label} uploaded.`, variant: "success" });
-                } else if(result.type === 'error') {
-                    toast({ title: "Error", description: result.message, variant: "destructive" });
-                }
-                setIsUploading(false);
+            
+            if (uploadCancelledRef.current) {
+                return;
             }
+
+            if (result.type === 'success' && result.url) {
+                setFileUrl(result.url);
+                onUploadComplete(name, result.name, result.url);
+                toast({ title: "Success", description: `${label} uploaded.`, variant: "success" });
+            } else if(result.type === 'error') {
+                toast({ title: "Error", description: result.message, variant: "destructive" });
+            }
+            setIsUploading(false);
         }
     };
     
     const handleCancelUpload = () => {
+        uploadCancelledRef.current = true;
         setIsUploading(false);
         if (fileInputRef.current) {
             fileInputRef.current.value = ""; // Reset file input
@@ -113,6 +118,7 @@ export default function NewPatientPage() {
     const [photoName, setPhotoName] = useState<string | null>(null);
     const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
     const photoInputRef = useRef<HTMLInputElement>(null);
+    const photoUploadCancelledRef = useRef(false);
     const [documentUrls, setDocumentUrls] = useState<Record<string, { url: string, name: string }>>({});
     const [totalCost, setTotalCost] = useState(0);
     const [doctorContact, setDoctorContact] = useState('');
@@ -196,25 +202,28 @@ export default function NewPatientPage() {
         const file = event.target.files?.[0];
         if (file) {
             setIsUploadingPhoto(true);
+            photoUploadCancelledRef.current = false;
             const formData = new FormData();
             formData.append('file', file);
             formData.append('fileType', 'photo');
             const result = await handleUploadPatientFile(formData);
 
-            if (photoInputRef.current) { // Check if not cancelled
-                if (result.type === 'success' && result.url) {
-                    setPhotoUrl(result.url);
-                    setPhotoName(result.name)
-                    toast({ title: "Success", description: "Photo uploaded.", variant: "success" });
-                } else if(result.type === 'error') {
-                    toast({ title: "Error", description: result.message, variant: "destructive" });
-                }
-                setIsUploadingPhoto(false);
+            if (photoUploadCancelledRef.current) {
+                return;
             }
+            if (result.type === 'success' && result.url) {
+                setPhotoUrl(result.url);
+                setPhotoName(result.name)
+                toast({ title: "Success", description: "Photo uploaded.", variant: "success" });
+            } else if(result.type === 'error') {
+                toast({ title: "Error", description: result.message, variant: "destructive" });
+            }
+            setIsUploadingPhoto(false);
         }
     };
     
      const handleCancelPhotoUpload = () => {
+        photoUploadCancelledRef.current = true;
         setIsUploadingPhoto(false);
         if (photoInputRef.current) {
             photoInputRef.current.value = "";
@@ -496,7 +505,7 @@ export default function NewPatientPage() {
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="treat_doc_number">Treating doctor’s contact <span className="text-destructive">*</span></Label>
-                                        <PhoneInput id="treat_doc_number" name="treat_doc_number" defaultValue={doctorContact} required />
+                                        <PhoneInput id="treat_doc_number" name="treat_doc_number" value={doctorContact} onChange={(e) => setDoctorContact(e.target.value)} required />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="treat_doc_qualification">Doctor’s qualification <span className="text-destructive">*</span></Label>
