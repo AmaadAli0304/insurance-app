@@ -24,6 +24,7 @@ import { IctCodeSearch } from "@/components/ict-code-search";
 import { ChiefComplaintForm } from "@/components/chief-complaint-form";
 import { PhoneInput } from "@/components/phone-input";
 import { DoctorSearch } from "@/components/doctor-search";
+import { PreAuthMedicalHistory } from "@/components/pre-auths/preauth-medical-history";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -309,12 +310,12 @@ export default function NewPatientPage() {
                             </AccordionTrigger>
                             <AccordionContent>
                                 <CardContent className="grid md:grid-cols-2 gap-4">
-                                    <FileUploadField label="Aadhaar Card" name="adhaar_path" onUploadComplete={(name, url) => handleDocumentUploadComplete("adhaar_path", name, url)} />
-                                    <FileUploadField label="PAN Card" name="pan_path" onUploadComplete={(name, url) => handleDocumentUploadComplete("pan_path", name, url)} />
-                                    <FileUploadField label="Passport" name="passport_path" onUploadComplete={(name, url) => handleDocumentUploadComplete("passport_path", name, url)} />
-                                    <FileUploadField label="Driving License" name="driving_licence_path" onUploadComplete={(name, url) => handleDocumentUploadComplete("driving_licence_path", name, url)} />
-                                    <FileUploadField label="Voter ID" name="voter_id_path" onUploadComplete={(name, url) => handleDocumentUploadComplete("voter_id_path", name, url)} />
-                                    <FileUploadField label="Other Document" name="other_path" onUploadComplete={(name, url) => handleDocumentUploadComplete("other_path", name, url)} />
+                                    <FileUploadField label="Aadhaar Card" name="adhaar_path" onUploadComplete={handleDocumentUploadComplete} />
+                                    <FileUploadField label="PAN Card" name="pan_path" onUploadComplete={handleDocumentUploadComplete} />
+                                    <FileUploadField label="Passport" name="passport_path" onUploadComplete={handleDocumentUploadComplete} />
+                                    <FileUploadField label="Driving License" name="driving_licence_path" onUploadComplete={handleDocumentUploadComplete} />
+                                    <FileUploadField label="Voter ID" name="voter_id_path" onUploadComplete={handleDocumentUploadComplete} />
+                                    <FileUploadField label="Other Document" name="other_path" onUploadComplete={handleDocumentUploadComplete} />
                                 </CardContent>
                             </AccordionContent>
                         </AccordionItem>
@@ -581,13 +582,13 @@ export default function NewPatientPage() {
                         </AccordionItem>
                     </Card>
 
-                        <Card>
+                    <Card>
                         <AccordionItem value="cost-info">
                             <AccordionTrigger className="p-6">
                                 <CardTitle>G. Admission &amp; Cost Estimate <span className="text-destructive">*</span></CardTitle>
                             </AccordionTrigger>
                             <AccordionContent>
-                                    <CardContent className="grid md:grid-cols-3 gap-4" onBlur={calculateTotalCost}>
+                                    <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={calculateTotalCost}>
                                     <div className="space-y-2">
                                         <Label htmlFor="admissionDate">Admission date <span className="text-destructive">*</span></Label>
                                         <Input id="admissionDate" name="admissionDate" type="date" required />
@@ -660,11 +661,11 @@ export default function NewPatientPage() {
                                 </CardContent>
                             </AccordionContent>
                         </AccordionItem>
-                        </Card>
+                    </Card>
                         
-                        <ChiefComplaintForm />
+                    <ChiefComplaintForm />
                         
-                        <Card>
+                    <Card>
                         <AccordionItem value="declarations-info">
                             <AccordionTrigger className="p-6">
                                 <CardTitle>I. Declarations &amp; Attachments <span className="text-destructive">*</span></CardTitle>
@@ -721,7 +722,7 @@ export default function NewPatientPage() {
                                 </CardContent>
                             </AccordionContent>
                         </AccordionItem>
-                        </Card>
+                    </Card>
                     </Accordion>
 
 
