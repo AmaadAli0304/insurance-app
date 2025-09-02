@@ -500,7 +500,6 @@ export async function handleCreatePreAuthTable(prevState: { message: string, typ
         const query = `
             IF OBJECT_ID('preauth', 'U') IS NOT NULL
             BEGIN
-              -- Drop constraints if they exist
               IF OBJECT_ID('FK_preauth_patient', 'F') IS NOT NULL
                   ALTER TABLE preauth DROP CONSTRAINT FK_preauth_patient;
               
@@ -551,6 +550,7 @@ export async function handleCreatePreAuthTable(prevState: { message: string, typ
                 payer_phone NVARCHAR(50),
                 tpa_id INT,
                 hospital_id NVARCHAR(255),
+                hospital_name NVARCHAR(255),
                 doctor_id INT,
                 treat_doc_name NVARCHAR(255),
                 treat_doc_number NVARCHAR(50),

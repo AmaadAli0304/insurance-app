@@ -422,6 +422,10 @@ export default function NewRequestPage() {
                                     <Label htmlFor="insured_card_number">Insured member / card ID number <span className="text-destructive">*</span></Label>
                                     <Input id="insured_card_number" name="insured_card_number" defaultValue={patientDetails.memberId ?? ''} required />
                                 </div>
+                                 <div className="space-y-2">
+                                    <Label htmlFor="hospitalName">Hospital Name</Label>
+                                    <Input id="hospitalName" name="hospitalName" defaultValue={hospitalDetails?.name ?? ''} readOnly />
+                                </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="companyName">Insurance Company</Label>
                                     <Input id="companyName" name="companyName" defaultValue={patientDetails.companyName ?? ''} readOnly />
@@ -852,4 +856,3 @@ export default function NewRequestPage() {
         </div>
     );
 }
-

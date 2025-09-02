@@ -114,6 +114,7 @@ export async function handleAddRequest(prevState: { message: string, type?:strin
     family_doctor_phone: formData.get("family_doctor_phone") as string,
     payer_email: formData.get("payer_email") as string,
     payer_phone: formData.get("payer_phone") as string,
+    hospitalName: formData.get("hospitalName") as string,
 
     // Treatment details
     treat_doc_name: formData.get("treat_doc_name") as string,

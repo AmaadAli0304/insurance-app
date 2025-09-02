@@ -214,6 +214,8 @@ export interface StaffingRequest {
   
   // Patient and admission details snapshot
   fullName?: string;
+  firstName?: string;
+  lastName?: string;
   dateOfBirth?: string | null;
   gender?: 'Male' | 'Female' | 'Other' | null;
   email_address?: string;
@@ -240,6 +242,7 @@ export interface StaffingRequest {
   family_doctor_phone?: string;
   payer_email?: string;
   payer_phone?: string;
+  hospitalName?: string;
   doctor_id?: number;
   treat_doc_name?: string;
   treat_doc_number?: string;
