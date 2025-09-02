@@ -397,7 +397,7 @@ export default function NewRequestPage() {
                         
                         <Card>
                             <CardHeader>
-                                <CardTitle>B. Insurance &amp; Admission Details</CardTitle>
+                                <CardTitle>B. Insurance & Admission Details</CardTitle>
                             </CardHeader>
                             <CardContent className="grid md:grid-cols-3 gap-4">
                                 <div className="space-y-2">
@@ -802,6 +802,19 @@ export default function NewRequestPage() {
                              <CardDescription>Draft the email to the insurance provider.</CardDescription>
                         </CardHeader>
                          <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <Label>Request Type</Label>
+                                <RadioGroup defaultValue="pre-auth" name="requestType">
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="surgical" id="r1" />
+                                        <Label htmlFor="r1">Surgical Pre-Authorization Request</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="pre-auth" id="r2" />
+                                        <Label htmlFor="r2">Pre-Authorization Request</Label>
+                                    </div>
+                                </RadioGroup>
+                            </div>
                             <div className="grid md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="to">To <span className="text-destructive">*</span></Label>
@@ -827,19 +840,6 @@ export default function NewRequestPage() {
                                   toolbarClassName="border-b border-input"
                                 />
                             </div>
-                            <div className="space-y-2">
-                                <Label>Request Type</Label>
-                                <RadioGroup defaultValue="pre-auth" name="requestType">
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="surgical" id="r1" />
-                                        <Label htmlFor="r1">Surgical Pre-Authorization Request</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="pre-auth" id="r2" />
-                                        <Label htmlFor="r2">Pre-Authorization Request</Label>
-                                    </div>
-                                </RadioGroup>
-                            </div>
                         </CardContent>
                     </Card>
 
@@ -856,5 +856,3 @@ export default function NewRequestPage() {
         </div>
     );
 }
-
-    
