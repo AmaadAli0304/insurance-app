@@ -41,41 +41,41 @@ const FileUploadField = React.memo(({ label, name, onUploadComplete }: { label: 
     const [fileUrl, setFileUrl] = useState<string | null>(null);
     const { toast } = useToast();
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const uploadCancelledRef = useRef(false);
+
+    const getFileAsDataURL = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = (error) => reject(error);
+            reader.readAsDataURL(file);
+        });
+    };
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
             setIsUploading(true);
-            uploadCancelledRef.current = false;
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('fileType', name); // e.g. 'adhaar_path'
-            
-            const result = await handleUploadPatientFile(formData);
-            
-            if (uploadCancelledRef.current) {
-                return;
-            }
+            try {
+                const dataUrl = await getFileAsDataURL(file);
+                const formData = new FormData();
+                formData.append('dataUrl', dataUrl);
+                formData.append('fileName', file.name);
 
-            if (result.type === 'success' && result.url) {
-                setFileUrl(result.url);
-                onUploadComplete(name, result.name, result.url);
-                toast({ title: "Success", description: `${label} uploaded.`, variant: "success" });
-            } else if(result.type === 'error') {
-                toast({ title: "Error", description: result.message, variant: "destructive" });
+                const result = await handleUploadPatientFile(formData);
+
+                if (result.type === 'success' && result.url) {
+                    setFileUrl(result.url);
+                    onUploadComplete(name, result.name, result.url);
+                    toast({ title: "Success", description: `${label} uploaded.`, variant: "success" });
+                } else if(result.type === 'error') {
+                    toast({ title: "Error", description: result.message, variant: "destructive" });
+                }
+            } catch (error) {
+                 toast({ title: "Error", description: `File processing failed: ${(error as Error).message}`, variant: "destructive" });
+            } finally {
+                setIsUploading(false);
             }
-            setIsUploading(false);
         }
-    };
-    
-    const handleCancelUpload = () => {
-        uploadCancelledRef.current = true;
-        setIsUploading(false);
-        if (fileInputRef.current) {
-            fileInputRef.current.value = ""; // Reset file input
-        }
-        toast({ title: "Cancelled", description: "File upload has been cancelled.", variant: "default" });
     };
 
     return (
@@ -83,14 +83,7 @@ const FileUploadField = React.memo(({ label, name, onUploadComplete }: { label: 
             <Label htmlFor={name}>{label}</Label>
             <div className="flex items-center gap-2">
                 <Input ref={fileInputRef} id={name} name={`${name}-file`} type="file" onChange={handleFileChange} disabled={isUploading} className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
-                {isUploading && (
-                     <div className="flex items-center gap-2">
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                        <Button variant="ghost" size="icon" onClick={handleCancelUpload}>
-                            <XCircle className="h-5 w-5 text-destructive" />
-                        </Button>
-                    </div>
-                )}
+                {isUploading && <Loader2 className="h-5 w-5 animate-spin" />}
                 {fileUrl && !isUploading && (
                      <Button variant="outline" size="icon" asChild>
                         <Link href={fileUrl} target="_blank">
@@ -118,7 +111,6 @@ export default function NewPatientPage() {
     const [photoName, setPhotoName] = useState<string | null>(null);
     const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
     const photoInputRef = useRef<HTMLInputElement>(null);
-    const photoUploadCancelledRef = useRef(false);
     const [documentUrls, setDocumentUrls] = useState<Record<string, { url: string, name: string }>>({});
     const [totalCost, setTotalCost] = useState(0);
     const [doctorContact, setDoctorContact] = useState('');
@@ -202,33 +194,33 @@ export default function NewPatientPage() {
         const file = event.target.files?.[0];
         if (file) {
             setIsUploadingPhoto(true);
-            photoUploadCancelledRef.current = false;
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('fileType', 'photo');
-            const result = await handleUploadPatientFile(formData);
+            try {
+                const dataUrl = await new Promise<string>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result as string);
+                    reader.onerror = (error) => reject(error);
+                    reader.readAsDataURL(file);
+                });
 
-            if (photoUploadCancelledRef.current) {
-                return;
+                const formData = new FormData();
+                formData.append('dataUrl', dataUrl);
+                formData.append('fileName', file.name);
+
+                const result = await handleUploadPatientFile(formData);
+
+                if (result.type === 'success' && result.url) {
+                    setPhotoUrl(result.url);
+                    setPhotoName(result.name)
+                    toast({ title: "Success", description: "Photo uploaded.", variant: "success" });
+                } else if(result.type === 'error') {
+                    toast({ title: "Error", description: result.message, variant: "destructive" });
+                }
+            } catch (error) {
+                toast({ title: "Error", description: `File processing failed: ${(error as Error).message}`, variant: "destructive" });
+            } finally {
+                setIsUploadingPhoto(false);
             }
-            if (result.type === 'success' && result.url) {
-                setPhotoUrl(result.url);
-                setPhotoName(result.name)
-                toast({ title: "Success", description: "Photo uploaded.", variant: "success" });
-            } else if(result.type === 'error') {
-                toast({ title: "Error", description: result.message, variant: "destructive" });
-            }
-            setIsUploadingPhoto(false);
         }
-    };
-    
-     const handleCancelPhotoUpload = () => {
-        photoUploadCancelledRef.current = true;
-        setIsUploadingPhoto(false);
-        if (photoInputRef.current) {
-            photoInputRef.current.value = "";
-        }
-        toast({ title: "Cancelled", description: "Photo upload has been cancelled.", variant: "default" });
     };
 
     const handleDocumentUploadComplete = (fieldName: string, name: string, url: string) => {
@@ -292,11 +284,6 @@ export default function NewPatientPage() {
                                 <Upload className="mr-2 h-4 w-4" />
                                 {isUploadingPhoto ? 'Uploading...' : 'Upload Photo'}
                             </Button>
-                            {isUploadingPhoto && (
-                                <Button type="button" variant="ghost" size="icon" onClick={handleCancelPhotoUpload}>
-                                    <XCircle className="h-6 w-6 text-destructive" />
-                                </Button>
-                            )}
                         </div>
                         <Input 
                             ref={photoInputRef}

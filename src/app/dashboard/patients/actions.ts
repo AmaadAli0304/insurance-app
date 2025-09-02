@@ -70,6 +70,7 @@ const basePatientFormSchema = z.object({
   treat_doc_number: z.string().optional().nullable(),
   treat_doc_qualification: z.string().optional().nullable(),
   treat_doc_reg_no: z.string().optional().nullable(),
+  doctor_id: z.coerce.number().optional().nullable(),
 
   // C. Clinical Information
   natureOfIllness: z.string().optional().nullable(),
@@ -86,7 +87,7 @@ const basePatientFormSchema = z.object({
   treatmentNonAllopathic: z.string().optional().nullable(),
   investigationDetails: z.string().optional().nullable(),
   drugRoute: z.string().optional().nullable(),
-  procedureName: z.string().optional().nullable(),
+  procedureName: zstring().optional().nullable(),
   icd10PcsCodes: z.string().optional().nullable(),
   otherTreatments: z.string().optional().nullable(),
 
@@ -269,6 +270,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
           p.other_path,
           a.id as admission_db_id,
           a.patient_id,
+          a.doctor_id,
           a.admission_id,
           a.relationship_policyholder,
           a.policy_number,
@@ -410,6 +412,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
         payer_email: record.payer_email,
         payer_phone: record.payer_phone,
         tpa_id: record.tpa_id,
+        doctor_id: record.doctor_id,
         treat_doc_name: record.treat_doc_name,
         treat_doc_number: record.treat_doc_number,
         treat_doc_qualification: record.treat_doc_qualification,
@@ -513,11 +516,12 @@ export async function getNewPatientPageData() {
         type TpasType = Pick<TPA, 'id' | 'name'>[];
         type DoctorsType = Doctor[];
 
-        return {
+        const typedData = {
             companies: companiesResult.recordset as CompaniesType,
             tpas: tpasResult.recordset.map(r => ({ ...r, id: r.id.toString() })) as TpasType,
             doctors: doctorsResult.recordset as DoctorsType,
         };
+        return typedData;
     } catch (error) {
         console.error("Error fetching data for new patient page:", error);
         throw new Error("Failed to fetch data for new patient page.");
@@ -588,24 +592,19 @@ export async function getPatientWithDetailsForForm(patientId: string): Promise<P
 }
 
 export async function handleUploadPatientFile(formData: FormData): Promise<{ type: 'success', url: string, name: string } | { type: 'error', message: string }> {
-    const file = formData.get("file") as File | null;
+    const dataUrl = formData.get("dataUrl") as string | null;
+    const fileName = formData.get("fileName") as string | null;
     
-    if (!file || file.size === 0) {
-        return { type: 'error', message: 'No file provided.' };
+    if (!dataUrl || !fileName) {
+        return { type: 'error', message: 'No file data provided.' };
     }
     
+    // In a real scenario, you would upload the dataUrl (or the file buffer) to S3
+    // and return the S3 URL. For this placeholder, we just return the dataUrl back.
     try {
-        const getFileAsDataURL = (file: File): Promise<string> => {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result as string);
-                reader.onerror = (error) => reject(error);
-                reader.readAsDataURL(file);
-            });
-        };
-        const dataUrl = await getFileAsDataURL(file);
-        return { type: 'success', url: dataUrl, name: file.name };
-
+        // Here you would add your S3 upload logic
+        // For now, we simulate success by returning the data URL.
+        return { type: 'success', url: dataUrl, name: fileName };
     } catch (error) {
         console.error("File handling error:", error);
         return { type: 'error', message: (error as Error).message };
@@ -747,6 +746,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
     const admissionRequest = new sql.Request(transaction);
     await admissionRequest
       .input('patient_id', sql.Int, patientId)
+      .input('doctor_id', sql.Int, data.doctor_id)
       .input('admission_id', sql.NVarChar, data.admission_id)
       .input('relationship_policyholder', sql.NVarChar, data.relationship_policyholder)
       .input('policy_number', sql.NVarChar, data.policy_number)
@@ -836,7 +836,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('attachments', sql.NVarChar, data.attachments?.join(','))
       .query(`
           INSERT INTO admissions (
-            patient_id, admission_id, relationship_policyholder, policy_number, insured_card_number, insurance_company, 
+            patient_id, doctor_id, admission_id, relationship_policyholder, policy_number, insured_card_number, insurance_company, 
             policy_start_date, policy_end_date, sum_insured, sum_utilized, total_sum, corporate_policy_number, other_policy_name, family_doctor_name, 
             family_doctor_phone, payer_email, payer_phone, tpa_id, hospital_id, treat_doc_name, treat_doc_number, 
             treat_doc_qualification, treat_doc_reg_no,
@@ -854,7 +854,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
             hospitalDeclarationDoctorName, hospitalDeclarationDate, hospitalDeclarationTime, attachments
           )
           VALUES (
-            @patient_id, @admission_id, @relationship_policyholder, @policy_number, @insured_card_number, @insurance_company,
+            @patient_id, @doctor_id, @admission_id, @relationship_policyholder, @policy_number, @insured_card_number, @insurance_company,
             @policy_start_date, @policy_end_date, @sum_insured, @sum_utilized, @total_sum, @corporate_policy_number, @other_policy_name, @family_doctor_name, 
             @family_doctor_phone, @payer_email, @payer_phone, @tpa_id, @hospital_id, @treat_doc_name, @treat_doc_number, 
             @treat_doc_qualification, @treat_doc_reg_no,
@@ -954,6 +954,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
         const admissionRequest = new sql.Request(transaction);
         await admissionRequest
             .input('patient_id', sql.Int, Number(patientId))
+            .input('doctor_id', sql.Int, data.doctor_id)
             .input('admission_id', sql.NVarChar, data.admission_id)
             .input('relationship_policyholder', sql.NVarChar, data.relationship_policyholder)
             .input('policy_number', sql.NVarChar, data.policy_number)
@@ -1043,7 +1044,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
             .query(`
                 UPDATE admissions
                 SET 
-                admission_id = @admission_id, relationship_policyholder = @relationship_policyholder, policy_number = @policy_number,
+                doctor_id = @doctor_id, admission_id = @admission_id, relationship_policyholder = @relationship_policyholder, policy_number = @policy_number,
                 insured_card_number = @insured_card_number, insurance_company = @insurance_company, policy_start_date = @policy_start_date,
                 policy_end_date = @policy_end_date, sum_insured = @sum_insured, sum_utilized = @sum_utilized, total_sum = @total_sum, corporate_policy_number = @corporate_policy_number, other_policy_name = @other_policy_name,
                 family_doctor_name = @family_doctor_name, family_doctor_phone = @family_doctor_phone, payer_email = @payer_email,
@@ -1172,4 +1173,3 @@ export async function getChiefComplaints(patientId: number) {
 }
 
     
-
