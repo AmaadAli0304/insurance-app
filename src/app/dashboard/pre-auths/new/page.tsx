@@ -1,7 +1,8 @@
+
 "use client";
 
 import { useState, useActionState, useEffect, useMemo, useRef } from "react";
-* as React from "react";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -65,8 +66,8 @@ function SaveDraftButton({ formAction }: { formAction: (payload: FormData) => vo
 
 export default function NewRequestPage() {
     const { user } = useAuth();
-    const [addState, addAction] = useActionState(handleAddRequest, { message: "" });
-    const [draftState, draftAction] = useActionState(handleSaveDraftRequest, { message: "" });
+    const [addState, addAction] = useActionState(handleAddRequest, { message: "", type: "initial" });
+    const [draftState, draftAction] = useActionState(handleSaveDraftRequest, { message: "", type: "initial" });
     const { toast } = useToast();
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -334,26 +335,26 @@ export default function NewRequestPage() {
                 <li>Admitting Consultant / Surgeon: ${patientDetails.treat_doc_name || '____________________'}</li>
                 <li>Diagnosis: ${patientDetails.provisionalDiagnosis || '____________________'}</li>
                 <li>Proposed Surgery / Procedure: ${patientDetails.procedureName || '____________________'}</li>
-                <li>Scheduled Date &amp; Time of Surgery: ____________________</li>
+                <li>Scheduled Date & Time of Surgery: ____________________</li>
                 <li>Room Category / Class: ${patientDetails.roomCategory || '____________________'}</li>
                 <li>Estimated Length of Stay: ${patientDetails.expectedStay ? `${patientDetails.expectedStay} days` : '____________________'}</li>
             </ul>
             <p><strong>Estimated Financials</strong></p>
             <ul>
-                <li>Estimated Cost of Surgery &amp; Hospitalization: ₹${totalCost.toLocaleString() || '__________________'}</li>
+                <li>Estimated Cost of Surgery & Hospitalization: ₹${totalCost.toLocaleString() || '__________________'}</li>
                 <li>In Words: ____________________</li>
             </ul>
             <p>Breakup of Estimated Charges:</p>
             <ul>
-                <li>Room &amp; Nursing Charges: ${patientDetails.roomNursingDietCost || '____________________'}</li>
+                <li>Room & Nursing Charges: ${patientDetails.roomNursingDietCost || '____________________'}</li>
                 <li>Surgeon Fees: ${patientDetails.professionalFees || '____________________'}</li>
                 <li>Assistant Surgeon Fees: ____________________</li>
                 <li>Anesthetist Fees: ____________________</li>
                 <li>Operation Theatre Charges: ${patientDetails.otCost || '____________________'}</li>
                 <li>Implants / Prosthesis (if applicable): ____________________</li>
-                <li>Medicines &amp; Consumables: ${patientDetails.medicineCost || '____________________'}</li>
-                <li>Investigations &amp; Diagnostics: ${patientDetails.investigationCost || '____________________'}</li>
-                <li>Blood &amp; Transfusion Charges: ____________________</li>
+                <li>Medicines & Consumables: ${patientDetails.medicineCost || '____________________'}</li>
+                <li>Investigations & Diagnostics: ${patientDetails.investigationCost || '____________________'}</li>
+                <li>Blood & Transfusion Charges: ____________________</li>
                 <li>Post-Operative Care Charges: ____________________</li>
                 <li>Any Other (Specify): ____________________</li>
             </ul>
