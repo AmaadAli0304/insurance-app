@@ -52,7 +52,7 @@ const preAuthSchema = z.object({
     payer_phone: z.string().optional().nullable(),
     tpaName: z.string().optional().nullable(), // TPA name comes from patient details
     treat_doc_name: z.string().optional().nullable(),
-    treat_doc_number: z_string().optional().nullable(),
+    treat_doc_number: z.string().optional().nullable(),
     treat_doc_qualification: z.string().optional().nullable(),
     treat_doc_reg_no: z.string().optional().nullable(),
     natureOfIllness: z.string().optional().nullable(),
