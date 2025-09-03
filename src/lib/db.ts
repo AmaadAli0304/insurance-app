@@ -23,25 +23,17 @@ if (!config.user || !config.password || !config.database) {
     throw new Error("Database environment variables are not configured. The application cannot start.");
 }
 
-let pool: sql.ConnectionPool | null = null;
-
+// This is a simplified function to get a new connection every time.
+// It helps to avoid pooling issues in serverless environments.
 export async function getDbPool(): Promise<sql.ConnectionPool> {
-    if (pool && pool.connected) {
-        return pool;
-    }
     try {
-        pool = new sql.ConnectionPool(config);
-        pool.on('error', err => {
-            console.error('SQL Pool Error', err);
-            pool = null; // Reset pool on error
-        });
+        const pool = new sql.ConnectionPool(config);
         await pool.connect();
         return pool;
     } catch (err) {
-        // If connection fails, reset the pool to null to allow for retries
-        pool = null;
         console.error('Database connection failed:', err);
-        throw new Error('Failed to connect to the database.');
+        const dbError = err as Error;
+        throw new Error(`Failed to connect to the database: ${dbError.message}`);
     }
 }
 
