@@ -1,5 +1,4 @@
 
-
 "use server";
 
 import { getDbPool, sql } from "@/lib/db";
@@ -163,15 +162,10 @@ const basePatientObjectSchema = z.object({
   // treat_doc_name: z.string().optional().nullable(),
 });
 
-const refinedSchema = (schema: z.ZodObject<any, any>) => schema.refine(data => data.investigationCost !== undefined && data.investigationCost !== null, {
-    message: "Investigation Cost is required",
-    path: ["investigationCost"],
-});
-
-const addPatientFormSchema = refinedSchema(basePatientObjectSchema);
-const updatePatientFormSchema = refinedSchema(basePatientObjectSchema.extend({
+const addPatientFormSchema = basePatientObjectSchema;
+const updatePatientFormSchema = basePatientObjectSchema.extend({
   id: z.string(), // Patient ID
-}));
+});
 
 
 export type Doctor = {
@@ -903,9 +897,9 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
             @isInjury, @injuryCause, @isRta, @injuryDate, @isReportedToPolice, @firNumber, @isAlcoholSuspected, @isToxicologyConducted,
             @isMaternity, @g, @p, @l, @a, @expectedDeliveryDate,
             @admissionDate, @admissionTime, @admissionType, @expectedStay, @expectedIcuStay, @roomCategory, @roomNursingDietCost,
-            @investigationCost, @icuCost, @otCost, @professionalFees, @medicineCost, @otherHospitalExpenses, @packageCharges,
+            @investigationCost, @icuCost, @otCost, @professionalFees, medicineCost, otherHospitalExpenses, packageCharges,
             @totalExpectedCost,
-            @diabetesSince, @hypertensionSince, @heartDiseaseSince, @hyperlipidemiaSince, @osteoarthritisSince, @asthmaCopdSince,
+            @diabetesSince, hypertensionSince, heartDiseaseSince, hyperlipidemiaSince, osteoarthritisSince, asthmaCopdSince,
             @cancerSince, @alcoholDrugAbuseSince, @hivSince, @otherChronicAilment,
             @patientDeclarationName, @patientDeclarationContact, @patientDeclarationEmail, @patientDeclarationDate, @patientDeclarationTime,
             @hospitalDeclarationDoctorName, @hospitalDeclarationDate, @hospitalDeclarationTime, @attachments
@@ -1208,5 +1202,7 @@ export async function getChiefComplaints(patientId: number) {
         return [];
     }
 }
+
+    
 
     
