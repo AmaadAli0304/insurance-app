@@ -12,17 +12,17 @@ import nodemailer from "nodemailer";
 const preAuthSchema = z.object({
     patientId: z.coerce.number().optional().nullable(),
     hospitalId: z.string().optional().nullable(),
-    from: z.string().email(),
-    to: z.string().email(),
-    subject: z.string().min(1, "Subject is required"),
-    details: z.string().min(1, "Email body is required"),
-    requestType: z.string(),
+    from: z.string().email().optional().nullable(),
+    to: z.string().email().optional().nullable(),
+    subject: z.string().optional().nullable(),
+    details: z.string().optional().nullable(),
+    requestType: z.string().optional().nullable(),
     totalExpectedCost: z.coerce.number().optional().nullable(),
     doctor_id: z.coerce.number().optional().nullable(),
 
     // Patient and Admission fields from the form
-    first_name: z.string(),
-    last_name: z.string(),
+    first_name: z.string().optional().nullable(),
+    last_name: z.string().optional().nullable(),
     email_address: z.string().email().optional().nullable(),
     phone_number: z.string().optional().nullable(),
     alternative_number: z.string().optional().nullable(),
@@ -182,7 +182,7 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
     const originalPatientRecord = patientIdsResult.recordset[0];
 
 
-    if (shouldSendEmail) {
+    if (shouldSendEmail && from && to && subject && details) {
       await sendPreAuthEmail({ from, to, subject, html: details });
     }
 
