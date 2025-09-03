@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleUpdatePatient, getPatientEditPageData, handleUploadPatientFile, Doctor } from "../../actions";
+import { handleUpdatePatient, getPatientEditPageData, handleUploadPatientFile, Doctor } from "../../../actions";
 import Link from "next/link";
 import { ArrowLeft, Upload, User as UserIcon, Loader2, Eye, File as FileIcon, XCircle } from "lucide-react";
 import { notFound, useParams, useRouter } from "next/navigation";
@@ -527,7 +527,7 @@ export default function EditPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_number">Treating doctor’s contact <span className="text-destructive">*</span></Label>
-                                            <PhoneInput id="treat_doc_number" name="treat_doc_number" value={doctorContact} onChange={(e) => setDoctorContact(e.target.value)} required />
+                                            <PhoneInput id="treat_doc_number" name="treat_doc_number" defaultValue={doctorContact} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_qualification">Doctor’s qualification <span className="text-destructive">*</span></Label>
@@ -835,3 +835,5 @@ export default function EditPatientPage() {
         </div>
     );
 }
+
+    
