@@ -3,12 +3,12 @@
 "use server";
 
 import * as XLSX from 'xlsx';
-import pool, { sql, poolConnect } from '@/lib/db';
+import { getDbPool, sql } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 
 export async function handleCreateTable(prevState: { message: string, type?: string }, formData: FormData) {
   try {
-    await poolConnect;
+    const pool = await getDbPool();
     const request = pool.request();
     const createTpasTableQuery = `
       IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='tpas' and xtype='U')
@@ -34,7 +34,7 @@ export async function handleCreateTable(prevState: { message: string, type?: str
 
 export async function handleCreateRelationshipTables(prevState: { message: string, type?: string }, formData: FormData) {
   try {
-    await poolConnect;
+    const pool = await getDbPool();
     const request = pool.request();
     
     const createHospitalCompaniesQuery = `
@@ -83,7 +83,7 @@ export async function handleCreateRelationshipTables(prevState: { message: strin
 
 export async function handleCreateHospitalTable(prevState: { message: string, type?: string }, formData: FormData) {
   try {
-    await poolConnect;
+    const pool = await getDbPool();
     const request = pool.request();
     const createHospitalTableQuery = `
       IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='hospitals' and xtype='U')
@@ -110,7 +110,7 @@ export async function handleCreateHospitalTable(prevState: { message: string, ty
 
 export async function handleCreatePatientsTable(prevState: { message: string, type?: string }, formData: FormData) {
   try {
-    await poolConnect;
+    const pool = await getDbPool();
     const request = pool.request();
     const createPatientsTableQuery = `
       IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='patients' and xtype='U')
@@ -256,7 +256,7 @@ export async function handleCreatePatientsTable(prevState: { message: string, ty
 
 export async function handleCreateFieldsTable(prevState: { message: string, type?: string }, formData: FormData) {
   try {
-    await poolConnect;
+    const pool = await getDbPool();
     const request = pool.request();
     const createFieldsTableQuery = `
       IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='fields' and xtype='U')
@@ -283,7 +283,7 @@ export async function handleCreateFieldsTable(prevState: { message: string, type
 
 export async function handleCreateFieldOptionsTable(prevState: { message: string, type?: string }, formData: FormData) {
   try {
-    await poolConnect;
+    const pool = await getDbPool();
     const request = pool.request();
     const createFieldOptionsTableQuery = `
       IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='field_options' and xtype='U')
@@ -308,7 +308,7 @@ export async function handleCreateFieldOptionsTable(prevState: { message: string
 
 export async function handleCreateAdmissionsTable(prevState: { message: string, type?: string }, formData: FormData) {
   try {
-    await poolConnect;
+    const pool = await getDbPool();
     const request = pool.request();
     const createAdmissionsTableQuery = `
       IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='admissions' and xtype='U')
@@ -420,7 +420,7 @@ export async function handleCreateAdmissionsTable(prevState: { message: string, 
 
 export async function handleCreateIctCodeTable(prevState: { message: string, type?: string }, formData: FormData) {
   try {
-    await poolConnect;
+    const pool = await getDbPool();
     const request = pool.request();
     const createIctCodeTableQuery = `
       IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='ict_code' and xtype='U')
@@ -443,7 +443,7 @@ export async function handleCreateIctCodeTable(prevState: { message: string, typ
 
 export async function handleCreateDoctorsTable(prevState: { message: string, type?: string }, formData: FormData) {
   try {
-    await poolConnect;
+    const pool = await getDbPool();
     const request = pool.request();
     const createDoctorsTableQuery = `
       IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='doctors' and xtype='U')
@@ -470,7 +470,7 @@ export async function handleCreateDoctorsTable(prevState: { message: string, typ
 
 export async function handleCreateChiefComplaintsTable(prevState: { message: string, type?: string }, formData: FormData) {
     try {
-        await poolConnect;
+        const pool = await getDbPool();
         const request = pool.request();
         const query = `
             IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='chief_complaints' AND xtype='U')
@@ -496,7 +496,7 @@ export async function handleCreateChiefComplaintsTable(prevState: { message: str
 
 export async function handleCreatePreAuthTable(prevState: { message: string, type?: string }, formData: FormData) {
     try {
-        await poolConnect;
+        const pool = await getDbPool();
         const request = pool.request();
         const query = `
             IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='preauth_request' and xtype='U')
@@ -625,7 +625,7 @@ export async function handleCreatePreAuthTable(prevState: { message: string, typ
 
 export async function handleCreateMedicalTable(prevState: { message: string, type?: string }, formData: FormData) {
     try {
-        await poolConnect;
+        const pool = await getDbPool();
         const request = pool.request();
         const query = `
             IF OBJECT_ID('FK__medical__preauth', 'F') IS NOT NULL
@@ -663,7 +663,7 @@ export async function handleCreateMedicalTable(prevState: { message: string, typ
 
 export async function handleCreateChatTable(prevState: { message: string, type?: string }, formData: FormData) {
     try {
-        await poolConnect;
+        const pool = await getDbPool();
         const request = pool.request();
         const query = `
              IF OBJECT_ID('FK__chat__preauth', 'F') IS NOT NULL
