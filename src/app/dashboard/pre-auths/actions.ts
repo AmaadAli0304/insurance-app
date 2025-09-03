@@ -52,7 +52,7 @@ const preAuthSchema = z.object({
     payer_phone: z.string().optional().nullable(),
     tpaName: z.string().optional().nullable(), // TPA name comes from patient details
     treat_doc_name: z.string().optional().nullable(),
-    treat_doc_number: z.string().optional().nullable(),
+    treat_doc_number: z_string().optional().nullable(),
     treat_doc_qualification: z.string().optional().nullable(),
     treat_doc_reg_no: z.string().optional().nullable(),
     natureOfIllness: z.string().optional().nullable(),
@@ -111,6 +111,7 @@ const preAuthSchema = z.object({
     attachments: z.array(z.string()).or(z.string()).optional(),
 });
 
+
 const saveDraftSchema = preAuthSchema.extend({
     status: z.string().optional().default('Draft'),
 });
@@ -150,6 +151,13 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
   const formEntries = Object.fromEntries(formData.entries());
   // Handle checkbox arrays
   formEntries.attachments = formData.getAll('attachments');
+  
+  // Also get the document paths from the hidden inputs
+  const documentFields = ['photoUrl', 'photoName', 'adhaar_path_url', 'adhaar_path_name', 'pan_path_url', 'pan_path_name', 'passport_path_url', 'passport_path_name', 'voter_id_path_url', 'voter_id_path_name', 'driving_licence_path_url', 'driving_licence_path_name', 'other_path_url', 'other_path_name'];
+  documentFields.forEach(field => {
+      formEntries[field] = formData.get(field);
+  });
+
 
   const validatedFields = saveDraftSchema.safeParse(formEntries);
 
@@ -174,7 +182,7 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
     const patientIdsRequest = new sql.Request(transaction);
     const patientIdsResult = await patientIdsRequest
       .input('patient_id', sql.Int, patientId)
-      .query(`SELECT TOP 1 insurance_company, tpa_id, photo, adhaar_path, pan_path, passport_path, voter_id_path, driving_licence_path, other_path FROM admissions WHERE patient_id = @patient_id ORDER BY id DESC`);
+      .query(`SELECT TOP 1 insurance_company, tpa_id FROM admissions WHERE patient_id = @patient_id ORDER BY id DESC`);
 
     if (patientIdsResult.recordset.length === 0) {
       throw new Error("Could not find admission details for the selected patient.");
@@ -199,25 +207,25 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
         .input('alternative_number', sql.NVarChar, data.alternative_number)
         .input('gender', sql.NVarChar, data.gender)
         .input('age', sql.Int, data.age)
-        .input('birth_date', sql.Date, data.birth_date)
+        .input('birth_date', sql.Date, data.birth_date ? new Date(data.birth_date) : null)
         .input('address', sql.NVarChar, data.address)
         .input('occupation', sql.NVarChar, data.occupation)
         .input('employee_id', sql.NVarChar, data.employee_id)
         .input('abha_id', sql.NVarChar, data.abha_id)
         .input('health_id', sql.NVarChar, data.health_id)
-        .input('photo', sql.NVarChar, originalPatientRecord.photo)
-        .input('adhaar_path', sql.NVarChar, originalPatientRecord.adhaar_path)
-        .input('pan_path', sql.NVarChar, originalPatientRecord.pan_path)
-        .input('passport_path', sql.NVarChar, originalPatientRecord.passport_path)
-        .input('voter_id_path', sql.NVarChar, originalPatientRecord.voter_id_path)
-        .input('driving_licence_path', sql.NVarChar, originalPatientRecord.driving_licence_path)
-        .input('other_path', sql.NVarChar, originalPatientRecord.other_path)
+        .input('photo', sql.NVarChar, formData.get('photoUrl'))
+        .input('adhaar_path', sql.NVarChar, formData.get('adhaar_path_url'))
+        .input('pan_path', sql.NVarChar, formData.get('pan_path_url'))
+        .input('passport_path', sql.NVarChar, formData.get('passport_path_url'))
+        .input('voter_id_path', sql.NVarChar, formData.get('voter_id_path_url'))
+        .input('driving_licence_path', sql.NVarChar, formData.get('driving_licence_path_url'))
+        .input('other_path', sql.NVarChar, formData.get('other_path_url'))
         .input('relationship_policyholder', sql.NVarChar, data.relationship_policyholder)
         .input('policy_number', sql.NVarChar, data.policy_number)
         .input('insured_card_number', sql.NVarChar, data.insured_card_number)
         .input('company_id', sql.NVarChar, originalPatientRecord.insurance_company)
-        .input('policy_start_date', sql.Date, data.policy_start_date)
-        .input('policy_end_date', sql.Date, data.policy_end_date)
+        .input('policy_start_date', sql.Date, data.policy_start_date ? new Date(data.policy_start_date) : null)
+        .input('policy_end_date', sql.Date, data.policy_end_date ? new Date(data.policy_end_date) : null)
         .input('sum_insured', sql.Decimal(18, 2), data.sumInsured)
         .input('sum_utilized', sql.Decimal(18, 2), data.sumUtilized)
         .input('total_sum', sql.Decimal(18, 2), data.totalSum)
@@ -236,7 +244,7 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
         .input('natureOfIllness', sql.NVarChar, data.natureOfIllness)
         .input('clinicalFindings', sql.NVarChar, data.clinicalFindings)
         .input('ailmentDuration', sql.Int, data.ailmentDuration)
-        .input('firstConsultationDate', sql.Date, data.firstConsultationDate)
+        .input('firstConsultationDate', sql.Date, data.firstConsultationDate ? new Date(data.firstConsultationDate) : null)
         .input('pastHistory', sql.NVarChar, data.pastHistory)
         .input('provisionalDiagnosis', sql.NVarChar, data.provisionalDiagnosis)
         .input('icd10Codes', sql.NVarChar, data.icd10Codes)
@@ -253,7 +261,7 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
         .input('isInjury', sql.Bit, data.isInjury === 'on' ? 1 : 0)
         .input('injuryCause', sql.NVarChar, data.injuryCause)
         .input('isRta', sql.Bit, data.isRta === 'on' ? 1 : 0)
-        .input('injuryDate', sql.Date, data.injuryDate)
+        .input('injuryDate', sql.Date, data.injuryDate ? new Date(data.injuryDate) : null)
         .input('isReportedToPolice', sql.Bit, data.isReportedToPolice === 'on' ? 1 : 0)
         .input('firNumber', sql.NVarChar, data.firNumber)
         .input('isAlcoholSuspected', sql.Bit, data.isAlcoholSuspected === 'on' ? 1 : 0)
@@ -263,8 +271,8 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
         .input('p', sql.Int, data.p)
         .input('l', sql.Int, data.l)
         .input('a', sql.Int, data.a)
-        .input('expectedDeliveryDate', sql.Date, data.expectedDeliveryDate)
-        .input('admissionDate', sql.Date, data.admissionDate)
+        .input('expectedDeliveryDate', sql.Date, data.expectedDeliveryDate ? new Date(data.expectedDeliveryDate) : null)
+        .input('admissionDate', sql.Date, data.admissionDate ? new Date(data.admissionDate) : null)
         .input('admissionTime', sql.NVarChar, data.admissionTime)
         .input('admissionType', sql.NVarChar, data.admissionType)
         .input('expectedStay', sql.Int, data.expectedStay)
@@ -282,10 +290,10 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
         .input('patientDeclarationName', sql.NVarChar, data.patientDeclarationName)
         .input('patientDeclarationContact', sql.NVarChar, data.patientDeclarationContact)
         .input('patientDeclarationEmail', sql.NVarChar, data.patientDeclarationEmail)
-        .input('patientDeclarationDate', sql.Date, data.patientDeclarationDate)
+        .input('patientDeclarationDate', sql.Date, data.patientDeclarationDate ? new Date(data.patientDeclarationDate) : null)
         .input('patientDeclarationTime', sql.NVarChar, data.patientDeclarationTime)
         .input('hospitalDeclarationDoctorName', sql.NVarChar, data.hospitalDeclarationDoctorName)
-        .input('hospitalDeclarationDate', sql.Date, data.hospitalDeclarationDate)
+        .input('hospitalDeclarationDate', sql.Date, data.hospitalDeclarationDate ? new Date(data.hospitalDeclarationDate) : null)
         .input('hospitalDeclarationTime', sql.NVarChar, data.hospitalDeclarationTime)
         .input('attachments', sql.NVarChar, Array.isArray(data.attachments) ? data.attachments.join(',') : null)
         .query(`INSERT INTO preauth_request (
