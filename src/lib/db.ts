@@ -8,7 +8,7 @@ const config = {
   port: Number(process.env.DB_PORT),
   database: process.env.DB_DATABASE,
   options: {
-    encrypt: process.env.DB_ENCRYPT === 'true',
+    encrypt: true, // Directly setting to true as per "Mandatory"
     trustServerCertificate: true,
   },
   pool: {
@@ -38,3 +38,4 @@ export const poolConnect = pool.connect();
 
 export { sql };
 export default pool;
+
