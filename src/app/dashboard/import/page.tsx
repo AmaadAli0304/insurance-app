@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
@@ -6,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useFormStatus } from "react-dom";
-import { handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable, handleCreateDoctorsTable, handleCreateChiefComplaintsTable, handleCreatePreAuthTable, handleCreateMedicalTable, handleCreateChatTable } from "./actions";
+import { handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable, handleCreateDoctorsTable, handleCreateChiefComplaintsTable, handleCreatePreAuthTable, handleCreateMedicalTable, handleCreateChatTable, handleAlterPreAuthTable } from "./actions";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble, Info, Stethoscope, FileHeart, Shield, MessageSquare, Pill } from "lucide-react";
+import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble, Info, Stethoscope, FileHeart, Shield, MessageSquare, Pill, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 
 
@@ -122,6 +123,16 @@ function SubmitPreAuthTableButton() {
     );
 }
 
+function SubmitAlterPreAuthTableButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending} variant="destructive">
+             <AlertTriangle className="mr-2 h-4 w-4" />
+            {pending ? "Altering..." : "Alter Pre-Auth Table"}
+        </Button>
+    );
+}
+
 function SubmitMedicalTableButton() {
     const { pending } = useFormStatus();
     return (
@@ -156,6 +167,7 @@ export default function ImportPage() {
     const [createDoctorsTableState, createDoctorsTableAction] = useActionState(handleCreateDoctorsTable, { message: "", type: undefined });
     const [createChiefComplaintsTableState, createChiefComplaintsTableAction] = useActionState(handleCreateChiefComplaintsTable, { message: "", type: undefined });
     const [createPreAuthTableState, createPreAuthTableAction] = useActionState(handleCreatePreAuthTable, { message: "", type: undefined });
+    const [alterPreAuthTableState, alterPreAuthTableAction] = useActionState(handleAlterPreAuthTable, { message: "", type: undefined });
     const [createMedicalTableState, createMedicalTableAction] = useActionState(handleCreateMedicalTable, { message: "", type: undefined });
     const [createChatTableState, createChatTableAction] = useActionState(handleCreateChatTable, { message: "", type: undefined });
 
@@ -184,6 +196,7 @@ export default function ImportPage() {
     useToastEffect(createDoctorsTableState, "Database Action");
     useToastEffect(createChiefComplaintsTableState, "Database Action");
     useToastEffect(createPreAuthTableState, "Database Action");
+    useToastEffect(alterPreAuthTableState, "Database Action");
     useToastEffect(createMedicalTableState, "Database Action");
     useToastEffect(createChatTableState, "Database Action");
 
@@ -195,7 +208,7 @@ export default function ImportPage() {
                 <CardHeader>
                     <CardTitle>Database Management</CardTitle>
                     <CardDescription>
-                       Perform database setup tasks. Use this to create necessary tables if they don't exist.
+                       Perform database setup tasks. Use these to create necessary tables if they don't exist.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-wrap gap-4">
@@ -239,6 +252,20 @@ export default function ImportPage() {
                         <SubmitChatTableButton />
                     </form>
                 </CardContent>
+            </Card>
+
+            <Card>
+                 <CardHeader>
+                    <CardTitle>Database Maintenance</CardTitle>
+                    <CardDescription>
+                       Use these actions to modify existing tables.
+                    </CardDescription>
+                </CardHeader>
+                 <CardContent className="flex flex-wrap gap-4">
+                    <form action={alterPreAuthTableAction}>
+                        <SubmitAlterPreAuthTableButton />
+                    </form>
+                 </CardContent>
             </Card>
         </div>
     );

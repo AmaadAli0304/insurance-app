@@ -507,7 +507,6 @@ export async function handleCreatePreAuthTable(prevState: { message: string, typ
                   admission_id NVARCHAR(255),
                   doctor_id INT,
                   status NVARCHAR(50),
-                  -- Patient Details
                   first_name NVARCHAR(255),
                   last_name NVARCHAR(255),
                   email_address NVARCHAR(255),
@@ -521,15 +520,6 @@ export async function handleCreatePreAuthTable(prevState: { message: string, typ
                   employee_id NVARCHAR(255),
                   abha_id NVARCHAR(255),
                   health_id NVARCHAR(255),
-                  photo NVARCHAR(MAX),
-                  -- KYC
-                  adhaar_path NVARCHAR(MAX),
-                  pan_path NVARCHAR(MAX),
-                  passport_path NVARCHAR(MAX),
-                  voter_id_path NVARCHAR(MAX),
-                  driving_licence_path NVARCHAR(MAX),
-                  other_path NVARCHAR(MAX),
-                  -- Insurance
                   relationship_policyholder NVARCHAR(255),
                   policy_number NVARCHAR(255),
                   insured_card_number NVARCHAR(255),
@@ -552,7 +542,6 @@ export async function handleCreatePreAuthTable(prevState: { message: string, typ
                   treat_doc_number NVARCHAR(50),
                   treat_doc_qualification NVARCHAR(255),
                   treat_doc_reg_no NVARCHAR(255),
-                  -- Clinical Info
                   natureOfIllness NVARCHAR(MAX),
                   clinicalFindings NVARCHAR(MAX),
                   ailmentDuration INT,
@@ -599,7 +588,6 @@ export async function handleCreatePreAuthTable(prevState: { message: string, typ
                   otherHospitalExpenses DECIMAL(18, 2),
                   packageCharges DECIMAL(18, 2),
                   totalExpectedCost DECIMAL(18, 2),
-                  -- Declarations
                   patientDeclarationName NVARCHAR(255),
                   patientDeclarationContact NVARCHAR(50),
                   patientDeclarationEmail NVARCHAR(255),
@@ -623,12 +611,47 @@ export async function handleCreatePreAuthTable(prevState: { message: string, typ
     }
 }
 
+export async function handleAlterPreAuthTable(prevState: { message: string, type?: string }, formData: FormData) {
+  try {
+    const pool = await getDbPool();
+    const request = pool.request();
+    const columns_to_add = [
+        { name: 'photo', type: 'NVARCHAR(MAX)' },
+        { name: 'adhaar_path', type: 'NVARCHAR(MAX)' },
+        { name: 'pan_path', type: 'NVARCHAR(MAX)' },
+        { name: 'passport_path', type: 'NVARCHAR(MAX)' },
+        { name: 'voter_id_path', type: 'NVARCHAR(MAX)' },
+        { name: 'driving_licence_path', type: 'NVARCHAR(MAX)' },
+        { name: 'other_path', type: 'NVARCHAR(MAX)' }
+    ];
+
+    let messages = [];
+
+    for (const col of columns_to_add) {
+        const checkColumnQuery = `
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'${col.name}' AND Object_ID = Object_ID(N'preauth_request'))
+            BEGIN
+                ALTER TABLE preauth_request ADD ${col.name} ${col.type};
+            END
+        `;
+        await request.query(checkColumnQuery);
+        messages.push(`Checked/Added column: ${col.name}`);
+    }
+
+    return { message: `Pre-Auth table altered successfully. ${messages.join(' ')}`, type: "success" };
+  } catch (error) {
+    const dbError = error as { message?: string };
+    console.error('Error altering Pre-Auth table:', dbError);
+    return { message: `Error altering table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+  }
+}
+
 export async function handleCreateMedicalTable(prevState: { message: string, type?: string }, formData: FormData) {
     try {
         const pool = await getDbPool();
         const request = pool.request();
         const query = `
-            IF OBJECT_ID('FK__medical__preauth', 'F') IS NOT NULL
+             IF OBJECT_ID('FK__medical__preauth', 'F') IS NOT NULL
                 ALTER TABLE medical DROP CONSTRAINT FK__medical__preauth;
 
             IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='medical' AND xtype='U')
@@ -644,8 +667,6 @@ export async function handleCreateMedicalTable(prevState: { message: string, typ
             END
             ELSE
             BEGIN
-                -- This part might not be strictly necessary if the table already exists with the correct FK, but it's safe to have.
-                -- First, ensure the FK doesn't exist with the wrong reference before adding the correct one.
                 IF OBJECT_ID('FK__medical__preauth', 'F') IS NULL
                 BEGIN
                     ALTER TABLE medical ADD CONSTRAINT FK__medical__preauth FOREIGN KEY (preauth_id) REFERENCES preauth_request(id) ON DELETE CASCADE;
@@ -685,8 +706,6 @@ export async function handleCreateChatTable(prevState: { message: string, type?:
             END
             ELSE
             BEGIN
-                 -- This part might not be strictly necessary if the table already exists with the correct FK, but it's safe to have.
-                -- First, ensure the FK doesn't exist with the wrong reference before adding the correct one.
                  IF OBJECT_ID('FK__chat__preauth', 'F') IS NULL
                  BEGIN
                     ALTER TABLE chat ADD CONSTRAINT FK__chat__preauth FOREIGN KEY (preauth_id) REFERENCES preauth_request(id) ON DELETE CASCADE;
