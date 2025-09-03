@@ -5,8 +5,9 @@ import type { User } from '@/lib/types';
 import * as jose from 'jose';
 
 export async function POST(request: Request) {
+    let pool;
     try {
-        const pool = await getDbPool();
+        pool = await getDbPool();
         const body = await request.json();
         const { email, password } = body;
 
@@ -62,5 +63,9 @@ export async function POST(request: Request) {
     } catch (error) {
         console.error("Login API error:", error);
         return NextResponse.json({ error: 'A server error occurred.' }, { status: 500 });
+    } finally {
+        if (pool) {
+            await pool.close();
+        }
     }
 }
