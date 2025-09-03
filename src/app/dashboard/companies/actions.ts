@@ -2,7 +2,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import pool, { sql, poolConnect } from "@/lib/db";
+import { getDbPool, sql } from "@/lib/db";
 import { z } from 'zod';
 import { Company } from "@/lib/types";
 
@@ -35,8 +35,8 @@ export async function handleAddCompany(prevState: { message: string, type?: stri
 
   try {
     const id = `comp-${Date.now()}`;
-    const db = await poolConnect;
-    await db.request()
+    const pool = await getDbPool();
+    await pool.request()
       .input('id', sql.NVarChar, id)
       .input('name', sql.NVarChar, validatedFields.data.name)
       .input('contactPerson', sql.NVarChar, validatedFields.data.contactPerson)
@@ -90,8 +90,8 @@ export async function handleUpdateCompany(prevState: { message: string, type?: s
   const { id, ...updatedData } = parsed.data;
 
   try {
-    const db = await poolConnect;
-    const request = db.request();
+    const pool = await getDbPool();
+    const request = pool.request();
     const setClauses = Object.entries(updatedData)
       .map(([key, value]) => (value !== null && value !== undefined && value !== '') ? `${key} = @${key}` : null)
       .filter(Boolean)
@@ -129,8 +129,8 @@ export async function handleDeleteCompany(prevState: { message: string, type?: s
     }
 
     try {
-        const db = await poolConnect;
-        const result = await db.request()
+        const pool = await getDbPool();
+        const result = await pool.request()
             .input('id', sql.NVarChar, id)
             .query('DELETE FROM companies WHERE id = @id');
 
@@ -148,13 +148,13 @@ export async function handleDeleteCompany(prevState: { message: string, type?: s
 
 export async function getCompanyById(id: string): Promise<Company | null> {
   try {
-    const db = await poolConnect;
+    const pool = await getDbPool();
 
     const [companyResult, hospitalsResult] = await Promise.all([
-        db.request()
+        pool.request()
           .input('id', sql.NVarChar, id)
           .query('SELECT * FROM companies WHERE id = @id'),
-        db.request()
+        pool.request()
           .input('company_id', sql.NVarChar, id)
           .query('SELECT h.id, h.name FROM hospitals h JOIN hospital_companies hc ON h.id = hc.hospital_id WHERE hc.company_id = @company_id')
     ]);

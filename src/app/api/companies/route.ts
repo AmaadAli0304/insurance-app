@@ -1,6 +1,6 @@
 
 import { NextResponse, type NextRequest } from 'next/server';
-import pool, { sql, poolConnect } from '@/lib/db';
+import { getDbPool, sql } from '@/lib/db';
 import { z } from 'zod';
 import { Company } from '@/lib/types';
 
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     
     const id = `comp-${Date.now()}`;
     
-    await poolConnect;
+    const pool = await getDbPool();
     await pool.request()
       .input('id', sql.NVarChar, id)
       .input('name', sql.NVarChar, name)
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
   const offset = (page - 1) * limit;
 
   try {
-    await poolConnect;
+    const pool = await getDbPool();
     const requestPool = pool.request();
     
     const companiesResult = await requestPool

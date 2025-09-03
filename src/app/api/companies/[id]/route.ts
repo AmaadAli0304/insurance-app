@@ -1,6 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import pool, { sql, poolConnect } from '@/lib/db';
+import { getDbPool, sql } from '@/lib/db';
 import { z } from 'zod';
 import { Company } from '@/lib/types';
 
@@ -10,7 +10,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    await poolConnect;
+    const pool = await getDbPool();
 
     const [companyResult, hospitalsResult] = await Promise.all([
         pool.request()

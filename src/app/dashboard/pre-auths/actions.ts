@@ -4,7 +4,7 @@
 
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import pool, { sql, poolConnect } from "@/lib/db";
+import { getDbPool, sql } from "@/lib/db";
 import type { StaffingRequest } from "@/lib/types";
 import { z } from 'zod';
 import nodemailer from "nodemailer";
@@ -166,8 +166,8 @@ async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft
 
   let transaction;
   try {
-    const db = await poolConnect;
-    transaction = new sql.Transaction(db);
+    const pool = await getDbPool();
+    transaction = new sql.Transaction(pool);
     await transaction.begin();
 
      // Fetch original patient admission details to get IDs (like company_id, tpa_id)
@@ -354,7 +354,7 @@ export async function handleSaveDraftRequest(prevState: { message: string, type?
 export async function getPreAuthRequests(hospitalId: string | null | undefined): Promise<StaffingRequest[]> {
     if (!hospitalId) return [];
     try {
-        await poolConnect;
+        const pool = await getDbPool();
         const result = await pool.request()
             .input('hospitalId', sql.NVarChar, hospitalId)
             .query(`
@@ -386,7 +386,7 @@ export async function getPreAuthRequests(hospitalId: string | null | undefined):
 
 export async function getPreAuthRequestById(id: string): Promise<StaffingRequest | null> {
     try {
-        await poolConnect;
+        const pool = await getDbPool();
         const result = await pool.request()
             .input('id', sql.Int, Number(id))
             .query(`
@@ -429,8 +429,8 @@ export async function handleDeleteRequest(formData: FormData) {
     const id = formData.get("id") as string;
     let transaction;
     try {
-        const db = await poolConnect;
-        transaction = new sql.Transaction(db);
+        const pool = await getDbPool();
+        transaction = new sql.Transaction(pool);
         await transaction.begin();
 
         await new sql.Request(transaction).input('id', sql.Int, Number(id)).query('DELETE FROM chat WHERE preauth_id = @id');
@@ -461,7 +461,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?:st
     }
 
     try {
-        await poolConnect;
+        const pool = await getDbPool();
         await pool.request()
             .input('id', sql.Int, Number(id))
             .input('status', sql.NVarChar, status)
