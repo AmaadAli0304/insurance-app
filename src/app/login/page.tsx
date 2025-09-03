@@ -9,11 +9,14 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from '@/components/auth-provider';
 import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
+import { checkDbConnection } from './actions';
+import { Wifi } from 'lucide-react';
 
 export default function LoginPage() {
   const { login } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingConnection, setIsCheckingConnection] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -55,6 +58,26 @@ export default function LoginPage() {
     }
   };
 
+  const handleConnectionCheck = async () => {
+    setIsCheckingConnection(true);
+    const result = await checkDbConnection();
+    if (result.success) {
+      toast({
+        title: "Connection Success",
+        description: result.message,
+        variant: "success",
+      });
+    } else {
+      toast({
+        title: "Connection Failed",
+        description: result.message,
+        variant: "destructive",
+      });
+    }
+    setIsCheckingConnection(false);
+  };
+
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="w-full max-w-sm">
@@ -77,13 +100,27 @@ export default function LoginPage() {
             </div>
             {error && <p className="text-sm text-destructive text-center">{error}</p>}
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex flex-col gap-4">
              <Button className="w-full" type="submit" disabled={isLoading}>
               {isLoading ? (
                 <div className="w-5 h-5 border-2 border-background border-t-transparent rounded-full animate-spin"></div>
               ) : (
                 'Sign In'
               )}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={handleConnectionCheck}
+              disabled={isCheckingConnection}
+            >
+              {isCheckingConnection ? (
+                 <div className="w-5 h-5 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin mr-2"></div>
+              ) : (
+                <Wifi className="mr-2 h-4 w-4" />
+              )}
+              Check DB Connection
             </Button>
           </CardFooter>
         </form>
