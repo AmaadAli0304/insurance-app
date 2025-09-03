@@ -11,11 +11,6 @@ const config = {
     encrypt: true,
     trustServerCertificate: true,
   },
-  pool: {
-    max: 10,
-    min: 0,
-    idleTimeoutMillis: 30000
-  },
   connectionTimeout: 15000,
   requestTimeout: 15000,
 };
@@ -49,6 +44,9 @@ export async function getDbPool() {
   }
   return pool;
 }
+
+export const poolConnect = getDbPool();
+
 
 export { sql };
 export default pool;
