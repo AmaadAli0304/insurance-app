@@ -25,17 +25,34 @@ if (!config.user || !config.password || !config.server || !config.port || !confi
     throw new Error("Database environment variables are not configured. The application cannot start.");
 }
 
-const pool = new sql.ConnectionPool(config);
+let pool: sql.ConnectionPool | null = null;
 
-pool.on('error', err => {
-    console.error('SQL Pool Error', err);
-});
+export async function getDbPool() {
+  if (!pool) {
+    pool = new sql.ConnectionPool(config);
+    pool.on('error', err => {
+      console.error('SQL Pool Error', err);
+      // Reset pool on error
+      pool = null;
+    });
+  }
+  if (!pool.connected) {
+    try {
+      await pool.connect();
+    } catch (err) {
+      console.error('Database connection failed:', err);
+      // In case of connection error, reset the pool to allow for retries.
+      pool = null; 
+      throw err; // re-throw the error to be caught by the calling function
+    }
+  }
+  return pool;
+}
 
-// We export the pool itself, and connection management will be handled by each function.
-// This is more robust for serverless environments.
-export const poolConnect = pool.connect();
+export const poolConnect = getDbPool();
 
 
 export { sql };
 export default pool;
+
 
