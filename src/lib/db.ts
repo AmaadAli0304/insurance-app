@@ -2,11 +2,11 @@
 import sql from 'mssql';
 
 const config = {
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
+  user: 'INSCSOFT',
+  password: 'kveYm96Ngj3h',
   server: '139.5.237.238',
   port: 4554,
-  database: process.env.DB_DATABASE,
+  database: 'Insurancesoft',
   options: {
     encrypt: true, 
     trustServerCertificate: true,
@@ -18,23 +18,31 @@ const config = {
   }
 };
 
-if (!config.user || !config.password || !config.database) {
-    console.error("FATAL ERROR: DB_USER, DB_PASSWORD, or DB_DATABASE environment variables are not set.");
-    throw new Error("Database environment variables are not configured. The application cannot start.");
+let pool: sql.ConnectionPool;
+
+export async function getDbPool(): Promise<sql.ConnectionPool> {
+  if (pool && pool.connected) {
+    return pool;
+  }
+  try {
+    pool = new sql.ConnectionPool(config);
+    await pool.connect();
+    return pool;
+  } catch (err) {
+    console.error('Database connection failed:', err);
+    // Ensure the pool is closed on a failed connection attempt to avoid leaving open connections.
+    if (pool) {
+      await pool.close();
+    }
+    const dbError = err as Error;
+    throw new Error(`Failed to connect to the database: ${dbError.message}`);
+  }
 }
 
-// This is a simplified function to get a new connection every time.
-// It helps to avoid pooling issues in serverless environments.
-export async function getDbPool(): Promise<sql.ConnectionPool> {
-    try {
-        const pool = new sql.ConnectionPool(config);
-        await pool.connect();
-        return pool;
-    } catch (err) {
-        console.error('Database connection failed:', err);
-        const dbError = err as Error;
-        throw new Error(`Failed to connect to the database: ${dbError.message}`);
-    }
-}
+export const poolConnect = getDbPool();
 
 export { sql };
+export default {
+  query: (text: string) => getDbPool().then(pool => pool.request().query(text)),
+  request: () => getDbPool().then(pool => pool.request())
+};

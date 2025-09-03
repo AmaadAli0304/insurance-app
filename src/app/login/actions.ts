@@ -7,7 +7,7 @@ export async function checkDbConnection() {
   let pool;
   try {
     pool = await getDbPool();
-    // If getDbPool succeeds, the connection is established.
+    // If getDbPool succeeds and we get here, the connection is good.
     return { success: true, message: 'Database connected successfully!' };
   } catch (error) {
     console.error('Database connection check failed:', error);
@@ -15,8 +15,7 @@ export async function checkDbConnection() {
     // Return the specific error message from the exception.
     return { success: false, message: `Database connection failed: ${err.message}` };
   } finally {
-    if (pool) {
-      await pool.close();
-    }
+    // In this model, we don't close the global pool here, 
+    // as it's meant to be reused.
   }
 }
