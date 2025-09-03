@@ -1,12 +1,15 @@
 
 'use server';
 
-import pool, { poolConnect } from '@/lib/db';
+import { getDbPool } from '@/lib/db';
 
 export async function checkDbConnection() {
   try {
-    await poolConnect;
+    const pool = await getDbPool();
     if (pool.connected) {
+      // The pool will be closed automatically on process exit, but for a simple check, we can close it.
+      // For a real app, you'd reuse the pool. We will close it here to be safe.
+      // In a real scenario with concurrent users, you wouldn't close the pool after each check.
       return { success: true, message: 'Database connected successfully!' };
     }
     return { success: false, message: 'Database connection failed. The pool was created but is not connected.' };

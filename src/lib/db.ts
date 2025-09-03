@@ -18,20 +18,31 @@ const config = {
   }
 };
 
-// Check for missing environment variables that are still needed
 if (!config.user || !config.password || !config.database) {
     console.error("FATAL ERROR: DB_USER, DB_PASSWORD, or DB_DATABASE environment variables are not set.");
     throw new Error("Database environment variables are not configured. The application cannot start.");
 }
 
-const pool = new sql.ConnectionPool(config);
+let pool: sql.ConnectionPool | null = null;
 
-pool.on('error', err => {
-    console.error('SQL Pool Error', err);
-});
-
-export const poolConnect = pool.connect();
-
+export async function getDbPool(): Promise<sql.ConnectionPool> {
+    if (pool && pool.connected) {
+        return pool;
+    }
+    try {
+        pool = new sql.ConnectionPool(config);
+        pool.on('error', err => {
+            console.error('SQL Pool Error', err);
+            pool = null; // Reset pool on error
+        });
+        await pool.connect();
+        return pool;
+    } catch (err) {
+        // If connection fails, reset the pool to null to allow for retries
+        pool = null;
+        console.error('Database connection failed:', err);
+        throw new Error('Failed to connect to the database.');
+    }
+}
 
 export { sql };
-export default pool;
