@@ -1,12 +1,12 @@
 
 import { NextResponse } from 'next/server';
-import { getDbPool, sql } from '@/lib/db';
+import pool, { sql, poolConnect } from '@/lib/db';
 import type { User } from '@/lib/types';
 import * as jose from 'jose';
 
 export async function POST(request: Request) {
     try {
-        const pool = await getDbPool();
+        await poolConnect;
         const body = await request.json();
         const { email, password } = body;
 
