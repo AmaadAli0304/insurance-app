@@ -52,9 +52,10 @@ export async function getClaims(hospitalId?: string | null): Promise<Claim[]> {
         const result = await request.query(query);
 
         return result.recordset.map(record => {
-            const photoData = getDocumentData(record.patientPhoto);
-            return {
+             const photoData = getDocumentData(record.patientPhoto);
+             return {
                 ...record,
+                Patient_name: record.Patient_name,
                 patientPhoto: photoData?.url || null
             }
         }) as Claim[];
@@ -118,10 +119,15 @@ export async function handleUpdateClaim(prevState: { message: string, type?: str
     return { message: "Required fields are missing.", type: 'error' };
   }
 
+  let transaction;
   try {
     const pool = await getDbPool();
-    let query = 'UPDATE claims SET status = @status, reason = @reason, claim_id = @claim_id, updated_at = @updated_at';
-    const request = pool.request()
+    transaction = new sql.Transaction(pool);
+    await transaction.begin();
+
+    // 1. Update the 'claims' table
+    let claimsUpdateQuery = 'UPDATE claims SET status = @status, reason = @reason, claim_id = @claim_id, updated_at = @updated_at';
+    const claimsRequest = new sql.Request(transaction)
         .input('id', sql.Int, Number(id))
         .input('status', sql.NVarChar, status)
         .input('reason', sql.NVarChar, reason)
@@ -129,21 +135,46 @@ export async function handleUpdateClaim(prevState: { message: string, type?: str
         .input('updated_at', sql.DateTime, new Date());
 
     if (paidAmount) {
-        query += ', paidAmount = @paidAmount';
-        request.input('paidAmount', sql.Decimal(18, 2), parseFloat(paidAmount));
+        claimsUpdateQuery += ', paidAmount = @paidAmount';
+        claimsRequest.input('paidAmount', sql.Decimal(18, 2), parseFloat(paidAmount));
     }
+    claimsUpdateQuery += ' WHERE id = @id';
+    await claimsRequest.query(claimsUpdateQuery);
 
-    query += ' WHERE id = @id';
+    // 2. Fetch the admission_id from the claim we just updated
+    const getAdmissionIdRequest = new sql.Request(transaction);
+    const admissionIdResult = await getAdmissionIdRequest
+        .input('id', sql.Int, Number(id))
+        .query('SELECT admission_id FROM claims WHERE id = @id');
+        
+    const admission_id = admissionIdResult.recordset[0]?.admission_id;
 
-    await request.query(query);
+    // 3. Update the corresponding 'preauth_request' table
+    if (admission_id) {
+      let preAuthUpdateQuery = 'UPDATE preauth_request SET status = @status';
+      const preAuthRequest = new sql.Request(transaction)
+        .input('admission_id', sql.NVarChar, admission_id)
+        .input('status', sql.NVarChar, status);
 
+      if (claim_id) {
+          preAuthUpdateQuery += ', claim_id = @claim_id';
+          preAuthRequest.input('claim_id', sql.NVarChar, claim_id);
+      }
+      
+      preAuthUpdateQuery += ' WHERE admission_id = @admission_id';
+      await preAuthRequest.query(preAuthUpdateQuery);
+    }
+    
+    await transaction.commit();
 
   } catch (error) {
+      if(transaction) await transaction.rollback();
       console.error("Error updating claim:", error);
       return { message: "Database error while updating claim.", type: 'error' };
   }
 
   revalidatePath('/dashboard/claims');
+  revalidatePath('/dashboard/pre-auths');
   return { message: "Claim updated successfully.", type: "success" };
 }
 
