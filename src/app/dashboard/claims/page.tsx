@@ -89,7 +89,7 @@ export default function ClaimsPage() {
   };
 
   const getInitials = (name: string) => {
-    if (!name) return 'P';
+    if (!name || typeof name !== 'string') return 'P';
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   }
 
