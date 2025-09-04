@@ -155,11 +155,6 @@ export default function ClaimsPage() {
                                 <Eye className="h-4 w-4" /> View Details
                              </Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/dashboard/claims/${c.id}/edit`} className="flex items-center gap-2 cursor-pointer">
-                              <Edit className="h-4 w-4" /> Edit Status
-                            </Link>
-                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                            <AlertDialogTrigger asChild>
                              <DropdownMenuItem className="text-destructive flex items-center gap-2 cursor-pointer" onSelect={(e) => e.preventDefault()}>
