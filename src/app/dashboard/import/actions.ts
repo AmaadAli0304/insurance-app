@@ -730,6 +730,7 @@ export async function handleCreateClaimsTable(prevState: { message: string, type
       BEGIN
         CREATE TABLE claims (
           id INT IDENTITY(1,1) PRIMARY KEY,
+          claim_id NVARCHAR(255) NULL,
           Patient_id INT,
           Patient_name NVARCHAR(255),
           admission_id NVARCHAR(255),
@@ -764,3 +765,4 @@ export async function handleDeleteClaimsTable(prevState: { message: string, type
     return { message: `Error deleting Claims table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
+
