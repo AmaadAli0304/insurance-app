@@ -153,7 +153,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
   formEntries.attachments = formData.getAll('attachments');
   
   const data = formEntries;
-  const { from, to, subject, details, requestType, patientId, totalExpectedCost, doctor_id, claim_id } = data as Record<string, any>;
+  const { from, to, subject, details, requestType, patientId, totalExpectedCost, doctor_id, claim_id, userId } = data as Record<string, any>;
 
   if (!patientId) {
     return { message: 'Please select a patient before saving.', type: 'error' };
@@ -318,7 +318,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
         .input('Patient_name', sql.NVarChar, `${data.first_name} ${data.last_name}`)
         .input('admission_id', sql.NVarChar, data.admission_id)
         .input('status', sql.NVarChar, 'Pending')
-        .input('created_by', sql.NVarChar, from)
+        .input('created_by', sql.NVarChar, userId)
         .input('amount', sql.Decimal(18, 2), totalExpectedCost)
         .input('hospital_id', sql.NVarChar, data.hospitalId)
         .input('tpa_id', sql.Int, originalPatientRecord.tpa_id)

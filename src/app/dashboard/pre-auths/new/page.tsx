@@ -397,6 +397,7 @@ export default function NewRequestPage() {
             <form>
                  <input type="hidden" name="patientId" value={selectedPatientId || ''} />
                  <input type="hidden" name="hospitalId" value={user?.hospitalId || ''} />
+                 <input type="hidden" name="userId" value={user?.uid || ''} />
                  <input type="hidden" name="doctor_id" value={patientDetails?.doctor_id || ''} />
                  <input type="hidden" name="from" value={hospitalDetails?.email || user?.email || ''} />
                  <input type="hidden" name="details" value={emailBody} />
@@ -846,7 +847,7 @@ export default function NewRequestPage() {
                                             <Input id="packageCharges" name="packageCharges" type="number" defaultValue={patientDetails.packageCharges ?? ''} />
                                         </div>
                                          <div className="space-y-2 md:col-span-3">
-                                            <Label htmlFor="totalExpectedCost">Total expected cost (₹)</Label>
+                                            <Label htmlFor="totalExpectedCost-display">Total expected cost (₹)</Label>
                                             <Input id="totalExpectedCost-display" name="totalExpectedCost-display" type="number" value={totalCost} readOnly className="font-bold text-lg" />
                                         </div>
                                     </CardContent>
@@ -988,3 +989,4 @@ export default function NewRequestPage() {
     
 
     
+
