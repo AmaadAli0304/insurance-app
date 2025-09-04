@@ -34,8 +34,7 @@ const preAuthStatuses: PreAuthStatus[] = [
     'Amount Sanctioned',
     'Amount Received',
     'Settlement Done',
-    'Rejected',
-    'Draft'
+    'Rejected'
 ];
 
 export default function EditPreAuthPage() {
