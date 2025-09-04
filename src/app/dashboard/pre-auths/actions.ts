@@ -457,6 +457,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     const claim_id = formData.get('claim_id') as string;
     const reason = formData.get('reason') as string;
     const amount_sanctioned = formData.get('amount_sanctioned') as string;
+    const userId = formData.get('userId') as string;
 
     if (!id || !status) {
         return { message: 'Missing required fields for update.', type: 'error' };
@@ -510,7 +511,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
             .input('admission_id', sql.NVarChar, preAuthDetails.admission_id)
             .input('status', sql.NVarChar, status) 
             .input('reason', sql.NVarChar, reason) 
-            .input('created_by', sql.NVarChar, 'System Update') 
+            .input('created_by', sql.NVarChar, userId || 'System Update') 
             .input('amount', sql.Decimal(18, 2), preAuthDetails.totalExpectedCost)
             .input('paidAmount', sql.Decimal(18, 2), amount_sanctioned ? parseFloat(amount_sanctioned) : null) 
             .input('hospital_id', sql.NVarChar, preAuthDetails.hospital_id)

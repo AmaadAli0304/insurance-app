@@ -15,6 +15,7 @@ import type { StaffingRequest, PreAuthStatus } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/components/auth-provider";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -41,6 +42,7 @@ export default function EditPreAuthPage() {
     const params = useParams();
     const router = useRouter();
     const { toast } = useToast();
+    const { user } = useAuth();
     const id = params.id as string;
     
     const [request, setRequest] = useState<StaffingRequest | null>(null);
@@ -95,6 +97,7 @@ export default function EditPreAuthPage() {
                 <form action={formAction}>
                     <CardContent className="space-y-4">
                         <input type="hidden" name="id" value={request.id} />
+                        <input type="hidden" name="userId" value={user?.uid ?? ''} />
                         
                         <div className="grid md:grid-cols-2 gap-x-8 gap-y-4 p-4 border rounded-lg bg-muted/50">
                             <div><span className="font-semibold">Patient:</span> {request.fullName}</div>
@@ -122,7 +125,7 @@ export default function EditPreAuthPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="amount_sanctioned">Amount</Label>
+                            <Label htmlFor="amount_sanctioned">Amount Sanctioned</Label>
                             <Input id="amount_sanctioned" name="amount_sanctioned" type="number" step="0.01" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount sanctioned" />
                         </div>
 
