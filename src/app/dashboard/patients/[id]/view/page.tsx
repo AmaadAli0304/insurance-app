@@ -5,7 +5,9 @@ import { useState, useEffect } from "react";
 import { getPatientById, getClaimsForPatientTimeline } from "../../actions";
 import { notFound, useParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { FileText } from "lucide-react";
 import { format } from 'date-fns';
 import type { Patient, Claim } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -91,13 +93,21 @@ export default function ViewPatientPage() {
     return (
         <div className="space-y-6">
             <Card>
-                <CardHeader className="items-center text-center">
-                    <Avatar className="h-24 w-24 mb-4">
+                <CardHeader className="flex flex-col md:flex-row items-center gap-6">
+                    <Avatar className="h-24 w-24">
                         <AvatarImage src={photoUrl ?? undefined} alt={patient.fullName} />
                         <AvatarFallback>{getInitials(patient.fullName)}</AvatarFallback>
                     </Avatar>
-                    <CardTitle className="text-3xl">{patient.fullName}</CardTitle>
-                    <CardDescription>Patient Details</CardDescription>
+                    <div className="flex-1 text-center md:text-left">
+                        <CardTitle className="text-3xl">{patient.fullName}</CardTitle>
+                        <CardDescription>Patient Details</CardDescription>
+                    </div>
+                     <Button asChild>
+                        <Link href={`/dashboard/pre-auths/new?patientId=${patient.id}`}>
+                            <FileText className="mr-2 h-4 w-4" />
+                            Fill Pre-Auth Request
+                        </Link>
+                    </Button>
                 </CardHeader>
                 <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6 border-t">
                     <DetailItem label="Date of Birth" value={formatDate(patient.dateOfBirth)} />
