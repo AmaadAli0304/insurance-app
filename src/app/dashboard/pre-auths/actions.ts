@@ -103,7 +103,7 @@ const preAuthSchema = z.object({
     packageCharges: z.coerce.number().optional().nullable(),
     patientDeclarationName: z.string().optional().nullable(),
     patientDeclarationContact: z.string().optional().nullable(),
-    patientDeclarationEmail: zstring().email().optional().nullable(),
+    patientDeclarationEmail: z.string().email().optional().nullable(),
     patientDeclarationDate: z.string().optional().nullable(),
     patientDeclarationTime: z.string().optional().nullable(),
     hospitalDeclarationDoctorName: z.string().optional().nullable(),
