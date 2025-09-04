@@ -116,20 +116,10 @@ export default function EditPreAuthPage() {
                                 </SelectContent>
                             </Select>
                         </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="amount">Amount</Label>
-                            <Input id="amount" name="amount" type="number" step="0.01" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter sanctioned amount" />
-                        </div>
                         
                         <div className="space-y-2">
                             <Label htmlFor="claim_id">Official Claim ID</Label>
                             <Input id="claim_id" name="claim_id" defaultValue={request.claim_id ?? ''} placeholder="Enter official claim ID from TPA/Insurer" />
-                        </div>
-                        
-                        <div className="space-y-2">
-                            <Label htmlFor="reason">Reason / Notes</Label>
-                            <Textarea id="reason" name="reason" defaultValue={request.reason ?? ''} placeholder="Add any notes or reasons for this status change." />
                         </div>
                         
                         {state.message && state.type === 'error' && <p className="text-sm text-destructive">{state.message}</p>}

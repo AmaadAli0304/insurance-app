@@ -455,68 +455,35 @@ export async function handleDeleteRequest(formData: FormData) {
 export async function handleUpdateRequest(prevState: { message: string, type?:string }, formData: FormData) {
     const id = formData.get('id') as string;
     const status = formData.get('status') as PreAuthStatus;
+    const claim_id = formData.get('claim_id') as string;
 
     if (!id || !status) {
         return { message: 'Missing required fields for update.', type: 'error' };
     }
 
-    let transaction;
     try {
         const pool = await getDbPool();
-        transaction = new sql.Transaction(pool);
-        await transaction.begin();
+        const request = pool.request();
 
-        // 1. Update preauth_request table
-        let preAuthUpdateQuery = 'UPDATE preauth_request SET status = @status, updated_at = @updated_at';
-        const preAuthRequest = new sql.Request(transaction)
-            .input('id', sql.Int, Number(id))
-            .input('status', sql.NVarChar, status)
-            .input('updated_at', sql.DateTime, new Date());
+        let updateQuery = 'UPDATE preauth_request SET status = @status, updated_at = @updated_at';
+        request.input('id', sql.Int, Number(id))
+               .input('status', sql.NVarChar, status)
+               .input('updated_at', sql.DateTime, new Date());
         
-        preAuthUpdateQuery += ' WHERE id = @id';
-        await preAuthRequest.query(preAuthUpdateQuery);
-
-        // 2. Fetch the admission_id from the pre-auth request we just updated
-        const getAdmissionIdRequest = new sql.Request(transaction);
-        const admissionIdResult = await getAdmissionIdRequest
-            .input('id', sql.Int, Number(id))
-            .query('SELECT admission_id, claim_id, reason, amount_sanctioned FROM preauth_request WHERE id = @id');
-            
-        const preAuthRecord = admissionIdResult.recordset[0];
-        const admission_id = preAuthRecord?.admission_id;
-
-        // 3. Update the corresponding 'claims' table
-        if (admission_id) {
-            let claimsUpdateQuery = 'UPDATE claims SET status = @status, reason = @reason, updated_at = @updated_at';
-            const claimsRequest = new sql.Request(transaction)
-                .input('admission_id', sql.NVarChar, admission_id)
-                .input('status', sql.NVarChar, status)
-                .input('reason', sql.NVarChar, preAuthRecord.reason)
-                .input('updated_at', sql.DateTime, new Date());
-            
-            if (preAuthRecord.claim_id) {
-                claimsUpdateQuery += ', claim_id = @claim_id';
-                claimsRequest.input('claim_id', sql.NVarChar, preAuthRecord.claim_id);
-            }
-
-            if (preAuthRecord.amount_sanctioned) {
-                claimsUpdateQuery += ', paidAmount = @amount_sanctioned';
-                claimsRequest.input('amount_sanctioned', sql.Decimal(18, 2), preAuthRecord.amount_sanctioned);
-            }
-
-            claimsUpdateQuery += ' WHERE admission_id = @admission_id';
-            await claimsRequest.query(claimsUpdateQuery);
+        if (claim_id) {
+            updateQuery += ', claim_id = @claim_id';
+            request.input('claim_id', sql.NVarChar, claim_id);
         }
+        
+        updateQuery += ' WHERE id = @id';
 
-        await transaction.commit();
+        await request.query(updateQuery);
 
     } catch (error) {
-        if(transaction) await transaction.rollback();
         console.error("Error updating pre-auth status:", error);
         return { message: 'Database error while updating status.', type: 'error' };
     }
 
     revalidatePath('/dashboard/pre-auths');
-    revalidatePath('/dashboard/claims');
     return { message: 'Status updated successfully.', type: 'success' };
 }
