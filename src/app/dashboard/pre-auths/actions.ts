@@ -339,7 +339,10 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
         .input('admission_id', sql.NVarChar, data.admission_id)
         .input('status', sql.NVarChar, 'Pending')
         .input('created_by', sql.NVarChar, from)
-        .query('INSERT INTO claims (Patient_id, Patient_name, admission_id, status, created_by) VALUES (@Patient_id, @Patient_name, @admission_id, @status, @created_by)');
+        .input('amount', sql.Decimal(18, 2), totalExpectedCost)
+        .input('hospital_id', sql.NVarChar, data.hospitalId)
+        .input('tpa_id', sql.Int, originalPatientRecord.tpa_id)
+        .query('INSERT INTO claims (Patient_id, Patient_name, admission_id, status, created_by, amount, hospital_id, tpa_id) VALUES (@Patient_id, @Patient_name, @admission_id, @status, @created_by, @amount, @hospital_id, @tpa_id)');
 
     await transaction.commit();
 
