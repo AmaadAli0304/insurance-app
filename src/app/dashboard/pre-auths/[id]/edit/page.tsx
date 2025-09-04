@@ -118,7 +118,7 @@ export default function EditPreAuthPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="amount">Sanctioned Amount</Label>
+                            <Label htmlFor="amount">Amount</Label>
                             <Input id="amount" name="amount" type="number" step="0.01" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter sanctioned amount" />
                         </div>
                         
