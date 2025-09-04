@@ -34,11 +34,10 @@ export async function getClaims(hospitalId?: string | null): Promise<Claim[]> {
                 pr.totalExpectedCost as claimAmount,
                 pr.policy_number as policyNumber,
                 co.name as companyName,
-                p.first_name + ' ' + p.last_name as Patient_name,
                 p.photo as patientPhoto
             FROM claims cl
             LEFT JOIN preauth_request pr ON cl.admission_id = pr.admission_id
-            LEFT JOIN patients p ON pr.patient_id = p.id
+            LEFT JOIN patients p ON cl.Patient_id = p.id
             LEFT JOIN hospitals h ON pr.hospital_id = h.id
             LEFT JOIN companies co ON pr.company_id = co.id
         `;
