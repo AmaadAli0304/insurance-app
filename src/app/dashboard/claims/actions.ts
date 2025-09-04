@@ -31,7 +31,7 @@ export async function getClaims(hospitalId?: string | null): Promise<Claim[]> {
             SELECT 
                 cl.*,
                 h.name as hospitalName,
-                pr.totalExpectedCost as claimAmount,
+                cl.amount as claimAmount,
                 pr.policy_number as policyNumber,
                 co.name as companyName,
                 p.photo as patientPhoto
