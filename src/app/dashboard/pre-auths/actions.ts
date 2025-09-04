@@ -152,13 +152,6 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
   // Handle checkbox arrays
   formEntries.attachments = formData.getAll('attachments');
   
-  // Also get the document paths from the hidden inputs
-  const documentFields = ['photoUrl', 'photoName', 'adhaar_path_url', 'adhaar_path_name', 'pan_path_url', 'pan_path_name', 'passport_path_url', 'passport_path_name', 'voter_id_path_url', 'voter_id_path_name', 'driving_licence_path_url', 'driving_licence_path_name', 'other_path_url', 'other_path_name'];
-  documentFields.forEach(field => {
-      formEntries[field] = formData.get(field);
-  });
-
-
   const validatedFields = saveDraftSchema.safeParse(formEntries);
 
   if (!validatedFields.success) {
@@ -193,13 +186,20 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
     if (shouldSendEmail && from && to && subject && details) {
       await sendPreAuthEmail({ from, to, subject, html: details });
     }
+    
+    const photoJson = JSON.stringify({ url: formData.get('photoUrl'), name: formData.get('photoName') });
+    const adhaarJson = JSON.stringify({ url: formData.get('adhaar_path_url'), name: formData.get('adhaar_path_name') });
+    const panJson = JSON.stringify({ url: formData.get('pan_path_url'), name: formData.get('pan_path_name') });
+    const passportJson = JSON.stringify({ url: formData.get('passport_path_url'), name: formData.get('passport_path_name') });
+    const voterIdJson = JSON.stringify({ url: formData.get('voter_id_path_url'), name: formData.get('voter_id_path_name') });
+    const drivingLicenceJson = JSON.stringify({ url: formData.get('driving_licence_path_url'), name: formData.get('driving_licence_path_name') });
+    const otherJson = JSON.stringify({ url: formData.get('other_path_url'), name: formData.get('other_path_name') });
 
     const preAuthInsertRequest = new sql.Request(transaction);
     const preAuthRequestResult = await preAuthInsertRequest
         .input('patient_id', sql.Int, patientId)
         .input('admission_id', sql.NVarChar, data.admission_id)
         .input('doctor_id', sql.Int, doctor_id)
-        // .input('status', sql.NVarChar, status) // Status column doesn't exist
         .input('first_name', sql.NVarChar, data.first_name)
         .input('last_name', sql.NVarChar, data.last_name)
         .input('email_address', sql.NVarChar, data.email_address)
@@ -213,13 +213,13 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
         .input('employee_id', sql.NVarChar, data.employee_id)
         .input('abha_id', sql.NVarChar, data.abha_id)
         .input('health_id', sql.NVarChar, data.health_id)
-        .input('photo', sql.NVarChar, formData.get('photoUrl'))
-        .input('adhaar_path', sql.NVarChar, formData.get('adhaar_path_url'))
-        .input('pan_path', sql.NVarChar, formData.get('pan_path_url'))
-        .input('passport_path', sql.NVarChar, formData.get('passport_path_url'))
-        .input('voter_id_path', sql.NVarChar, formData.get('voter_id_path_url'))
-        .input('driving_licence_path', sql.NVarChar, formData.get('driving_licence_path_url'))
-        .input('other_path', sql.NVarChar, formData.get('other_path_url'))
+        .input('photo', sql.NVarChar, photoJson)
+        .input('adhaar_path', sql.NVarChar, adhaarJson)
+        .input('pan_path', sql.NVarChar, panJson)
+        .input('passport_path', sql.NVarChar, passportJson)
+        .input('voter_id_path', sql.NVarChar, voterIdJson)
+        .input('driving_licence_path', sql.NVarChar, drivingLicenceJson)
+        .input('other_path', sql.NVarChar, otherJson)
         .input('relationship_policyholder', sql.NVarChar, data.relationship_policyholder)
         .input('policy_number', sql.NVarChar, data.policy_number)
         .input('insured_card_number', sql.NVarChar, data.insured_card_number)
@@ -331,6 +331,16 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
         .input('request_type', sql.NVarChar, requestType)
         .query('INSERT INTO chat (preauth_id, from_email, to_email, subject, body, request_type) VALUES (@preauth_id, @from_email, @to_email, @subject, @body, @request_type)');
         
+    // Create a corresponding claim
+    const claimInsertRequest = new sql.Request(transaction);
+    await claimInsertRequest
+        .input('Patient_id', sql.Int, patientId)
+        .input('Patient_name', sql.NVarChar, `${data.first_name} ${data.last_name}`)
+        .input('admission_id', sql.NVarChar, data.admission_id)
+        .input('status', sql.NVarChar, 'Pending')
+        .input('created_by', sql.NVarChar, from)
+        .query('INSERT INTO claims (Patient_id, Patient_name, admission_id, status, created_by) VALUES (@Patient_id, @Patient_name, @admission_id, @status, @created_by)');
+
     await transaction.commit();
 
   } catch(error) {
