@@ -121,7 +121,7 @@ export default function ClaimsPage() {
                 <TableHead>Hospital</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Created By</TableHead>
+                <TableHead>Reason</TableHead>
                 <TableHead>Last Updated</TableHead>
                 <TableHead><span className="sr-only">Actions</span></TableHead>
               </TableRow>
@@ -142,7 +142,7 @@ export default function ClaimsPage() {
                   <TableCell>
                     <Badge variant={getStatusVariant(c.status)} className={c.status === 'Paid' || c.status === 'Approved' ? 'bg-accent text-accent-foreground' : ''}>{c.status}</Badge>
                   </TableCell>
-                  <TableCell>{c.created_by || 'N/A'}</TableCell>
+                  <TableCell>{c.reason || 'N/A'}</TableCell>
                   <TableCell>{new Date(c.updated_at).toLocaleDateString()}</TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     <AlertDialog>
