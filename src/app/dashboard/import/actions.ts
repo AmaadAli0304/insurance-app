@@ -776,3 +776,31 @@ export async function handleDeleteClaimsTable(prevState: { message: string, type
     return { message: `Error deleting Claims table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
+
+export async function handleDeletePreAuthRequestTable(prevState: { message: string, type?: string }, formData: FormData) {
+  try {
+    const pool = await getDbPool();
+    const request = pool.request();
+
+    const dropChatConstraintQuery = `
+      IF OBJECT_ID('FK__chat__preauth', 'F') IS NOT NULL
+      ALTER TABLE chat DROP CONSTRAINT FK__chat__preauth;
+    `;
+    await request.query(dropChatConstraintQuery);
+    
+    const dropMedicalConstraintQuery = `
+      IF OBJECT_ID('FK__medical__preauth', 'F') IS NOT NULL
+      ALTER TABLE medical DROP CONSTRAINT FK__medical__preauth;
+    `;
+    await request.query(dropMedicalConstraintQuery);
+
+    const dropPreAuthRequestTableQuery = `DROP TABLE IF EXISTS preauth_request`;
+    await request.query(dropPreAuthRequestTableQuery);
+    
+    return { message: "Pre-Auth Request table deleted successfully.", type: "success" };
+  } catch (error) {
+    const dbError = error as { message?: string };
+    console.error('Error deleting Pre-Auth Request table:', dbError);
+    return { message: `Error deleting Pre-Auth Request table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+  }
+}

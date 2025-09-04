@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useFormStatus } from "react-dom";
-import { handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable, handleCreateDoctorsTable, handleCreateChiefComplaintsTable, handleCreatePreAuthTable, handleCreateMedicalTable, handleCreateChatTable, handleAlterPreAuthTable, handleCreateClaimsTable, handleDeleteClaimsTable } from "./actions";
+import { handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable, handleCreateDoctorsTable, handleCreateChiefComplaintsTable, handleCreatePreAuthTable, handleCreateMedicalTable, handleCreateChatTable, handleAlterPreAuthTable, handleCreateClaimsTable, handleDeleteClaimsTable, handleDeletePreAuthRequestTable } from "./actions";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble, Info, Stethoscope, FileHeart, Shield, MessageSquare, Pill, AlertTriangle, HandCoins, Trash2 } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
@@ -173,6 +173,16 @@ function SubmitDeleteClaimsTableButton() {
     );
 }
 
+function SubmitDeletePreAuthRequestTableButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending} variant="destructive">
+             <Trash2 className="mr-2 h-4 w-4" />
+            {pending ? "Deleting..." : "Delete Pre-Auth Table"}
+        </Button>
+    );
+}
+
 
 export default function ImportPage() {
     const { role } = useAuth();
@@ -192,6 +202,7 @@ export default function ImportPage() {
     const [createChatTableState, createChatTableAction] = useActionState(handleCreateChatTable, { message: "", type: undefined });
     const [createClaimsTableState, createClaimsTableAction] = useActionState(handleCreateClaimsTable, { message: "", type: undefined });
     const [deleteClaimsTableState, deleteClaimsTableAction] = useActionState(handleDeleteClaimsTable, { message: "", type: undefined });
+    const [deletePreAuthTableState, deletePreAuthTableAction] = useActionState(handleDeletePreAuthRequestTable, { message: "", type: undefined });
 
 
 
@@ -224,6 +235,7 @@ export default function ImportPage() {
     useToastEffect(createChatTableState, "Database Action");
     useToastEffect(createClaimsTableState, "Database Action");
     useToastEffect(deleteClaimsTableState, "Database Action");
+    useToastEffect(deletePreAuthTableState, "Database Action");
 
     
 
@@ -295,6 +307,9 @@ export default function ImportPage() {
                     </form>
                     <form action={deleteClaimsTableAction}>
                         <SubmitDeleteClaimsTableButton />
+                    </form>
+                    <form action={deletePreAuthTableAction}>
+                        <SubmitDeletePreAuthRequestTableButton />
                     </form>
                  </CardContent>
             </Card>
