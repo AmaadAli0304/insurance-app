@@ -2,13 +2,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getPatientById } from "../../actions";
+import { getPatientById, getClaimsForPatientTimeline } from "../../actions";
 import { notFound, useParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns';
-import type { Patient } from "@/lib/types";
+import type { Patient, Claim } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ClaimTimeline } from "@/components/claim-timeline";
 
 
 const DetailItem = ({ label, value }: { label: string, value?: string | null }) => (
@@ -22,6 +23,7 @@ export default function ViewPatientPage() {
     const params = useParams();
     const id = params.id as string;
     const [patient, setPatient] = useState<Patient | null>(null);
+    const [claims, setClaims] = useState<Claim[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -29,12 +31,17 @@ export default function ViewPatientPage() {
         async function loadData() {
             try {
                 setIsLoading(true);
-                const patientData = await getPatientById(id);
+                const [patientData, claimsData] = await Promise.all([
+                    getPatientById(id),
+                    getClaimsForPatientTimeline(id)
+                ]);
+
                 if (!patientData) {
                     notFound();
                     return;
                 }
                 setPatient(patientData);
+                setClaims(claimsData);
             } catch (err) {
                 const dbError = err as Error;
                 setError(dbError.message);
@@ -112,6 +119,7 @@ export default function ViewPatientPage() {
                     <DetailItem label="Policy End Date" value={formatDate(patient.policyEndDate)} />
                 </CardContent>
             </Card>
+            <ClaimTimeline claims={claims} patientName={patient.fullName} />
         </div>
     );
 }

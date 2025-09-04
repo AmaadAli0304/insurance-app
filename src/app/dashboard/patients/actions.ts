@@ -2,7 +2,7 @@
 "use server";
 
 import { getDbPool, sql } from "@/lib/db";
-import { Patient, Company, TPA } from "@/lib/types";
+import { Patient, Company, TPA, Claim } from "@/lib/types";
 import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
@@ -1153,6 +1153,25 @@ export async function getChiefComplaints(patientId: number) {
     }
 }
 
+export async function getClaimsForPatientTimeline(patientId: string): Promise<Claim[]> {
+    try {
+        const pool = await getDbPool();
+        const result = await pool.request()
+            .input('patientId', sql.Int, Number(patientId))
+            .query(`
+                SELECT *
+                FROM claims 
+                WHERE Patient_id = @patientId
+                ORDER BY updated_at ASC
+            `);
+
+        return result.recordset as Claim[];
+    } catch (error) {
+        console.error("Error fetching claims for timeline:", error);
+        throw new Error("Failed to fetch claims from database for the timeline.");
+    }
+}
     
 
     
+
