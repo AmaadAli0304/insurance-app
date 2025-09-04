@@ -512,7 +512,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
             .input('status', sql.NVarChar, status) 
             .input('reason', sql.NVarChar, reason) 
             .input('created_by', sql.NVarChar, userId || 'System Update') 
-            .input('amount', sql.Decimal(18, 2), preAuthDetails.totalExpectedCost)
+            .input('amount', sql.Decimal(18, 2), amount_sanctioned ? parseFloat(amount_sanctioned) : preAuthDetails.totalExpectedCost)
             .input('paidAmount', sql.Decimal(18, 2), amount_sanctioned ? parseFloat(amount_sanctioned) : null) 
             .input('hospital_id', sql.NVarChar, preAuthDetails.hospital_id)
             .input('tpa_id', sql.Int, preAuthDetails.tpa_id)
