@@ -136,7 +136,7 @@ export default function ClaimsPage() {
                     </Avatar>
                     {c.Patient_name}
                   </TableCell>
-                  <TableCell className="font-mono">{c.claim_id || c.id}</TableCell>
+                  <TableCell className="font-mono">{c.claim_id || 'N/A'}</TableCell>
                   <TableCell>{c.hospitalName || 'N/A'}</TableCell>
                   <TableCell>${c.claimAmount?.toLocaleString() || 'N/A'}</TableCell>
                   <TableCell>
