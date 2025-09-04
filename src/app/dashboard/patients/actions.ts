@@ -715,15 +715,8 @@ async function handleSaveChiefComplaints(transaction: sql.Transaction, patientId
 
 
 export async function handleAddPatient(prevState: { message: string, type?: string }, formData: FormData) {
-  const formObject = buildObjectFromFormData(formData);
-  const validatedFields = addPatientFormSchema.safeParse(formObject);
+  const data = buildObjectFromFormData(formData);
   
-  if (!validatedFields.success) {
-    const errorMessages = validatedFields.error.errors.map(e => `${e.path.join('.')} - ${e.message}`).join(', ');
-    return { message: `Invalid data: ${errorMessages}`, type: 'error' };
-  }
-  
-  const { data } = validatedFields;
   let transaction;
   
   try {
