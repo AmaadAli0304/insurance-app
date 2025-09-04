@@ -749,3 +749,18 @@ export async function handleCreateClaimsTable(prevState: { message: string, type
     return { message: `Error creating Claims table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
+
+
+export async function handleDeleteClaimsTable(prevState: { message: string, type?: string }, formData: FormData) {
+  try {
+    const pool = await getDbPool();
+    const request = pool.request();
+    const dropClaimsTableQuery = `DROP TABLE IF EXISTS claims`;
+    await request.query(dropClaimsTableQuery);
+    return { message: "Claims table deleted successfully.", type: "success" };
+  } catch (error) {
+    const dbError = error as { message?: string };
+    console.error('Error deleting Claims table:', dbError);
+    return { message: `Error deleting Claims table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+  }
+}
