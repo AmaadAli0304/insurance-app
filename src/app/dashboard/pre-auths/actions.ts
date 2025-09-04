@@ -482,31 +482,40 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         preAuthUpdateQuery += ' WHERE id = @id';
         await preAuthRequest.query(preAuthUpdateQuery);
 
-        // 2. Fetch details from preauth_request to create a new claim
+        // 2. Fetch details from preauth_request to get admission_id
         const getPreAuthDetailsRequest = new sql.Request(transaction);
         const preAuthDetailsResult = await getPreAuthDetailsRequest
             .input('id', sql.Int, Number(id))
             .query('SELECT * FROM preauth_request WHERE id = @id');
             
         if (preAuthDetailsResult.recordset.length === 0) {
-            throw new Error('Could not find the pre-authorization request to create the claim history.');
+            throw new Error('Could not find the pre-authorization request.');
         }
         const preAuthDetails = preAuthDetailsResult.recordset[0];
+        
+        // 3. Update all existing claims with the same admission_id
+        if (claim_id && preAuthDetails.admission_id) {
+            const updateClaimsRequest = new sql.Request(transaction);
+            await updateClaimsRequest
+                .input('admission_id', sql.NVarChar, preAuthDetails.admission_id)
+                .input('claim_id', sql.NVarChar, claim_id)
+                .query('UPDATE claims SET claim_id = @claim_id WHERE admission_id = @admission_id');
+        }
 
-        // 3. Create a new record in the claims table
+        // 4. Create a new record in the claims table for history
         const claimInsertRequest = new sql.Request(transaction);
         await claimInsertRequest
             .input('Patient_id', sql.Int, preAuthDetails.patient_id)
             .input('Patient_name', sql.NVarChar, `${preAuthDetails.first_name} ${preAuthDetails.last_name}`)
             .input('admission_id', sql.NVarChar, preAuthDetails.admission_id)
-            .input('status', sql.NVarChar, status) // Status from the form
-            .input('reason', sql.NVarChar, reason) // Reason from the form
-            .input('created_by', sql.NVarChar, 'System Update') // Or another identifier
+            .input('status', sql.NVarChar, status) 
+            .input('reason', sql.NVarChar, reason) 
+            .input('created_by', sql.NVarChar, 'System Update') 
             .input('amount', sql.Decimal(18, 2), preAuthDetails.totalExpectedCost)
-            .input('paidAmount', sql.Decimal(18, 2), amount_sanctioned ? parseFloat(amount_sanctioned) : null) // Amount from the form
+            .input('paidAmount', sql.Decimal(18, 2), amount_sanctioned ? parseFloat(amount_sanctioned) : null) 
             .input('hospital_id', sql.NVarChar, preAuthDetails.hospital_id)
             .input('tpa_id', sql.Int, preAuthDetails.tpa_id)
-            .input('claim_id', sql.NVarChar, claim_id) // Claim ID from the form
+            .input('claim_id', sql.NVarChar, claim_id) 
             .query(`
                 INSERT INTO claims (
                     Patient_id, Patient_name, admission_id, status, reason, created_by, 
