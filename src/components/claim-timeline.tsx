@@ -44,7 +44,7 @@ export function ClaimTimeline({ claims, patientName }: ClaimTimelineProps) {
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle>Claim Tracker</CardTitle>
+                    <CardTitle>Communication Timeline</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <p>No claim history found for this patient.</p>
@@ -56,7 +56,7 @@ export function ClaimTimeline({ claims, patientName }: ClaimTimelineProps) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="text-2xl font-bold">Claim Tracker</CardTitle>
+                <CardTitle className="text-2xl font-bold">Communication Timeline</CardTitle>
                 <CardDescription>Patient: {patientName}</CardDescription>
             </CardHeader>
             <CardContent>
