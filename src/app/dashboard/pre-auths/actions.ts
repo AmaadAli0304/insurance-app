@@ -418,8 +418,10 @@ export async function getPreAuthRequestById(id: string): Promise<StaffingRequest
                     c.body as details,
                     c.subject,
                     c.to_email as email,
-                    c.from_email as fromEmail
+                    c.from_email as fromEmail,
+                    comp.name as companyName
                 FROM preauth_request pr
+                LEFT JOIN companies comp ON pr.company_id = comp.id
                 OUTER APPLY (
                     SELECT TOP 1 *
                     FROM chat 
@@ -432,12 +434,6 @@ export async function getPreAuthRequestById(id: string): Promise<StaffingRequest
         
         const request = result.recordset[0];
         
-        const companyResult = await pool.request()
-            .input('company_id', sql.NVarChar, request.company_id)
-            .query('SELECT name FROM companies WHERE id = @company_id');
-        
-        request.companyId = companyResult.recordset[0]?.name || request.company_id;
-
         return request as StaffingRequest;
     } catch (error) {
         console.error("Error fetching pre-auth request by ID:", error);
