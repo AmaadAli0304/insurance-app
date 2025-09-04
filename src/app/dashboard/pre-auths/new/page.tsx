@@ -54,17 +54,6 @@ function SubmitButton({ formAction }: { formAction: (payload: FormData) => void 
     );
 }
 
-function SaveDraftButton({ formAction }: { formAction: (payload: FormData) => void }) {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" variant="secondary" disabled={pending} formAction={formAction}>
-             <Save className="mr-2 h-4 w-4" />
-            {pending ? "Saving..." : "Save as Draft"}
-        </Button>
-    );
-}
-
-
 export default function NewRequestPage() {
     const { user } = useAuth();
     const [addState, addAction] = useActionState(handleAddRequest, { message: "", type: "initial" });
@@ -977,7 +966,6 @@ export default function NewRequestPage() {
                            <Download className="mr-2 h-4 w-4" />
                            Download as PDF
                         </Button>
-                        <SaveDraftButton formAction={draftAction} />
                         <SubmitButton formAction={addAction} />
                      </div>
                 </div>
@@ -985,8 +973,3 @@ export default function NewRequestPage() {
         </div>
     );
 }
-
-    
-
-    
-
