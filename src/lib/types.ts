@@ -226,6 +226,9 @@ export interface StaffingRequest {
   email: string; // "To" email
   fromEmail?: string;
   requestAmount?: number; 
+  claim_id?: string | null;
+  amount_sanctioned?: number;
+  reason?: string;
   
   // Patient and admission details snapshot
   fullName?: string;

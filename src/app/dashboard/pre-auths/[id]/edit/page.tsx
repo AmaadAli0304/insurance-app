@@ -13,6 +13,8 @@ import { notFound, useParams, useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import type { StaffingRequest, PreAuthStatus } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -61,7 +63,7 @@ export default function EditPreAuthPage() {
     useEffect(() => {
         if (state.type === 'success') {
             toast({ title: "Success", description: state.message, variant: "success" });
-            router.push(`/dashboard/pre-auths/${id}/view`);
+            router.push(`/dashboard/pre-auths`);
         } else if (state.type === 'error') {
             toast({ title: "Error", description: state.message, variant: "destructive" });
         }
@@ -79,7 +81,7 @@ export default function EditPreAuthPage() {
         <div className="space-y-6">
             <div className="flex items-center gap-4">
                 <Button variant="outline" size="icon" asChild>
-                    <Link href={`/dashboard/pre-auths/${id}/view`}>
+                    <Link href={`/dashboard/pre-auths`}>
                         <ArrowLeft className="h-4 w-4" />
                         <span className="sr-only">Back</span>
                     </Link>
@@ -113,6 +115,21 @@ export default function EditPreAuthPage() {
                                     ))}
                                 </SelectContent>
                             </Select>
+                        </div>
+                        
+                        <div className="space-y-2">
+                            <Label htmlFor="amount">Sanctioned Amount ($)</Label>
+                            <Input id="amount" name="amount" type="number" step="0.01" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter sanctioned amount" />
+                        </div>
+                        
+                        <div className="space-y-2">
+                            <Label htmlFor="claim_id">Official Claim ID</Label>
+                            <Input id="claim_id" name="claim_id" defaultValue={request.claim_id ?? ''} placeholder="Enter official claim ID from TPA/Insurer" />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="reason">Reason / Notes</Label>
+                            <Textarea id="reason" name="reason" defaultValue={request.reason ?? ""} placeholder="Add a reason for the status update." />
                         </div>
                         
                         {state.message && state.type === 'error' && <p className="text-sm text-destructive">{state.message}</p>}

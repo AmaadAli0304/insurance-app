@@ -220,16 +220,6 @@ export async function handleCreatePatientsTable(prevState: { message: string, ty
           otherHospitalExpenses DECIMAL(18, 2),
           packageCharges DECIMAL(18, 2),
           totalExpectedCost DECIMAL(18, 2),
-          diabetesSince NVARCHAR(50),
-          hypertensionSince NVARCHAR(50),
-          heartDiseaseSince NVARCHAR(50),
-          hyperlipidemiaSince NVARCHAR(50),
-          osteoarthritisSince NVARCHAR(50),
-          asthmaCopdSince NVARCHAR(50),
-          cancerSince NVARCHAR(50),
-          alcoholDrugAbuseSince NVARCHAR(50),
-          hivSince NVARCHAR(50),
-          otherChronicAilment NVARCHAR(MAX),
           patientDeclarationName NVARCHAR(255),
           patientDeclarationContact NVARCHAR(50),
           patientDeclarationEmail NVARCHAR(255),
@@ -385,16 +375,6 @@ export async function handleCreateAdmissionsTable(prevState: { message: string, 
           otherHospitalExpenses DECIMAL(18, 2),
           packageCharges DECIMAL(18, 2),
           totalExpectedCost DECIMAL(18, 2),
-          diabetesSince NVARCHAR(50),
-          hypertensionSince NVARCHAR(50),
-          heartDiseaseSince NVARCHAR(50),
-          hyperlipidemiaSince NVARCHAR(50),
-          osteoarthritisSince NVARCHAR(50),
-          asthmaCopdSince NVARCHAR(50),
-          cancerSince NVARCHAR(50),
-          alcoholDrugAbuseSince NVARCHAR(50),
-          hivSince NVARCHAR(50),
-          otherChronicAilment NVARCHAR(MAX),
           patientDeclarationName NVARCHAR(255),
           patientDeclarationContact NVARCHAR(50),
           patientDeclarationEmail NVARCHAR(255),
@@ -602,15 +582,35 @@ export async function handleCreatePreAuthTable(prevState: { message: string, typ
                   CONSTRAINT FK__preauth_request__patient FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE NO ACTION
               );
             END
+            ELSE
+            BEGIN
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'claim_id' AND Object_ID = Object_ID(N'preauth_request'))
+                BEGIN
+                    ALTER TABLE preauth_request ADD claim_id NVARCHAR(255);
+                END
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'reason' AND Object_ID = Object_ID(N'preauth_request'))
+                BEGIN
+                    ALTER TABLE preauth_request ADD reason NVARCHAR(MAX);
+                END
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'updated_at' AND Object_ID = Object_ID(N'preauth_request'))
+                BEGIN
+                    ALTER TABLE preauth_request ADD updated_at DATETIME DEFAULT GETDATE();
+                END
+                 IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'amount_sanctioned' AND Object_ID = Object_ID(N'preauth_request'))
+                BEGIN
+                    ALTER TABLE preauth_request ADD amount_sanctioned DECIMAL(18, 2);
+                END
+            END
         `;
         await request.query(query);
-        return { message: "Pre-Auth Request table created successfully.", type: "success" };
+        return { message: "Pre-Auth Request table created or altered successfully.", type: "success" };
     } catch (error) {
         const dbError = error as { message?: string };
-        console.error('Error creating Pre-Auth table:', dbError);
-        return { message: `Error creating table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+        console.error('Error creating or altering Pre-Auth table:', dbError);
+        return { message: `Error creating/altering table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
     }
 }
+
 
 export async function handleAlterPreAuthTable(prevState: { message: string, type?: string }, formData: FormData) {
   try {
@@ -805,4 +805,3 @@ export async function handleDeletePreAuthRequestTable(prevState: { message: stri
     return { message: `Error deleting Pre-Auth Request table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
-
