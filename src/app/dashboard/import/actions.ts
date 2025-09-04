@@ -720,3 +720,32 @@ export async function handleCreateChatTable(prevState: { message: string, type?:
         return { message: `Error creating table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
     }
 }
+
+export async function handleCreateClaimsTable(prevState: { message: string, type?: string }, formData: FormData) {
+  try {
+    const pool = await getDbPool();
+    const request = pool.request();
+    const createClaimsTableQuery = `
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='claims' and xtype='U')
+      BEGIN
+        CREATE TABLE claims (
+          id INT IDENTITY(1,1) PRIMARY KEY,
+          Patient_id INT,
+          Patient_name NVARCHAR(255),
+          admission_id NVARCHAR(255),
+          status NVARCHAR(50),
+          reason NVARCHAR(MAX),
+          created_by NVARCHAR(255),
+          created_at DATETIME DEFAULT GETDATE(),
+          updated_at DATETIME DEFAULT GETDATE()
+        );
+      END
+    `;
+    await request.query(createClaimsTableQuery);
+    return { message: "Claims table created successfully or already exists.", type: "success" };
+  } catch (error) {
+    const dbError = error as { message?: string };
+    console.error('Error creating Claims table:', dbError);
+    return { message: `Error creating Claims table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+  }
+}
