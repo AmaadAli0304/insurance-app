@@ -739,7 +739,10 @@ export async function handleCreateClaimsTable(prevState: { message: string, type
           created_by NVARCHAR(255),
           created_at DATETIME DEFAULT GETDATE(),
           updated_at DATETIME DEFAULT GETDATE(),
-          paidAmount DECIMAL(18, 2)
+          paidAmount DECIMAL(18, 2),
+          hospital_id NVARCHAR(255),
+          amount DECIMAL(18, 2),
+          tpa_id INT
         );
       END
       ELSE
