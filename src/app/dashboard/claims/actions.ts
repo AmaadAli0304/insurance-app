@@ -11,26 +11,29 @@ export async function getClaims(hospitalId?: string | null): Promise<Claim[]> {
         const pool = await getDbPool();
         const request = pool.request();
 
-        let whereClause = '';
-        if (hospitalId) {
-            request.input('hospitalId', sql.NVarChar, hospitalId);
-            whereClause = 'LEFT JOIN preauth_request pr ON cl.admission_id = pr.admission_id WHERE pr.hospital_id = @hospitalId';
-        }
-
-        const result = await request.query(`
+        let query = `
             SELECT 
                 cl.*,
                 h.name as hospitalName,
                 pr.totalExpectedCost as claimAmount,
                 pr.policy_number as policyNumber,
-                co.name as companyName
+                co.name as companyName,
+                p.first_name + ' ' + p.last_name as Patient_name
             FROM claims cl
             LEFT JOIN preauth_request pr ON cl.admission_id = pr.admission_id
+            LEFT JOIN patients p ON pr.patient_id = p.id
             LEFT JOIN hospitals h ON pr.hospital_id = h.id
             LEFT JOIN companies co ON pr.company_id = co.id
-            ${whereClause}
-            ORDER BY cl.created_at DESC
-        `);
+        `;
+
+        if (hospitalId) {
+            request.input('hospitalId', sql.NVarChar, hospitalId);
+            query += ' WHERE pr.hospital_id = @hospitalId';
+        }
+
+        query += ' ORDER BY cl.created_at DESC';
+
+        const result = await request.query(query);
 
         return result.recordset as Claim[];
     } catch (error) {
@@ -52,9 +55,11 @@ export async function getClaimById(id: string): Promise<Claim | null> {
                     pr.policy_number as policyNumber,
                     co.name as companyName,
                     pr.id as preauth_request_id,
-                    pr.natureOfIllness as request_subject
+                    pr.natureOfIllness as request_subject,
+                    p.first_name + ' ' + p.last_name as Patient_name
                 FROM claims cl
                 LEFT JOIN preauth_request pr ON cl.admission_id = pr.admission_id
+                LEFT JOIN patients p ON pr.patient_id = p.id
                 LEFT JOIN hospitals h ON pr.hospital_id = h.id
                 LEFT JOIN companies co ON pr.company_id = co.id
                 WHERE cl.id = @id
@@ -92,14 +97,23 @@ export async function handleUpdateClaim(prevState: { message: string, type?: str
 
   try {
     const pool = await getDbPool();
-    await pool.request()
+    let query = 'UPDATE claims SET status = @status, reason = @reason, claim_id = @claim_id, updated_at = @updated_at';
+    const request = pool.request()
         .input('id', sql.Int, Number(id))
         .input('status', sql.NVarChar, status)
         .input('reason', sql.NVarChar, reason)
         .input('claim_id', sql.NVarChar, claim_id)
-        .input('updated_at', sql.DateTime, new Date())
-        // In a real scenario, you'd calculate paid amount server-side or have more complex logic
-        .query('UPDATE claims SET status = @status, reason = @reason, claim_id = @claim_id, updated_at = @updated_at WHERE id = @id');
+        .input('updated_at', sql.DateTime, new Date());
+
+    if (paidAmount) {
+        query += ', paidAmount = @paidAmount';
+        request.input('paidAmount', sql.Decimal(18, 2), parseFloat(paidAmount));
+    }
+
+    query += ' WHERE id = @id';
+
+    await request.query(query);
+
 
   } catch (error) {
       console.error("Error updating claim:", error);

@@ -80,7 +80,7 @@ export default function ViewClaimPage({ params }: { params: { id: string } }) {
                             <CardTitle className="text-xl">Financial Summary</CardTitle>
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-3 gap-4">
-                             <DetailItem label="Claimed Amount" value={`$${claim.claimAmount?.toLocaleString()}`} />
+                             <DetailItem label="Claimed Amount" value={claim.claimAmount ? `$${claim.claimAmount.toLocaleString()}` : "N/A"} />
                              <DetailItem label="Paid Amount" value={claim.paidAmount ? `$${claim.paidAmount.toLocaleString()}`: "N/A"} />
                              <DetailItem label="Last Updated" value={new Date(claim.updated_at).toLocaleDateString()} />
                         </CardContent>

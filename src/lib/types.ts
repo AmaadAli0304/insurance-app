@@ -348,7 +348,7 @@ export interface StaffingRequest {
   proposedTreatment?: string;
 }
 
-export type ClaimStatus = 'Processing' | 'Approved' | 'Paid' | 'Rejected' | 'Appealed' | 'Pending';
+export type ClaimStatus = 'Processing' | 'Approved' | 'Paid' | 'Rejected' | 'Appealed' | 'Pending' | 'Query Raised' | 'Query Answered' | 'Initial Approval Amount' | 'Amount Sanctioned' | 'Amount Received' | 'Settlement Done';
 export interface Claim {
   id: number;
   claim_id?: string | null;

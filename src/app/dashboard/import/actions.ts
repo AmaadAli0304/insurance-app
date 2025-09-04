@@ -738,12 +738,20 @@ export async function handleCreateClaimsTable(prevState: { message: string, type
           reason NVARCHAR(MAX),
           created_by NVARCHAR(255),
           created_at DATETIME DEFAULT GETDATE(),
-          updated_at DATETIME DEFAULT GETDATE()
+          updated_at DATETIME DEFAULT GETDATE(),
+          paidAmount DECIMAL(18, 2)
         );
+      END
+      ELSE
+      BEGIN
+          IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'paidAmount' AND Object_ID = Object_ID(N'claims'))
+          BEGIN
+              ALTER TABLE claims ADD paidAmount DECIMAL(18, 2);
+          END
       END
     `;
     await request.query(createClaimsTableQuery);
-    return { message: "Claims table created successfully or already exists.", type: "success" };
+    return { message: "Claims table created/updated successfully or already exists.", type: "success" };
   } catch (error) {
     const dbError = error as { message?: string };
     console.error('Error creating Claims table:', dbError);
@@ -765,4 +773,3 @@ export async function handleDeleteClaimsTable(prevState: { message: string, type
     return { message: `Error deleting Claims table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
-

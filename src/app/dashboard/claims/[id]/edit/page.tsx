@@ -114,7 +114,7 @@ export default function EditClaimPage() {
                         
                          <div className="space-y-2">
                             <Label htmlFor="paidAmount">Paid Amount ($)</Label>
-                            <Input id="paidAmount" name="paidAmount" type="number" defaultValue={claim.paidAmount} placeholder="Enter amount if status is 'Paid'" />
+                            <Input id="paidAmount" name="paidAmount" type="number" step="0.01" defaultValue={claim.paidAmount ?? undefined} placeholder="Enter amount if status is 'Paid'" />
                         </div>
                         
                         <div className="space-y-2">

@@ -28,27 +28,33 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 
 export default function ClaimsPage() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const router = useRouter();
   const [claims, setClaims] = useState<Claim[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const loadClaims = useCallback(async () => {
-    if (!user?.hospitalId) {
+    // Admins can see all claims, hospital staff see only their hospital's claims
+    const hospitalId = role === 'Hospital Staff' ? user?.hospitalId : null;
+    
+    // Don't try to load if a hospital staff user doesn't have a hospital ID yet
+    if (role === 'Hospital Staff' && !user?.hospitalId) {
         setIsLoading(false);
+        setError("You are not assigned to a hospital. Please contact an administrator.");
         return;
     }
+
     setIsLoading(true);
     try {
-        const data = await getClaims(user.hospitalId);
+        const data = await getClaims(hospitalId);
         setClaims(data);
     } catch(err: any) {
         setError(err.message);
     } finally {
         setIsLoading(false);
     }
-  }, [user]);
+  }, [user, role]);
 
   useEffect(() => {
     if (user) {
