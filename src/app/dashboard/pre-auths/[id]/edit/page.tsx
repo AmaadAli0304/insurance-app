@@ -26,7 +26,6 @@ function SubmitButton() {
 }
 
 const preAuthStatuses: PreAuthStatus[] = [
-    'Pending',
     'Query Raised',
     'Query Answered',
     'Initial Approval Amount',
@@ -123,7 +122,7 @@ export default function EditPreAuthPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="amount_sanctioned">Amount Sanctioned</Label>
+                            <Label htmlFor="amount_sanctioned">Amount</Label>
                             <Input id="amount_sanctioned" name="amount_sanctioned" type="number" step="0.01" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount sanctioned" />
                         </div>
 
