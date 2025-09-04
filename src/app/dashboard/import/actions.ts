@@ -503,6 +503,7 @@ export async function handleCreatePreAuthTable(prevState: { message: string, typ
             BEGIN
               CREATE TABLE preauth_request (
                   id INT IDENTITY(1,1) PRIMARY KEY,
+                  claim_id NVARCHAR(255),
                   patient_id INT,
                   admission_id NVARCHAR(255),
                   doctor_id INT,
@@ -804,3 +805,4 @@ export async function handleDeletePreAuthRequestTable(prevState: { message: stri
     return { message: `Error deleting Pre-Auth Request table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
+
