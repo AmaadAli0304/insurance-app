@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useActionState, useEffect, useMemo, useRef } from "react";
@@ -525,12 +526,16 @@ export default function NewRequestPage() {
                         
                         <Card>
                             <CardHeader>
-                                <CardTitle>B. Insurance &amp; Admission Details</CardTitle>
+                                <CardTitle>B. Insurance & Admission Details</CardTitle>
                             </CardHeader>
                             <CardContent className="grid md:grid-cols-3 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="admission_id">Admission ID <span className="text-destructive">*</span></Label>
                                     <Input id="admission_id" name="admission_id" defaultValue={patientDetails.admission_id ?? ''} required />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="claim_id">Claim ID</Label>
+                                    <Input id="claim_id" name="claim_id" />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="relationship_policyholder">Relationship to policyholder <span className="text-destructive">*</span></Label>
@@ -770,7 +775,7 @@ export default function NewRequestPage() {
                             <AccordionItem value="cost-info">
                                 <CardHeader>
                                     <AccordionTrigger>
-                                        <CardTitle>F. Admission &amp; Cost Estimate</CardTitle>
+                                        <CardTitle>F. Admission & Cost Estimate</CardTitle>
                                     </AccordionTrigger>
                                 </CardHeader>
                                 <AccordionContent>
@@ -842,7 +847,7 @@ export default function NewRequestPage() {
                                         </div>
                                          <div className="space-y-2 md:col-span-3">
                                             <Label htmlFor="totalExpectedCost">Total expected cost (₹)</Label>
-                                            <Input id="totalExpectedCost" name="totalExpectedCost-display" type="number" value={totalCost} readOnly className="font-bold text-lg" />
+                                            <Input id="totalExpectedCost-display" name="totalExpectedCost-display" type="number" value={totalCost} readOnly className="font-bold text-lg" />
                                         </div>
                                     </CardContent>
                                 </AccordionContent>
