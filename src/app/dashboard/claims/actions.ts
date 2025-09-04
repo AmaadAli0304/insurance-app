@@ -6,6 +6,22 @@ import { getDbPool, sql } from "@/lib/db";
 import { Claim, ClaimStatus } from "@/lib/types";
 import { revalidatePath } from 'next/cache';
 
+const getDocumentData = (jsonString: string | null | undefined): { url: string; name: string } | null => {
+    if (!jsonString) return null;
+    try {
+        const parsed = JSON.parse(jsonString);
+        if (typeof parsed === 'object' && parsed !== null && 'url' in parsed) {
+            return { url: parsed.url, name: parsed.name || 'View Document' };
+        }
+    } catch (e) {
+        if (typeof jsonString === 'string' && jsonString.startsWith('http')) {
+            return { url: jsonString, name: 'View Document' };
+        }
+    }
+    return null;
+};
+
+
 export async function getClaims(hospitalId?: string | null): Promise<Claim[]> {
     try {
         const pool = await getDbPool();
@@ -18,7 +34,8 @@ export async function getClaims(hospitalId?: string | null): Promise<Claim[]> {
                 pr.totalExpectedCost as claimAmount,
                 pr.policy_number as policyNumber,
                 co.name as companyName,
-                p.first_name + ' ' + p.last_name as Patient_name
+                p.first_name + ' ' + p.last_name as Patient_name,
+                p.photo as patientPhoto
             FROM claims cl
             LEFT JOIN preauth_request pr ON cl.admission_id = pr.admission_id
             LEFT JOIN patients p ON pr.patient_id = p.id
@@ -35,7 +52,14 @@ export async function getClaims(hospitalId?: string | null): Promise<Claim[]> {
 
         const result = await request.query(query);
 
-        return result.recordset as Claim[];
+        return result.recordset.map(record => {
+            const photoData = getDocumentData(record.patientPhoto);
+            return {
+                ...record,
+                patientPhoto: photoData?.url || null
+            }
+        }) as Claim[];
+
     } catch (error) {
         console.error("Error fetching claims:", error);
         throw new Error("Failed to fetch claims from database.");

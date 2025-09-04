@@ -200,18 +200,18 @@ export interface Patient {
 }
 
 
-export type PreAuthStatus = 
-  | 'Pending' 
-  | 'Query Raised' 
-  | 'Query Answered' 
-  | 'Initial Approval Amount' 
-  | 'Approval' 
-  | 'Amount Sanctioned' 
-  | 'Amount Received' 
+export type PreAuthStatus =
+  | 'Pending'
+  | 'Query Raised'
+  | 'Query Answered'
+  | 'Initial Approval Amount'
+  | 'Approval'
+  | 'Amount Sanctioned'
+  | 'Amount Received'
   | 'Settlement Done'
-  | 'Rejected' 
+  | 'Rejected'
   | 'Draft'
-  | 'Approved'; // Keeping for backwards compatibility if needed
+  | 'Approved'; // Keeping for backwards compatibility
 
 
 export interface StaffingRequest {
@@ -354,6 +354,7 @@ export interface Claim {
   claim_id?: string | null;
   Patient_id: number;
   Patient_name: string;
+  patientPhoto?: string | null;
   admission_id?: string | null;
   status: ClaimStatus;
   reason?: string | null;

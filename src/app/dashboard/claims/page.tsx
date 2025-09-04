@@ -25,6 +25,7 @@ import { useAuth } from "@/components/auth-provider"
 import type { Claim, ClaimStatus } from "@/lib/types"
 import { useRouter } from "next/navigation"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 
 export default function ClaimsPage() {
@@ -87,6 +88,11 @@ export default function ClaimsPage() {
     router.push(`/dashboard/claims/${claimId}/view`);
   };
 
+  const getInitials = (name: string) => {
+    if (!name) return 'P';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  }
+
 
   return (
     <div className="space-y-6">
@@ -110,8 +116,8 @@ export default function ClaimsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Claim ID</TableHead>
                 <TableHead>Patient</TableHead>
+                <TableHead>Claim ID</TableHead>
                 <TableHead>Hospital</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Status</TableHead>
@@ -123,8 +129,14 @@ export default function ClaimsPage() {
             <TableBody>
               {claims.map(c => (
                 <TableRow key={c.id} onClick={() => handleRowClick(c.id)} className="cursor-pointer">
+                   <TableCell className="font-medium flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                        <AvatarImage src={c.patientPhoto ?? undefined} alt={c.Patient_name} />
+                        <AvatarFallback>{getInitials(c.Patient_name)}</AvatarFallback>
+                    </Avatar>
+                    {c.Patient_name}
+                  </TableCell>
                   <TableCell className="font-mono">{c.claim_id || c.id}</TableCell>
-                  <TableCell className="font-medium">{c.Patient_name}</TableCell>
                   <TableCell>{c.hospitalName || 'N/A'}</TableCell>
                   <TableCell>${c.claimAmount?.toLocaleString() || 'N/A'}</TableCell>
                   <TableCell>
