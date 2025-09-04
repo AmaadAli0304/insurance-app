@@ -195,7 +195,22 @@ export interface Patient {
   expectedDischargeDate?: string;
   procedureCode?: string;
   clinicalNotes?: string;
+  doctor_id?: number;
 }
+
+
+export type PreAuthStatus = 
+  | 'Pending' 
+  | 'Query Raised' 
+  | 'Query Answered' 
+  | 'Initial Approval Amount' 
+  | 'Approval' 
+  | 'Amount Sanctioned' 
+  | 'Amount Received' 
+  | 'Settlement Done'
+  | 'Rejected' 
+  | 'Draft'
+  | 'Approved'; // Keeping for backwards compatibility if needed
 
 
 export interface StaffingRequest {
@@ -203,7 +218,7 @@ export interface StaffingRequest {
   patientId: string;
   hospitalId?: string | null;
   companyId?: string | null;
-  status: 'Pending' | 'Approved' | 'Rejected' | 'Draft';
+  status: PreAuthStatus;
   createdAt: string; // ISO date string
   details: string; 
   subject: string;

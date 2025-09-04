@@ -5,7 +5,7 @@
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { getDbPool, sql } from "@/lib/db";
-import type { StaffingRequest } from "@/lib/types";
+import type { StaffingRequest, PreAuthStatus } from "@/lib/types";
 import { z } from 'zod';
 import nodemailer from "nodemailer";
 
@@ -147,7 +147,7 @@ async function sendPreAuthEmail(requestData: { from: string, to: string, subject
 }
 
 
-async function savePreAuthRequest(formData: FormData, status: 'Pending' | 'Draft' = 'Pending', shouldSendEmail: boolean) {
+async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, shouldSendEmail: boolean) {
   const formEntries = Object.fromEntries(formData.entries());
   // Handle checkbox arrays
   formEntries.attachments = formData.getAll('attachments');
@@ -462,7 +462,7 @@ export async function handleDeleteRequest(formData: FormData) {
 
 export async function handleUpdateRequest(prevState: { message: string, type?:string }, formData: FormData) {
     const id = formData.get('id') as string;
-    const status = formData.get('status') as 'Pending' | 'Approved' | 'Rejected' | 'Draft';
+    const status = formData.get('status') as PreAuthStatus;
 
     if (!id || !status) {
         return { message: 'Missing required fields for update.', type: 'error' };

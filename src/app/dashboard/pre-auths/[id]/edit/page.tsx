@@ -11,7 +11,7 @@ import Link from "next/link";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import type { StaffingRequest } from "@/lib/types";
+import type { StaffingRequest, PreAuthStatus } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 function SubmitButton() {
@@ -22,6 +22,19 @@ function SubmitButton() {
         </Button>
     );
 }
+
+const preAuthStatuses: PreAuthStatus[] = [
+    'Pending',
+    'Query Raised',
+    'Query Answered',
+    'Initial Approval Amount',
+    'Approval',
+    'Amount Sanctioned',
+    'Amount Received',
+    'Settlement Done',
+    'Rejected',
+    'Draft'
+];
 
 export default function EditPreAuthPage() {
     const params = useParams();
@@ -95,10 +108,9 @@ export default function EditPreAuthPage() {
                                     <SelectValue placeholder="Select a status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="Draft">Draft</SelectItem>
-                                    <SelectItem value="Pending">Pending</SelectItem>
-                                    <SelectItem value="Approved">Approved</SelectItem>
-                                    <SelectItem value="Rejected">Rejected</SelectItem>
+                                    {preAuthStatuses.map(status => (
+                                        <SelectItem key={status} value={status}>{status}</SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         </div>

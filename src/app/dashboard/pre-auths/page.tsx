@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useCallback, useEffect } from "react";
@@ -22,7 +23,7 @@ import {
 import { useAuth } from "@/components/auth-provider"
 import { Badge } from "@/components/ui/badge"
 import { useRouter } from "next/navigation"
-import type { StaffingRequest } from "@/lib/types";
+import type { StaffingRequest, PreAuthStatus } from "@/lib/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 
@@ -61,16 +62,19 @@ export default function PreAuthsPage() {
     router.push(`/dashboard/pre-auths/${requestId}/view`);
   };
 
-  const getStatusVariant = (status: StaffingRequest['status']) => {
+  const getStatusVariant = (status: PreAuthStatus) => {
     switch (status) {
-      case 'Approved':
+      case 'Approval':
+      case 'Amount Sanctioned':
+      case 'Amount Received':
+      case 'Settlement Done':
         return 'default';
       case 'Rejected':
         return 'destructive';
-      case 'Pending':
-      case 'Draft':
+      case 'Query Raised':
+      case 'Initial Approval Amount':
         return 'secondary';
-      default:
+      default: // Pending, Query Answered, Draft
         return 'secondary';
     }
 }
@@ -118,7 +122,7 @@ export default function PreAuthsPage() {
                   <TableCell>{r.subject}</TableCell>
                   <TableCell>{r.email}</TableCell>
                   <TableCell>
-                    <Badge variant={getStatusVariant(r.status)} className={r.status === 'Approved' ? 'bg-accent text-accent-foreground' : ''}>{r.status}</Badge>
+                    <Badge variant={getStatusVariant(r.status)} className={r.status === 'Approval' ? 'bg-accent text-accent-foreground' : ''}>{r.status}</Badge>
                   </TableCell>
                   <TableCell>{new Date(r.createdAt).toLocaleDateString()}</TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>

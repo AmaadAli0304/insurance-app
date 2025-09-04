@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -5,7 +6,7 @@ import { notFound, useParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Mail, User, Hospital, Building, DollarSign, Stethoscope, Loader2, Edit } from 'lucide-react';
-import type { StaffingRequest } from "@/lib/types";
+import type { StaffingRequest, PreAuthStatus } from "@/lib/types";
 import { getPreAuthRequestById } from "../../actions";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -20,16 +21,20 @@ const DetailItem = ({ label, value, icon: Icon }: { label: string, value?: strin
     </div>
 );
 
-const getStatusVariant = (status: StaffingRequest['status']) => {
+const getStatusVariant = (status: PreAuthStatus) => {
     switch (status) {
-      case 'Approved':
+      case 'Approval':
+      case 'Amount Sanctioned':
+      case 'Amount Received':
+      case 'Settlement Done':
+      case 'Approved': // Keep for backwards compatibility
         return 'default';
       case 'Rejected':
         return 'destructive';
-      case 'Pending':
-      case 'Draft':
+      case 'Query Raised':
+      case 'Initial Approval Amount':
         return 'secondary';
-      default:
+      default: // Pending, Query Answered, Draft
         return 'secondary';
     }
 }
@@ -82,7 +87,7 @@ export default function ViewPreAuthPage() {
                                   <Edit className="h-4 w-4" /> Edit Status
                                 </Link>
                             </Button>
-                            <Badge variant={getStatusVariant(request.status)} className={`text-lg px-4 py-1 ${request.status === 'Approved' ? 'bg-accent text-accent-foreground' : ''}`}>{request.status}</Badge>
+                            <Badge variant={getStatusVariant(request.status)} className={`text-lg px-4 py-1 ${request.status === 'Approval' || request.status === 'Approved' ? 'bg-accent text-accent-foreground' : ''}`}>{request.status}</Badge>
                         </div>
                     </div>
                 </CardHeader>
