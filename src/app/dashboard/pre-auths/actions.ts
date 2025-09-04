@@ -1,5 +1,4 @@
 
-
 "use server";
 
 import { redirect } from 'next/navigation';
@@ -452,38 +451,83 @@ export async function handleDeleteRequest(formData: FormData) {
     revalidatePath('/dashboard/pre-auths');
 }
 
-export async function handleUpdateRequest(prevState: { message: string, type?:string }, formData: FormData) {
+export async function handleUpdateRequest(prevState: { message: string, type?: string }, formData: FormData) {
     const id = formData.get('id') as string;
     const status = formData.get('status') as PreAuthStatus;
     const claim_id = formData.get('claim_id') as string;
+    const reason = formData.get('reason') as string;
+    const amount_sanctioned = formData.get('amount_sanctioned') as string;
 
     if (!id || !status) {
         return { message: 'Missing required fields for update.', type: 'error' };
     }
 
+    let transaction;
     try {
         const pool = await getDbPool();
-        const request = pool.request();
+        transaction = new sql.Transaction(pool);
+        await transaction.begin();
 
-        let updateQuery = 'UPDATE preauth_request SET status = @status, updated_at = @updated_at';
-        request.input('id', sql.Int, Number(id))
-               .input('status', sql.NVarChar, status)
-               .input('updated_at', sql.DateTime, new Date());
+        // 1. Update the preauth_request table with only status and claim_id
+        const preAuthRequest = new sql.Request(transaction);
+        let preAuthUpdateQuery = 'UPDATE preauth_request SET status = @status, updated_at = @updated_at';
+        preAuthRequest.input('id', sql.Int, Number(id))
+                      .input('status', sql.NVarChar, status)
+                      .input('updated_at', sql.DateTime, new Date());
         
         if (claim_id) {
-            updateQuery += ', claim_id = @claim_id';
-            request.input('claim_id', sql.NVarChar, claim_id);
+            preAuthUpdateQuery += ', claim_id = @claim_id';
+            preAuthRequest.input('claim_id', sql.NVarChar, claim_id);
         }
         
-        updateQuery += ' WHERE id = @id';
+        preAuthUpdateQuery += ' WHERE id = @id';
+        await preAuthRequest.query(preAuthUpdateQuery);
 
-        await request.query(updateQuery);
+        // 2. Fetch details from preauth_request to create a new claim
+        const getPreAuthDetailsRequest = new sql.Request(transaction);
+        const preAuthDetailsResult = await getPreAuthDetailsRequest
+            .input('id', sql.Int, Number(id))
+            .query('SELECT * FROM preauth_request WHERE id = @id');
+            
+        if (preAuthDetailsResult.recordset.length === 0) {
+            throw new Error('Could not find the pre-authorization request to create the claim history.');
+        }
+        const preAuthDetails = preAuthDetailsResult.recordset[0];
+
+        // 3. Create a new record in the claims table
+        const claimInsertRequest = new sql.Request(transaction);
+        await claimInsertRequest
+            .input('Patient_id', sql.Int, preAuthDetails.patient_id)
+            .input('Patient_name', sql.NVarChar, `${preAuthDetails.first_name} ${preAuthDetails.last_name}`)
+            .input('admission_id', sql.NVarChar, preAuthDetails.admission_id)
+            .input('status', sql.NVarChar, status) // Status from the form
+            .input('reason', sql.NVarChar, reason) // Reason from the form
+            .input('created_by', sql.NVarChar, 'System Update') // Or another identifier
+            .input('amount', sql.Decimal(18, 2), preAuthDetails.totalExpectedCost)
+            .input('paidAmount', sql.Decimal(18, 2), amount_sanctioned ? parseFloat(amount_sanctioned) : null) // Amount from the form
+            .input('hospital_id', sql.NVarChar, preAuthDetails.hospital_id)
+            .input('tpa_id', sql.Int, preAuthDetails.tpa_id)
+            .input('claim_id', sql.NVarChar, claim_id) // Claim ID from the form
+            .query(`
+                INSERT INTO claims (
+                    Patient_id, Patient_name, admission_id, status, reason, created_by, 
+                    amount, paidAmount, hospital_id, tpa_id, claim_id, updated_at
+                ) VALUES (
+                    @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, 
+                    @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, GETDATE()
+                )
+            `);
+        
+        await transaction.commit();
 
     } catch (error) {
-        console.error("Error updating pre-auth status:", error);
-        return { message: 'Database error while updating status.', type: 'error' };
+        if(transaction) await transaction.rollback();
+        console.error("Error updating pre-auth and creating claim:", error);
+        const dbError = error as Error;
+        return { message: `Database error: ${dbError.message}`, type: 'error' };
     }
 
     revalidatePath('/dashboard/pre-auths');
-    return { message: 'Status updated successfully.', type: 'success' };
+    revalidatePath('/dashboard/claims');
+    return { message: 'Status updated and claim history recorded successfully.', type: 'success' };
 }
