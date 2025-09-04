@@ -6,11 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal, PlusCircle, Trash, Edit, Eye } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Trash, Edit, Eye, AlertTriangle } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
-import { mockClaims, mockPatients, mockHospitals } from "@/lib/mock-data"
 import Link from "next/link"
-import { handleDeleteClaim } from "./actions"
+import { handleDeleteClaim, getClaims } from "./actions"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,55 +22,62 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useAuth } from "@/components/auth-provider"
-import type { ClaimStatus } from "@/lib/types"
+import type { Claim, ClaimStatus } from "@/lib/types"
 import { useRouter } from "next/navigation"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 
 export default function ClaimsPage() {
-  const { user, role } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
+  const [claims, setClaims] = useState<Claim[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filterClaims = useCallback(() => {
-    return role === 'Company Admin' 
-      ? mockClaims.filter(c => c.companyId === user?.companyId)
-      : mockClaims.filter(c => c.hospitalId === user?.hospitalId);
-  }, [role, user]);
-
-  const [claims, setClaims] = useState(filterClaims);
-  
-  const refreshClaims = useCallback(() => {
-    setClaims(filterClaims());
-  }, [filterClaims]);
+  const loadClaims = useCallback(async () => {
+    if (!user?.hospitalId) {
+        setIsLoading(false);
+        return;
+    }
+    setIsLoading(true);
+    try {
+        const data = await getClaims(user.hospitalId);
+        setClaims(data);
+    } catch(err: any) {
+        setError(err.message);
+    } finally {
+        setIsLoading(false);
+    }
+  }, [user]);
 
   useEffect(() => {
-    refreshClaims();
-  }, [refreshClaims]);
+    if (user) {
+        loadClaims();
+    }
+  }, [user, loadClaims]);
 
-  const getPatientName = (patientId: string) => {
-    return mockPatients.find(p => p.id === patientId)?.fullName || 'N/A';
-  }
-
-  const getHospitalName = (hospitalId: string) => {
-    return mockHospitals.find(h => h.id === hospitalId)?.name || 'N/A';
-  }
-  
   const getStatusVariant = (status: ClaimStatus) => {
     switch (status) {
       case 'Paid':
+      case 'Settlement Done':
         return 'default';
       case 'Rejected':
         return 'destructive';
       case 'Processing':
-      case 'Appealed':
+      case 'Pending':
+      case 'Query Answered':
         return 'secondary';
        case 'Approved':
+       case 'Approval':
+       case 'Amount Sanctioned':
+       case 'Amount Received':
         return 'default'
       default:
         return 'secondary';
     }
   }
 
-  const handleRowClick = (claimId: string) => {
+  const handleRowClick = (claimId: number) => {
     router.push(`/dashboard/claims/${claimId}/view`);
   };
 
@@ -84,14 +90,17 @@ export default function ClaimsPage() {
             <CardTitle>Claim Tracker</CardTitle>
             <CardDescription>Manage and track all submitted claims.</CardDescription>
           </div>
-          <Button size="sm" className="gap-1" asChild>
-            <Link href="/dashboard/claims/new">
-              <PlusCircle className="h-4 w-4" />
-              New Claim
-            </Link>
-          </Button>
         </CardHeader>
         <CardContent>
+          {isLoading ? (
+             <p>Loading claims...</p>
+           ) : error ? (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Error Fetching Claims</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+           ) : (
           <Table>
             <TableHeader>
               <TableRow>
@@ -107,14 +116,14 @@ export default function ClaimsPage() {
             <TableBody>
               {claims.map(c => (
                 <TableRow key={c.id} onClick={() => handleRowClick(c.id)} className="cursor-pointer">
-                  <TableCell className="font-mono">{c.id}</TableCell>
-                  <TableCell className="font-medium">{getPatientName(c.patientId)}</TableCell>
-                  <TableCell>{getHospitalName(c.hospitalId)}</TableCell>
-                  <TableCell>${c.claimAmount.toLocaleString()}</TableCell>
+                  <TableCell className="font-mono">{c.claim_id || c.id}</TableCell>
+                  <TableCell className="font-medium">{c.Patient_name}</TableCell>
+                  <TableCell>{c.hospitalName || 'N/A'}</TableCell>
+                  <TableCell>${c.claimAmount?.toLocaleString() || 'N/A'}</TableCell>
                   <TableCell>
                     <Badge variant={getStatusVariant(c.status)} className={c.status === 'Paid' || c.status === 'Approved' ? 'bg-accent text-accent-foreground' : ''}>{c.status}</Badge>
                   </TableCell>
-                  <TableCell>{new Date(c.updatedAt).toLocaleDateString()}</TableCell>
+                  <TableCell>{new Date(c.updated_at).toLocaleDateString()}</TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     <AlertDialog>
                       <DropdownMenu>
@@ -150,7 +159,7 @@ export default function ClaimsPage() {
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
                            <form action={async (formData) => {
                              await handleDeleteClaim(formData);
-                             refreshClaims();
+                             loadClaims();
                            }}>
                               <input type="hidden" name="id" value={c.id} />
                               <AlertDialogAction type="submit">Continue</AlertDialogAction>
@@ -163,6 +172,7 @@ export default function ClaimsPage() {
               ))}
             </TableBody>
           </Table>
+           )}
         </CardContent>
       </Card>
     </div>

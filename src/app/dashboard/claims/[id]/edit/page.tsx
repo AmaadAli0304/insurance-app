@@ -1,20 +1,20 @@
 
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useFormStatus } from "react-dom";
-import { handleUpdateClaim } from "../../actions";
+import { handleUpdateClaim, getClaimById } from "../../actions";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { mockClaims, mockPatients } from "@/lib/mock-data";
-import { notFound, useParams } from "next/navigation";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { notFound, useParams, useRouter } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { ClaimStatus } from "@/lib/types";
+import type { Claim, ClaimStatus } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -25,18 +25,46 @@ function SubmitButton() {
     );
 }
 
+const claimStatuses: ClaimStatus[] = ['Pending', 'Processing', 'Query Raised', 'Query Answered', 'Initial Approval Amount', 'Approval', 'Amount Sanctioned', 'Amount Received', 'Settlement Done', 'Rejected', 'Appealed', 'Paid', 'Approved'];
+
 export default function EditClaimPage() {
     const params = useParams();
+    const router = useRouter();
+    const { toast } = useToast();
     const id = params.id as string;
-    const claim = mockClaims.find(c => c.id === id);
-    const [state, formAction] = useActionState(handleUpdateClaim, { message: "" });
+    
+    const [claim, setClaim] = useState<Claim | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [state, formAction] = useActionState(handleUpdateClaim, { message: "", type: "initial" });
+
+    useEffect(() => {
+        if (!id) return;
+        setIsLoading(true);
+        getClaimById(id)
+            .then(data => {
+                if (!data) notFound();
+                else setClaim(data);
+            })
+            .catch(console.error)
+            .finally(() => setIsLoading(false));
+    }, [id]);
+
+     useEffect(() => {
+        if (state.type === 'success') {
+            toast({ title: "Success", description: state.message, variant: "success" });
+            router.push(`/dashboard/claims`);
+        } else if (state.type === 'error') {
+            toast({ title: "Error", description: state.message, variant: "destructive" });
+        }
+    }, [state, toast, router, id]);
+
+    if (isLoading) {
+        return <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+    }
 
     if (!claim) {
         notFound();
     }
-    
-    const patient = mockPatients.find(p => p.id === claim.patientId);
-    const claimStatuses: ClaimStatus[] = ['Processing', 'Approved', 'Paid', 'Rejected', 'Appealed'];
 
     return (
         <div className="space-y-6">
@@ -59,10 +87,10 @@ export default function EditClaimPage() {
                         <input type="hidden" name="id" value={claim.id} />
                         
                         <div className="grid md:grid-cols-2 gap-x-8 gap-y-4 p-4 border rounded-lg bg-muted/50">
-                             <div><span className="font-semibold">Patient:</span> {patient?.fullName}</div>
-                             <div><span className="font-semibold">Policy Number:</span> {patient?.policyNumber}</div>
-                             <div><span className="font-semibold">Claim Amount:</span> ${claim.claimAmount.toLocaleString()}</div>
-                             <div><span className="font-semibold">Pre-Auth ID:</span> {claim.requestId}</div>
+                             <div><span className="font-semibold">Patient:</span> {claim.Patient_name}</div>
+                             <div><span className="font-semibold">Policy Number:</span> {claim.policyNumber}</div>
+                             <div><span className="font-semibold">Claim Amount:</span> ${claim.claimAmount?.toLocaleString()}</div>
+                             <div><span className="font-semibold">Admission ID:</span> {claim.admission_id}</div>
                         </div>
 
                         <div className="space-y-2">
@@ -78,6 +106,11 @@ export default function EditClaimPage() {
                                 </SelectContent>
                             </Select>
                         </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="claim_id">Official Claim ID</Label>
+                            <Input id="claim_id" name="claim_id" defaultValue={claim.claim_id ?? ''} placeholder="Enter official claim ID from TPA/Insurer" />
+                        </div>
                         
                          <div className="space-y-2">
                             <Label htmlFor="paidAmount">Paid Amount ($)</Label>
@@ -85,11 +118,11 @@ export default function EditClaimPage() {
                         </div>
                         
                         <div className="space-y-2">
-                            <Label htmlFor="notes">Notes</Label>
-                            <Textarea id="notes" name="notes" defaultValue={claim.notes} placeholder="Add or update notes for this claim." />
+                            <Label htmlFor="reason">Notes / Reason</Label>
+                            <Textarea id="reason" name="reason" defaultValue={claim.reason ?? ""} placeholder="Add or update notes for this claim." />
                         </div>
 
-                        {state.message && <p className="text-sm text-destructive">{state.message}</p>}
+                        {state.message && state.type === 'error' && <p className="text-sm text-destructive">{state.message}</p>}
                          <SubmitButton />
                     </CardContent>
                 </form>

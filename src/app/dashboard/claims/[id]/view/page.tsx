@@ -1,9 +1,13 @@
 
-import { notFound } from "next/navigation";
+"use client";
+
+import { useState, useEffect } from "react";
+import { notFound, useParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { mockClaims, mockPatients, mockStaffingRequests, mockHospitals, mockCompanies } from "@/lib/mock-data";
-import type { ClaimStatus } from "@/lib/types";
+import type { Claim, ClaimStatus } from "@/lib/types";
+import { getClaimById } from "../../actions";
+import { Loader2 } from "lucide-react";
 
 const DetailItem = ({ label, value, className }: { label: string, value?: string | number | null, className?: string }) => (
     <div className={className}>
@@ -15,13 +19,18 @@ const DetailItem = ({ label, value, className }: { label: string, value?: string
 const getStatusVariant = (status: ClaimStatus) => {
     switch (status) {
       case 'Paid':
+      case 'Settlement Done':
         return 'default';
       case 'Rejected':
         return 'destructive';
       case 'Processing':
-      case 'Appealed':
+      case 'Pending':
+      case 'Query Answered':
         return 'secondary';
        case 'Approved':
+       case 'Approval':
+       case 'Amount Sanctioned':
+       case 'Amount Received':
         return 'default'
       default:
         return 'secondary';
@@ -29,17 +38,29 @@ const getStatusVariant = (status: ClaimStatus) => {
 }
 
 
-export default async function ViewClaimPage({ params }: { params: { id: string } }) {
-    const claim = mockClaims.find(c => c.id === params.id);
+export default function ViewClaimPage({ params }: { params: { id: string } }) {
+    const [claim, setClaim] = useState<Claim | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        if (!params.id) return;
+        setIsLoading(true);
+        getClaimById(params.id)
+            .then(data => {
+                if (!data) notFound();
+                setClaim(data);
+            })
+            .catch(console.error)
+            .finally(() => setIsLoading(false));
+    }, [params.id]);
+
+    if (isLoading) {
+        return <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+    }
 
     if (!claim) {
         notFound();
     }
-    
-    const patient = mockPatients.find(p => p.id === claim.patientId);
-    const request = mockStaffingRequests.find(r => r.id === claim.requestId);
-    const hospital = mockHospitals.find(h => h.id === claim.hospitalId);
-    const company = mockCompanies.find(c => c.id === claim.companyId);
 
     return (
         <div className="space-y-6">
@@ -48,7 +69,7 @@ export default async function ViewClaimPage({ params }: { params: { id: string }
                     <div className="flex justify-between items-start">
                         <div>
                             <CardTitle>Claim Details</CardTitle>
-                            <CardDescription>Viewing claim <span className="font-mono">{claim.id}</span></CardDescription>
+                            <CardDescription>Viewing claim <span className="font-mono">{claim.claim_id || claim.id}</span></CardDescription>
                         </div>
                         <Badge variant={getStatusVariant(claim.status)} className={`text-lg px-4 py-1 ${claim.status === 'Paid' || claim.status === 'Approved' ? 'bg-accent text-accent-foreground' : ''}`}>{claim.status}</Badge>
                     </div>
@@ -59,9 +80,9 @@ export default async function ViewClaimPage({ params }: { params: { id: string }
                             <CardTitle className="text-xl">Financial Summary</CardTitle>
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-3 gap-4">
-                             <DetailItem label="Claimed Amount" value={`$${claim.claimAmount.toLocaleString()}`} />
+                             <DetailItem label="Claimed Amount" value={`$${claim.claimAmount?.toLocaleString()}`} />
                              <DetailItem label="Paid Amount" value={claim.paidAmount ? `$${claim.paidAmount.toLocaleString()}`: "N/A"} />
-                             <DetailItem label="Last Updated" value={new Date(claim.updatedAt).toLocaleDateString()} />
+                             <DetailItem label="Last Updated" value={new Date(claim.updated_at).toLocaleDateString()} />
                         </CardContent>
                     </Card>
 
@@ -70,10 +91,10 @@ export default async function ViewClaimPage({ params }: { params: { id: string }
                             <CardTitle className="text-xl">Patient & Provider</CardTitle>
                         </CardHeader>
                          <CardContent className="grid md:grid-cols-2 gap-4">
-                            <DetailItem label="Patient Name" value={patient?.fullName} />
-                            <DetailItem label="Policy Number" value={patient?.policyNumber} />
-                            <DetailItem label="Insurance Company" value={company?.name} />
-                            <DetailItem label="Hospital" value={hospital?.name} />
+                            <DetailItem label="Patient Name" value={claim.Patient_name} />
+                            <DetailItem label="Policy Number" value={claim.policyNumber} />
+                            <DetailItem label="Insurance Company" value={claim.companyName} />
+                            <DetailItem label="Hospital" value={claim.hospitalName} />
                         </CardContent>
                     </Card>
                     
@@ -82,16 +103,16 @@ export default async function ViewClaimPage({ params }: { params: { id: string }
                             <CardTitle className="text-xl">Associated Pre-Authorization</CardTitle>
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-2 gap-4">
-                            <DetailItem label="Request ID" value={request?.id} />
-                            <DetailItem label="Request Subject" value={request?.subject} />
-                            <DetailItem label="Request Date" value={request ? new Date(request.createdAt).toLocaleDateString() : 'N/A'} />
+                            <DetailItem label="Request ID" value={claim.admission_id} />
+                            <DetailItem label="Request Subject" value={claim.reason} />
+                            <DetailItem label="Request Date" value={new Date(claim.created_at).toLocaleDateString()} />
                         </CardContent>
                     </Card>
 
-                    {claim.notes && (
+                    {claim.reason && (
                         <Card>
                             <CardHeader><CardTitle className="text-xl">Notes</CardTitle></CardHeader>
-                            <CardContent><p className="text-muted-foreground">{claim.notes}</p></CardContent>
+                            <CardContent><p className="text-muted-foreground">{claim.reason}</p></CardContent>
                         </Card>
                     )}
                 </CardContent>

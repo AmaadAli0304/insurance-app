@@ -1,4 +1,5 @@
 
+
 export type UserRole = 'Admin' | 'Hospital Staff' | 'Company Admin';
 
 export interface User {
@@ -347,19 +348,25 @@ export interface StaffingRequest {
   proposedTreatment?: string;
 }
 
-export type ClaimStatus = 'Processing' | 'Approved' | 'Paid' | 'Rejected' | 'Appealed';
+export type ClaimStatus = 'Processing' | 'Approved' | 'Paid' | 'Rejected' | 'Appealed' | 'Pending';
 export interface Claim {
-  id: string;
-  requestId: string; // Corresponds to the initial pre-auth request
-  patientId: string;
-  hospitalId: string;
-  companyId: string;
-  claimAmount: number;
-  paidAmount?: number;
+  id: number;
+  claim_id?: string | null;
+  Patient_id: number;
+  Patient_name: string;
+  admission_id?: string | null;
   status: ClaimStatus;
-  submittedAt: string;
-  updatedAt: string;
-  notes?: string;
+  reason?: string | null;
+  created_by?: string | null;
+  created_at: string;
+  updated_at: string;
+  
+  // Joined properties
+  hospitalName?: string;
+  claimAmount?: number;
+  paidAmount?: number;
+  policyNumber?: string;
+  companyName?: string;
 }
 
 export interface TPA {
