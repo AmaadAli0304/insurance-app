@@ -935,7 +935,7 @@ export default function NewRequestPage() {
                             <div className="grid md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="to">To <span className="text-destructive">*</span></Label>
-                                    <Input id="to" name="to" placeholder="Select a patient to populate TPA email" value={toEmail} onChange={(e) => setToEmail(e.target.value)} required />
+                                    <Input id="to" name="to" placeholder="Select a patient to populate TPA email" value={toEmail} required readOnly disabled />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="from">From</Label>
@@ -973,3 +973,4 @@ export default function NewRequestPage() {
         </div>
     );
 }
+
