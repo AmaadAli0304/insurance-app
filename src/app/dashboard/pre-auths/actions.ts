@@ -523,9 +523,6 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         const fullName = `${preAuthDetails.first_name} ${preAuthDetails.last_name}`;
 
         if (shouldSendEmail) {
-            if (!from || !to || !subject || !details) {
-                return { message: 'Email fields are required for this status but not provided.', type: 'error' };
-            }
             await sendPreAuthEmail({ from, to, subject, html: details });
             const chatInsertRequest = new sql.Request(transaction);
             await chatInsertRequest
