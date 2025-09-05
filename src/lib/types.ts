@@ -356,7 +356,7 @@ export interface StaffingRequest {
   proposedTreatment?: string;
 }
 
-export type ClaimStatus = 'Processing' | 'Approved' | 'Paid' | 'Rejected' | 'Appealed' | 'Pending' | 'Query Raised' | 'Query Answered' | 'Initial Approval Amount' | 'Amount Sanctioned' | 'Amount Received' | 'Settlement Done';
+export type ClaimStatus = 'Processing' | 'Approved' | 'Paid' | 'Rejected' | 'Appealed' | 'Pending' | 'Query Raised' | 'Query Answered' | 'Initial Approval Amount' | 'Amount Sanctioned' | 'Amount Received' | 'Settlement Done' | 'Pre auth Sent';
 export interface Claim {
   id: number;
   claim_id?: string | null;

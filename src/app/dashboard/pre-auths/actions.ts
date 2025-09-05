@@ -317,7 +317,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
         .input('Patient_id', sql.Int, patientId)
         .input('Patient_name', sql.NVarChar, `${data.first_name} ${data.last_name}`)
         .input('admission_id', sql.NVarChar, data.admission_id)
-        .input('status', sql.NVarChar, 'Pending')
+        .input('status', sql.NVarChar, 'Pre auth Sent')
         .input('created_by', sql.NVarChar, userId)
         .input('amount', sql.Decimal(18, 2), totalExpectedCost)
         .input('hospital_id', sql.NVarChar, data.hospitalId)
