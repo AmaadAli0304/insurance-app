@@ -26,11 +26,7 @@ function SubmitButton() {
     );
 }
 
-const preAuthStatuses: PreAuthStatus[] = [
-    'Initial Approval Amount',
-    'Approval',
-    'Rejected'
-];
+const preAuthStatuses: PreAuthStatus[] = [];
 
 export default function EditPreAuthPage() {
     const params = useParams();
