@@ -39,7 +39,7 @@ export default function DashboardLayout({
           </SidebarContent>
         </Sidebar>
         <SidebarInset>
-            <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
+            <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6">
                 <SidebarTrigger className="md:hidden"/>
                 <div className="w-full flex-1">
                     <Breadcrumb />
