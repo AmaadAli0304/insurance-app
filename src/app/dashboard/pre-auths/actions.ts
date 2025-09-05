@@ -4,7 +4,7 @@
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { getDbPool, sql } from "@/lib/db";
-import type { StaffingRequest, PreAuthStatus, ChatMessage } from "@/lib/types";
+import type { StaffingRequest, PreAuthStatus, ChatMessage, Claim } from "@/lib/types";
 import { z } from 'zod';
 import nodemailer from "nodemailer";
 
@@ -406,32 +406,38 @@ export async function getPreAuthRequests(hospitalId: string | null | undefined):
 export async function getPreAuthRequestById(id: string): Promise<StaffingRequest | null> {
     try {
         const pool = await getDbPool();
-        const [requestResult, chatResult] = await Promise.all([
-             pool.request()
-                .input('id', sql.Int, Number(id))
-                .query(`
-                    SELECT 
-                        pr.*, 
-                        pr.patient_id as patientId,
-                        pr.first_name + ' ' + pr.last_name as fullName,
-                        h.name as hospitalName,
-                        comp.name as companyName,
-                        tpa.email as tpaEmail
-                    FROM preauth_request pr
-                    LEFT JOIN hospitals h ON pr.hospital_id = h.id
-                    LEFT JOIN companies comp ON pr.company_id = comp.id
-                    LEFT JOIN tpas tpa ON pr.tpa_id = tpa.id
-                    WHERE pr.id = @id
-                `),
-             pool.request()
-                .input('id', sql.Int, Number(id))
-                .query('SELECT * FROM chat WHERE preauth_id = @id ORDER BY created_at DESC')
-        ]);
+        const requestResult = await pool.request()
+            .input('id', sql.Int, Number(id))
+            .query(`
+                SELECT 
+                    pr.*, 
+                    pr.patient_id as patientId,
+                    pr.first_name + ' ' + pr.last_name as fullName,
+                    h.name as hospitalName,
+                    comp.name as companyName,
+                    tpa.email as tpaEmail
+                FROM preauth_request pr
+                LEFT JOIN hospitals h ON pr.hospital_id = h.id
+                LEFT JOIN companies comp ON pr.company_id = comp.id
+                LEFT JOIN tpas tpa ON pr.tpa_id = tpa.id
+                WHERE pr.id = @id
+            `);
         
         if (requestResult.recordset.length === 0) return null;
         
         const request = requestResult.recordset[0];
+
+        const [chatResult, claimsResult] = await Promise.all([
+             pool.request()
+                .input('id', sql.Int, Number(id))
+                .query('SELECT * FROM chat WHERE preauth_id = @id ORDER BY created_at DESC'),
+            pool.request()
+                .input('admission_id', sql.NVarChar, request.admission_id)
+                .query(`SELECT id, status, reason, amount as claimAmount, updated_at FROM claims WHERE admission_id = @admission_id ORDER BY updated_at DESC`)
+        ]);
+
         request.chatHistory = chatResult.recordset as ChatMessage[];
+        request.claimsHistory = claimsResult.recordset as Claim[];
         
         return request as StaffingRequest;
     } catch (error) {

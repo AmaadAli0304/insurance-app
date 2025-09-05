@@ -8,16 +8,17 @@ import { Badge } from "@/components/ui/badge";
 import { 
     User, Hospital, Building, DollarSign, Stethoscope, Loader2, Edit, Mail, Phone, Calendar, Clock, Hash, 
     HeartPulse, Pill, FileText, Briefcase, UserCheck, Shield, AlertTriangle, Baby, CircleDollarSign,
-    Info, Users, MapPin, Activity, History, Scissors, Syringe, MessageSquare
+    Info, Users, MapPin, Activity, History, Scissors, Syringe, MessageSquare, HandCoins
 } from 'lucide-react';
-import type { StaffingRequest, PreAuthStatus } from "@/lib/types";
+import type { StaffingRequest, PreAuthStatus, Claim } from "@/lib/types";
 import { getPreAuthRequestById } from "../../actions";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { Separator } from "@/components/ui/separator";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 
 const DetailItem = ({ label, value, icon: Icon, className }: { label: string, value?: string | number | null | boolean, icon?: React.ElementType, className?: string }) => {
     let displayValue: React.ReactNode = "N/A";
@@ -201,6 +202,38 @@ export default function ViewPreAuthPage() {
                     </Card>
                  </div>
             </div>
+
+             {request.claimsHistory && request.claimsHistory.length > 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><HandCoins /> Claim History</CardTitle>
+                        <CardDescription>A log of all claims generated for this pre-authorization request.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Reason / Notes</TableHead>
+                                    <TableHead>Amount</TableHead>
+                                    <TableHead>Last Updated</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {request.claimsHistory.map((claim) => (
+                                    <TableRow key={claim.id}>
+                                        <TableCell><Badge>{claim.status}</Badge></TableCell>
+                                        <TableCell>{claim.reason || 'N/A'}</TableCell>
+                                        <TableCell>₹{claim.claimAmount?.toLocaleString() || 'N/A'}</TableCell>
+                                        <TableCell>{formatDate(claim.updated_at, true)}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+            )}
+
             {request.chatHistory && request.chatHistory.length > 0 && (
                 <Card>
                     <CardHeader>

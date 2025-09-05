@@ -247,6 +247,7 @@ export interface StaffingRequest {
   reason?: string;
   patientPhoto?: string | null;
   chatHistory?: ChatMessage[];
+  claimsHistory?: Claim[];
   
   // Patient and admission details snapshot
   fullName?: string;
