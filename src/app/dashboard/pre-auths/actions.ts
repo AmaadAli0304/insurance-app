@@ -523,19 +523,20 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         const fullName = `${preAuthDetails.first_name} ${preAuthDetails.last_name}`;
 
         if (shouldSendEmail) {
-            if (from && to && subject && details) {
-                await sendPreAuthEmail({ from, to, subject, html: details });
-                const chatInsertRequest = new sql.Request(transaction);
-                await chatInsertRequest
-                    .input('preauth_id', sql.Int, Number(id))
-                    .input('from_email', sql.NVarChar, from)
-                    .input('to_email', sql.NVarChar, to)
-                    .input('subject', sql.NVarChar, subject)
-                    .input('body', sql.NVarChar, details)
-                    .input('request_type', sql.NVarChar, status)
-                    .input('created_at', sql.DateTime, now)
-                    .query('INSERT INTO chat (preauth_id, from_email, to_email, subject, body, request_type, created_at) VALUES (@preauth_id, @from_email, @to_email, @subject, @body, @request_type, @created_at)');
+            if (!from || !to || !subject || !details) {
+                return { message: 'Email fields are required for this status but not provided.', type: 'error' };
             }
+            await sendPreAuthEmail({ from, to, subject, html: details });
+            const chatInsertRequest = new sql.Request(transaction);
+            await chatInsertRequest
+                .input('preauth_id', sql.Int, Number(id))
+                .input('from_email', sql.NVarChar, from)
+                .input('to_email', sql.NVarChar, to)
+                .input('subject', sql.NVarChar, subject)
+                .input('body', sql.NVarChar, details)
+                .input('request_type', sql.NVarChar, status)
+                .input('created_at', sql.DateTime, now)
+                .query('INSERT INTO chat (preauth_id, from_email, to_email, subject, body, request_type, created_at) VALUES (@preauth_id, @from_email, @to_email, @subject, @body, @request_type, @created_at)');
         }
 
         if (shouldLogTpaResponse) {
