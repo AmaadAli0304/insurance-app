@@ -132,7 +132,7 @@ export default function PreAuthsPage() {
                   <TableCell>
                     <Badge variant={getStatusVariant(r.status)} className={r.status === 'Approval' ? 'bg-accent text-accent-foreground' : ''}>{r.status}</Badge>
                   </TableCell>
-                  <TableCell>{new Date(r.createdAt).toLocaleDateString()}</TableCell>
+                  <TableCell>{new Date(r.createdAt).toLocaleString()}</TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     <AlertDialog>
                       <DropdownMenu>
