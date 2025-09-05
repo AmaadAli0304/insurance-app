@@ -244,7 +244,7 @@ export default function ClaimsPage() {
                                     </Badge>
                                 </TableCell>
                                 <TableCell>{claim.reason || 'N/A'}</TableCell>
-                                <TableCell>{new Date(claim.updated_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</TableCell>
+                                <TableCell>{new Date(claim.updated_at).toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true })}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
