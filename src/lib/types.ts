@@ -235,6 +235,7 @@ export interface StaffingRequest {
   claim_id?: string | null;
   amount_sanctioned?: number;
   reason?: string;
+  patientPhoto?: string | null;
   
   // Patient and admission details snapshot
   fullName?: string;

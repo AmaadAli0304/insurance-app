@@ -366,19 +366,31 @@ export async function getPreAuthRequests(hospitalId: string | null | undefined):
                     pr.status, 
                     pr.created_at as createdAt,
                     pr.first_name + ' ' + pr.last_name as fullName,
-                    c.subject,
-                    c.to_email as email
+                    p.photo as patientPhoto
                 FROM preauth_request pr
-                OUTER APPLY (
-                    SELECT TOP 1 subject, to_email 
-                    FROM chat 
-                    WHERE preauth_id = pr.id 
-                    ORDER BY created_at ASC
-                ) c
+                LEFT JOIN patients p ON pr.patient_id = p.id
                 WHERE pr.hospital_id = @hospitalId
                 ORDER BY pr.created_at DESC
             `);
-        return result.recordset as StaffingRequest[];
+        
+        return result.recordset.map(record => {
+            let photoUrl = null;
+            if (record.patientPhoto) {
+                try {
+                    const parsedPhoto = JSON.parse(record.patientPhoto);
+                    photoUrl = parsedPhoto.url;
+                } catch (e) {
+                    if (typeof record.patientPhoto === 'string' && record.patientPhoto.startsWith('http')) {
+                        photoUrl = record.patientPhoto;
+                    }
+                }
+            }
+            return {
+                ...record,
+                patientPhoto: photoUrl
+            };
+        }) as StaffingRequest[];
+
     } catch (error) {
         console.error("Error fetching pre-auth requests:", error);
         throw new Error("Could not fetch pre-auth requests from database.");

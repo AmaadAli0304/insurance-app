@@ -25,6 +25,7 @@ import { Badge } from "@/components/ui/badge"
 import { useRouter } from "next/navigation"
 import type { StaffingRequest, PreAuthStatus } from "@/lib/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 
 export default function PreAuthsPage() {
@@ -79,6 +80,11 @@ export default function PreAuthsPage() {
     }
 }
 
+  const getInitials = (name: string) => {
+    if (!name || typeof name !== 'string') return 'P';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  }
+
   return (
     <div className="space-y-6">
        <Card>
@@ -116,7 +122,13 @@ export default function PreAuthsPage() {
             <TableBody>
               {requests.map(r => (
                 <TableRow key={r.id} onClick={() => handleRowClick(r.id)} className="cursor-pointer">
-                  <TableCell className="font-medium">{r.fullName}</TableCell>
+                  <TableCell className="font-medium flex items-center gap-3">
+                     <Avatar className="h-10 w-10">
+                        <AvatarImage src={r.patientPhoto ?? undefined} alt={r.fullName} />
+                        <AvatarFallback>{getInitials(r.fullName!)}</AvatarFallback>
+                    </Avatar>
+                    {r.fullName}
+                  </TableCell>
                   <TableCell>
                     <Badge variant={getStatusVariant(r.status)} className={r.status === 'Approval' ? 'bg-accent text-accent-foreground' : ''}>{r.status}</Badge>
                   </TableCell>
