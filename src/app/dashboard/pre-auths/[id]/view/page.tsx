@@ -45,6 +45,7 @@ const getStatusVariant = (status?: PreAuthStatus | null) => {
       case 'Amount Received':
       case 'Settlement Done':
       case 'Approved':
+      case 'Pre auth Sent':
         return 'default';
       case 'Rejected':
         return 'destructive';
