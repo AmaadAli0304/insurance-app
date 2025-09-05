@@ -523,12 +523,17 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         const fullName = `${preAuthDetails.first_name} ${preAuthDetails.last_name}`;
 
         if (shouldSendEmail) {
-            await sendPreAuthEmail({ from, to, subject, html: details });
+            const emailFrom = from || preAuthDetails.hospitalEmail;
+            const emailTo = to || preAuthDetails.tpaEmail;
+            if (!emailFrom || !emailTo || !subject || !details) {
+                 throw new Error('Email fields are required for this status but not provided.');
+            }
+            await sendPreAuthEmail({ from: emailFrom, to: emailTo, subject, html: details });
             const chatInsertRequest = new sql.Request(transaction);
             await chatInsertRequest
                 .input('preauth_id', sql.Int, Number(id))
-                .input('from_email', sql.NVarChar, from)
-                .input('to_email', sql.NVarChar, to)
+                .input('from_email', sql.NVarChar, emailFrom)
+                .input('to_email', sql.NVarChar, emailTo)
                 .input('subject', sql.NVarChar, subject)
                 .input('body', sql.NVarChar, details)
                 .input('request_type', sql.NVarChar, status)
@@ -566,6 +571,12 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
              preAuthUpdateQuery += ', amount_sanctioned = @amount_sanctioned';
              preAuthRequest.input('amount_sanctioned', sql.Decimal(18,2), parseFloat(amount_sanctioned));
         }
+        if (reason) {
+             preAuthUpdateQuery += ', reason = @reason';
+             preAuthRequest.input('reason', sql.NVarChar, reason);
+        }
+        
+        preAuthUpdateQuery += ', updated_at = GETDATE()';
         
         preAuthUpdateQuery += ' WHERE id = @id';
         await preAuthRequest.query(preAuthUpdateQuery);
