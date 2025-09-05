@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal, PlusCircle, Trash, Edit, Eye, AlertTriangle } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Trash, Edit, Eye, AlertTriangle, History } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
 import { handleDeleteClaim, getClaims } from "./actions"
@@ -154,6 +154,9 @@ export default function ClaimsPage() {
                              <Link href={`/dashboard/claims/${c.id}/view`} className="flex items-center gap-2 cursor-pointer">
                                 <Eye className="h-4 w-4" /> View Details
                              </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => alert('History clicked!')} className="flex items-center gap-2 cursor-pointer">
+                            <History className="h-4 w-4" /> History
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                            <AlertDialogTrigger asChild>
