@@ -26,6 +26,7 @@ import { useRouter } from "next/navigation"
 import type { StaffingRequest, PreAuthStatus } from "@/lib/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { format, formatDistanceToNow } from 'date-fns';
 
 
 export default function PreAuthsPage() {
@@ -116,6 +117,8 @@ export default function PreAuthsPage() {
                 <TableHead>Patient</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Date</TableHead>
+                <TableHead>Time</TableHead>
+                <TableHead>Time Ago</TableHead>
                 <TableHead><span className="sr-only">Actions</span></TableHead>
               </TableRow>
             </TableHeader>
@@ -132,7 +135,9 @@ export default function PreAuthsPage() {
                   <TableCell>
                     <Badge variant={getStatusVariant(r.status)} className={r.status === 'Approval' ? 'bg-accent text-accent-foreground' : ''}>{r.status}</Badge>
                   </TableCell>
-                  <TableCell>{new Date(r.createdAt).toLocaleString()}</TableCell>
+                  <TableCell>{format(new Date(r.createdAt), 'PPP')}</TableCell>
+                  <TableCell>{format(new Date(r.createdAt), 'p')}</TableCell>
+                  <TableCell>{formatDistanceToNow(new Date(r.createdAt), { addSuffix: true })}</TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     <AlertDialog>
                       <DropdownMenu>
