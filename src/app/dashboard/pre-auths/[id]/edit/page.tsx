@@ -29,8 +29,6 @@ function SubmitButton() {
 const preAuthStatuses: PreAuthStatus[] = [
     'Initial Approval Amount',
     'Approval',
-    'Amount Sanctioned',
-    'Settlement Done',
     'Rejected'
 ];
 
