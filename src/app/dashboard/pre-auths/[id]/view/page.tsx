@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { 
     User, Hospital, Building, DollarSign, Stethoscope, Loader2, Edit, Mail, Phone, Calendar, Clock, Hash, 
-    HeartPulse, Pill, FileText, Briefcase, UserCheck, Shield, AlertTriangle, Baby, CircleDollarSign
+    HeartPulse, Pill, FileText, Briefcase, UserCheck, Shield, AlertTriangle, Baby, CircleDollarSign,
+    Info, Users, MapPin, Activity, History, Scissors, Syringe
 } from 'lucide-react';
 import type { StaffingRequest, PreAuthStatus } from "@/lib/types";
 import { getPreAuthRequestById } from "../../actions";
@@ -130,12 +131,12 @@ export default function ViewPreAuthPage() {
                             <DetailItem label="Email" value={request.email_address} icon={Mail} />
                             <DetailItem label="Phone" value={request.phoneNumber} icon={Phone} />
                             <DetailItem label="Date of Birth" value={formatDate(request.birth_date)} icon={Calendar} />
-                            <DetailItem label="Age" value={request.age} />
-                            <DetailItem label="Gender" value={request.gender} />
+                            <DetailItem label="Age" value={request.age} icon={Hash} />
+                            <DetailItem label="Gender" value={request.gender} icon={Users} />
                             <DetailItem label="ABHA ID" value={request.abha_id} icon={Hash} />
                             <DetailItem label="Health ID" value={request.health_id} icon={Hash} />
                             <DetailItem label="Occupation" value={request.occupation} icon={Briefcase} />
-                            <DetailItem label="Address" value={request.address} className="md:col-span-2" />
+                            <DetailItem label="Address" value={request.address} className="md:col-span-2" icon={MapPin} />
                         </CardContent>
                     </Card>
 
@@ -144,12 +145,12 @@ export default function ViewPreAuthPage() {
                         <CardContent className="grid md:grid-cols-2 gap-4">
                             <DetailItem label="Insurance Company" value={request.companyName} icon={Building} />
                             <DetailItem label="Policy Number" value={request.policyNumber} icon={FileText} />
-                            <DetailItem label="Member ID" value={request.insured_card_number} />
+                            <DetailItem label="Member ID" value={request.insured_card_number} icon={Hash} />
                             <DetailItem label="Relationship to Policyholder" value={request.relationship_policyholder} icon={UserCheck} />
-                            <DetailItem label="Admission ID" value={request.admission_id} />
-                            <DetailItem label="Claim ID" value={request.claim_id} />
+                            <DetailItem label="Admission ID" value={request.admission_id} icon={Hash} />
+                            <DetailItem label="Claim ID" value={request.claim_id} icon={Hash} />
                             <DetailItem label="Admission Date" value={`${formatDate(request.admissionDate)} at ${request.admissionTime || ''}`} icon={Calendar} />
-                            <DetailItem label="Admission Type" value={request.admissionType} />
+                            <DetailItem label="Admission Type" value={request.admissionType} icon={Info} />
                         </CardContent>
                     </Card>
 
@@ -157,11 +158,11 @@ export default function ViewPreAuthPage() {
                         <CardHeader><CardTitle>Clinical Information</CardTitle></CardHeader>
                         <CardContent className="space-y-4">
                             <DetailItem label="Treating Doctor" value={request.treat_doc_name} icon={Stethoscope} />
-                            <DetailItem label="Provisional Diagnosis" value={request.provisionalDiagnosis} />
-                            <DetailItem label="Nature of Illness" value={request.natureOfIllness} />
-                            <DetailItem label="Past History" value={request.pastHistory} />
+                            <DetailItem label="Provisional Diagnosis" value={request.provisionalDiagnosis} icon={HeartPulse} />
+                            <DetailItem label="Nature of Illness" value={request.natureOfIllness} icon={Pill}/>
+                            <DetailItem label="Past History" value={request.pastHistory} icon={History} />
                             <DetailItem label="Proposed Medical Treatment" value={request.treatmentMedical} icon={Pill} />
-                             <DetailItem label="Proposed Surgical Treatment" value={request.treatmentSurgical} />
+                             <DetailItem label="Proposed Surgical Treatment" value={request.treatmentSurgical} icon={Activity} />
                         </CardContent>
                     </Card>
 
@@ -170,9 +171,9 @@ export default function ViewPreAuthPage() {
                             <CardHeader><CardTitle>Additional Case Details</CardTitle></CardHeader>
                              <CardContent className="grid md:grid-cols-2 gap-4">
                                 {request.isInjury && <DetailItem label="Injury Case" value={request.isInjury} icon={AlertTriangle} />}
-                                {request.isInjury && <DetailItem label="Injury Cause" value={request.injuryCause} />}
+                                {request.isInjury && <DetailItem label="Injury Cause" value={request.injuryCause} icon={Info} />}
                                 {request.isMaternity && <DetailItem label="Maternity Case" value={request.isMaternity} icon={Baby} />}
-                                {request.isMaternity && <DetailItem label="G | P | L | A" value={`${request.g || 'N/A'} | ${request.p || 'N/A'} | ${request.l || 'N/A'} | ${request.a || 'N/A'}`} />}
+                                {request.isMaternity && <DetailItem label="G | P | L | A" value={`${request.g || 'N/A'} | ${request.p || 'N/A'} | ${request.l || 'N/A'} | ${request.a || 'N/A'}`} icon={Hash} />}
                             </CardContent>
                         </Card>
                     )}
@@ -183,9 +184,9 @@ export default function ViewPreAuthPage() {
                         <CardHeader><CardTitle>Cost Estimate</CardTitle></CardHeader>
                         <CardContent className="space-y-3">
                              <DetailItem label="Estimated Total Cost" value={request.totalExpectedCost ? `₹${request.totalExpectedCost.toLocaleString()}` : 'N/A'} icon={CircleDollarSign} />
-                             <DetailItem label="Amount Sanctioned" value={request.amount_sanctioned ? `₹${request.amount_sanctioned.toLocaleString()}` : 'N/A'} />
+                             <DetailItem label="Amount Sanctioned" value={request.amount_sanctioned ? `₹${request.amount_sanctioned.toLocaleString()}` : 'N/A'} icon={DollarSign} />
                              <DetailItem label="Expected Stay" value={request.expectedStay ? `${request.expectedStay} days` : 'N/A'} icon={Clock} />
-                             <DetailItem label="Room Category" value={request.roomCategory} />
+                             <DetailItem label="Room Category" value={request.roomCategory} icon={Building} />
                         </CardContent>
                     </Card>
 
