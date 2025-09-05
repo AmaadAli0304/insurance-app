@@ -492,7 +492,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         return { message: 'Missing required fields for update.', type: 'error' };
     }
 
-    const shouldSendEmail = ['Query Answered', 'Enhancement Request', 'Final Discharge sent'].includes(status);
+    const shouldSendEmail = ['Query Answered', 'Enhancement Request', 'Final Discharge Sent'].includes(status);
     if(shouldSendEmail && (!from || !to || !subject || !details)){
          return { message: 'Email fields are required for this status.', type: 'error' };
     }
