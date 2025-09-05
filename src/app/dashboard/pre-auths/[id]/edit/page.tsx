@@ -197,7 +197,7 @@ export default function EditPreAuthPage() {
                                  <div className="grid md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="to">To <span className="text-destructive">*</span></Label>
-                                        <Input id="to" name="to" defaultValue={request.tpaEmail || ''} required={showEmailFields} />
+                                        <Input id="to" name="to" value={request.tpaEmail || ''} required={showEmailFields} readOnly disabled />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="from">From</Label>
