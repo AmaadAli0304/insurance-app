@@ -183,15 +183,25 @@ export default function NewPatientPage() {
 
             const result = await handleUploadPatientFile(formData);
 
-            if (result.type === 'success' && result.url) {
-                setPhotoUrl(result.url);
-                setPhotoName(result.name)
-                toast({ title: "Success", description: "Photo uploaded.", variant: "success" });
-            } else if(result.type === 'error') {
-                toast({ title: "Error", description: result.message, variant: "destructive" });
+            if (photoInputRef.current) {
+                if (result.type === 'success' && result.url) {
+                    setPhotoUrl(result.url);
+                    setPhotoName(result.name)
+                    toast({ title: "Success", description: "Photo uploaded.", variant: "success" });
+                } else if(result.type === 'error') {
+                    toast({ title: "Error", description: result.message, variant: "destructive" });
+                }
+                setIsUploadingPhoto(false);
             }
-            setIsUploadingPhoto(false);
         }
+    };
+    
+    const handleCancelPhotoUpload = () => {
+        setIsUploadingPhoto(false);
+        if (photoInputRef.current) {
+            photoInputRef.current.value = "";
+        }
+        toast({ title: "Cancelled", description: "Photo upload has been cancelled.", variant: "default" });
     };
 
     const handleDocumentUploadComplete = (fieldName: string, name: string, url: string) => {
@@ -255,6 +265,11 @@ export default function NewPatientPage() {
                                 <Upload className="mr-2 h-4 w-4" />
                                 {isUploadingPhoto ? 'Uploading...' : 'Upload Photo'}
                             </Button>
+                             {isUploadingPhoto && (
+                                <Button type="button" variant="ghost" size="icon" onClick={handleCancelPhotoUpload}>
+                                    <XCircle className="h-6 w-6 text-destructive" />
+                                </Button>
+                            )}
                         </div>
                         <Input 
                             ref={photoInputRef}
