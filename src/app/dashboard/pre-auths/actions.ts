@@ -491,7 +491,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         return { message: 'Missing required fields for update.', type: 'error' };
     }
 
-    const statusesThatSendEmail = ['Query Answered', 'Enhancement Request', 'Final Discharge Sent'];
+    const statusesThatSendEmail = ['Query Answered', 'Enhancement Request', 'Final Discharge sent'];
     const statusesThatLogTpaResponse = ['Query Raised', 'Enhanced Amount', 'Final Amount Sanctioned', 'Amount Received'];
 
     const shouldSendEmail = statusesThatSendEmail.includes(status);
@@ -525,9 +525,6 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         if (shouldSendEmail) {
             const emailFrom = from || preAuthDetails.hospitalEmail;
             const emailTo = to || preAuthDetails.tpaEmail;
-            if (!emailFrom || !emailTo || !subject || !details) {
-                 throw new Error('Email fields are required for this status but not provided.');
-            }
             await sendPreAuthEmail({ from: emailFrom, to: emailTo, subject, html: details });
             const chatInsertRequest = new sql.Request(transaction);
             await chatInsertRequest
