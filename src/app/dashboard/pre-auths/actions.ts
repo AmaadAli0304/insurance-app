@@ -414,6 +414,7 @@ export async function getPreAuthRequestById(id: string): Promise<StaffingRequest
                     pr.patient_id as patientId,
                     pr.first_name + ' ' + pr.last_name as fullName,
                     h.name as hospitalName,
+                    h.email as fromEmail,
                     comp.name as companyName,
                     tpa.email as tpaEmail
                 FROM preauth_request pr
@@ -482,8 +483,18 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     const amount_sanctioned = formData.get('amount_sanctioned') as string;
     const userId = formData.get('userId') as string;
 
+    const from = formData.get('from') as string;
+    const to = formData.get('to') as string;
+    const subject = formData.get('subject') as string;
+    const details = formData.get('details') as string;
+
     if (!id || !status) {
         return { message: 'Missing required fields for update.', type: 'error' };
+    }
+
+    const shouldSendEmail = ['Query Answered', 'Enhancement Request', 'Final Discharge sent'].includes(status);
+    if(shouldSendEmail && (!from || !to || !subject || !details)){
+         return { message: 'Email fields are required for this status.', type: 'error' };
     }
 
     let transaction;
@@ -493,7 +504,20 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         await transaction.begin();
         const now = new Date();
 
-        // 1. Update the preauth_request table with status and claim_id
+        if (shouldSendEmail) {
+            await sendPreAuthEmail({ from, to, subject, html: details });
+             const chatInsertRequest = new sql.Request(transaction);
+            await chatInsertRequest
+                .input('preauth_id', sql.Int, Number(id))
+                .input('from_email', sql.NVarChar, from)
+                .input('to_email', sql.NVarChar, to)
+                .input('subject', sql.NVarChar, subject)
+                .input('body', sql.NVarChar, details)
+                .input('request_type', sql.NVarChar, status) // Log the status as request type
+                .input('created_at', sql.DateTime, now)
+                .query('INSERT INTO chat (preauth_id, from_email, to_email, subject, body, request_type, created_at) VALUES (@preauth_id, @from_email, @to_email, @subject, @body, @request_type, @created_at)');
+        }
+
         const preAuthRequest = new sql.Request(transaction);
         let preAuthUpdateQuery = 'UPDATE preauth_request SET status = @status, updated_at = @updated_at';
         preAuthRequest.input('id', sql.Int, Number(id))
@@ -504,11 +528,19 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
             preAuthUpdateQuery += ', claim_id = @claim_id';
             preAuthRequest.input('claim_id', sql.NVarChar, claim_id);
         }
+        if (amount_sanctioned) {
+             preAuthUpdateQuery += ', amount_sanctioned = @amount_sanctioned';
+             preAuthRequest.input('amount_sanctioned', sql.Decimal(18,2), parseFloat(amount_sanctioned));
+        }
+        if(reason) {
+             preAuthUpdateQuery += ', reason = @reason';
+             preAuthRequest.input('reason', sql.NVarChar, reason);
+        }
         
         preAuthUpdateQuery += ' WHERE id = @id';
         await preAuthRequest.query(preAuthUpdateQuery);
 
-        // 2. Fetch details from preauth_request to get admission_id
+        // Fetch details from preauth_request to get admission_id
         const getPreAuthDetailsRequest = new sql.Request(transaction);
         const preAuthDetailsResult = await getPreAuthDetailsRequest
             .input('id', sql.Int, Number(id))
@@ -519,7 +551,6 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         }
         const preAuthDetails = preAuthDetailsResult.recordset[0];
         
-        // 3. Update all existing claims with the same admission_id
         if (claim_id && preAuthDetails.admission_id) {
             const updateClaimsRequest = new sql.Request(transaction);
             await updateClaimsRequest
@@ -529,7 +560,6 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
                 .query('UPDATE claims SET claim_id = @claim_id, updated_at = @updated_at WHERE admission_id = @admission_id');
         }
 
-        // 4. Create a new record in the claims table for history
         const claimInsertRequest = new sql.Request(transaction);
         await claimInsertRequest
             .input('Patient_id', sql.Int, preAuthDetails.patient_id)
@@ -568,5 +598,3 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     revalidatePath('/dashboard/claims');
     return { message: 'Status updated and claim history recorded successfully.', type: 'success' };
 }
-
-    
