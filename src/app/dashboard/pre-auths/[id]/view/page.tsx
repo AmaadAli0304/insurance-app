@@ -17,6 +17,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const DetailItem = ({ label, value, icon: Icon, className }: { label: string, value?: string | number | null | boolean, icon?: React.ElementType, className?: string }) => {
     let displayValue: React.ReactNode = "N/A";
@@ -206,28 +207,27 @@ export default function ViewPreAuthPage() {
                         <CardTitle>Communication History</CardTitle>
                         <CardDescription>A log of all email communications for this request.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        {request.chatHistory.map((chat, index) => (
-                            <div key={chat.id}>
-                                <div className="flex flex-col gap-1 p-4 border rounded-lg bg-muted/50">
-                                    <div className="flex justify-between items-center">
-                                        <p className="font-semibold text-sm">{chat.subject}</p>
-                                        <p className="text-xs text-muted-foreground">{formatDate(chat.created_at, true)}</p>
-                                    </div>
-                                    <div className="text-xs text-muted-foreground">
-                                        From: {chat.from_email} | To: {chat.to_email}
-                                    </div>
-                                    <Separator className="my-2" />
-                                    <div className="text-sm prose-sm max-w-full" dangerouslySetInnerHTML={{ __html: chat.body || '' }} />
-                                </div>
-                                {index < request.chatHistory!.length - 1 && <Separator className="my-4" />}
-                            </div>
-                        ))}
+                    <CardContent>
+                       <Accordion type="single" collapsible className="w-full">
+                            {request.chatHistory.map((chat) => (
+                                <AccordionItem value={`item-${chat.id}`} key={chat.id}>
+                                    <AccordionTrigger>
+                                        <div className="flex flex-col items-start text-left">
+                                            <p className="font-semibold text-sm">{chat.subject}</p>
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                From: {chat.from_email} | To: {chat.to_email} | On: {formatDate(chat.created_at, true)}
+                                            </p>
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent>
+                                        <div className="p-4 border rounded-md bg-muted/50 text-sm prose-sm max-w-full" dangerouslySetInnerHTML={{ __html: chat.body || '<p>No content available.</p>' }} />
+                                    </AccordionContent>
+                                </AccordionItem>
+                            ))}
+                        </Accordion>
                     </CardContent>
                 </Card>
             )}
         </div>
     );
 }
-
-    
