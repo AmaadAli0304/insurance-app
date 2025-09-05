@@ -492,7 +492,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     }
 
     const statusesThatSendEmail = ['Query Answered', 'Enhancement Request', 'Final Discharge sent'];
-    const statusesThatLogTpaResponse = ['Query Raised', 'Enhanced Amount', 'Final Amount Sanctioned', 'Amount Received'];
+    const statusesThatLogTpaResponse = ['Query Raised', 'Enhanced Amount', 'Final Amount Sanctioned', 'Amount received'];
 
     const shouldSendEmail = statusesThatSendEmail.includes(status);
     const shouldLogTpaResponse = statusesThatLogTpaResponse.includes(status);
@@ -525,6 +525,9 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         if (shouldSendEmail) {
             const emailFrom = from || preAuthDetails.hospitalEmail;
             const emailTo = to || preAuthDetails.tpaEmail;
+            if (!emailFrom || !emailTo || !subject || !details) {
+                throw new Error("Email fields are required for this status but not provided.");
+            }
             await sendPreAuthEmail({ from: emailFrom, to: emailTo, subject, html: details });
             const chatInsertRequest = new sql.Request(transaction);
             await chatInsertRequest
@@ -567,6 +570,10 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         if (amount_sanctioned) {
              preAuthUpdateQuery += ', amount_sanctioned = @amount_sanctioned';
              preAuthRequest.input('amount_sanctioned', sql.Decimal(18,2), parseFloat(amount_sanctioned));
+        }
+        if (reason) {
+            preAuthUpdateQuery += ', reason = @reason';
+            preAuthRequest.input('reason', sql.NVarChar, reason);
         }
         
         preAuthUpdateQuery += ' WHERE id = @id';
