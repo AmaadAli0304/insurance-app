@@ -294,7 +294,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
     await updateStatusRequest
       .input('id', sql.Int, preAuthId)
       .input('status', sql.NVarChar, status)
-      .query('UPDATE preauth_request SET status = @status WHERE id = @id')
+      .query('UPDATE preauth_request SET status = @status, updated_at = GETDATE() WHERE id = @id')
       .catch(err => {
         // Suppress error if status column does not exist, as per user's schema
         if (!err.message.includes("Invalid column name 'status'")) {
@@ -412,21 +412,13 @@ export async function getPreAuthRequestById(id: string): Promise<StaffingRequest
                     pr.*, 
                     pr.patient_id as patientId,
                     pr.first_name + ' ' + pr.last_name as fullName,
-                    c.body as details,
-                    c.subject,
-                    c.to_email as email,
-                    c.from_email as fromEmail,
+                    h.name as hospitalName,
                     comp.name as companyName,
                     tpa.email as tpaEmail
                 FROM preauth_request pr
+                LEFT JOIN hospitals h ON pr.hospital_id = h.id
                 LEFT JOIN companies comp ON pr.company_id = comp.id
                 LEFT JOIN tpas tpa ON pr.tpa_id = tpa.id
-                OUTER APPLY (
-                    SELECT TOP 1 *
-                    FROM chat 
-                    WHERE preauth_id = pr.id 
-                    ORDER BY created_at ASC
-                ) c
                 WHERE pr.id = @id
             `);
         if (result.recordset.length === 0) return null;
