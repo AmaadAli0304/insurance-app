@@ -14,6 +14,7 @@ import { getPreAuthRequestById } from "../../actions";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 const DetailItem = ({ label, value, icon: Icon, className }: { label: string, value?: string | number | null | boolean, icon?: React.ElementType, className?: string }) => {
     let displayValue: React.ReactNode = "N/A";
@@ -180,9 +181,9 @@ export default function ViewPreAuthPage() {
                     <Card>
                         <CardHeader><CardTitle>Cost Estimate</CardTitle></CardHeader>
                         <CardContent className="space-y-3">
-                             <DetailItem label="Estimated Total Cost" value={`₹${request.totalExpectedCost?.toLocaleString()}`} icon={CircleDollarSign} />
+                             <DetailItem label="Estimated Total Cost" value={request.totalExpectedCost ? `₹${request.totalExpectedCost.toLocaleString()}` : 'N/A'} icon={CircleDollarSign} />
                              <DetailItem label="Amount Sanctioned" value={request.amount_sanctioned ? `₹${request.amount_sanctioned.toLocaleString()}` : 'N/A'} />
-                             <DetailItem label="Expected Stay" value={`${request.expectedStay} days`} icon={Clock} />
+                             <DetailItem label="Expected Stay" value={request.expectedStay ? `${request.expectedStay} days` : 'N/A'} icon={Clock} />
                              <DetailItem label="Room Category" value={request.roomCategory} />
                         </CardContent>
                     </Card>
