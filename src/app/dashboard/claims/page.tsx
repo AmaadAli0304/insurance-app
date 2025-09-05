@@ -6,10 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal, PlusCircle, Trash, Edit, Eye, AlertTriangle, History } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Trash, Edit, Eye, AlertTriangle, History, Loader2 } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
-import { handleDeleteClaim, getClaims } from "./actions"
+import { handleDeleteClaim, getClaims, getClaimsByPatientId } from "./actions"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,8 +19,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { useAuth } from "@/components/auth-provider"
 import type { Claim, ClaimStatus } from "@/lib/types"
 import { useRouter } from "next/navigation"
@@ -34,6 +35,11 @@ export default function ClaimsPage() {
   const [claims, setClaims] = useState<Claim[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [historyClaims, setHistoryClaims] = useState<Claim[]>([]);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [selectedPatientName, setSelectedPatientName] = useState("");
 
   const loadClaims = useCallback(async () => {
     // Admins can see all claims, hospital staff see only their hospital's claims
@@ -62,6 +68,20 @@ export default function ClaimsPage() {
         loadClaims();
     }
   }, [user, loadClaims]);
+
+  const handleHistoryClick = async (patientId: number, patientName: string) => {
+    setIsHistoryLoading(true);
+    setSelectedPatientName(patientName);
+    setIsHistoryOpen(true);
+    try {
+        const data = await getClaimsByPatientId(patientId);
+        setHistoryClaims(data);
+    } catch(err: any) {
+        setError("Could not fetch claim history.");
+    } finally {
+        setIsHistoryLoading(false);
+    }
+  };
 
   const getStatusVariant = (status: ClaimStatus) => {
     switch (status) {
@@ -145,46 +165,46 @@ export default function ClaimsPage() {
                   <TableCell>{c.reason || 'N/A'}</TableCell>
                   <TableCell>{new Date(c.updated_at).toLocaleDateString()}</TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
-                    <AlertDialog>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem asChild>
-                             <Link href={`/dashboard/claims/${c.id}/view`} className="flex items-center gap-2 cursor-pointer">
-                                <Eye className="h-4 w-4" /> View Details
-                             </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onSelect={() => alert('History clicked!')} className="flex items-center gap-2 cursor-pointer">
-                            <History className="h-4 w-4" /> History
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem asChild>
+                           <Link href={`/dashboard/claims/${c.id}/view`} className="flex items-center gap-2 cursor-pointer">
+                              <Eye className="h-4 w-4" /> View Details
+                           </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => handleHistoryClick(c.Patient_id, c.Patient_name)} className="flex items-center gap-2 cursor-pointer">
+                          <History className="h-4 w-4" /> History
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                         <AlertDialog>
                            <AlertDialogTrigger asChild>
-                             <DropdownMenuItem className="text-destructive flex items-center gap-2 cursor-pointer" onSelect={(e) => e.preventDefault()}>
-                               <Trash className="h-4 w-4" /> Delete
-                             </DropdownMenuItem>
+                           <DropdownMenuItem className="text-destructive flex items-center gap-2 cursor-pointer" onSelect={(e) => e.preventDefault()}>
+                             <Trash className="h-4 w-4" /> Delete
+                           </DropdownMenuItem>
                            </AlertDialogTrigger>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete this claim.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                           <form action={async (formData) => {
-                             await handleDeleteClaim(formData);
-                             loadClaims();
-                           }}>
-                              <input type="hidden" name="id" value={c.id} />
-                              <AlertDialogAction type="submit">Continue</AlertDialogAction>
-                           </form>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                           <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will permanently delete this claim.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <form action={async (formData) => {
+                                  await handleDeleteClaim(formData);
+                                  loadClaims();
+                                }}>
+                                    <input type="hidden" name="id" value={c.id} />
+                                    <AlertDialogAction type="submit">Continue</AlertDialogAction>
+                                </form>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                         </AlertDialog>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
@@ -193,6 +213,46 @@ export default function ClaimsPage() {
            )}
         </CardContent>
       </Card>
+      
+      <Dialog open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Claim History for {selectedPatientName}</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            {isHistoryLoading ? (
+              <div className="flex justify-center items-center h-40">
+                <Loader2 className="h-8 w-8 animate-spin" />
+              </div>
+            ) : (
+               <ScrollArea className="h-[400px]">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Reason</TableHead>
+                            <TableHead>Last Updated</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {historyClaims.map(claim => (
+                            <TableRow key={claim.id}>
+                                <TableCell>
+                                    <Badge variant={getStatusVariant(claim.status)} className={claim.status === 'Paid' || claim.status === 'Approved' ? 'bg-accent text-accent-foreground' : ''}>
+                                        {claim.status}
+                                    </Badge>
+                                </TableCell>
+                                <TableCell>{claim.reason || 'N/A'}</TableCell>
+                                <TableCell>{new Date(claim.updated_at).toLocaleString()}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+               </ScrollArea>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

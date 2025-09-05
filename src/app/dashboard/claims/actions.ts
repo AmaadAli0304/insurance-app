@@ -113,6 +113,28 @@ export async function getClaimById(id: string): Promise<Claim | null> {
     }
 }
 
+export async function getClaimsByPatientId(patientId: number): Promise<Claim[]> {
+    try {
+        const pool = await getDbPool();
+        const result = await pool.request()
+            .input('patientId', sql.Int, patientId)
+            .query(`
+                SELECT 
+                    cl.id,
+                    cl.status,
+                    cl.reason,
+                    cl.updated_at
+                FROM claims cl
+                WHERE cl.Patient_id = @patientId
+                ORDER BY cl.updated_at DESC
+            `);
+        return result.recordset as Claim[];
+    } catch (error) {
+        console.error("Error fetching claims by patient ID:", error);
+        throw new Error("Failed to fetch claim history from the database.");
+    }
+}
+
 
 export async function handleAddClaim(prevState: { message: string }, formData: FormData) {
   // This function might need to be adjusted based on how new claims are created
