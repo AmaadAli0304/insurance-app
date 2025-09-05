@@ -572,10 +572,6 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
              preAuthUpdateQuery += ', amount_sanctioned = @amount_sanctioned';
              preAuthRequest.input('amount_sanctioned', sql.Decimal(18,2), parseFloat(amount_sanctioned));
         }
-        if(reason) {
-             preAuthUpdateQuery += ', reason = @reason';
-             preAuthRequest.input('reason', sql.NVarChar, reason);
-        }
         
         preAuthUpdateQuery += ' WHERE id = @id';
         await preAuthRequest.query(preAuthUpdateQuery);
