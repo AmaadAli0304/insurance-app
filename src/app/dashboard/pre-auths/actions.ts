@@ -294,8 +294,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
     await updateStatusRequest
       .input('id', sql.Int, preAuthId)
       .input('status', sql.NVarChar, status)
-      .input('updated_at', sql.DateTime, now)
-      .query('UPDATE preauth_request SET status = @status, updated_at = GETDATE() WHERE id = @id')
+      .query('UPDATE preauth_request SET status = @status WHERE id = @id')
       .catch(err => {
         // Suppress error if status column does not exist, as per user's schema
         if (!err.message.includes("Invalid column name 'status'")) {
@@ -559,10 +558,9 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         }
 
         const preAuthRequest = new sql.Request(transaction);
-        let preAuthUpdateQuery = 'UPDATE preauth_request SET status = @status, updated_at = @updated_at';
+        let preAuthUpdateQuery = 'UPDATE preauth_request SET status = @status';
         preAuthRequest.input('id', sql.Int, Number(id))
-                      .input('status', sql.NVarChar, status)
-                      .input('updated_at', sql.DateTime, now);
+                      .input('status', sql.NVarChar, status);
         
         if (claim_id) {
             preAuthUpdateQuery += ', claim_id = @claim_id';
