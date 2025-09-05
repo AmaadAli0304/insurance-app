@@ -28,26 +28,37 @@ export async function getClaims(hospitalId?: string | null): Promise<Claim[]> {
         const request = pool.request();
 
         let query = `
-            SELECT 
-                cl.*,
-                h.name as hospitalName,
-                cl.amount as claimAmount,
-                pr.policy_number as policyNumber,
-                co.name as companyName,
-                p.photo as patientPhoto
-            FROM claims cl
-            LEFT JOIN preauth_request pr ON cl.admission_id = pr.admission_id
-            LEFT JOIN patients p ON cl.Patient_id = p.id
-            LEFT JOIN hospitals h ON pr.hospital_id = h.id
-            LEFT JOIN companies co ON pr.company_id = co.id
+            WITH RankedClaims AS (
+                SELECT 
+                    cl.*,
+                    h.name as hospitalName,
+                    co.name as companyName,
+                    p.photo as patientPhoto,
+                    ROW_NUMBER() OVER(PARTITION BY cl.Patient_id ORDER BY cl.updated_at DESC) as rn
+                FROM claims cl
+                LEFT JOIN hospitals h ON cl.hospital_id = h.id
+                LEFT JOIN companies co ON cl.tpa_id = co.id -- Assuming tpa_id links to a company for now
+                LEFT JOIN patients p ON cl.Patient_id = p.id
         `;
-
+        
+        let whereClauses: string[] = [];
         if (hospitalId) {
             request.input('hospitalId', sql.NVarChar, hospitalId);
-            query += ' WHERE pr.hospital_id = @hospitalId';
+            whereClauses.push('cl.hospital_id = @hospitalId');
         }
 
-        query += ' ORDER BY cl.created_at DESC';
+        if(whereClauses.length > 0) {
+            query += ` WHERE ${whereClauses.join(' AND ')}`;
+        }
+
+        query += `
+            )
+            SELECT *
+            FROM RankedClaims
+            WHERE rn = 1
+            ORDER BY updated_at DESC;
+        `;
+
 
         const result = await request.query(query);
 
@@ -56,7 +67,8 @@ export async function getClaims(hospitalId?: string | null): Promise<Claim[]> {
              return {
                 ...record,
                 Patient_name: record.Patient_name,
-                patientPhoto: photoData?.url || null
+                patientPhoto: photoData?.url || null,
+                claimAmount: record.amount 
             }
         }) as Claim[];
 
