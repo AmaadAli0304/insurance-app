@@ -497,10 +497,6 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     const shouldSendEmail = statusesThatSendEmail.includes(status);
     const shouldLogTpaResponse = statusesThatLogTpaResponse.includes(status);
 
-    if (shouldSendEmail && (!from || !to || !subject || !details)) {
-        return { message: 'Email fields are required for this status.', type: 'error' };
-    }
-
     let transaction;
     try {
         const pool = await getDbPool();
@@ -527,6 +523,9 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         const fullName = `${preAuthDetails.first_name} ${preAuthDetails.last_name}`;
 
         if (shouldSendEmail) {
+            if (!from || !to || !subject || !details) {
+                 throw new Error('Email fields are required for this status but not provided.');
+            }
             await sendPreAuthEmail({ from, to, subject, html: details });
             const chatInsertRequest = new sql.Request(transaction);
             await chatInsertRequest
@@ -580,8 +579,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
             await updateClaimsRequest
                 .input('admission_id', sql.NVarChar, preAuthDetails.admission_id)
                 .input('claim_id', sql.NVarChar, claim_id)
-                .input('updated_at', sql.DateTime, now)
-                .query('UPDATE claims SET claim_id = @claim_id, updated_at = @updated_at WHERE admission_id = @admission_id');
+                .query('UPDATE claims SET claim_id = @claim_id, updated_at = GETDATE() WHERE admission_id = @admission_id');
         }
 
         const claimInsertRequest = new sql.Request(transaction);
