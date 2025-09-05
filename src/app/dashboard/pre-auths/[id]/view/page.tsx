@@ -111,9 +111,10 @@ export default function ViewPreAuthPage() {
             <Card>
                 <CardHeader>
                     <div className="flex justify-between items-start">
-                        <div>
+                        <div className="space-y-2">
                             <CardTitle>Pre-Authorization Request</CardTitle>
                             <CardDescription>Viewing request ID <span className="font-mono">{request.id}</span> for <span className="font-semibold">{request.fullName}</span></CardDescription>
+                            <Badge variant={getStatusVariant(request.status)} className={`text-base px-3 py-1`}>{request.status || 'N/A'}</Badge>
                         </div>
                         <div className="flex items-center gap-4">
                             <Button asChild variant="outline">
@@ -121,7 +122,6 @@ export default function ViewPreAuthPage() {
                                   <Edit className="h-4 w-4" /> Edit Status
                                 </Link>
                             </Button>
-                            <Badge variant={getStatusVariant(request.status)} className={`text-lg px-4 py-1`}>{request.status || 'N/A'}</Badge>
                         </div>
                     </div>
                 </CardHeader>
