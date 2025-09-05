@@ -492,9 +492,14 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         return { message: 'Missing required fields for update.', type: 'error' };
     }
 
-    const shouldSendEmail = ['Query Answered', 'Enhancement Request', 'Final Discharge Sent'].includes(status);
-    if(shouldSendEmail && (!from || !to || !subject || !details)){
-         return { message: 'Email fields are required for this status.', type: 'error' };
+    const statusesThatSendEmail = ['Query Answered', 'Enhancement Request', 'Final Discharge Sent'];
+    const statusesThatLogTpaResponse = ['Query Raised', 'Enhanced Amount', 'Final Amount Sanctioned', 'Amount Received'];
+
+    const shouldSendEmail = statusesThatSendEmail.includes(status);
+    const shouldLogTpaResponse = statusesThatLogTpaResponse.includes(status);
+
+    if (shouldSendEmail && (!from || !to || !subject || !details)) {
+        return { message: 'Email fields are required for this status.', type: 'error' };
     }
 
     let transaction;
@@ -504,16 +509,51 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         await transaction.begin();
         const now = new Date();
 
+        // Fetch pre-auth details first to get necessary IDs and emails
+        const getPreAuthDetailsRequest = new sql.Request(transaction);
+        const preAuthDetailsResult = await getPreAuthDetailsRequest
+            .input('id', sql.Int, Number(id))
+            .query(`
+                SELECT pr.*, t.email as tpaEmail, h.email as hospitalEmail
+                FROM preauth_request pr
+                LEFT JOIN tpas t ON pr.tpa_id = t.id
+                LEFT JOIN hospitals h ON pr.hospital_id = h.id
+                WHERE pr.id = @id
+            `);
+
+        if (preAuthDetailsResult.recordset.length === 0) {
+            throw new Error('Could not find the pre-authorization request.');
+        }
+        const preAuthDetails = preAuthDetailsResult.recordset[0];
+        const fullName = `${preAuthDetails.first_name} ${preAuthDetails.last_name}`;
+
         if (shouldSendEmail) {
             await sendPreAuthEmail({ from, to, subject, html: details });
-             const chatInsertRequest = new sql.Request(transaction);
+            const chatInsertRequest = new sql.Request(transaction);
             await chatInsertRequest
                 .input('preauth_id', sql.Int, Number(id))
                 .input('from_email', sql.NVarChar, from)
                 .input('to_email', sql.NVarChar, to)
                 .input('subject', sql.NVarChar, subject)
                 .input('body', sql.NVarChar, details)
-                .input('request_type', sql.NVarChar, status) // Log the status as request type
+                .input('request_type', sql.NVarChar, status)
+                .input('created_at', sql.DateTime, now)
+                .query('INSERT INTO chat (preauth_id, from_email, to_email, subject, body, request_type, created_at) VALUES (@preauth_id, @from_email, @to_email, @subject, @body, @request_type, @created_at)');
+        }
+
+        if (shouldLogTpaResponse) {
+            const tpaEmail = preAuthDetails.tpaEmail;
+            const hospitalEmail = preAuthDetails.hospitalEmail;
+            const tpaSubject = `[${status}] Regarding Pre-Auth for ${fullName} - Claim ID: ${claim_id || preAuthDetails.claim_id || 'N/A'}`;
+            
+            const chatInsertRequest = new sql.Request(transaction);
+            await chatInsertRequest
+                .input('preauth_id', sql.Int, Number(id))
+                .input('from_email', sql.NVarChar, tpaEmail)
+                .input('to_email', sql.NVarChar, hospitalEmail)
+                .input('subject', sql.NVarChar, tpaSubject)
+                .input('body', sql.NVarChar, reason) // Use reason/notes as body
+                .input('request_type', sql.NVarChar, status)
                 .input('created_at', sql.DateTime, now)
                 .query('INSERT INTO chat (preauth_id, from_email, to_email, subject, body, request_type, created_at) VALUES (@preauth_id, @from_email, @to_email, @subject, @body, @request_type, @created_at)');
         }
@@ -541,16 +581,6 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         await preAuthRequest.query(preAuthUpdateQuery);
 
         // Fetch details from preauth_request to get admission_id
-        const getPreAuthDetailsRequest = new sql.Request(transaction);
-        const preAuthDetailsResult = await getPreAuthDetailsRequest
-            .input('id', sql.Int, Number(id))
-            .query('SELECT * FROM preauth_request WHERE id = @id');
-            
-        if (preAuthDetailsResult.recordset.length === 0) {
-            throw new Error('Could not find the pre-authorization request.');
-        }
-        const preAuthDetails = preAuthDetailsResult.recordset[0];
-        
         if (claim_id && preAuthDetails.admission_id) {
             const updateClaimsRequest = new sql.Request(transaction);
             await updateClaimsRequest
@@ -563,7 +593,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         const claimInsertRequest = new sql.Request(transaction);
         await claimInsertRequest
             .input('Patient_id', sql.Int, preAuthDetails.patient_id)
-            .input('Patient_name', sql.NVarChar, `${preAuthDetails.first_name} ${preAuthDetails.last_name}`)
+            .input('Patient_name', sql.NVarChar, fullName)
             .input('admission_id', sql.NVarChar, preAuthDetails.admission_id)
             .input('status', sql.NVarChar, status) 
             .input('reason', sql.NVarChar, reason) 
