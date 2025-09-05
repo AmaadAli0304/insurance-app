@@ -4,7 +4,7 @@
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { getDbPool, sql } from "@/lib/db";
-import type { StaffingRequest, PreAuthStatus } from "@/lib/types";
+import type { StaffingRequest, PreAuthStatus, ChatMessage } from "@/lib/types";
 import { z } from 'zod';
 import nodemailer from "nodemailer";
 
@@ -294,6 +294,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
     await updateStatusRequest
       .input('id', sql.Int, preAuthId)
       .input('status', sql.NVarChar, status)
+      .input('updated_at', sql.DateTime, now)
       .query('UPDATE preauth_request SET status = @status, updated_at = GETDATE() WHERE id = @id')
       .catch(err => {
         // Suppress error if status column does not exist, as per user's schema
@@ -405,25 +406,32 @@ export async function getPreAuthRequests(hospitalId: string | null | undefined):
 export async function getPreAuthRequestById(id: string): Promise<StaffingRequest | null> {
     try {
         const pool = await getDbPool();
-        const result = await pool.request()
-            .input('id', sql.Int, Number(id))
-            .query(`
-                 SELECT 
-                    pr.*, 
-                    pr.patient_id as patientId,
-                    pr.first_name + ' ' + pr.last_name as fullName,
-                    h.name as hospitalName,
-                    comp.name as companyName,
-                    tpa.email as tpaEmail
-                FROM preauth_request pr
-                LEFT JOIN hospitals h ON pr.hospital_id = h.id
-                LEFT JOIN companies comp ON pr.company_id = comp.id
-                LEFT JOIN tpas tpa ON pr.tpa_id = tpa.id
-                WHERE pr.id = @id
-            `);
-        if (result.recordset.length === 0) return null;
+        const [requestResult, chatResult] = await Promise.all([
+             pool.request()
+                .input('id', sql.Int, Number(id))
+                .query(`
+                    SELECT 
+                        pr.*, 
+                        pr.patient_id as patientId,
+                        pr.first_name + ' ' + pr.last_name as fullName,
+                        h.name as hospitalName,
+                        comp.name as companyName,
+                        tpa.email as tpaEmail
+                    FROM preauth_request pr
+                    LEFT JOIN hospitals h ON pr.hospital_id = h.id
+                    LEFT JOIN companies comp ON pr.company_id = comp.id
+                    LEFT JOIN tpas tpa ON pr.tpa_id = tpa.id
+                    WHERE pr.id = @id
+                `),
+             pool.request()
+                .input('id', sql.Int, Number(id))
+                .query('SELECT * FROM chat WHERE preauth_id = @id ORDER BY created_at DESC')
+        ]);
         
-        const request = result.recordset[0];
+        if (requestResult.recordset.length === 0) return null;
+        
+        const request = requestResult.recordset[0];
+        request.chatHistory = chatResult.recordset as ChatMessage[];
         
         return request as StaffingRequest;
     } catch (error) {
@@ -554,3 +562,5 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     revalidatePath('/dashboard/claims');
     return { message: 'Status updated and claim history recorded successfully.', type: 'success' };
 }
+
+    

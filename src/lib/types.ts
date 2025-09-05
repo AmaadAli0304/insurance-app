@@ -219,6 +219,16 @@ export type PreAuthStatus =
   | 'Amount received'
   | 'Pre auth Sent';
 
+export interface ChatMessage {
+  id: number;
+  preauth_id: number;
+  from_email: string;
+  to_email: string;
+  subject: string;
+  body: string;
+  request_type: string;
+  created_at: string;
+}
 
 export interface StaffingRequest {
   id: string;
@@ -236,6 +246,7 @@ export interface StaffingRequest {
   amount_sanctioned?: number;
   reason?: string;
   patientPhoto?: string | null;
+  chatHistory?: ChatMessage[];
   
   // Patient and admission details snapshot
   fullName?: string;
@@ -268,6 +279,7 @@ export interface StaffingRequest {
   payer_email?: string;
   payer_phone?: string;
   hospitalName?: string;
+  companyName?: string;
   treat_doc_name?: string;
   treat_doc_number?: string;
   treat_doc_qualification?: string;
@@ -396,3 +408,5 @@ export interface Staff extends Omit<User, 'uid' | 'role' | 'companyId'> {
   hospitalName?: string;
   assignedHospitalsDetails?: { id: string | number, name: string }[];
 }
+
+    

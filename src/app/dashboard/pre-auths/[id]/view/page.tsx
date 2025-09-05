@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
     User, Hospital, Building, DollarSign, Stethoscope, Loader2, Edit, Mail, Phone, Calendar, Clock, Hash, 
     HeartPulse, Pill, FileText, Briefcase, UserCheck, Shield, AlertTriangle, Baby, CircleDollarSign,
-    Info, Users, MapPin, Activity, History, Scissors, Syringe
+    Info, Users, MapPin, Activity, History, Scissors, Syringe, MessageSquare
 } from 'lucide-react';
 import type { StaffingRequest, PreAuthStatus } from "@/lib/types";
 import { getPreAuthRequestById } from "../../actions";
@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Separator } from "@/components/ui/separator";
 
 const DetailItem = ({ label, value, icon: Icon, className }: { label: string, value?: string | number | null | boolean, icon?: React.ElementType, className?: string }) => {
     let displayValue: React.ReactNode = "N/A";
@@ -79,10 +80,11 @@ export default function ViewPreAuthPage() {
             .finally(() => setIsLoading(false));
     }, [id]);
     
-    const formatDate = (dateString?: string | null) => {
+    const formatDate = (dateString?: string | null, includeTime: boolean = false) => {
         if (!dateString) return "N/A";
         try {
-            return format(new Date(dateString), 'MMMM dd, yyyy');
+            const formatString = includeTime ? 'MMMM dd, yyyy p' : 'MMMM dd, yyyy';
+            return format(new Date(dateString), formatString);
         } catch {
             return "Invalid Date";
         }
@@ -161,8 +163,8 @@ export default function ViewPreAuthPage() {
                             <DetailItem label="Provisional Diagnosis" value={request.provisionalDiagnosis} icon={HeartPulse} />
                             <DetailItem label="Nature of Illness" value={request.natureOfIllness} icon={Pill}/>
                             <DetailItem label="Past History" value={request.pastHistory} icon={History} />
-                            <DetailItem label="Proposed Medical Treatment" value={request.treatmentMedical} icon={Pill} />
-                             <DetailItem label="Proposed Surgical Treatment" value={request.treatmentSurgical} icon={Activity} />
+                            <DetailItem label="Proposed Medical Treatment" value={request.treatmentMedical} icon={Syringe} />
+                             <DetailItem label="Proposed Surgical Treatment" value={request.treatmentSurgical} icon={Scissors} />
                         </CardContent>
                     </Card>
 
@@ -198,6 +200,34 @@ export default function ViewPreAuthPage() {
                     </Card>
                  </div>
             </div>
+            {request.chatHistory && request.chatHistory.length > 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Communication History</CardTitle>
+                        <CardDescription>A log of all email communications for this request.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {request.chatHistory.map((chat, index) => (
+                            <div key={chat.id}>
+                                <div className="flex flex-col gap-1 p-4 border rounded-lg bg-muted/50">
+                                    <div className="flex justify-between items-center">
+                                        <p className="font-semibold text-sm">{chat.subject}</p>
+                                        <p className="text-xs text-muted-foreground">{formatDate(chat.created_at, true)}</p>
+                                    </div>
+                                    <div className="text-xs text-muted-foreground">
+                                        From: {chat.from_email} | To: {chat.to_email}
+                                    </div>
+                                    <Separator className="my-2" />
+                                    <div className="text-sm prose-sm max-w-full" dangerouslySetInnerHTML={{ __html: chat.body || '' }} />
+                                </div>
+                                {index < request.chatHistory!.length - 1 && <Separator className="my-4" />}
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+            )}
         </div>
     );
 }
+
+    
