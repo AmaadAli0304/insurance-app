@@ -164,6 +164,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
     const pool = await getDbPool();
     transaction = new sql.Transaction(pool);
     await transaction.begin();
+    const now = new Date();
 
      // Fetch original patient admission details to get IDs (like company_id, tpa_id)
     const patientIdsRequest = new sql.Request(transaction);
@@ -183,6 +184,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
     
     const preAuthInsertRequest = new sql.Request(transaction);
     const preAuthRequestResult = await preAuthInsertRequest
+        .input('created_at', sql.DateTime, now)
         .input('patient_id', sql.Int, patientId)
         .input('admission_id', sql.NVarChar, data.admission_id)
         .input('claim_id', sql.NVarChar, claim_id)
@@ -277,9 +279,9 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
         .input('hospitalDeclarationTime', sql.NVarChar, data.hospitalDeclarationTime)
         .input('attachments', sql.NVarChar, Array.isArray(data.attachments) ? (data.attachments as string[]).join(',') : null)
         .query(`INSERT INTO preauth_request (
-            patient_id, admission_id, claim_id, doctor_id, first_name, last_name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, relationship_policyholder, policy_number, insured_card_number, company_id, policy_start_date, policy_end_date, sum_insured, sum_utilized, total_sum, corporate_policy_number, other_policy_name, family_doctor_name, family_doctor_phone, payer_email, payer_phone, tpa_id, hospital_id, treat_doc_name, treat_doc_number, treat_doc_qualification, treat_doc_reg_no, natureOfIllness, clinicalFindings, ailmentDuration, firstConsultationDate, pastHistory, provisionalDiagnosis, icd10Codes, treatmentMedical, treatmentSurgical, treatmentIntensiveCare, treatmentInvestigation, treatmentNonAllopathic, investigationDetails, drugRoute, procedureName, icd10PcsCodes, otherTreatments, isInjury, injuryCause, isRta, injuryDate, isReportedToPolice, firNumber, isAlcoholSuspected, isToxicologyConducted, isMaternity, g, p, l, a, expectedDeliveryDate, admissionDate, admissionTime, admissionType, expectedStay, expectedIcuStay, roomCategory, roomNursingDietCost, investigationCost, icuCost, otCost, professionalFees, medicineCost, otherHospitalExpenses, packageCharges, totalExpectedCost, patientDeclarationName, patientDeclarationContact, patientDeclarationEmail, patientDeclarationDate, patientDeclarationTime, hospitalDeclarationDoctorName, hospitalDeclarationDate, hospitalDeclarationTime, attachments
+            created_at, patient_id, admission_id, claim_id, doctor_id, first_name, last_name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, relationship_policyholder, policy_number, insured_card_number, company_id, policy_start_date, policy_end_date, sum_insured, sum_utilized, total_sum, corporate_policy_number, other_policy_name, family_doctor_name, family_doctor_phone, payer_email, payer_phone, tpa_id, hospital_id, treat_doc_name, treat_doc_number, treat_doc_qualification, treat_doc_reg_no, natureOfIllness, clinicalFindings, ailmentDuration, firstConsultationDate, pastHistory, provisionalDiagnosis, icd10Codes, treatmentMedical, treatmentSurgical, treatmentIntensiveCare, treatmentInvestigation, treatmentNonAllopathic, investigationDetails, drugRoute, procedureName, icd10PcsCodes, otherTreatments, isInjury, injuryCause, isRta, injuryDate, isReportedToPolice, firNumber, isAlcoholSuspected, isToxicologyConducted, isMaternity, g, p, l, a, expectedDeliveryDate, admissionDate, admissionTime, admissionType, expectedStay, expectedIcuStay, roomCategory, roomNursingDietCost, investigationCost, icuCost, otCost, professionalFees, medicineCost, otherHospitalExpenses, packageCharges, totalExpectedCost, patientDeclarationName, patientDeclarationContact, patientDeclarationEmail, patientDeclarationDate, patientDeclarationTime, hospitalDeclarationDoctorName, hospitalDeclarationDate, hospitalDeclarationTime, attachments
         ) OUTPUT INSERTED.id VALUES (
-            @patient_id, @admission_id, @claim_id, @doctor_id, @first_name, @last_name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @relationship_policyholder, @policy_number, @insured_card_number, @company_id, @policy_start_date, @policy_end_date, @sum_insured, @sum_utilized, @total_sum, @corporate_policy_number, @other_policy_name, @family_doctor_name, @family_doctor_phone, @payer_email, @payer_phone, @tpa_id, @hospital_id, @treat_doc_name, @treat_doc_number, @treat_doc_qualification, @treat_doc_reg_no, @natureOfIllness, @clinicalFindings, @ailmentDuration, @firstConsultationDate, @pastHistory, @provisionalDiagnosis, @icd10Codes, @treatmentMedical, @treatmentSurgical, @treatmentIntensiveCare, @treatmentInvestigation, @treatmentNonAllopathic, @investigationDetails, @drugRoute, @procedureName, @icd10PcsCodes, @otherTreatments, @isInjury, @injuryCause, @isRta, @injuryDate, @isReportedToPolice, @firNumber, @isAlcoholSuspected, @isToxicologyConducted, @isMaternity, @g, @p, @l, @a, @expectedDeliveryDate, @admissionDate, @admissionTime, @admissionType, @expectedStay, @expectedIcuStay, @roomCategory, @roomNursingDietCost, @investigationCost, @icuCost, @otCost, @professionalFees, @medicineCost, @otherHospitalExpenses, @packageCharges, @totalExpectedCost, @patientDeclarationName, @patientDeclarationContact, @patientDeclarationEmail, @patientDeclarationDate, @patientDeclarationTime, @hospitalDeclarationDoctorName, @hospitalDeclarationDate, @hospitalDeclarationTime, @attachments
+            @created_at, @patient_id, @admission_id, @claim_id, @doctor_id, @first_name, @last_name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @relationship_policyholder, @policy_number, @insured_card_number, @company_id, @policy_start_date, @policy_end_date, @sum_insured, @sum_utilized, @total_sum, @corporate_policy_number, @other_policy_name, @family_doctor_name, @family_doctor_phone, @payer_email, @payer_phone, @tpa_id, @hospital_id, @treat_doc_name, @treat_doc_number, @treat_doc_qualification, @treat_doc_reg_no, @natureOfIllness, @clinicalFindings, @ailmentDuration, @firstConsultationDate, @pastHistory, @provisionalDiagnosis, @icd10Codes, @treatmentMedical, @treatmentSurgical, @treatmentIntensiveCare, @treatmentInvestigation, @treatmentNonAllopathic, @investigationDetails, @drugRoute, @procedureName, @icd10PcsCodes, @otherTreatments, @isInjury, @injuryCause, @isRta, @injuryDate, @isReportedToPolice, @firNumber, @isAlcoholSuspected, @isToxicologyConducted, @isMaternity, @g, @p, @l, @a, @expectedDeliveryDate, @admissionDate, @admissionTime, @admissionType, @expectedStay, @expectedIcuStay, @roomCategory, @roomNursingDietCost, @investigationCost, @icuCost, @otCost, @professionalFees, @medicineCost, @otherHospitalExpenses, @packageCharges, @totalExpectedCost, @patientDeclarationName, @patientDeclarationContact, @patientDeclarationEmail, @patientDeclarationDate, @patientDeclarationTime, @hospitalDeclarationDoctorName, @hospitalDeclarationDate, @hospitalDeclarationTime, @attachments
         )`);
     
     if (preAuthRequestResult.recordset.length === 0) {
@@ -309,7 +311,8 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
         .input('subject', sql.NVarChar, subject)
         .input('body', sql.NVarChar, details)
         .input('request_type', sql.NVarChar, requestType)
-        .query('INSERT INTO chat (preauth_id, from_email, to_email, subject, body, request_type) VALUES (@preauth_id, @from_email, @to_email, @subject, @body, @request_type)');
+        .input('created_at', sql.DateTime, now)
+        .query('INSERT INTO chat (preauth_id, from_email, to_email, subject, body, request_type, created_at) VALUES (@preauth_id, @from_email, @to_email, @subject, @body, @request_type, @created_at)');
         
     // Create a corresponding claim
     const claimInsertRequest = new sql.Request(transaction);
@@ -322,7 +325,9 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
         .input('amount', sql.Decimal(18, 2), totalExpectedCost)
         .input('hospital_id', sql.NVarChar, data.hospitalId)
         .input('tpa_id', sql.Int, originalPatientRecord.tpa_id)
-        .query('INSERT INTO claims (Patient_id, Patient_name, admission_id, status, created_by, amount, hospital_id, tpa_id) VALUES (@Patient_id, @Patient_name, @admission_id, @status, @created_by, @amount, @hospital_id, @tpa_id)');
+        .input('created_at', sql.DateTime, now)
+        .input('updated_at', sql.DateTime, now)
+        .query('INSERT INTO claims (Patient_id, Patient_name, admission_id, status, created_by, amount, hospital_id, tpa_id, created_at, updated_at) VALUES (@Patient_id, @Patient_name, @admission_id, @status, @created_by, @amount, @hospital_id, @tpa_id, @created_at, @updated_at)');
 
     await transaction.commit();
 
@@ -480,12 +485,14 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         const pool = await getDbPool();
         transaction = new sql.Transaction(pool);
         await transaction.begin();
+        const now = new Date();
 
         // 1. Update the preauth_request table with status and claim_id
         const preAuthRequest = new sql.Request(transaction);
-        let preAuthUpdateQuery = 'UPDATE preauth_request SET status = @status';
+        let preAuthUpdateQuery = 'UPDATE preauth_request SET status = @status, updated_at = @updated_at';
         preAuthRequest.input('id', sql.Int, Number(id))
-                      .input('status', sql.NVarChar, status);
+                      .input('status', sql.NVarChar, status)
+                      .input('updated_at', sql.DateTime, now);
         
         if (claim_id) {
             preAuthUpdateQuery += ', claim_id = @claim_id';
@@ -512,7 +519,8 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
             await updateClaimsRequest
                 .input('admission_id', sql.NVarChar, preAuthDetails.admission_id)
                 .input('claim_id', sql.NVarChar, claim_id)
-                .query('UPDATE claims SET claim_id = @claim_id WHERE admission_id = @admission_id');
+                .input('updated_at', sql.DateTime, now)
+                .query('UPDATE claims SET claim_id = @claim_id, updated_at = @updated_at WHERE admission_id = @admission_id');
         }
 
         // 4. Create a new record in the claims table for history
@@ -529,13 +537,15 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
             .input('hospital_id', sql.NVarChar, preAuthDetails.hospital_id)
             .input('tpa_id', sql.Int, preAuthDetails.tpa_id)
             .input('claim_id', sql.NVarChar, claim_id) 
+            .input('created_at', sql.DateTime, now)
+            .input('updated_at', sql.DateTime, now)
             .query(`
                 INSERT INTO claims (
                     Patient_id, Patient_name, admission_id, status, reason, created_by, 
-                    amount, paidAmount, hospital_id, tpa_id, claim_id, updated_at
+                    amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at
                 ) VALUES (
                     @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, 
-                    @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, GETDATE()
+                    @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at
                 )
             `);
         

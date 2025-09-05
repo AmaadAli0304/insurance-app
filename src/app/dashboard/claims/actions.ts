@@ -149,6 +149,7 @@ export async function handleUpdateClaim(prevState: { message: string, type?: str
   const reason = formData.get("reason") as string;
   const paidAmount = formData.get("paidAmount") as string;
   const claim_id = formData.get("claim_id") as string;
+  const now = new Date();
 
   if (!id || !status) {
     return { message: "Required fields are missing.", type: 'error' };
@@ -167,7 +168,7 @@ export async function handleUpdateClaim(prevState: { message: string, type?: str
         .input('status', sql.NVarChar, status)
         .input('reason', sql.NVarChar, reason)
         .input('claim_id', sql.NVarChar, claim_id)
-        .input('updated_at', sql.DateTime, new Date());
+        .input('updated_at', sql.DateTime, now);
 
     if (paidAmount) {
         claimsUpdateQuery += ', paidAmount = @paidAmount';
@@ -186,10 +187,11 @@ export async function handleUpdateClaim(prevState: { message: string, type?: str
 
     // 3. Update the corresponding 'preauth_request' table
     if (admission_id) {
-      let preAuthUpdateQuery = 'UPDATE preauth_request SET status = @status';
+      let preAuthUpdateQuery = 'UPDATE preauth_request SET status = @status, updated_at = @updated_at';
       const preAuthRequest = new sql.Request(transaction)
         .input('admission_id', sql.NVarChar, admission_id)
-        .input('status', sql.NVarChar, status);
+        .input('status', sql.NVarChar, status)
+        .input('updated_at', sql.DateTime, now);
 
       if (claim_id) {
           preAuthUpdateQuery += ', claim_id = @claim_id';
