@@ -26,7 +26,15 @@ function SubmitButton() {
     );
 }
 
-const preAuthStatuses: PreAuthStatus[] = [];
+const preAuthStatuses: PreAuthStatus[] = [
+    'Query Raised', 
+    'Query Answered', 
+    'Enhancement Request', 
+    'Enhanced Amount', 
+    'Final Discharge sent', 
+    'Final Amount Sanctioned', 
+    'Amount received'
+];
 
 export default function EditPreAuthPage() {
     const params = useParams();

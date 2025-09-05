@@ -211,7 +211,12 @@ export type PreAuthStatus =
   | 'Settlement Done'
   | 'Rejected'
   | 'Draft'
-  | 'Approved'; // Keeping for backwards compatibility
+  | 'Approved' // Kept for backwards compatibility
+  | 'Enhancement Request'
+  | 'Enhanced Amount'
+  | 'Final Discharge sent'
+  | 'Final Amount Sanctioned'
+  | 'Amount received';
 
 
 export interface StaffingRequest {
