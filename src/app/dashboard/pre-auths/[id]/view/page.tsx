@@ -32,7 +32,7 @@ const DetailItem = ({ label, value, icon: Icon, className }: { label: string, va
 
     return (
         <div className={cn("flex items-start gap-3", className)}>
-            {Icon && <Icon className="h-5 w-5 text-muted-foreground mt-1 flex-shrink-0" />}
+            {Icon && <Icon className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />}
             <div>
                 <p className="text-sm font-medium text-muted-foreground">{label}</p>
                 <p className="text-base font-semibold">{displayValue}</p>
