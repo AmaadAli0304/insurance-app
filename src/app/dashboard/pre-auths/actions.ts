@@ -52,7 +52,7 @@ const preAuthSchema = z.object({
     payer_phone: z.string().optional().nullable(),
     tpaName: z.string().optional().nullable(), // TPA name comes from patient details
     treat_doc_name: z.string().optional().nullable(),
-    treat_doc_number: zstring().optional().nullable(),
+    treat_doc_number: z.string().optional().nullable(),
     treat_doc_qualification: z.string().optional().nullable(),
     treat_doc_reg_no: z.string().optional().nullable(),
     natureOfIllness: z.string().optional().nullable(),
@@ -492,7 +492,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     }
 
     const statusesThatSendEmail = ['Query Answered', 'Enhancement Request', 'Final Discharge sent'];
-    const statusesThatLogTpaResponse = ['Query Raised', 'Enhanced Amount', 'Final Amount Sanctioned', 'Amount received'];
+    const statusesThatLogTpaResponse = ['Query Raised', 'Enhanced Amount', 'Final Amount Sanctioned', 'Amount Received', 'Final Amount Sanctioned'];
 
     const shouldSendEmail = statusesThatSendEmail.includes(status);
     const shouldLogTpaResponse = statusesThatLogTpaResponse.includes(status);
@@ -525,10 +525,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         if (shouldSendEmail) {
             const emailFrom = from || preAuthDetails.hospitalEmail;
             const emailTo = to || preAuthDetails.tpaEmail;
-            if (!emailFrom || !emailTo || !subject || !details) {
-                await transaction.rollback();
-                return { message: "Email fields are required for this status but not provided.", type: 'error' };
-            }
+            
             await sendPreAuthEmail({ from: emailFrom, to: emailTo, subject, html: details });
             const chatInsertRequest = new sql.Request(transaction);
             await chatInsertRequest
