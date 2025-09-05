@@ -289,19 +289,11 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
     }
     const preAuthId = preAuthRequestResult.recordset[0].id;
 
-    // Update the status separately if the column exists
     const updateStatusRequest = new sql.Request(transaction);
     await updateStatusRequest
       .input('id', sql.Int, preAuthId)
       .input('status', sql.NVarChar, status)
-      .query('UPDATE preauth_request SET status = @status WHERE id = @id')
-      .catch(err => {
-        // Suppress error if status column does not exist, as per user's schema
-        if (!err.message.includes("Invalid column name 'status'")) {
-          throw err;
-        }
-        console.log("Status column not found, skipping update. This is expected.");
-      });
+      .query('UPDATE preauth_request SET status = @status WHERE id = @id');
 
     const chatInsertRequest = new sql.Request(transaction);
     await chatInsertRequest
@@ -314,7 +306,6 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
         .input('created_at', sql.DateTime, now)
         .query('INSERT INTO chat (preauth_id, from_email, to_email, subject, body, request_type, created_at) VALUES (@preauth_id, @from_email, @to_email, @subject, @body, @request_type, @created_at)');
         
-    // Create a corresponding claim
     const claimInsertRequest = new sql.Request(transaction);
     await claimInsertRequest
         .input('Patient_id', sql.Int, patientId)
@@ -492,11 +483,8 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     }
 
     const statusesThatSendEmail = ['Query Answered', 'Enhancement Request', 'Final Discharge sent'];
-    const statusesThatLogTpaResponse = ['Query Raised', 'Enhanced Amount', 'Final Amount Sanctioned', 'Amount Received', 'Final Amount Sanctioned'];
-
-    const shouldSendEmail = statusesThatSendEmail.includes(status);
-    const shouldLogTpaResponse = statusesThatLogTpaResponse.includes(status);
-
+    const statusesThatLogTpaResponse = ['Query Raised', 'Enhanced Amount', 'Final Amount Sanctioned', 'Amount received'];
+    
     let transaction;
     try {
         const pool = await getDbPool();
@@ -504,7 +492,6 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         await transaction.begin();
         const now = new Date();
 
-        // Fetch pre-auth details first to get necessary IDs and emails
         const getPreAuthDetailsRequest = new sql.Request(transaction);
         const preAuthDetailsResult = await getPreAuthDetailsRequest
             .input('id', sql.Int, Number(id))
@@ -522,9 +509,37 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         const preAuthDetails = preAuthDetailsResult.recordset[0];
         const fullName = `${preAuthDetails.first_name} ${preAuthDetails.last_name}`;
 
+        if (status === 'Amount received') {
+             const tpaEmail = preAuthDetails.tpaEmail;
+             const hospitalEmail = preAuthDetails.hospitalEmail;
+             const tpaSubject = `[${status}] Regarding Pre-Auth for ${fullName} - Claim ID: ${claim_id || preAuthDetails.claim_id || 'N/A'}`;
+             
+             const chatInsertRequest = new sql.Request(transaction);
+             await chatInsertRequest
+                 .input('preauth_id', sql.Int, Number(id))
+                 .input('from_email', sql.NVarChar, tpaEmail)
+                 .input('to_email', sql.NVarChar, hospitalEmail)
+                 .input('subject', sql.NVarChar, tpaSubject)
+                 .input('body', sql.NVarChar, reason)
+                 .input('request_type', sql.NVarChar, status)
+                 .input('created_at', sql.DateTime, now)
+                 .query('INSERT INTO chat (preauth_id, from_email, to_email, subject, body, request_type, created_at) VALUES (@preauth_id, @from_email, @to_email, @subject, @body, @request_type, @created_at)');
+             
+             await transaction.commit();
+             revalidatePath('/dashboard/pre-auths');
+             return { message: 'Chat record created for amount received.', type: 'success' };
+        }
+
+        const shouldSendEmail = statusesThatSendEmail.includes(status);
+        const shouldLogTpaResponse = statusesThatLogTpaResponse.includes(status);
+        
         if (shouldSendEmail) {
             const emailFrom = from || preAuthDetails.hospitalEmail;
             const emailTo = to || preAuthDetails.tpaEmail;
+            
+            if (!emailFrom || !emailTo || !subject || !details) {
+                throw new Error("Email fields are required for this status but not provided.");
+            }
             
             await sendPreAuthEmail({ from: emailFrom, to: emailTo, subject, html: details });
             const chatInsertRequest = new sql.Request(transaction);
@@ -550,7 +565,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
                 .input('from_email', sql.NVarChar, tpaEmail)
                 .input('to_email', sql.NVarChar, hospitalEmail)
                 .input('subject', sql.NVarChar, tpaSubject)
-                .input('body', sql.NVarChar, reason) // Use reason/notes as body
+                .input('body', sql.NVarChar, reason)
                 .input('request_type', sql.NVarChar, status)
                 .input('created_at', sql.DateTime, now)
                 .query('INSERT INTO chat (preauth_id, from_email, to_email, subject, body, request_type, created_at) VALUES (@preauth_id, @from_email, @to_email, @subject, @body, @request_type, @created_at)');
@@ -573,13 +588,12 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         preAuthUpdateQuery += ' WHERE id = @id';
         await preAuthRequest.query(preAuthUpdateQuery);
 
-        // Fetch details from preauth_request to get admission_id
         if (claim_id && preAuthDetails.admission_id) {
             const updateClaimsRequest = new sql.Request(transaction);
             await updateClaimsRequest
                 .input('admission_id', sql.NVarChar, preAuthDetails.admission_id)
                 .input('claim_id', sql.NVarChar, claim_id)
-                .query('UPDATE claims SET claim_id = @claim_id, updated_at = GETDATE() WHERE admission_id = @admission_id');
+                .query('UPDATE claims SET claim_id = @claim_id WHERE admission_id = @admission_id');
         }
 
         const claimInsertRequest = new sql.Request(transaction);
