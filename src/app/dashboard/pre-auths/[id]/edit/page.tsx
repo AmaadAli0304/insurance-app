@@ -27,12 +27,9 @@ function SubmitButton() {
 }
 
 const preAuthStatuses: PreAuthStatus[] = [
-    'Query Raised',
-    'Query Answered',
     'Initial Approval Amount',
     'Approval',
     'Amount Sanctioned',
-    'Amount Received',
     'Settlement Done',
     'Rejected'
 ];
