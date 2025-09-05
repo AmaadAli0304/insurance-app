@@ -204,7 +204,7 @@ export default function ViewPreAuthPage() {
             {request.chatHistory && request.chatHistory.length > 0 && (
                 <Card>
                     <CardHeader>
-                        <CardTitle>Communication History</CardTitle>
+                        <CardTitle>Inbox</CardTitle>
                         <CardDescription>A log of all email communications for this request.</CardDescription>
                     </CardHeader>
                     <CardContent>
