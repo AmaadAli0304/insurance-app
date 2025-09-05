@@ -18,6 +18,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
 const DetailItem = ({ label, value, icon: Icon, className }: { label: string, value?: string | number | null | boolean, icon?: React.ElementType, className?: string }) => {
@@ -126,141 +127,154 @@ export default function ViewPreAuthPage() {
                 </CardHeader>
             </Card>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                 <div className="lg:col-span-2 space-y-6">
-                    <Card>
-                        <CardHeader><CardTitle>Patient Details</CardTitle></CardHeader>
-                        <CardContent className="grid md:grid-cols-2 gap-4">
-                            <DetailItem label="Full Name" value={request.fullName} icon={User} />
-                            <DetailItem label="Email" value={request.email_address} icon={Mail} />
-                            <DetailItem label="Phone" value={request.phoneNumber} icon={Phone} />
-                            <DetailItem label="Date of Birth" value={formatDate(request.birth_date)} icon={Calendar} />
-                            <DetailItem label="Age" value={request.age} icon={Hash} />
-                            <DetailItem label="Gender" value={request.gender} icon={Users} />
-                            <DetailItem label="ABHA ID" value={request.abha_id} icon={Hash} />
-                            <DetailItem label="Health ID" value={request.health_id} icon={Hash} />
-                            <DetailItem label="Occupation" value={request.occupation} icon={Briefcase} />
-                            <DetailItem label="Address" value={request.address} className="md:col-span-2" icon={MapPin} />
-                        </CardContent>
-                    </Card>
+            <Tabs defaultValue="details" className="w-full">
+                <TabsList>
+                    <TabsTrigger value="details">Details</TabsTrigger>
+                    <TabsTrigger value="inbox" disabled={!request.chatHistory || request.chatHistory.length === 0}>
+                        Inbox {request.chatHistory && request.chatHistory.length > 0 && `(${request.chatHistory.length})`}
+                    </TabsTrigger>
+                    <TabsTrigger value="claims" disabled={!request.claimsHistory || request.claimsHistory.length === 0}>
+                        Claim History {request.claimsHistory && request.claimsHistory.length > 0 && `(${request.claimsHistory.length})`}
+                    </TabsTrigger>
+                </TabsList>
+                <TabsContent value="details">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4">
+                        <div className="lg:col-span-2 space-y-6">
+                            <Card>
+                                <CardHeader><CardTitle>Patient Details</CardTitle></CardHeader>
+                                <CardContent className="grid md:grid-cols-2 gap-4">
+                                    <DetailItem label="Full Name" value={request.fullName} icon={User} />
+                                    <DetailItem label="Email" value={request.email_address} icon={Mail} />
+                                    <DetailItem label="Phone" value={request.phoneNumber} icon={Phone} />
+                                    <DetailItem label="Date of Birth" value={formatDate(request.birth_date)} icon={Calendar} />
+                                    <DetailItem label="Age" value={request.age} icon={Hash} />
+                                    <DetailItem label="Gender" value={request.gender} icon={Users} />
+                                    <DetailItem label="ABHA ID" value={request.abha_id} icon={Hash} />
+                                    <DetailItem label="Health ID" value={request.health_id} icon={Hash} />
+                                    <DetailItem label="Occupation" value={request.occupation} icon={Briefcase} />
+                                    <DetailItem label="Address" value={request.address} className="md:col-span-2" icon={MapPin} />
+                                </CardContent>
+                            </Card>
 
-                    <Card>
-                        <CardHeader><CardTitle>Insurance &amp; Admission</CardTitle></CardHeader>
-                        <CardContent className="grid md:grid-cols-2 gap-4">
-                            <DetailItem label="Insurance Company" value={request.companyName} icon={Building} />
-                            <DetailItem label="Policy Number" value={request.policyNumber} icon={FileText} />
-                            <DetailItem label="Member ID" value={request.insured_card_number} icon={Hash} />
-                            <DetailItem label="Relationship to Policyholder" value={request.relationship_policyholder} icon={UserCheck} />
-                            <DetailItem label="Admission ID" value={request.admission_id} icon={Hash} />
-                            <DetailItem label="Claim ID" value={request.claim_id} icon={Hash} />
-                            <DetailItem label="Admission Date" value={`${formatDate(request.admissionDate)} at ${request.admissionTime || ''}`} icon={Calendar} />
-                            <DetailItem label="Admission Type" value={request.admissionType} icon={Info} />
-                        </CardContent>
-                    </Card>
+                            <Card>
+                                <CardHeader><CardTitle>Insurance &amp; Admission</CardTitle></CardHeader>
+                                <CardContent className="grid md:grid-cols-2 gap-4">
+                                    <DetailItem label="Insurance Company" value={request.companyName} icon={Building} />
+                                    <DetailItem label="Policy Number" value={request.policyNumber} icon={FileText} />
+                                    <DetailItem label="Member ID" value={request.insured_card_number} icon={Hash} />
+                                    <DetailItem label="Relationship to Policyholder" value={request.relationship_policyholder} icon={UserCheck} />
+                                    <DetailItem label="Admission ID" value={request.admission_id} icon={Hash} />
+                                    <DetailItem label="Claim ID" value={request.claim_id} icon={Hash} />
+                                    <DetailItem label="Admission Date" value={`${formatDate(request.admissionDate)} at ${request.admissionTime || ''}`} icon={Calendar} />
+                                    <DetailItem label="Admission Type" value={request.admissionType} icon={Info} />
+                                </CardContent>
+                            </Card>
 
-                    <Card>
-                        <CardHeader><CardTitle>Clinical Information</CardTitle></CardHeader>
-                        <CardContent className="space-y-4">
-                            <DetailItem label="Treating Doctor" value={request.treat_doc_name} icon={Stethoscope} />
-                            <DetailItem label="Provisional Diagnosis" value={request.provisionalDiagnosis} icon={HeartPulse} />
-                            <DetailItem label="Nature of Illness" value={request.natureOfIllness} icon={Pill}/>
-                            <DetailItem label="Past History" value={request.pastHistory} icon={History} />
-                            <DetailItem label="Proposed Medical Treatment" value={request.treatmentMedical} icon={Syringe} />
-                             <DetailItem label="Proposed Surgical Treatment" value={request.treatmentSurgical} icon={Scissors} />
-                        </CardContent>
-                    </Card>
+                            <Card>
+                                <CardHeader><CardTitle>Clinical Information</CardTitle></CardHeader>
+                                <CardContent className="space-y-4">
+                                    <DetailItem label="Treating Doctor" value={request.treat_doc_name} icon={Stethoscope} />
+                                    <DetailItem label="Provisional Diagnosis" value={request.provisionalDiagnosis} icon={HeartPulse} />
+                                    <DetailItem label="Nature of Illness" value={request.natureOfIllness} icon={Pill}/>
+                                    <DetailItem label="Past History" value={request.pastHistory} icon={History} />
+                                    <DetailItem label="Proposed Medical Treatment" value={request.treatmentMedical} icon={Syringe} />
+                                    <DetailItem label="Proposed Surgical Treatment" value={request.treatmentSurgical} icon={Scissors} />
+                                </CardContent>
+                            </Card>
 
-                    {(request.isInjury || request.isMaternity) && (
-                         <Card>
-                            <CardHeader><CardTitle>Additional Case Details</CardTitle></CardHeader>
-                             <CardContent className="grid md:grid-cols-2 gap-4">
-                                {request.isInjury && <DetailItem label="Injury Case" value={request.isInjury} icon={AlertTriangle} />}
-                                {request.isInjury && <DetailItem label="Injury Cause" value={request.injuryCause} icon={Info} />}
-                                {request.isMaternity && <DetailItem label="Maternity Case" value={request.isMaternity} icon={Baby} />}
-                                {request.isMaternity && <DetailItem label="G | P | L | A" value={`${request.g || 'N/A'} | ${request.p || 'N/A'} | ${request.l || 'N/A'} | ${request.a || 'N/A'}`} icon={Hash} />}
-                            </CardContent>
-                        </Card>
-                    )}
-                 </div>
+                            {(request.isInjury || request.isMaternity) && (
+                                <Card>
+                                    <CardHeader><CardTitle>Additional Case Details</CardTitle></CardHeader>
+                                    <CardContent className="grid md:grid-cols-2 gap-4">
+                                        {request.isInjury && <DetailItem label="Injury Case" value={request.isInjury} icon={AlertTriangle} />}
+                                        {request.isInjury && <DetailItem label="Injury Cause" value={request.injuryCause} icon={Info} />}
+                                        {request.isMaternity && <DetailItem label="Maternity Case" value={request.isMaternity} icon={Baby} />}
+                                        {request.isMaternity && <DetailItem label="G | P | L | A" value={`${request.g || 'N/A'} | ${request.p || 'N/A'} | ${request.l || 'N/A'} | ${request.a || 'N/A'}`} icon={Hash} />}
+                                    </CardContent>
+                                </Card>
+                            )}
+                        </div>
 
-                 <div className="space-y-6">
-                    <Card>
-                        <CardHeader><CardTitle>Cost Estimate</CardTitle></CardHeader>
-                        <CardContent className="space-y-3">
-                             <DetailItem label="Estimated Total Cost" value={request.totalExpectedCost ? `₹${request.totalExpectedCost.toLocaleString()}` : 'N/A'} icon={CircleDollarSign} />
-                             <DetailItem label="Amount Sanctioned" value={request.amount_sanctioned ? `₹${request.amount_sanctioned.toLocaleString()}` : 'N/A'} icon={DollarSign} />
-                             <DetailItem label="Expected Stay" value={request.expectedStay ? `${request.expectedStay} days` : 'N/A'} icon={Clock} />
-                             <DetailItem label="Room Category" value={request.roomCategory} icon={Building} />
-                        </CardContent>
-                    </Card>
+                        <div className="space-y-6">
+                            <Card>
+                                <CardHeader><CardTitle>Cost Estimate</CardTitle></CardHeader>
+                                <CardContent className="space-y-3">
+                                    <DetailItem label="Estimated Total Cost" value={request.totalExpectedCost ? `₹${request.totalExpectedCost.toLocaleString()}` : 'N/A'} icon={CircleDollarSign} />
+                                    <DetailItem label="Amount Sanctioned" value={request.amount_sanctioned ? `₹${request.amount_sanctioned.toLocaleString()}` : 'N/A'} icon={DollarSign} />
+                                    <DetailItem label="Expected Stay" value={request.expectedStay ? `${request.expectedStay} days` : 'N/A'} icon={Clock} />
+                                    <DetailItem label="Room Category" value={request.roomCategory} icon={Building} />
+                                </CardContent>
+                            </Card>
 
+                            <Card>
+                                <CardHeader><CardTitle>Status &amp; Notes</CardTitle></CardHeader>
+                                <CardContent>
+                                    <p className="text-muted-foreground">{request.reason || "No notes available for this request."}</p>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
+                </TabsContent>
+                <TabsContent value="inbox">
                     <Card>
-                        <CardHeader><CardTitle>Status & Notes</CardTitle></CardHeader>
+                         <CardHeader>
+                            <CardTitle>Inbox</CardTitle>
+                            <CardDescription>A log of all email communications for this request.</CardDescription>
+                        </CardHeader>
                         <CardContent>
-                             <p className="text-muted-foreground">{request.reason || "No notes available for this request."}</p>
+                            <Accordion type="single" collapsible className="w-full">
+                                {request.chatHistory?.map((chat) => (
+                                    <AccordionItem value={`item-${chat.id}`} key={chat.id}>
+                                        <AccordionTrigger>
+                                            <div className="flex flex-col items-start text-left">
+                                                <p className="font-semibold text-sm">{chat.subject}</p>
+                                                <p className="text-xs text-muted-foreground mt-1">
+                                                    From: {chat.from_email} | To: {chat.to_email} | On: {formatDate(chat.created_at, true)}
+                                                </p>
+                                            </div>
+                                        </AccordionTrigger>
+                                        <AccordionContent>
+                                            <div className="p-4 border rounded-md bg-muted/50 text-sm prose-sm max-w-full" dangerouslySetInnerHTML={{ __html: chat.body || '<p>No content available.</p>' }} />
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                ))}
+                            </Accordion>
                         </CardContent>
                     </Card>
-                 </div>
-            </div>
-
-             {request.claimsHistory && request.claimsHistory.length > 0 && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><HandCoins /> Claim History</CardTitle>
-                        <CardDescription>A log of all claims generated for this pre-authorization request.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Reason / Notes</TableHead>
-                                    <TableHead>Amount</TableHead>
-                                    <TableHead>Last Updated</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {request.claimsHistory.map((claim) => (
-                                    <TableRow key={claim.id}>
-                                        <TableCell><Badge>{claim.status}</Badge></TableCell>
-                                        <TableCell>{claim.reason || 'N/A'}</TableCell>
-                                        <TableCell>₹{claim.claimAmount?.toLocaleString() || 'N/A'}</TableCell>
-                                        <TableCell>{formatDate(claim.updated_at, true)}</TableCell>
+                </TabsContent>
+                <TabsContent value="claims">
+                    <Card>
+                         <CardHeader>
+                            <CardTitle className="flex items-center gap-2"><HandCoins /> Claim History</CardTitle>
+                            <CardDescription>A log of all claims generated for this pre-authorization request.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead>Reason / Notes</TableHead>
+                                        <TableHead>Amount</TableHead>
+                                        <TableHead>Last Updated</TableHead>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
-            )}
-
-            {request.chatHistory && request.chatHistory.length > 0 && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Inbox</CardTitle>
-                        <CardDescription>A log of all email communications for this request.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                       <Accordion type="single" collapsible className="w-full">
-                            {request.chatHistory.map((chat) => (
-                                <AccordionItem value={`item-${chat.id}`} key={chat.id}>
-                                    <AccordionTrigger>
-                                        <div className="flex flex-col items-start text-left">
-                                            <p className="font-semibold text-sm">{chat.subject}</p>
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                                From: {chat.from_email} | To: {chat.to_email} | On: {formatDate(chat.created_at, true)}
-                                            </p>
-                                        </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent>
-                                        <div className="p-4 border rounded-md bg-muted/50 text-sm prose-sm max-w-full" dangerouslySetInnerHTML={{ __html: chat.body || '<p>No content available.</p>' }} />
-                                    </AccordionContent>
-                                </AccordionItem>
-                            ))}
-                        </Accordion>
-                    </CardContent>
-                </Card>
-            )}
+                                </TableHeader>
+                                <TableBody>
+                                    {request.claimsHistory?.map((claim) => (
+                                        <TableRow key={claim.id}>
+                                            <TableCell><Badge>{claim.status}</Badge></TableCell>
+                                            <TableCell>{claim.reason || 'N/A'}</TableCell>
+                                            <TableCell>₹{claim.claimAmount?.toLocaleString() || 'N/A'}</TableCell>
+                                            <TableCell>{formatDate(claim.updated_at, true)}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
         </div>
     );
 }
+
+    
