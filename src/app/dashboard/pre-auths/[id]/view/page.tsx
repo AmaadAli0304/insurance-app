@@ -129,11 +129,16 @@ export default function ViewPreAuthPage() {
 
             <Tabs defaultValue="details" className="w-full">
                 <TabsList>
-                    <TabsTrigger value="details">Details</TabsTrigger>
-                    <TabsTrigger value="inbox" disabled={!request.chatHistory || request.chatHistory.length === 0}>
+                    <TabsTrigger value="details" className="flex items-center gap-2">
+                        <Info className="h-4 w-4" />
+                        Details
+                    </TabsTrigger>
+                    <TabsTrigger value="inbox" disabled={!request.chatHistory || request.chatHistory.length === 0} className="flex items-center gap-2">
+                        <MessageSquare className="h-4 w-4" />
                         Inbox {request.chatHistory && request.chatHistory.length > 0 && `(${request.chatHistory.length})`}
                     </TabsTrigger>
-                    <TabsTrigger value="claims" disabled={!request.claimsHistory || request.claimsHistory.length === 0}>
+                    <TabsTrigger value="claims" disabled={!request.claimsHistory || request.claimsHistory.length === 0} className="flex items-center gap-2">
+                        <HandCoins className="h-4 w-4" />
                         Claim History {request.claimsHistory && request.claimsHistory.length > 0 && `(${request.claimsHistory.length})`}
                     </TabsTrigger>
                 </TabsList>
