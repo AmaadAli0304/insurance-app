@@ -108,8 +108,6 @@ export default function PreAuthsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Patient</TableHead>
-                <TableHead>Subject</TableHead>
-                <TableHead>To</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead><span className="sr-only">Actions</span></TableHead>
@@ -119,8 +117,6 @@ export default function PreAuthsPage() {
               {requests.map(r => (
                 <TableRow key={r.id} onClick={() => handleRowClick(r.id)} className="cursor-pointer">
                   <TableCell className="font-medium">{r.fullName}</TableCell>
-                  <TableCell>{r.subject}</TableCell>
-                  <TableCell>{r.email}</TableCell>
                   <TableCell>
                     <Badge variant={getStatusVariant(r.status)} className={r.status === 'Approval' ? 'bg-accent text-accent-foreground' : ''}>{r.status}</Badge>
                   </TableCell>
