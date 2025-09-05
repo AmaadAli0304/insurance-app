@@ -216,7 +216,8 @@ export type PreAuthStatus =
   | 'Enhanced Amount'
   | 'Final Discharge sent'
   | 'Final Amount Sanctioned'
-  | 'Amount received';
+  | 'Amount received'
+  | 'Pre auth Sent';
 
 
 export interface StaffingRequest {

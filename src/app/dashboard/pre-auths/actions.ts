@@ -344,7 +344,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
 }
 
 export async function handleAddRequest(prevState: { message: string, type?:string }, formData: FormData) {
-    return savePreAuthRequest(formData, 'Pending', true);
+    return savePreAuthRequest(formData, 'Pre auth Sent', true);
 }
 
 export async function handleSaveDraftRequest(prevState: { message: string, type?:string }, formData: FormData) {
