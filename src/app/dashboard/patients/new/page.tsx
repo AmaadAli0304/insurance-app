@@ -39,6 +39,7 @@ function SubmitButton() {
 const FileUploadField = React.memo(({ label, name, onUploadComplete }: { label: string; name: string, onUploadComplete: (fieldName: string, name: string, url: string) => void }) => {
     const [isUploading, setIsUploading] = useState(false);
     const [fileUrl, setFileUrl] = useState<string | null>(null);
+    const [fileName, setFileName] = useState<string | null>(null);
     const { toast } = useToast();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -50,16 +51,27 @@ const FileUploadField = React.memo(({ label, name, onUploadComplete }: { label: 
             formData.append('file', file);
             
             const result = await handleUploadPatientFile(formData);
-
-            if (result.type === 'success' && result.url) {
-                setFileUrl(result.url);
-                onUploadComplete(name, result.name, result.url);
-                toast({ title: "Success", description: `${label} uploaded.`, variant: "success" });
-            } else if(result.type === 'error') {
-                toast({ title: "Error", description: result.message, variant: "destructive" });
+            
+            if (fileInputRef.current) { // check component is still mounted
+                if (result.type === 'success' && result.url) {
+                    setFileUrl(result.url);
+                    setFileName(result.name);
+                    onUploadComplete(name, result.name, result.url);
+                    toast({ title: "Success", description: `${label} uploaded.`, variant: "success" });
+                } else if(result.type === 'error') {
+                    toast({ title: "Error", description: result.message, variant: "destructive" });
+                }
+                setIsUploading(false);
             }
-            setIsUploading(false);
         }
+    };
+    
+    const handleCancelUpload = () => {
+        setIsUploading(false);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+        toast({ title: "Cancelled", description: "File upload has been cancelled.", variant: "default" });
     };
 
     return (
@@ -67,13 +79,23 @@ const FileUploadField = React.memo(({ label, name, onUploadComplete }: { label: 
             <Label htmlFor={name}>{label}</Label>
             <div className="flex items-center gap-2">
                 <Input ref={fileInputRef} id={name} name={`${name}-file`} type="file" onChange={handleFileChange} disabled={isUploading} className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
-                {isUploading && <Loader2 className="h-5 w-5 animate-spin" />}
+                {isUploading && (
+                    <div className="flex items-center gap-2">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <Button variant="ghost" size="icon" onClick={handleCancelUpload}>
+                            <XCircle className="h-5 w-5 text-destructive" />
+                        </Button>
+                    </div>
+                )}
                 {fileUrl && !isUploading && (
-                     <Button variant="outline" size="icon" asChild>
-                        <Link href={fileUrl} target="_blank">
-                            <Eye className="h-4 w-4" />
-                        </Link>
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        {fileName && <span className="text-sm text-muted-foreground truncate max-w-[100px]">{fileName}</span>}
+                         <Button variant="outline" size="icon" asChild>
+                            <Link href={fileUrl} target="_blank">
+                                <Eye className="h-4 w-4" />
+                            </Link>
+                        </Button>
+                    </div>
                 )}
             </div>
         </div>
