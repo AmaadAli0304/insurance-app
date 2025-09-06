@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useActionState, useEffect, useState, useRef } from "react";
@@ -145,26 +146,19 @@ export default function NewPatientPage() {
     const [sumUtilized, setSumUtilized] = useState<number | string>('');
     const [totalSum, setTotalSum] = useState<number | string>('');
 
-    // State for autofill
-    const [declarationName, setDeclarationName] = useState('');
-    const [declarationContact, setDeclarationContact] = useState('');
-    const [declarationEmail, setDeclarationEmail] = useState('');
-    const [hospitalDoctorName, setHospitalDoctorName] = useState('');
     const formRef = useRef<HTMLFormElement>(null);
 
 
     const handleDoctorSelect = (doctor: Doctor | null) => {
-        if (doctor) {
+        const form = formRef.current;
+        if (doctor && form) {
             setDoctorContact(doctor.phone ?? '');
-            setHospitalDoctorName(doctor.name ?? ''); // Autofill hospital declaration doctor name
-            const form = formRef.current;
-            if(form) {
-                (form.querySelector<HTMLInputElement>('input[name="treat_doc_qualification"]'))!.value = doctor.qualification || '';
-                (form.querySelector<HTMLInputElement>('input[name="treat_doc_reg_no"]'))!.value = doctor.reg_no || '';
-            }
-        } else {
+            (form.elements.namedItem('hospitalDeclarationDoctorName') as HTMLInputElement).value = doctor.name ?? '';
+            (form.elements.namedItem('treat_doc_qualification') as HTMLInputElement).value = doctor.qualification || '';
+            (form.elements.namedItem('treat_doc_reg_no') as HTMLInputElement).value = doctor.reg_no || '';
+        } else if(form) {
             setDoctorContact('');
-            setHospitalDoctorName('');
+            (form.elements.namedItem('hospitalDeclarationDoctorName') as HTMLInputElement).value = '';
         }
     };
 
@@ -272,6 +266,30 @@ export default function NewPatientPage() {
 
     const today = new Date().toISOString().split('T')[0];
 
+    const handleNameChange = () => {
+        const form = formRef.current;
+        if (form) {
+            const firstName = (form.elements.namedItem('firstName') as HTMLInputElement).value;
+            const lastName = (form.elements.namedItem('lastName') as HTMLInputElement).value;
+            (form.elements.namedItem('patientDeclarationName') as HTMLInputElement).value = `${firstName} ${lastName}`.trim();
+        }
+    };
+    
+    const handleContactChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const form = formRef.current;
+        if (form) {
+            (form.elements.namedItem('patientDeclarationContact') as HTMLInputElement).value = e.target.value;
+        }
+    };
+
+    const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const form = formRef.current;
+        if (form) {
+            (form.elements.namedItem('patientDeclarationEmail') as HTMLInputElement).value = e.target.value;
+        }
+    };
+
+
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-4">
@@ -341,19 +359,19 @@ export default function NewPatientPage() {
                                 <CardContent className="grid md:grid-cols-3 gap-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="firstName">First Name <span className="text-destructive">*</span></Label>
-                                        <Input id="firstName" name="firstName" onChange={e => setDeclarationName(`${e.target.value} ${formRef.current?.lastName.value}`)} required />
+                                        <Input id="firstName" name="firstName" onChange={handleNameChange} required />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="lastName">Last Name <span className="text-destructive">*</span></Label>
-                                        <Input id="lastName" name="lastName" onChange={e => setDeclarationName(`${formRef.current?.firstName.value} ${e.target.value}`)} required />
+                                        <Input id="lastName" name="lastName" onChange={handleNameChange} required />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="email_address">Email Address <span className="text-destructive">*</span></Label>
-                                        <Input id="email_address" name="email_address" type="email" onChange={e => setDeclarationEmail(e.target.value)} required />
+                                        <Input id="email_address" name="email_address" type="email" onChange={handleEmailChange} required />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="phone_number">Registered mobile number <span className="text-destructive">*</span></Label>
-                                        <PhoneInput name="phone_number" onChange={e => setDeclarationContact(e.target.value)} required />
+                                        <PhoneInput name="phone_number" onChange={handleContactChange} required />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="alternative_number">Alternate contact number</Label>
@@ -781,29 +799,25 @@ export default function NewPatientPage() {
                                     <div className="grid md:grid-cols-3 gap-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="patientDeclarationName">Patient/insured name <span className="text-destructive">*</span></Label>
-                                            <Input id="patientDeclarationName" name="patientDeclarationName" value={declarationName} onChange={e => setDeclarationName(e.target.value)} required />
+                                            <Input id="patientDeclarationName" name="patientDeclarationName" required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="patientDeclarationContact">Contact number <span className="text-destructive">*</span></Label>
-                                            <PhoneInput name="patientDeclarationContact" value={declarationContact} onChange={e => setDeclarationContact(e.target.value)} required />
+                                            <PhoneInput name="patientDeclarationContact" required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="patientDeclarationEmail">Email ID <span className="text-destructive">*</span></Label>
-                                            <Input id="patientDeclarationEmail" name="patientDeclarationEmail" type="email" value={declarationEmail} onChange={e => setDeclarationEmail(e.target.value)} required />
+                                            <Input id="patientDeclarationEmail" name="patientDeclarationEmail" type="email" required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="patientDeclarationDate">Declaration date <span className="text-destructive">*</span></Label>
                                             <Input id="patientDeclarationDate" name="patientDeclarationDate" type="date" required />
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="patientDeclarationTime">Declaration time <span className="text-destructive">*</span></Label>
-                                            <Input id="patientDeclarationTime" name="patientDeclarationTime" type="time" required />
-                                        </div>
                                     </div>
                                         <div className="grid md:grid-cols-3 gap-4 border-t pt-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="hospitalDeclarationDoctorName">Hospital declaration – doctor name <span className="text-destructive">*</span></Label>
-                                            <Input id="hospitalDeclarationDoctorName" name="hospitalDeclarationDoctorName" value={hospitalDoctorName} onChange={e => setHospitalDoctorName(e.target.value)} required />
+                                            <Input id="hospitalDeclarationDoctorName" name="hospitalDeclarationDoctorName" required />
                                         </div>
                                     </div>
                                         <div className="space-y-2 pt-4 border-t">

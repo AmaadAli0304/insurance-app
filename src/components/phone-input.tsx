@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-interface PhoneInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'name' | 'defaultValue'> {
+interface PhoneInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'name' | 'defaultValue' | 'value'> {
   name: string;
   defaultValue?: string;
+  value?: string;
 }
 
 const countries = [
@@ -257,9 +258,9 @@ const countries = [
     { code: "+263", name: "ZW" }
 ];
 
-export function PhoneInput({ name, defaultValue = "", className, ...props }: PhoneInputProps) {
+const PhoneInputComponent = ({ name, defaultValue = "", value, className, ...props }: PhoneInputProps) => {
   const [countryCode, setCountryCode] = React.useState("+91");
-  const [number, setNumber] = React.useState(defaultValue);
+  const [number, setNumber] = React.useState(defaultValue || value || '');
 
   const fullNumber = `${countryCode}${number}`;
   
@@ -300,7 +301,17 @@ export function PhoneInput({ name, defaultValue = "", className, ...props }: Pho
       <Input
         type="tel"
         value={number}
-        onChange={(e) => setNumber(e.target.value)}
+        onChange={(e) => {
+            setNumber(e.target.value);
+            if(props.onChange) {
+                // Synthesize an event for the parent, but with the full number
+                const syntheticEvent = {
+                    ...e,
+                    target: { ...e.target, value: `${countryCode}${e.target.value}` }
+                } as React.ChangeEvent<HTMLInputElement>;
+                props.onChange(syntheticEvent);
+            }
+        }}
         className="rounded-l-none"
         placeholder="9876543210"
         {...props}
@@ -308,6 +319,5 @@ export function PhoneInput({ name, defaultValue = "", className, ...props }: Pho
     </div>
   );
 }
-    
 
-    
+export const PhoneInput = React.memo(PhoneInputComponent);

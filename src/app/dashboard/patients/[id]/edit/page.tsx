@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useActionState, useEffect, useState, useRef } from "react";
@@ -155,24 +156,18 @@ export default function EditPatientPage() {
     const [sumUtilized, setSumUtilized] = useState<number | string>('');
     const [totalSum, setTotalSum] = useState<number | string>('');
     
-    // State for autofill
-    const [declarationName, setDeclarationName] = useState('');
-    const [declarationContact, setDeclarationContact] = useState('');
-    const [declarationEmail, setDeclarationEmail] = useState('');
-    const [hospitalDoctorName, setHospitalDoctorName] = useState('');
+    const formRef = useRef<HTMLFormElement>(null);
 
     const handleDoctorSelect = (doctor: Doctor | null) => {
-        if (doctor) {
+        const form = formRef.current;
+        if (doctor && form) {
             setDoctorContact(doctor.phone ?? '');
-            setHospitalDoctorName(doctor.name ?? ''); // Autofill hospital declaration doctor name
-            const form = document.querySelector('form');
-            if(form) {
-                (form.querySelector<HTMLInputElement>('input[name="treat_doc_qualification"]'))!.value = doctor.qualification || '';
-                (form.querySelector<HTMLInputElement>('input[name="treat_doc_reg_no"]'))!.value = doctor.reg_no || '';
-            }
-        } else {
+            (form.elements.namedItem('hospitalDeclarationDoctorName') as HTMLInputElement).value = doctor.name ?? '';
+            (form.elements.namedItem('treat_doc_qualification') as HTMLInputElement).value = doctor.qualification || '';
+            (form.elements.namedItem('treat_doc_reg_no') as HTMLInputElement).value = doctor.reg_no || '';
+        } else if (form) {
             setDoctorContact('');
-            setHospitalDoctorName('');
+            (form.elements.namedItem('hospitalDeclarationDoctorName') as HTMLInputElement).value = '';
         }
     };
 
@@ -188,7 +183,7 @@ export default function EditPatientPage() {
     ];
 
      const calculateTotalCost = React.useCallback(() => {
-        const form = document.querySelector('form');
+        const form = formRef.current;
         if (!form) return;
         const costs = [
             'roomNursingDietCost', 'investigationCost', 'icuCost',
@@ -229,12 +224,6 @@ export default function EditPatientPage() {
                 setDoctors(doctors);
                 setChiefComplaints(complaints);
                 setDoctorContact(patientData.treat_doc_number ?? '');
-
-                // Initialize autofill state
-                setDeclarationName(patientData.patientDeclarationName ?? patientData.fullName ?? '');
-                setDeclarationContact(patientData.patientDeclarationContact ?? patientData.phoneNumber ?? '');
-                setDeclarationEmail(patientData.patientDeclarationEmail ?? patientData.email_address ?? '');
-                setHospitalDoctorName(patientData.hospitalDeclarationDoctorName ?? patientData.treat_doc_name ?? '');
 
                 setSumInsured(patientData.sumInsured ?? '');
                 setSumUtilized(patientData.sumUtilized ?? '');
@@ -337,6 +326,29 @@ export default function EditPatientPage() {
 
     const today = new Date().toISOString().split('T')[0];
 
+    const handleNameChange = () => {
+        const form = formRef.current;
+        if (form) {
+            const firstName = (form.elements.namedItem('firstName') as HTMLInputElement).value;
+            const lastName = (form.elements.namedItem('lastName') as HTMLInputElement).value;
+            (form.elements.namedItem('patientDeclarationName') as HTMLInputElement).value = `${firstName} ${lastName}`.trim();
+        }
+    };
+
+    const handleContactChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const form = formRef.current;
+        if (form) {
+            (form.elements.namedItem('patientDeclarationContact') as HTMLInputElement).value = e.target.value;
+        }
+    };
+
+    const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const form = formRef.current;
+        if (form) {
+            (form.elements.namedItem('patientDeclarationEmail') as HTMLInputElement).value = e.target.value;
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-4">
@@ -348,7 +360,7 @@ export default function EditPatientPage() {
                 </Button>
                 <h1 className="text-lg font-semibold md:text-2xl">Edit Patient</h1>
             </div>
-            <form action={formAction}>
+            <form action={formAction} ref={formRef}>
                  <input type="hidden" name="id" value={patient.id} />
                  <input type="hidden" name="hospital_id" value={user?.hospitalId || ''} />
                  <input type="hidden" name="photoUrl" value={photoUrl || ''} />
@@ -407,19 +419,19 @@ export default function EditPatientPage() {
                                     <CardContent className="grid md:grid-cols-3 gap-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="firstName">First Name <span className="text-destructive">*</span></Label>
-                                            <Input id="firstName" name="firstName" defaultValue={patient.firstName} onChange={e => setDeclarationName(`${e.target.value} ${form.lastName.value}`)} required />
+                                            <Input id="firstName" name="firstName" defaultValue={patient.firstName} onChange={handleNameChange} required />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="lastName">Last Name <span className="text-destructive">*</span></Label>
-                                            <Input id="lastName" name="lastName" defaultValue={patient.lastName} onChange={e => setDeclarationName(`${form.firstName.value} ${e.target.value}`)} required />
+                                            <Input id="lastName" name="lastName" defaultValue={patient.lastName} onChange={handleNameChange} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="email_address">Email Address <span className="text-destructive">*</span></Label>
-                                            <Input id="email_address" name="email_address" type="email" defaultValue={patient.email_address ?? ''} onChange={e => setDeclarationEmail(e.target.value)} required />
+                                            <Input id="email_address" name="email_address" type="email" defaultValue={patient.email_address ?? ''} onChange={handleEmailChange} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="phone_number">Registered mobile number <span className="text-destructive">*</span></Label>
-                                            <PhoneInput name="phone_number" defaultValue={patient.phoneNumber ?? ''} onChange={e => setDeclarationContact(e.target.value)} required />
+                                            <PhoneInput name="phone_number" defaultValue={patient.phoneNumber ?? ''} onChange={handleContactChange} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="alternative_number">Alternate contact number</Label>
@@ -760,7 +772,7 @@ export default function EditPatientPage() {
                         <Card>
                             <AccordionItem value="cost-info">
                                 <AccordionTrigger className="p-6">
-                                    <CardTitle>G. Admission &amp;amp; Cost Estimate <span className="text-destructive">*</span></CardTitle>
+                                    <CardTitle>G. Admission &amp; Cost Estimate <span className="text-destructive">*</span></CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={calculateTotalCost}>
@@ -850,29 +862,25 @@ export default function EditPatientPage() {
                                         <div className="grid md:grid-cols-3 gap-4">
                                             <div className="space-y-2">
                                                 <Label htmlFor="patientDeclarationName">Patient/insured name <span className="text-destructive">*</span></Label>
-                                                <Input id="patientDeclarationName" name="patientDeclarationName" value={declarationName} onChange={e => setDeclarationName(e.target.value)} required />
+                                                <Input id="patientDeclarationName" name="patientDeclarationName" defaultValue={patient.patientDeclarationName ?? patient.fullName ?? ''} required />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="patientDeclarationContact">Contact number <span className="text-destructive">*</span></Label>
-                                                <PhoneInput name="patientDeclarationContact" value={declarationContact} onChange={e => setDeclarationContact(e.target.value)} required />
+                                                <PhoneInput name="patientDeclarationContact" defaultValue={patient.patientDeclarationContact ?? patient.phoneNumber ?? ''} required />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="patientDeclarationEmail">Email ID <span className="text-destructive">*</span></Label>
-                                                <Input id="patientDeclarationEmail" name="patientDeclarationEmail" type="email" value={declarationEmail} onChange={e => setDeclarationEmail(e.target.value)} required />
+                                                <Input id="patientDeclarationEmail" name="patientDeclarationEmail" type="email" defaultValue={patient.patientDeclarationEmail ?? patient.email_address ?? ''} required />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="patientDeclarationDate">Declaration date <span className="text-destructive">*</span></Label>
                                                 <Input id="patientDeclarationDate" name="patientDeclarationDate" type="date" defaultValue={patient.patientDeclarationDate ?? ''} required />
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="patientDeclarationTime">Declaration time <span className="text-destructive">*</span></Label>
-                                                <Input id="patientDeclarationTime" name="patientDeclarationTime" type="time" defaultValue={patient.patientDeclarationTime ?? ''} required />
-                                            </div>
                                         </div>
                                         <div className="grid md:grid-cols-3 gap-4 border-t pt-4">
                                             <div className="space-y-2">
                                                 <Label htmlFor="hospitalDeclarationDoctorName">Hospital declaration – doctor name <span className="text-destructive">*</span></Label>
-                                                <Input id="hospitalDeclarationDoctorName" name="hospitalDeclarationDoctorName" value={hospitalDoctorName} onChange={e => setHospitalDoctorName(e.target.value)} required />
+                                                <Input id="hospitalDeclarationDoctorName" name="hospitalDeclarationDoctorName" defaultValue={patient.hospitalDeclarationDoctorName ?? patient.treat_doc_name ?? ''} required />
                                             </div>
                                         </div>
                                         <div className="space-y-2 pt-4 border-t">
