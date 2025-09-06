@@ -48,8 +48,8 @@ export function IctCodeSearch({ name, defaultValue = "", required = false }: Ict
     };
   }, []);
 
-  const handleSelect = (shortcode: string) => {
-    setQuery(shortcode);
+  const handleSelect = (code: { shortcode: string; description: string }) => {
+    setQuery(`${code.shortcode} - ${code.description}`);
     setIsOpen(false);
   };
 
@@ -77,9 +77,10 @@ export function IctCodeSearch({ name, defaultValue = "", required = false }: Ict
               <li
                 key={code.shortcode}
                 className="p-2 hover:bg-accent cursor-pointer"
-                onClick={() => handleSelect(code.shortcode)}
+                onClick={() => handleSelect(code)}
               >
-                <div className="text-sm">{code.description}</div>
+                <div className="font-semibold">{code.shortcode}</div>
+                <div className="text-sm text-muted-foreground">{code.description}</div>
               </li>
             ))}
           </ul>
