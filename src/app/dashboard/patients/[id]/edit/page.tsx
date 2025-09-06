@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleUpdatePatient, getPatientEditPageData, handleUploadPatientFile, Doctor } from "../../actions";
+import { handleUpdatePatient, getPatientEditPageData, getPresignedUrl, Doctor } from "../../actions";
 import Link from "next/link";
 import { ArrowLeft, Upload, User as UserIcon, Loader2, Eye, File as FileIcon, XCircle } from "lucide-react";
 import { notFound, useParams, useRouter } from "next/navigation";
@@ -36,6 +36,32 @@ function SubmitButton() {
     );
 }
 
+async function uploadFile(file: File): Promise<{ publicUrl: string } | { error: string }> {
+    const key = `uploads/${Date.now()}-${file.name.replace(/\s/g, "_")}`;
+    
+    const presignedUrlResult = await getPresignedUrl(key, file.type);
+    if ("error" in presignedUrlResult) {
+        return { error: presignedUrlResult.error };
+    }
+
+    const { url, publicUrl } = presignedUrlResult;
+
+    const res = await fetch(url, {
+        method: "PUT",
+        body: file,
+        headers: {
+            "Content-Type": file.type,
+        },
+    });
+
+    if (!res.ok) {
+        return { error: "Failed to upload file to S3." };
+    }
+    
+    return { publicUrl };
+}
+
+
 const FileUploadField = React.memo(({ label, name, onUploadComplete, initialData }: { label: string; name: string; onUploadComplete: (fieldName: string, name: string, url: string) => void; initialData?: { url: string | null; name: string | null } | null }) => {
     const [isUploading, setIsUploading] = useState(false);
     const [fileUrl, setFileUrl] = useState<string | null>(initialData?.url || null);
@@ -47,21 +73,17 @@ const FileUploadField = React.memo(({ label, name, onUploadComplete, initialData
         const file = event.target.files?.[0];
         if (file) {
             setIsUploading(true);
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('fileType', name);
             
-            const result = await handleUploadPatientFile(formData);
+            const result = await uploadFile(file);
 
-            // Check if still uploading (i.e., not cancelled)
             if (fileInputRef.current) {
-                if (result.type === 'success' && result.url) {
-                    setFileUrl(result.url);
-                    setFileName(result.name);
-                    onUploadComplete(name, result.name, result.url);
+                if ("publicUrl" in result) {
+                    setFileUrl(result.publicUrl);
+                    setFileName(file.name);
+                    onUploadComplete(name, file.name, result.publicUrl);
                     toast({ title: "Success", description: `${label} uploaded.`, variant: "success" });
-                } else if(result.type === 'error') {
-                    toast({ title: "Error", description: result.message, variant: "destructive" });
+                } else {
+                    toast({ title: "Error", description: result.error, variant: "destructive" });
                 }
                 setIsUploading(false);
             }
@@ -270,18 +292,15 @@ export default function EditPatientPage() {
         const file = event.target.files?.[0];
         if (file) {
             setIsUploadingPhoto(true);
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('fileType', 'photo');
-            const result = await handleUploadPatientFile(formData);
+            const result = await uploadFile(file);
 
             if (photoInputRef.current) { // Check if not cancelled
-                if (result.type === 'success' && result.url) {
-                    setPhotoUrl(result.url);
-                    setPhotoName(result.name);
+                if ("publicUrl" in result) {
+                    setPhotoUrl(result.publicUrl);
+                    setPhotoName(file.name);
                     toast({ title: "Success", description: "Photo uploaded.", variant: "success" });
-                } else if(result.type === 'error') {
-                    toast({ title: "Error", description: result.message, variant: "destructive" });
+                } else {
+                    toast({ title: "Error", description: result.error, variant: "destructive" });
                 }
                 setIsUploadingPhoto(false);
             }

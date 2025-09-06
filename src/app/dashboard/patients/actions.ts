@@ -9,6 +9,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const s3 = new S3Client({
   region: "ap-south-1", // change if needed
@@ -588,47 +589,25 @@ export async function getPatientWithDetailsForForm(patientId: string): Promise<P
     return getPatientById(patientId);
 }
 
+export async function getPresignedUrl(
+    key: string,
+    contentType: string
+): Promise<{ url: string; publicUrl: string } | { error: string }> {
+    try {
+        const command = new PutObjectCommand({
+            Bucket: "inurance-app",
+            Key: key,
+            ContentType: contentType,
+            ACL: 'public-read',
+        });
+        const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+        const publicUrl = `https://inurance-app.s3.ap-south-1.amazonaws.com/${key}`;
 
-
-export async function handleUploadPatientFile(
-  formData: FormData
-): Promise<
-  | { type: "success"; url: string; name: string }
-  | { type: "error"; message: string }
-> {
-  const file = formData.get("file") as File | null;
-
-  if (!file) {
-    return { type: "error", message: "No file provided." };
-  }
-
-  try {
-    // Generate a safe unique filename
-    const fileName = `uploads/${Date.now()}-${file.name.replace(/\s/g, "_")}`;
-
-    // Convert File → Buffer (browser FormData gives you File/Blob)
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    // Upload to S3
-    const command = new PutObjectCommand({
-      Bucket: "inurance-app", // 👈 your bucket name
-      Key: fileName,
-      Body: buffer,
-      ContentType: file.type,
-      ACL: "public-read", // 👈 makes the file public
-    });
-
-    await s3.send(command);
-
-    // Public file URL
-    const url = `https://inurance-app.s3.ap-south-1.amazonaws.com/${fileName}`;
-
-    return { type: "success", url, name: file.name };
-  } catch (error: any) {
-    console.error("S3 upload error:", error);
-    return { type: "error", message: error.message };
-  }
+        return { url, publicUrl };
+    } catch (error: any) {
+        console.error("Error generating presigned URL:", error);
+        return { error: error.message };
+    }
 }
 
 
@@ -1175,5 +1154,6 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
     
 
     
+
 
 
