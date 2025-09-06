@@ -326,29 +326,6 @@ export default function EditPatientPage() {
 
     const today = new Date().toISOString().split('T')[0];
 
-    const handleNameChange = () => {
-        const form = formRef.current;
-        if (form) {
-            const firstName = (form.elements.namedItem('firstName') as HTMLInputElement).value;
-            const lastName = (form.elements.namedItem('lastName') as HTMLInputElement).value;
-            (form.elements.namedItem('patientDeclarationName') as HTMLInputElement).value = `${firstName} ${lastName}`.trim();
-        }
-    };
-
-    const handleContactChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const form = formRef.current;
-        if (form) {
-            (form.elements.namedItem('patientDeclarationContact') as HTMLInputElement).value = e.target.value;
-        }
-    };
-
-    const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const form = formRef.current;
-        if (form) {
-            (form.elements.namedItem('patientDeclarationEmail') as HTMLInputElement).value = e.target.value;
-        }
-    };
-
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-4">
@@ -419,19 +396,19 @@ export default function EditPatientPage() {
                                     <CardContent className="grid md:grid-cols-3 gap-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="firstName">First Name <span className="text-destructive">*</span></Label>
-                                            <Input id="firstName" name="firstName" defaultValue={patient.firstName} onChange={handleNameChange} required />
+                                            <Input id="firstName" name="firstName" defaultValue={patient.firstName} required />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="lastName">Last Name <span className="text-destructive">*</span></Label>
-                                            <Input id="lastName" name="lastName" defaultValue={patient.lastName} onChange={handleNameChange} required />
+                                            <Input id="lastName" name="lastName" defaultValue={patient.lastName} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="email_address">Email Address <span className="text-destructive">*</span></Label>
-                                            <Input id="email_address" name="email_address" type="email" defaultValue={patient.email_address ?? ''} onChange={handleEmailChange} required />
+                                            <Input id="email_address" name="email_address" type="email" defaultValue={patient.email_address ?? ''} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="phone_number">Registered mobile number <span className="text-destructive">*</span></Label>
-                                            <PhoneInput name="phone_number" defaultValue={patient.phoneNumber ?? ''} onChange={handleContactChange} required />
+                                            <PhoneInput name="phone_number" defaultValue={patient.phoneNumber ?? ''} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="alternative_number">Alternate contact number</Label>
@@ -484,7 +461,7 @@ export default function EditPatientPage() {
                         <Card>
                              <AccordionItem value="kyc-documents">
                                 <AccordionTrigger className="p-6">
-                                    <CardTitle>B. KYC &amp;amp; Documents</CardTitle>
+                                    <CardTitle>B. KYC &amp; Documents</CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-2 gap-4">
@@ -508,7 +485,7 @@ export default function EditPatientPage() {
                         <Card>
                             <AccordionItem value="insurance-details">
                                 <AccordionTrigger className="p-6">
-                                    <CardTitle>C. Insurance &amp;amp; Admission Details</CardTitle>
+                                    <CardTitle>C. Insurance &amp; Admission Details</CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-3 gap-4">
@@ -855,7 +832,7 @@ export default function EditPatientPage() {
                         <Card>
                             <AccordionItem value="declarations-info">
                                 <AccordionTrigger className="p-6">
-                                    <CardTitle>I. Declarations &amp;amp; Attachments <span className="text-destructive">*</span></CardTitle>
+                                    <CardTitle>I. Declarations &amp; Attachments <span className="text-destructive">*</span></CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <CardContent className="space-y-4">
