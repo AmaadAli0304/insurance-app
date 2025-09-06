@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import { useActionState, useEffect, useState, useRef } from "react";
@@ -147,16 +145,26 @@ export default function NewPatientPage() {
     const [sumUtilized, setSumUtilized] = useState<number | string>('');
     const [totalSum, setTotalSum] = useState<number | string>('');
 
+    // State for autofill
+    const [declarationName, setDeclarationName] = useState('');
+    const [declarationContact, setDeclarationContact] = useState('');
+    const [declarationEmail, setDeclarationEmail] = useState('');
+    const [hospitalDoctorName, setHospitalDoctorName] = useState('');
+    const formRef = useRef<HTMLFormElement>(null);
+
+
     const handleDoctorSelect = (doctor: Doctor | null) => {
         if (doctor) {
             setDoctorContact(doctor.phone ?? '');
-            const form = document.querySelector('form');
+            setHospitalDoctorName(doctor.name ?? ''); // Autofill hospital declaration doctor name
+            const form = formRef.current;
             if(form) {
                 (form.querySelector<HTMLInputElement>('input[name="treat_doc_qualification"]'))!.value = doctor.qualification || '';
                 (form.querySelector<HTMLInputElement>('input[name="treat_doc_reg_no"]'))!.value = doctor.reg_no || '';
             }
         } else {
             setDoctorContact('');
+            setHospitalDoctorName('');
         }
     };
 
@@ -172,7 +180,7 @@ export default function NewPatientPage() {
     ];
 
     const calculateTotalCost = React.useCallback(() => {
-        const form = document.querySelector('form');
+        const form = formRef.current;
         if (!form) return;
         const costs = [
             'roomNursingDietCost', 'investigationCost', 'icuCost',
@@ -275,7 +283,7 @@ export default function NewPatientPage() {
                 </Button>
                 <h1 className="text-lg font-semibold md:text-2xl">New Patient</h1>
             </div>
-            <form action={formAction}>
+            <form action={formAction} ref={formRef}>
                  <input type="hidden" name="hospital_id" value={user?.hospitalId || ''} />
                  <input type="hidden" name="photoUrl" value={photoUrl || ''} />
                  <input type="hidden" name="photoName" value={photoName || ''} />
@@ -333,19 +341,19 @@ export default function NewPatientPage() {
                                 <CardContent className="grid md:grid-cols-3 gap-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="firstName">First Name <span className="text-destructive">*</span></Label>
-                                        <Input id="firstName" name="firstName" required />
+                                        <Input id="firstName" name="firstName" onChange={e => setDeclarationName(`${e.target.value} ${formRef.current?.lastName.value}`)} required />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="lastName">Last Name <span className="text-destructive">*</span></Label>
-                                        <Input id="lastName" name="lastName" required />
+                                        <Input id="lastName" name="lastName" onChange={e => setDeclarationName(`${formRef.current?.firstName.value} ${e.target.value}`)} required />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="email_address">Email Address <span className="text-destructive">*</span></Label>
-                                        <Input id="email_address" name="email_address" type="email" required />
+                                        <Input id="email_address" name="email_address" type="email" onChange={e => setDeclarationEmail(e.target.value)} required />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="phone_number">Registered mobile number <span className="text-destructive">*</span></Label>
-                                        <PhoneInput name="phone_number" required />
+                                        <PhoneInput name="phone_number" onChange={e => setDeclarationContact(e.target.value)} required />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="alternative_number">Alternate contact number</Label>
@@ -398,7 +406,7 @@ export default function NewPatientPage() {
                     <Card>
                         <AccordionItem value="kyc-documents">
                             <AccordionTrigger className="p-6">
-                                <CardTitle>B. KYC &amp; Documents</CardTitle>
+                                <CardTitle>B. KYC &amp;amp; Documents</CardTitle>
                             </AccordionTrigger>
                             <AccordionContent>
                                 <CardContent className="grid md:grid-cols-2 gap-4">
@@ -413,7 +421,7 @@ export default function NewPatientPage() {
                                     <FileUploadField label="Pharmacy Bill" name="pharmacy_bill_path" onUploadComplete={handleDocumentUploadComplete} />
                                     <FileUploadField label="Implant Bill & Stickers" name="implant_bill_stickers_path" onUploadComplete={handleDocumentUploadComplete} />
                                     <FileUploadField label="Lab Bill" name="lab_bill_path" onUploadComplete={handleDocumentUploadComplete} />
-                                    <FileUploadField label="OT & Anesthesia Notes" name="ot_anesthesia_notes_path" onUploadComplete={handleDocumentUploadComplete} />
+                                    <FileUploadField label="OT &amp;amp; Anesthesia Notes" name="ot_anesthesia_notes_path" onUploadComplete={handleDocumentUploadComplete} />
                                 </CardContent>
                             </AccordionContent>
                         </AccordionItem>
@@ -423,7 +431,7 @@ export default function NewPatientPage() {
                     <Card>
                          <AccordionItem value="insurance-details">
                             <AccordionTrigger className="p-6">
-                                <CardTitle>C. Insurance &amp; Admission Details</CardTitle>
+                                <CardTitle>C. Insurance &amp;amp; Admission Details</CardTitle>
                             </AccordionTrigger>
                             <AccordionContent>
                                 <CardContent className="grid md:grid-cols-3 gap-4">
@@ -683,7 +691,7 @@ export default function NewPatientPage() {
                     <Card>
                         <AccordionItem value="cost-info">
                             <AccordionTrigger className="p-6">
-                                <CardTitle>G. Admission &amp; Cost Estimate <span className="text-destructive">*</span></CardTitle>
+                                <CardTitle>G. Admission &amp;amp; Cost Estimate <span className="text-destructive">*</span></CardTitle>
                             </AccordionTrigger>
                             <AccordionContent>
                                     <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={calculateTotalCost}>
@@ -766,22 +774,22 @@ export default function NewPatientPage() {
                     <Card>
                         <AccordionItem value="declarations-info">
                             <AccordionTrigger className="p-6">
-                                <CardTitle>I. Declarations &amp; Attachments <span className="text-destructive">*</span></CardTitle>
+                                <CardTitle>I. Declarations &amp;amp; Attachments <span className="text-destructive">*</span></CardTitle>
                             </AccordionTrigger>
                             <AccordionContent>
                                     <CardContent className="space-y-4">
                                     <div className="grid md:grid-cols-3 gap-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="patientDeclarationName">Patient/insured name <span className="text-destructive">*</span></Label>
-                                            <Input id="patientDeclarationName" name="patientDeclarationName" required />
+                                            <Input id="patientDeclarationName" name="patientDeclarationName" value={declarationName} onChange={e => setDeclarationName(e.target.value)} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="patientDeclarationContact">Contact number <span className="text-destructive">*</span></Label>
-                                            <PhoneInput name="patientDeclarationContact" required />
+                                            <PhoneInput name="patientDeclarationContact" value={declarationContact} onChange={e => setDeclarationContact(e.target.value)} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="patientDeclarationEmail">Email ID <span className="text-destructive">*</span></Label>
-                                            <Input id="patientDeclarationEmail" name="patientDeclarationEmail" type="email" required />
+                                            <Input id="patientDeclarationEmail" name="patientDeclarationEmail" type="email" value={declarationEmail} onChange={e => setDeclarationEmail(e.target.value)} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="patientDeclarationDate">Declaration date <span className="text-destructive">*</span></Label>
@@ -795,7 +803,7 @@ export default function NewPatientPage() {
                                         <div className="grid md:grid-cols-3 gap-4 border-t pt-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="hospitalDeclarationDoctorName">Hospital declaration – doctor name <span className="text-destructive">*</span></Label>
-                                            <Input id="hospitalDeclarationDoctorName" name="hospitalDeclarationDoctorName" required />
+                                            <Input id="hospitalDeclarationDoctorName" name="hospitalDeclarationDoctorName" value={hospitalDoctorName} onChange={e => setHospitalDoctorName(e.target.value)} required />
                                         </div>
                                     </div>
                                         <div className="space-y-2 pt-4 border-t">

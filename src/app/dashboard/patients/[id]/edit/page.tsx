@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import { useActionState, useEffect, useState, useRef } from "react";
@@ -156,10 +154,17 @@ export default function EditPatientPage() {
     const [sumInsured, setSumInsured] = useState<number | string>('');
     const [sumUtilized, setSumUtilized] = useState<number | string>('');
     const [totalSum, setTotalSum] = useState<number | string>('');
+    
+    // State for autofill
+    const [declarationName, setDeclarationName] = useState('');
+    const [declarationContact, setDeclarationContact] = useState('');
+    const [declarationEmail, setDeclarationEmail] = useState('');
+    const [hospitalDoctorName, setHospitalDoctorName] = useState('');
 
     const handleDoctorSelect = (doctor: Doctor | null) => {
         if (doctor) {
             setDoctorContact(doctor.phone ?? '');
+            setHospitalDoctorName(doctor.name ?? ''); // Autofill hospital declaration doctor name
             const form = document.querySelector('form');
             if(form) {
                 (form.querySelector<HTMLInputElement>('input[name="treat_doc_qualification"]'))!.value = doctor.qualification || '';
@@ -167,6 +172,7 @@ export default function EditPatientPage() {
             }
         } else {
             setDoctorContact('');
+            setHospitalDoctorName('');
         }
     };
 
@@ -223,6 +229,12 @@ export default function EditPatientPage() {
                 setDoctors(doctors);
                 setChiefComplaints(complaints);
                 setDoctorContact(patientData.treat_doc_number ?? '');
+
+                // Initialize autofill state
+                setDeclarationName(patientData.patientDeclarationName ?? patientData.fullName ?? '');
+                setDeclarationContact(patientData.patientDeclarationContact ?? patientData.phoneNumber ?? '');
+                setDeclarationEmail(patientData.patientDeclarationEmail ?? patientData.email_address ?? '');
+                setHospitalDoctorName(patientData.hospitalDeclarationDoctorName ?? patientData.treat_doc_name ?? '');
 
                 setSumInsured(patientData.sumInsured ?? '');
                 setSumUtilized(patientData.sumUtilized ?? '');
@@ -395,19 +407,19 @@ export default function EditPatientPage() {
                                     <CardContent className="grid md:grid-cols-3 gap-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="firstName">First Name <span className="text-destructive">*</span></Label>
-                                            <Input id="firstName" name="firstName" defaultValue={patient.firstName} required />
+                                            <Input id="firstName" name="firstName" defaultValue={patient.firstName} onChange={e => setDeclarationName(`${e.target.value} ${form.lastName.value}`)} required />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="lastName">Last Name <span className="text-destructive">*</span></Label>
-                                            <Input id="lastName" name="lastName" defaultValue={patient.lastName} required />
+                                            <Input id="lastName" name="lastName" defaultValue={patient.lastName} onChange={e => setDeclarationName(`${form.firstName.value} ${e.target.value}`)} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="email_address">Email Address <span className="text-destructive">*</span></Label>
-                                            <Input id="email_address" name="email_address" type="email" defaultValue={patient.email_address ?? ''} required />
+                                            <Input id="email_address" name="email_address" type="email" defaultValue={patient.email_address ?? ''} onChange={e => setDeclarationEmail(e.target.value)} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="phone_number">Registered mobile number <span className="text-destructive">*</span></Label>
-                                            <PhoneInput name="phone_number" defaultValue={patient.phoneNumber ?? ''} required />
+                                            <PhoneInput name="phone_number" defaultValue={patient.phoneNumber ?? ''} onChange={e => setDeclarationContact(e.target.value)} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="alternative_number">Alternate contact number</Label>
@@ -460,7 +472,7 @@ export default function EditPatientPage() {
                         <Card>
                              <AccordionItem value="kyc-documents">
                                 <AccordionTrigger className="p-6">
-                                    <CardTitle>B. KYC &amp; Documents</CardTitle>
+                                    <CardTitle>B. KYC &amp;amp; Documents</CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-2 gap-4">
@@ -475,7 +487,7 @@ export default function EditPatientPage() {
                                         <FileUploadField label="Pharmacy Bill" name="pharmacy_bill_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.pharmacy_bill_path as {url: string, name: string} | undefined} />
                                         <FileUploadField label="Implant Bill & Stickers" name="implant_bill_stickers_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.implant_bill_stickers_path as {url: string, name: string} | undefined} />
                                         <FileUploadField label="Lab Bill" name="lab_bill_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.lab_bill_path as {url: string, name: string} | undefined} />
-                                        <FileUploadField label="OT & Anesthesia Notes" name="ot_anesthesia_notes_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.ot_anesthesia_notes_path as {url: string, name: string} | undefined} />
+                                        <FileUploadField label="OT &amp; Anesthesia Notes" name="ot_anesthesia_notes_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.ot_anesthesia_notes_path as {url: string, name: string} | undefined} />
                                     </CardContent>
                                 </AccordionContent>
                             </AccordionItem>
@@ -484,7 +496,7 @@ export default function EditPatientPage() {
                         <Card>
                             <AccordionItem value="insurance-details">
                                 <AccordionTrigger className="p-6">
-                                    <CardTitle>C. Insurance &amp; Admission Details</CardTitle>
+                                    <CardTitle>C. Insurance &amp;amp; Admission Details</CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-3 gap-4">
@@ -748,7 +760,7 @@ export default function EditPatientPage() {
                         <Card>
                             <AccordionItem value="cost-info">
                                 <AccordionTrigger className="p-6">
-                                    <CardTitle>G. Admission &amp; Cost Estimate <span className="text-destructive">*</span></CardTitle>
+                                    <CardTitle>G. Admission &amp;amp; Cost Estimate <span className="text-destructive">*</span></CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={calculateTotalCost}>
@@ -831,22 +843,22 @@ export default function EditPatientPage() {
                         <Card>
                             <AccordionItem value="declarations-info">
                                 <AccordionTrigger className="p-6">
-                                    <CardTitle>I. Declarations &amp; Attachments <span className="text-destructive">*</span></CardTitle>
+                                    <CardTitle>I. Declarations &amp;amp; Attachments <span className="text-destructive">*</span></CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <CardContent className="space-y-4">
                                         <div className="grid md:grid-cols-3 gap-4">
                                             <div className="space-y-2">
                                                 <Label htmlFor="patientDeclarationName">Patient/insured name <span className="text-destructive">*</span></Label>
-                                                <Input id="patientDeclarationName" name="patientDeclarationName" defaultValue={patient.patientDeclarationName ?? ''} required />
+                                                <Input id="patientDeclarationName" name="patientDeclarationName" value={declarationName} onChange={e => setDeclarationName(e.target.value)} required />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="patientDeclarationContact">Contact number <span className="text-destructive">*</span></Label>
-                                                <PhoneInput name="patientDeclarationContact" defaultValue={patient.patientDeclarationContact ?? ''} required />
+                                                <PhoneInput name="patientDeclarationContact" value={declarationContact} onChange={e => setDeclarationContact(e.target.value)} required />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="patientDeclarationEmail">Email ID <span className="text-destructive">*</span></Label>
-                                                <Input id="patientDeclarationEmail" name="patientDeclarationEmail" type="email" defaultValue={patient.patientDeclarationEmail ?? ''} required />
+                                                <Input id="patientDeclarationEmail" name="patientDeclarationEmail" type="email" value={declarationEmail} onChange={e => setDeclarationEmail(e.target.value)} required />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="patientDeclarationDate">Declaration date <span className="text-destructive">*</span></Label>
@@ -860,7 +872,7 @@ export default function EditPatientPage() {
                                         <div className="grid md:grid-cols-3 gap-4 border-t pt-4">
                                             <div className="space-y-2">
                                                 <Label htmlFor="hospitalDeclarationDoctorName">Hospital declaration – doctor name <span className="text-destructive">*</span></Label>
-                                                <Input id="hospitalDeclarationDoctorName" name="hospitalDeclarationDoctorName" defaultValue={patient.hospitalDeclarationDoctorName ?? ''} required />
+                                                <Input id="hospitalDeclarationDoctorName" name="hospitalDeclarationDoctorName" value={hospitalDoctorName} onChange={e => setHospitalDoctorName(e.target.value)} required />
                                             </div>
                                         </div>
                                         <div className="space-y-2 pt-4 border-t">
