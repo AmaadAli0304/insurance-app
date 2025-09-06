@@ -89,6 +89,12 @@ export interface Patient {
   voter_id_path?: { url: string; name: string; } | string | null;
   driving_licence_path?: { url: string; name: string; } | string | null;
   other_path?: { url: string; name: string; } | string | null;
+  discharge_summary_path?: { url: string; name: string; } | string | null;
+  final_bill_path?: { url: string; name: string; } | string | null;
+  pharmacy_bill_path?: { url: string; name: string; } | string | null;
+  implant_bill_stickers_path?: { url: string; name: string; } | string | null;
+  lab_bill_path?: { url: string; name: string; } | string | null;
+  ot_anesthesia_notes_path?: { url: string; name: string; } | string | null;
 
   // Admission fields
   admission_id?: string;

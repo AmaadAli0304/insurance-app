@@ -408,6 +408,12 @@ export default function NewPatientPage() {
                                     <FileUploadField label="Driving License" name="driving_licence_path" onUploadComplete={handleDocumentUploadComplete} />
                                     <FileUploadField label="Voter ID" name="voter_id_path" onUploadComplete={handleDocumentUploadComplete} />
                                     <FileUploadField label="Other Document" name="other_path" onUploadComplete={handleDocumentUploadComplete} />
+                                    <FileUploadField label="Discharge Summary" name="discharge_summary_path" onUploadComplete={handleDocumentUploadComplete} />
+                                    <FileUploadField label="Final Bill" name="final_bill_path" onUploadComplete={handleDocumentUploadComplete} />
+                                    <FileUploadField label="Pharmacy Bill" name="pharmacy_bill_path" onUploadComplete={handleDocumentUploadComplete} />
+                                    <FileUploadField label="Implant Bill & Stickers" name="implant_bill_stickers_path" onUploadComplete={handleDocumentUploadComplete} />
+                                    <FileUploadField label="Lab Bill" name="lab_bill_path" onUploadComplete={handleDocumentUploadComplete} />
+                                    <FileUploadField label="OT & Anesthesia Notes" name="ot_anesthesia_notes_path" onUploadComplete={handleDocumentUploadComplete} />
                                 </CardContent>
                             </AccordionContent>
                         </AccordionItem>

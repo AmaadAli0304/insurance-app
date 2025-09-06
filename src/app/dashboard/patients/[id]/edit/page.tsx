@@ -234,7 +234,10 @@ export default function EditPatientPage() {
                 }
                 
                 const initialDocUrls: Record<string, { url: string, name: string }> = {};
-                const docFields: (keyof Patient)[] = ['adhaar_path', 'pan_path', 'passport_path', 'voter_id_path', 'driving_licence_path', 'other_path'];
+                const docFields: (keyof Patient)[] = [
+                    'adhaar_path', 'pan_path', 'passport_path', 'voter_id_path', 'driving_licence_path', 'other_path',
+                    'discharge_summary_path', 'final_bill_path', 'pharmacy_bill_path', 'implant_bill_stickers_path', 'lab_bill_path', 'ot_anesthesia_notes_path'
+                ];
 
                 for (const field of docFields) {
                     const value = patientData[field];
@@ -467,6 +470,12 @@ export default function EditPatientPage() {
                                         <FileUploadField label="Driving License" name="driving_licence_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.driving_licence_path as {url: string, name: string} | undefined} />
                                         <FileUploadField label="Voter ID" name="voter_id_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.voter_id_path as {url: string, name: string} | undefined} />
                                         <FileUploadField label="Other Document" name="other_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.other_path as {url: string, name: string} | undefined} />
+                                        <FileUploadField label="Discharge Summary" name="discharge_summary_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.discharge_summary_path as {url: string, name: string} | undefined} />
+                                        <FileUploadField label="Final Bill" name="final_bill_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.final_bill_path as {url: string, name: string} | undefined} />
+                                        <FileUploadField label="Pharmacy Bill" name="pharmacy_bill_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.pharmacy_bill_path as {url: string, name: string} | undefined} />
+                                        <FileUploadField label="Implant Bill & Stickers" name="implant_bill_stickers_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.implant_bill_stickers_path as {url: string, name: string} | undefined} />
+                                        <FileUploadField label="Lab Bill" name="lab_bill_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.lab_bill_path as {url: string, name: string} | undefined} />
+                                        <FileUploadField label="OT & Anesthesia Notes" name="ot_anesthesia_notes_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.ot_anesthesia_notes_path as {url: string, name: string} | undefined} />
                                     </CardContent>
                                 </AccordionContent>
                             </AccordionItem>
