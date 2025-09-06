@@ -14,23 +14,25 @@ interface IctCodeSearchProps {
 }
 
 export function IctCodeSearch({ name, defaultValue = "", required = false }: IctCodeSearchProps) {
-  const [query, setQuery] = useState(defaultValue);
+  const [searchQuery, setSearchQuery] = useState(defaultValue);
+  const [selectedValue, setSelectedValue] = useState(defaultValue);
   const [results, setResults] = useState<{ shortcode: string; description: string; }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const debouncedQuery = useDebounce(query, 300);
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isSelectionMade = useRef(false);
 
   const handleSearch = useCallback(async () => {
-    if (debouncedQuery.length < 2) {
+    if (debouncedSearchQuery.length < 2) {
       setResults([]);
       return;
     }
     setIsLoading(true);
-    const codes = await searchIctCodes(debouncedQuery);
+    const codes = await searchIctCodes(debouncedSearchQuery);
     setResults(codes);
     setIsLoading(false);
-  }, [debouncedQuery]);
+  }, [debouncedSearchQuery]);
 
   useEffect(() => {
     handleSearch();
@@ -40,30 +42,50 @@ export function IctCodeSearch({ name, defaultValue = "", required = false }: Ict
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+        // If user clicks outside without making a selection, reset to last valid selection
+        if (!isSelectionMade.current) {
+            setSearchQuery(selectedValue);
+        }
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [selectedValue]);
 
   const handleSelect = (code: { shortcode: string; description: string }) => {
-    setQuery(`${code.shortcode} - ${code.description}`);
+    const fullValue = `${code.shortcode} - ${code.description}`;
+    setSelectedValue(fullValue);
+    setSearchQuery(fullValue);
     setIsOpen(false);
+    isSelectionMade.current = true;
   };
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchQuery(e.target.value);
+      if(!isOpen) setIsOpen(true);
+      isSelectionMade.current = false;
+  }
+
+  const handleBlur = () => {
+      // Small timeout to allow click event on dropdown to register
+      setTimeout(() => {
+          if (!isSelectionMade.current) {
+              setSearchQuery(selectedValue);
+          }
+      }, 150);
+  }
 
   return (
     <div className="relative" ref={containerRef}>
+      <input type="hidden" name={name} value={selectedValue} />
       <Input
         type="text"
-        name={name}
-        value={query}
-        onChange={(e) => {
-            setQuery(e.target.value);
-            if(!isOpen) setIsOpen(true);
-        }}
+        value={searchQuery}
+        onChange={handleInputChange}
         onFocus={() => setIsOpen(true)}
+        onBlur={handleBlur}
         required={required}
         placeholder="Search ICD-10 codes..."
         autoComplete="off"
@@ -71,13 +93,13 @@ export function IctCodeSearch({ name, defaultValue = "", required = false }: Ict
       {isOpen && (
         <div className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
           {isLoading && <div className="p-2 flex items-center justify-center"><Loader2 className="h-5 w-5 animate-spin" /></div>}
-          {!isLoading && debouncedQuery.length > 1 && results.length === 0 && <div className="p-2 text-sm text-muted-foreground">No results found.</div>}
+          {!isLoading && debouncedSearchQuery.length > 1 && results.length === 0 && <div className="p-2 text-sm text-muted-foreground">No results found.</div>}
           <ul>
             {results.map((code) => (
               <li
                 key={code.shortcode}
                 className="p-2 hover:bg-accent cursor-pointer"
-                onClick={() => handleSelect(code)}
+                onMouseDown={() => handleSelect(code)}
               >
                 <div className="font-semibold">{code.shortcode}</div>
                 <div className="text-sm text-muted-foreground">{code.description}</div>
