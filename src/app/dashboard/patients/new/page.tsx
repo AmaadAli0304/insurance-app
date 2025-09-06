@@ -797,14 +797,6 @@ export default function NewPatientPage() {
                                             <Label htmlFor="hospitalDeclarationDoctorName">Hospital declaration – doctor name <span className="text-destructive">*</span></Label>
                                             <Input id="hospitalDeclarationDoctorName" name="hospitalDeclarationDoctorName" required />
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="hospitalDeclarationDate">Declaration date <span className="text-destructive">*</span></Label>
-                                            <Input id="hospitalDeclarationDate" name="hospitalDeclarationDate" type="date" required />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="hospitalDeclarationTime">Declaration time <span className="text-destructive">*</span></Label>
-                                            <Input id="hospitalDeclarationTime" name="hospitalDeclarationTime" type="time" required />
-                                        </div>
                                     </div>
                                         <div className="space-y-2 pt-4 border-t">
                                         <Label>Attachments to enclose</Label>

@@ -862,14 +862,6 @@ export default function EditPatientPage() {
                                                 <Label htmlFor="hospitalDeclarationDoctorName">Hospital declaration – doctor name <span className="text-destructive">*</span></Label>
                                                 <Input id="hospitalDeclarationDoctorName" name="hospitalDeclarationDoctorName" defaultValue={patient.hospitalDeclarationDoctorName ?? ''} required />
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="hospitalDeclarationDate">Declaration date <span className="text-destructive">*</span></Label>
-                                                <Input id="hospitalDeclarationDate" name="hospitalDeclarationDate" type="date" defaultValue={patient.hospitalDeclarationDate ?? ''} required />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="hospitalDeclarationTime">Declaration time <span className="text-destructive">*</span></Label>
-                                                <Input id="hospitalDeclarationTime" name="hospitalDeclarationTime" type="time" defaultValue={patient.hospitalDeclarationTime ?? ''} required />
-                                            </div>
                                         </div>
                                         <div className="space-y-2 pt-4 border-t">
                                             <Label>Attachments to enclose</Label>
