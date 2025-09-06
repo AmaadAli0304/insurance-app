@@ -894,7 +894,7 @@ export default function NewRequestPage() {
                                          <div className="space-y-2 pt-4 border-t">
                                             <Label>Attachments to enclose</Label>
                                             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                                {['ID proof', 'Policy copy', 'Doctor’s notes', 'Investigations', 'Estimate'].map(item => (
+                                                {['Aadhar Card', 'Pan Card', 'Insurance Policy / E Card', 'ICP Paper / OPD Paper', 'Lab Report'].map(item => (
                                                      <div key={item} className="flex items-center space-x-2">
                                                         <Checkbox id={`att-${item}`} name="attachments" value={item} defaultChecked={patientDetails.attachments?.includes(item)} />
                                                         <Label htmlFor={`att-${item}`} className="font-normal">{item}</Label>
@@ -973,4 +973,3 @@ export default function NewRequestPage() {
         </div>
     );
 }
-
