@@ -412,7 +412,7 @@ export default function EditPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="alternative_number">Alternate contact number</Label>
-                                            <PhoneInput name="alternative_number" defaultValue={patient.alternative_number ?? ''} />
+                                            <Input name="alternative_number" defaultValue={patient.alternative_number ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="gender">Gender <span className="text-destructive">*</span></Label>
@@ -560,7 +560,7 @@ export default function EditPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="family_doctor_phone">Family physician contact</Label>
-                                            <PhoneInput name="family_doctor_phone" defaultValue={patient.family_doctor_phone ?? ''} />
+                                            <Input name="family_doctor_phone" defaultValue={patient.family_doctor_phone ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="payer_email">Proposer/Payer email ID <span className="text-destructive">*</span></Label>
@@ -568,7 +568,7 @@ export default function EditPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="payer_phone">Proposer/Payer phone number <span className="text-destructive">*</span></Label>
-                                            <PhoneInput name="payer_phone" defaultValue={patient.payer_phone ?? ''} required />
+                                            <Input name="payer_phone" defaultValue={patient.payer_phone ?? ''} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="tpa_id">Select TPA <span className="text-destructive">*</span></Label>
@@ -591,7 +591,7 @@ export default function EditPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_number">Treating doctor’s contact <span className="text-destructive">*</span></Label>
-                                            <PhoneInput id="treat_doc_number" name="treat_doc_number" defaultValue={doctorContact} required />
+                                            <Input id="treat_doc_number" name="treat_doc_number" value={doctorContact} onChange={(e) => setDoctorContact(e.target.value)} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_qualification">Doctor’s qualification <span className="text-destructive">*</span></Label>
@@ -829,52 +829,6 @@ export default function EditPatientPage() {
                         
                         <ChiefComplaintForm initialData={chiefComplaints} patientId={id} />
                         
-                        <Card>
-                            <AccordionItem value="declarations-info">
-                                <AccordionTrigger className="p-6">
-                                    <CardTitle>I. Declarations &amp; Attachments <span className="text-destructive">*</span></CardTitle>
-                                </AccordionTrigger>
-                                <AccordionContent>
-                                    <CardContent className="space-y-4">
-                                        <div className="grid md:grid-cols-3 gap-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="patientDeclarationName">Patient/insured name <span className="text-destructive">*</span></Label>
-                                                <Input id="patientDeclarationName" name="patientDeclarationName" defaultValue={patient.patientDeclarationName ?? patient.fullName ?? ''} required />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="patientDeclarationContact">Contact number <span className="text-destructive">*</span></Label>
-                                                <PhoneInput name="patientDeclarationContact" defaultValue={patient.patientDeclarationContact ?? patient.phoneNumber ?? ''} required />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="patientDeclarationEmail">Email ID <span className="text-destructive">*</span></Label>
-                                                <Input id="patientDeclarationEmail" name="patientDeclarationEmail" type="email" defaultValue={patient.patientDeclarationEmail ?? patient.email_address ?? ''} required />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="patientDeclarationDate">Declaration date <span className="text-destructive">*</span></Label>
-                                                <Input id="patientDeclarationDate" name="patientDeclarationDate" type="date" defaultValue={patient.patientDeclarationDate ?? ''} required />
-                                            </div>
-                                        </div>
-                                        <div className="grid md:grid-cols-3 gap-4 border-t pt-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="hospitalDeclarationDoctorName">Hospital declaration – doctor name <span className="text-destructive">*</span></Label>
-                                                <Input id="hospitalDeclarationDoctorName" name="hospitalDeclarationDoctorName" defaultValue={patient.hospitalDeclarationDoctorName ?? patient.treat_doc_name ?? ''} required />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2 pt-4 border-t">
-                                            <Label>Attachments to enclose</Label>
-                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                                {['ID proof', 'Policy copy', 'Doctor’s notes', 'Investigations', 'Estimate'].map(item => (
-                                                    <div key={item} className="flex items-center space-x-2">
-                                                        <Checkbox id={`att-${item}`} name="attachments" value={item} defaultChecked={patient.attachments?.includes(item)} />
-                                                        <Label htmlFor={`att-${item}`} className="font-normal">{item}</Label>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </AccordionContent>
-                            </AccordionItem>
-                        </Card>
                     </Accordion>
 
 
@@ -887,3 +841,5 @@ export default function EditPatientPage() {
         </div>
     );
 }
+
+    
