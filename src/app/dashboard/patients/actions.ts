@@ -27,7 +27,8 @@ const basePatientObjectSchema = z.object({
   phone_number: z.string().optional().nullable(),
   alternative_number: z.string().optional().nullable(),
   gender: z.string().optional().nullable(),
-  age: z.coerce.number().optional().nullable(),
+  // age is now a display-only field and removed from backend validation
+  // age: z.coerce.number().optional().nullable(), 
   birth_date: z.string().optional().nullable(),
   address: z.string().optional().nullable(),
   occupation: z.string().optional().nullable(),
@@ -467,9 +468,9 @@ export async function getPatientsForPreAuth(hospitalId: string): Promise<{ id: s
     const result = await pool.request()
       .input('hospitalId', sql.NVarChar, hospitalId)
       .query(`
-        SELECT p.id, p.first_name + ' ' + p.last_name as fullName, a.admission_id
+        SELECT p.id, p.first_name + ' ' + p.last_name as fullName, pr.admission_id
         FROM patients p
-        LEFT JOIN admissions a ON p.id = a.patient_id
+        LEFT JOIN preauth_request pr ON p.id = pr.patient_id
         WHERE p.hospital_id = @hospitalId
       `);
     return result.recordset.map(r => ({...r, id: r.id.toString()}));
@@ -528,7 +529,7 @@ const buildObjectFromFormData = (formData: FormData) => {
             data[key] = [];
           }
           data[key].push(value);
-        } else {
+        } else if (key !== 'age') { // Exclude age from the submitted data
           data[key] = value === '' ? null : value;
         }
       }
@@ -608,7 +609,6 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('phone_number', sql.NVarChar, data.phone_number || null)
       .input('alternative_number', sql.NVarChar, data.alternative_number || null)
       .input('gender', sql.NVarChar, data.gender)
-      .input('age', sql.Int, data.age)
       .input('birth_date', data.birth_date ? sql.Date : sql.Date, data.birth_date ? new Date(data.birth_date) : null)
       .input('address', sql.NVarChar, data.address)
       .input('occupation', sql.NVarChar, data.occupation || null)
@@ -624,9 +624,9 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('driving_licence_path', sql.NVarChar, drivingLicenceJson)
       .input('other_path', sql.NVarChar, otherJson)
       .query(`
-        INSERT INTO patients (first_name, last_name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id, photo, adhaar_path, pan_path, passport_path, voter_id_path, driving_licence_path, other_path)
+        INSERT INTO patients (first_name, last_name, email_address, phone_number, alternative_number, gender, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id, photo, adhaar_path, pan_path, passport_path, voter_id_path, driving_licence_path, other_path)
         OUTPUT INSERTED.id
-        VALUES (@first_name, @last_name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id, @photo, @adhaar_path, @pan_path, @passport_path, @voter_id_path, @driving_licence_path, @other_path)
+        VALUES (@first_name, @last_name, @email_address, @phone_number, @alternative_number, @gender, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id, @photo, @adhaar_path, @pan_path, @passport_path, @voter_id_path, @driving_licence_path, @other_path)
       `);
     
     const patientId = patientResult.recordset[0]?.id;
@@ -634,97 +634,6 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
     if (!patientId || typeof patientId !== 'number') {
         throw new Error("Failed to create patient record or retrieve ID.");
     }
-
-    const preAuthInsertRequest = new sql.Request(transaction);
-    await preAuthInsertRequest
-        .input('patient_id', sql.Int, patientId)
-        .input('admission_id', sql.NVarChar, data.admission_id)
-        .input('doctor_id', sql.Int, data.doctor_id)
-        .input('first_name', sql.NVarChar, data.firstName)
-        .input('last_name', sql.NVarChar, data.lastName)
-        .input('email_address', sql.NVarChar, data.email_address)
-        .input('phone_number', sql.NVarChar, data.phone_number)
-        .input('alternative_number', sql.NVarChar, data.alternative_number)
-        .input('gender', sql.NVarChar, data.gender)
-        .input('age', sql.Int, data.age)
-        .input('birth_date', sql.Date, data.birth_date ? new Date(data.birth_date as string) : null)
-        .input('address', sql.NVarChar, data.address)
-        .input('occupation', sql.NVarChar, data.occupation)
-        .input('employee_id', sql.NVarChar, data.employee_id)
-        .input('abha_id', sql.NVarChar, data.abha_id)
-        .input('health_id', sql.NVarChar, data.health_id)
-        .input('relationship_policyholder', sql.NVarChar, data.relationship_policyholder)
-        .input('policy_number', sql.NVarChar, data.policy_number)
-        .input('insured_card_number', sql.NVarChar, data.insured_card_number)
-        .input('company_id', sql.NVarChar, data.company_id)
-        .input('policy_start_date', sql.Date, data.policy_start_date ? new Date(data.policy_start_date as string) : null)
-        .input('policy_end_date', sql.Date, data.policy_end_date ? new Date(data.policy_end_date as string) : null)
-        .input('sum_insured', sql.Decimal(18, 2), data.sumInsured)
-        .input('sum_utilized', sql.Decimal(18, 2), data.sumUtilized)
-        .input('total_sum', sql.Decimal(18, 2), data.totalSum)
-        .input('corporate_policy_number', sql.NVarChar, data.corporate_policy_number)
-        .input('other_policy_name', sql.NVarChar, data.other_policy_name)
-        .input('family_doctor_name', sql.NVarChar, data.family_doctor_name)
-        .input('family_doctor_phone', sql.NVarChar, data.family_doctor_phone)
-        .input('payer_email', sql.NVarChar, data.payer_email)
-        .input('payer_phone', sql.NVarChar, data.payer_phone)
-        .input('tpa_id', sql.Int, data.tpa_id)
-        .input('hospital_id', sql.NVarChar, data.hospital_id)
-        .input('treat_doc_name', sql.NVarChar, formData.get('treat_doc_name'))
-        .input('treat_doc_number', sql.NVarChar, data.treat_doc_number)
-        .input('treat_doc_qualification', sql.NVarChar, data.treat_doc_qualification)
-        .input('treat_doc_reg_no', sql.NVarChar, data.treat_doc_reg_no)
-        .input('natureOfIllness', sql.NVarChar, data.natureOfIllness)
-        .input('clinicalFindings', sql.NVarChar, data.clinicalFindings)
-        .input('ailmentDuration', sql.Int, data.ailmentDuration)
-        .input('firstConsultationDate', sql.Date, data.firstConsultationDate ? new Date(data.firstConsultationDate as string) : null)
-        .input('pastHistory', sql.NVarChar, data.pastHistory)
-        .input('provisionalDiagnosis', sql.NVarChar, data.provisionalDiagnosis)
-        .input('icd10Codes', sql.NVarChar, data.icd10Codes)
-        .input('treatmentMedical', sql.NVarChar, data.treatmentMedical)
-        .input('treatmentSurgical', sql.NVarChar, data.treatmentSurgical)
-        .input('treatmentIntensiveCare', sql.NVarChar, data.treatmentIntensiveCare)
-        .input('treatmentInvestigation', sql.NVarChar, data.treatmentInvestigation)
-        .input('treatmentNonAllopathic', sql.NVarChar, data.treatmentNonAllopathic)
-        .input('investigationDetails', sql.NVarChar, data.investigationDetails)
-        .input('drugRoute', sql.NVarChar, data.drugRoute)
-        .input('procedureName', sql.NVarChar, data.procedureName)
-        .input('icd10PcsCodes', sql.NVarChar, data.icd10PcsCodes)
-        .input('otherTreatments', sql.NVarChar, data.otherTreatments)
-        .input('isInjury', sql.Bit, data.isInjury === 'on' ? 1 : 0)
-        .input('injuryCause', sql.NVarChar, data.injuryCause)
-        .input('isRta', sql.Bit, data.isRta === 'on' ? 1 : 0)
-        .input('injuryDate', sql.Date, data.injuryDate ? new Date(data.injuryDate as string) : null)
-        .input('isReportedToPolice', sql.Bit, data.isReportedToPolice === 'on' ? 1 : 0)
-        .input('firNumber', sql.NVarChar, data.firNumber)
-        .input('isAlcoholSuspected', sql.Bit, data.isAlcoholSuspected === 'on' ? 1 : 0)
-        .input('isToxicologyConducted', sql.Bit, data.isToxicologyConducted === 'on' ? 1 : 0)
-        .input('isMaternity', sql.Bit, data.isMaternity === 'on' ? 1 : 0)
-        .input('g', sql.Int, data.g)
-        .input('p', sql.Int, data.p)
-        .input('l', sql.Int, data.l)
-        .input('a', sql.Int, data.a)
-        .input('expectedDeliveryDate', sql.Date, data.expectedDeliveryDate ? new Date(data.expectedDeliveryDate as string) : null)
-        .input('admissionDate', sql.Date, data.admissionDate ? new Date(data.admissionDate as string) : null)
-        .input('admissionTime', sql.NVarChar, data.admissionTime)
-        .input('admissionType', sql.NVarChar, data.admissionType)
-        .input('expectedStay', sql.Int, data.expectedStay)
-        .input('expectedIcuStay', sql.Int, data.expectedIcuStay)
-        .input('roomCategory', sql.NVarChar, data.roomCategory)
-        .input('roomNursingDietCost', sql.Decimal(18, 2), data.roomNursingDietCost)
-        .input('investigationCost', sql.Decimal(18, 2), data.investigationCost)
-        .input('icuCost', sql.Decimal(18, 2), data.icuCost)
-        .input('otCost', sql.Decimal(18, 2), data.otCost)
-        .input('professionalFees', sql.Decimal(18, 2), data.professionalFees)
-        .input('medicineCost', sql.Decimal(18, 2), data.medicineCost)
-        .input('otherHospitalExpenses', sql.Decimal(18, 2), data.otherHospitalExpenses)
-        .input('packageCharges', sql.Decimal(18, 2), data.packageCharges)
-        .input('totalExpectedCost', sql.Decimal(18, 2), data.totalExpectedCost)
-        .query(`INSERT INTO preauth_request (
-            patient_id, admission_id, doctor_id, first_name, last_name, email_address, phone_number, alternative_number, gender, age, birth_date, address, occupation, employee_id, abha_id, health_id, relationship_policyholder, policy_number, insured_card_number, company_id, policy_start_date, policy_end_date, sum_insured, sum_utilized, total_sum, corporate_policy_number, other_policy_name, family_doctor_name, family_doctor_phone, payer_email, payer_phone, tpa_id, hospital_id, treat_doc_name, treat_doc_number, treat_doc_qualification, treat_doc_reg_no, natureOfIllness, clinicalFindings, ailmentDuration, firstConsultationDate, pastHistory, provisionalDiagnosis, icd10Codes, treatmentMedical, treatmentSurgical, treatmentIntensiveCare, treatmentInvestigation, treatmentNonAllopathic, investigationDetails, drugRoute, procedureName, icd10PcsCodes, otherTreatments, isInjury, injuryCause, isRta, injuryDate, isReportedToPolice, firNumber, isAlcoholSuspected, isToxicologyConducted, isMaternity, g, p, l, a, expectedDeliveryDate, admissionDate, admissionTime, admissionType, expectedStay, expectedIcuStay, roomCategory, roomNursingDietCost, investigationCost, icuCost, otCost, professionalFees, medicineCost, otherHospitalExpenses, packageCharges, totalExpectedCost
-        ) VALUES (
-            @patient_id, @admission_id, @doctor_id, @first_name, @last_name, @email_address, @phone_number, @alternative_number, @gender, @age, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @relationship_policyholder, @policy_number, @insured_card_number, @company_id, @policy_start_date, @policy_end_date, @sum_insured, @sum_utilized, @total_sum, @corporate_policy_number, @other_policy_name, @family_doctor_name, @family_doctor_phone, @payer_email, @payer_phone, @tpa_id, @hospital_id, @treat_doc_name, @treat_doc_number, @treat_doc_qualification, @treat_doc_reg_no, @natureOfIllness, @clinicalFindings, @ailmentDuration, @firstConsultationDate, @pastHistory, @provisionalDiagnosis, @icd10Codes, @treatmentMedical, @treatmentSurgical, @treatmentIntensiveCare, @treatmentInvestigation, @treatmentNonAllopathic, @investigationDetails, @drugRoute, @procedureName, @icd10PcsCodes, @otherTreatments, @isInjury, @injuryCause, @isRta, @injuryDate, @isReportedToPolice, @firNumber, @isAlcoholSuspected, @isToxicologyConducted, @isMaternity, @g, @p, @l, @a, @expectedDeliveryDate, @admissionDate, @admissionTime, @admissionType, @expectedStay, @expectedIcuStay, @roomCategory, @roomNursingDietCost, @investigationCost, @icuCost, @otCost, @professionalFees, @medicineCost, @otherHospitalExpenses, @packageCharges, @totalExpectedCost
-        )`);
       
     await handleSaveChiefComplaints(transaction, patientId, data.chiefComplaints);
 
@@ -782,7 +691,6 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
             .input('phone_number', sql.NVarChar, data.phone_number || null)
             .input('alternative_number', sql.NVarChar, data.alternative_number || null)
             .input('gender', sql.NVarChar, data.gender)
-            .input('age', sql.Int, data.age)
             .input('birth_date', data.birth_date ? sql.Date : sql.Date, data.birth_date ? new Date(data.birth_date) : null)
             .input('address', sql.NVarChar, data.address)
             .input('occupation', sql.NVarChar, data.occupation || null)
@@ -807,7 +715,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
                 UPDATE patients 
                 SET 
                 first_name = @first_name, last_name = @last_name, email_address = @email_address, phone_number = @phone_number, alternative_number = @alternative_number, 
-                gender = @gender, age = @age, birth_date = @birth_date, address = @address, occupation = @occupation,
+                gender = @gender, birth_date = @birth_date, address = @address, occupation = @occupation,
                 employee_id = @employee_id, abha_id = @abha_id, health_id = @health_id, hospital_id = @hospital_id,
                 photo = @photo, adhaar_path = @adhaar_path, pan_path = @pan_path, passport_path = @passport_path, 
                 voter_id_path = @voter_id_path, driving_licence_path = @driving_licence_path, other_path = @other_path,
@@ -815,105 +723,6 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
                 implant_bill_stickers_path = @implant_bill_stickers_path, lab_bill_path = @lab_bill_path, ot_anesthesia_notes_path = @ot_anesthesia_notes_path,
                 updated_at = GETDATE()
                 WHERE id = @id
-            `);
-
-        // 2. Update PreAuth Table
-        const preAuthRequest = new sql.Request(transaction);
-        await preAuthRequest
-            .input('patient_id', sql.Int, Number(patientId))
-            .input('doctor_id', sql.Int, data.doctor_id)
-            .input('admission_id', sql.NVarChar, data.admission_id)
-            .input('relationship_policyholder', sql.NVarChar, data.relationship_policyholder)
-            .input('policy_number', sql.NVarChar, data.policy_number)
-            .input('insured_card_number', sql.NVarChar, data.insured_card_number)
-            .input('company_id', sql.NVarChar, data.company_id)
-            .input('policy_start_date', data.policy_start_date ? sql.Date : sql.Date, data.policy_start_date ? new Date(data.policy_start_date) : null)
-            .input('policy_end_date', data.policy_end_date ? sql.Date : sql.Date, data.policy_end_date ? new Date(data.policy_end_date) : null)
-            .input('sum_insured', sql.Decimal(18,2), data.sumInsured)
-            .input('sum_utilized', sql.Decimal(18,2), data.sumUtilized)
-            .input('total_sum', sql.Decimal(18,2), data.totalSum)
-            .input('corporate_policy_number', sql.NVarChar, data.corporate_policy_number || null)
-            .input('other_policy_name', sql.NVarChar, data.other_policy_name || null)
-            .input('family_doctor_name', sql.NVarChar, data.family_doctor_name || null)
-            .input('family_doctor_phone', sql.NVarChar, data.family_doctor_phone || null)
-            .input('payer_email', sql.NVarChar, data.payer_email)
-            .input('payer_phone', sql.NVarChar, data.payer_phone)
-            .input('tpa_id', sql.Int, data.tpa_id)
-            .input('treat_doc_name', sql.NVarChar, formData.get('treat_doc_name'))
-            .input('treat_doc_number', sql.NVarChar, data.treat_doc_number)
-            .input('treat_doc_qualification', sql.NVarChar, data.treat_doc_qualification)
-            .input('treat_doc_reg_no', sql.NVarChar, data.treat_doc_reg_no)
-            .input('natureOfIllness', sql.NVarChar, data.natureOfIllness)
-            .input('clinicalFindings', sql.NVarChar, data.clinicalFindings)
-            .input('ailmentDuration', sql.Int, data.ailmentDuration)
-            .input('firstConsultationDate', sql.Date, data.firstConsultationDate ? new Date(data.firstConsultationDate) : null)
-            .input('pastHistory', sql.NVarChar, data.pastHistory)
-            .input('provisionalDiagnosis', sql.NVarChar, data.provisionalDiagnosis)
-            .input('icd10Codes', sql.NVarChar, data.icd10Codes)
-            .input('treatmentMedical', sql.NVarChar, data.treatmentMedical)
-            .input('treatmentSurgical', sql.NVarChar, data.treatmentSurgical)
-            .input('treatmentIntensiveCare', sql.NVarChar, data.treatmentIntensiveCare)
-            .input('treatmentInvestigation', sql.NVarChar, data.treatmentInvestigation)
-            .input('treatmentNonAllopathic', sql.NVarChar, data.treatmentNonAllopathic)
-            .input('investigationDetails', sql.NVarChar, data.investigationDetails)
-            .input('drugRoute', sql.NVarChar, data.drugRoute)
-            .input('procedureName', sql.NVarChar, data.procedureName)
-            .input('icd10PcsCodes', sql.NVarChar, data.icd10PcsCodes)
-            .input('otherTreatments', sql.NVarChar, data.otherTreatments)
-            .input('isInjury', sql.Bit, data.isInjury === 'on' ? 1 : 0)
-            .input('injuryCause', sql.NVarChar, data.injuryCause)
-            .input('isRta', sql.Bit, data.isRta === 'on' ? 1 : 0)
-            .input('injuryDate', sql.Date, data.injuryDate ? new Date(data.injuryDate) : null)
-            .input('isReportedToPolice', sql.Bit, data.isReportedToPolice === 'on' ? 1 : 0)
-            .input('firNumber', sql.NVarChar, data.firNumber)
-            .input('isAlcoholSuspected', sql.Bit, data.isAlcoholSuspected === 'on' ? 1 : 0)
-            .input('isToxicologyConducted', sql.Bit, data.isToxicologyConducted === 'on' ? 1 : 0)
-            .input('isMaternity', sql.Bit, data.isMaternity === 'on' ? 1 : 0)
-            .input('g', sql.Int, data.g)
-            .input('p', sql.Int, data.p)
-            .input('l', sql.Int, data.l)
-            .input('a', sql.Int, data.a)
-            .input('expectedDeliveryDate', sql.Date, data.expectedDeliveryDate ? new Date(data.expectedDeliveryDate) : null)
-            .input('admissionDate', sql.Date, data.admissionDate ? new Date(data.admissionDate) : null)
-            .input('admissionTime', sql.NVarChar, data.admissionTime)
-            .input('admissionType', sql.NVarChar, data.admissionType)
-            .input('expectedStay', sql.Int, data.expectedStay)
-            .input('expectedIcuStay', sql.Int, data.expectedIcuStay)
-            .input('roomCategory', sql.NVarChar, data.roomCategory)
-            .input('roomNursingDietCost', sql.Decimal, data.roomNursingDietCost)
-            .input('investigationCost', sql.Decimal, data.investigationCost)
-            .input('icuCost', sql.Decimal, data.icuCost)
-            .input('otCost', sql.Decimal, data.otCost)
-            .input('professionalFees', sql.Decimal, data.professionalFees)
-            .input('medicineCost', sql.Decimal, data.medicineCost)
-            .input('otherHospitalExpenses', sql.Decimal, data.otherHospitalExpenses)
-            .input('packageCharges', sql.Decimal, data.packageCharges)
-            .input('totalExpectedCost', sql.Decimal, data.totalExpectedCost)
-            .query(`
-                UPDATE preauth_request
-                SET 
-                doctor_id = @doctor_id, admission_id = @admission_id, relationship_policyholder = @relationship_policyholder, policy_number = @policy_number,
-                insured_card_number = @insured_card_number, company_id = @company_id, policy_start_date = @policy_start_date,
-                policy_end_date = @policy_end_date, sum_insured = @sum_insured, sum_utilized = @sum_utilized, total_sum = @total_sum, corporate_policy_number = @corporate_policy_number, other_policy_name = @other_policy_name,
-                family_doctor_name = @family_doctor_name, family_doctor_phone = @family_doctor_phone, payer_email = @payer_email,
-                payer_phone = @payer_phone, tpa_id = @tpa_id, treat_doc_name = @treat_doc_name,
-                treat_doc_number = @treat_doc_number, treat_doc_qualification = @treat_doc_qualification, treat_doc_reg_no = @treat_doc_reg_no,
-                natureOfIllness = @natureOfIllness, clinicalFindings = @clinicalFindings, ailmentDuration = @ailmentDuration, 
-                firstConsultationDate = @firstConsultationDate, pastHistory = @pastHistory, provisionalDiagnosis = @provisionalDiagnosis, 
-                icd10Codes = @icd10Codes, treatmentMedical = @treatmentMedical, treatmentSurgical = @treatmentSurgical, 
-                treatmentIntensiveCare = @treatmentIntensiveCare, treatmentInvestigation = @treatmentInvestigation, 
-                treatmentNonAllopathic = @treatmentNonAllopathic, investigationDetails = @investigationDetails, 
-                drugRoute = @drugRoute, procedureName = @procedureName, icd10PcsCodes = @icd10PcsCodes, otherTreatments = @otherTreatments, 
-                isInjury = @isInjury, injuryCause = @injuryCause, isRta = @isRta, injuryDate = @injuryDate, isReportedToPolice = @isReportedToPolice, 
-                firNumber = @firNumber, isAlcoholSuspected = @isAlcoholSuspected, isToxicologyConducted = @isToxicologyConducted, 
-                isMaternity = @isMaternity, g = @g, p = @p, l = @l, a = @a, expectedDeliveryDate = @expectedDeliveryDate, 
-                admissionDate = @admissionDate, admissionTime = @admissionTime, admissionType = @admissionType, expectedStay = @expectedStay, 
-                expectedIcuStay = @expectedIcuStay, roomCategory = @roomCategory, roomNursingDietCost = @roomNursingDietCost, 
-                investigationCost = @investigationCost, icuCost = @icuCost, otCost = @otCost, professionalFees = @professionalFees, 
-                medicineCost = @medicineCost, otherHospitalExpenses = @otherHospitalExpenses, packageCharges = @packageCharges, 
-                totalExpectedCost = @totalExpectedCost,
-                updated_at = GETDATE()
-                WHERE patient_id = @patient_id
             `);
 
         await handleSaveChiefComplaints(transaction, Number(patientId), data.chiefComplaints);
@@ -1033,6 +842,7 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
     
 
     
+
 
 
 
