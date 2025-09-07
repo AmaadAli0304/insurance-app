@@ -35,23 +35,45 @@ const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
   const [number, setNumber] = React.useState(initial.number);
   const [error, setError] = React.useState<string | null>(null);
 
+  const getCountryInfo = (code: string) => {
+    return countries.find(c => c.code === code);
+  }
+
   const validatePhoneNumber = (code: string, num: string) => {
-      if (code === "+91" && num && num.length !== 10) {
+      const countryInfo = getCountryInfo(code);
+      if (countryInfo?.iso === "IN" && num && num.length !== 10) {
         setError("Indian phone numbers must be 10 digits.");
       } else {
         setError(null);
       }
     };
 
+  const formatPhoneNumber = (code: string, num: string): string => {
+    const countryInfo = getCountryInfo(code);
+    if (countryInfo?.iso === "IN") {
+       const match = num.match(/^(\d{0,2})(\d{0,4})(\d{0,4})$/);
+        if (match) {
+            return [match[1], match[2], match[3]].filter(Boolean).join(' ');
+        }
+    }
+    return num;
+  };
 
   const handleCountryChange = (code: string) => {
     setCountryCode(code);
-    validatePhoneNumber(code, number);
-    onChange?.(`${code}${number}`);
+    const cleanedNumber = number.replace(/\s/g, '');
+    validatePhoneNumber(code, cleanedNumber);
+    onChange?.(`${code}${cleanedNumber}`);
   };
 
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newNumber = e.target.value.replace(/\D/g, ''); // Only allow digits
+    const countryInfo = getCountryInfo(countryCode);
+    let newNumber = e.target.value.replace(/\D/g, ''); // Only allow digits
+
+    if(countryInfo?.length && newNumber.length > countryInfo.length) {
+        newNumber = newNumber.slice(0, countryInfo.length);
+    }
+    
     setNumber(newNumber);
     validatePhoneNumber(countryCode, newNumber);
     onChange?.(`${countryCode}${newNumber}`);
@@ -60,6 +82,8 @@ const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
   const getCountryIsoCode = (code: string) => {
     return countries.find(c => c.code === code)?.iso.toLowerCase() || 'in';
   }
+  
+  const countryInfo = getCountryInfo(countryCode);
 
   return (
     <div>
@@ -87,11 +111,11 @@ const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
             </Select>
             <Input
                 type="tel"
-                value={number}
+                value={formatPhoneNumber(countryCode, number)}
                 onChange={handleNumberChange}
                 className="rounded-l-none"
-                placeholder="9876543210"
-                maxLength={countryCode === "+91" ? 10 : 15}
+                placeholder={countryInfo?.iso === 'IN' ? 'XX XXXX XXXX' : 'Enter phone number'}
+                maxLength={countryInfo?.iso === 'IN' ? 12 : undefined}
                 ref={ref}
                 {...props}
             />
@@ -104,4 +128,3 @@ const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
 PhoneInput.displayName = "PhoneInput";
 
 export { PhoneInput };
-
