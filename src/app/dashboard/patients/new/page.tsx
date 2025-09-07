@@ -361,7 +361,7 @@ export default function NewPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="alternative_number">Alternate contact number</Label>
-                                            <Input name="alternative_number" />
+                                            <PhoneInput name="alternative_number" />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="gender">Gender <span className="text-destructive">*</span></Label>
@@ -509,7 +509,7 @@ export default function NewPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="family_doctor_phone">Family physician contact</Label>
-                                            <Input name="family_doctor_phone" />
+                                            <PhoneInput name="family_doctor_phone" />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="payer_email">Proposer/Payer email ID <span className="text-destructive">*</span></Label>
@@ -517,7 +517,7 @@ export default function NewPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="payer_phone">Proposer/Payer phone number <span className="text-destructive">*</span></Label>
-                                            <Input name="payer_phone" required />
+                                            <PhoneInput name="payer_phone" required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="tpa_id">Select TPA <span className="text-destructive">*</span></Label>
@@ -539,7 +539,7 @@ export default function NewPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_number">Treating doctor’s contact <span className="text-destructive">*</span></Label>
-                                            <Input id="treat_doc_number" name="treat_doc_number" value={doctorContact} onChange={(e) => setDoctorContact(e.target.value)} required />
+                                            <PhoneInput id="treat_doc_number" name="treat_doc_number" value={doctorContact} onChange={setDoctorContact} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_qualification">Doctor’s qualification <span className="text-destructive">*</span></Label>
@@ -789,5 +789,3 @@ export default function NewPatientPage() {
         </div>
     );
 }
-
-    
