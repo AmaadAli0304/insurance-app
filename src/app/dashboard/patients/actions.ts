@@ -19,10 +19,6 @@ const s3 = new S3Client({
   },
 });
 
-const phoneRegex = new RegExp(/^\d{10}$/);
-const indianPhoneNumberRegex = new RegExp(/^\\+91\d{10}$/);
-
-
 const basePatientObjectSchema = z.object({
   // Patient Details
   firstName: z.string().min(1, 'First Name is required'),
@@ -41,7 +37,6 @@ const basePatientObjectSchema = z.object({
   
   photoUrl: z.string().optional().nullable(),
   photoName: z.string().optional().nullable(),
-
 
   // KYC Documents - now expect pairs of url/name
   adhaar_path_url: z.string().optional().nullable(),
@@ -151,21 +146,26 @@ const basePatientObjectSchema = z.object({
 
   // H. Declarations & Attachments
   chiefComplaints: z.string().optional().nullable(),
-  
-}).refine(data => {
-    if (data.phone_number?.startsWith('+91')) {
-        return data.phone_number.length === 13; // +91 and 10 digits
-    }
-    return true;
-}, {
-    message: "Indian phone number must be 10 digits.",
-    path: ["phone_number"],
 });
 
-const addPatientFormSchema = basePatientObjectSchema;
-const updatePatientFormSchema = basePatientObjectSchema.extend({
+const phoneNumberRefinement = (schema: typeof basePatientObjectSchema) => {
+    return schema.refine(data => {
+        if (data.phone_number?.startsWith('+91')) {
+            const numberPart = data.phone_number.substring(3);
+            return /^\d{10}$/.test(numberPart);
+        }
+        return true;
+    }, {
+        message: "Indian phone number must be 10 digits.",
+        path: ["phone_number"],
+    });
+};
+
+const addPatientFormSchema = phoneNumberRefinement(basePatientObjectSchema);
+
+const updatePatientFormSchema = phoneNumberRefinement(basePatientObjectSchema.extend({
   id: z.string(), // Patient ID
-});
+}));
 
 
 export type Doctor = {
@@ -1033,5 +1033,6 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
     
 
     
+
 
 
