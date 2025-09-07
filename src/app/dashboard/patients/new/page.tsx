@@ -555,67 +555,67 @@ export default function NewPatientPage() {
                         <Card>
                             <AccordionItem value="clinical-info">
                                 <AccordionTrigger className="p-6">
-                                    <CardTitle>D. Clinical Information <span className="text-destructive">*</span></CardTitle>
+                                    <CardTitle>D. Clinical Information</CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-2 gap-4">
                                         <div className="space-y-2 md:col-span-2">
-                                            <Label htmlFor="natureOfIllness">Nature of illness / presenting complaints <span className="text-destructive">*</span></Label>
-                                            <Textarea id="natureOfIllness" name="natureOfIllness" required/>
+                                            <Label htmlFor="natureOfIllness">Nature of illness / presenting complaints</Label>
+                                            <Textarea id="natureOfIllness" name="natureOfIllness" />
                                         </div>
                                         <div className="space-y-2 md:col-span-2">
-                                            <Label htmlFor="clinicalFindings">Relevant clinical findings <span className="text-destructive">*</span></Label>
-                                            <Textarea id="clinicalFindings" name="clinicalFindings" required/>
+                                            <Label htmlFor="clinicalFindings">Relevant clinical findings</Label>
+                                            <Textarea id="clinicalFindings" name="clinicalFindings" />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="ailmentDuration">Duration of present ailment (days) <span className="text-destructive">*</span></Label>
-                                            <Input id="ailmentDuration" name="ailmentDuration" type="number" required/>
+                                            <Label htmlFor="ailmentDuration">Duration of present ailment (days)</Label>
+                                            <Input id="ailmentDuration" name="ailmentDuration" type="number" />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="firstConsultationDate">Date of first consultation <span className="text-destructive">*</span></Label>
-                                            <Input id="firstConsultationDate" name="firstConsultationDate" type="date" required/>
+                                            <Label htmlFor="firstConsultationDate">Date of first consultation</Label>
+                                            <Input id="firstConsultationDate" name="firstConsultationDate" type="date" />
                                         </div>
                                         <div className="space-y-2 md:col-span-2">
-                                            <Label htmlFor="pastHistory">Past history of present ailment <span className="text-destructive">*</span></Label>
-                                            <Textarea id="pastHistory" name="pastHistory" required/>
+                                            <Label htmlFor="pastHistory">Past history of present ailment</Label>
+                                            <Textarea id="pastHistory" name="pastHistory" />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="provisionalDiagnosis">Provisional diagnosis <span className="text-destructive">*</span></Label>
-                                            <Input id="provisionalDiagnosis" name="provisionalDiagnosis" required/>
+                                            <Label htmlFor="provisionalDiagnosis">Provisional diagnosis</Label>
+                                            <Input id="provisionalDiagnosis" name="provisionalDiagnosis" />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="icd10Codes">ICD-10 diagnosis code(s) <span className="text-destructive">*</span></Label>
-                                            <IctCodeSearch name="icd10Codes" required />
+                                            <Label htmlFor="icd10Codes">ICD-10 diagnosis code(s)</Label>
+                                            <IctCodeSearch name="icd10Codes" />
                                         </div>
                                         <div className="space-y-2 md:col-span-2">
-                                            <Label>Proposed line of treatment <span className="text-destructive">*</span></Label>
+                                            <Label>Proposed line of treatment</Label>
                                             <div className="grid md:grid-cols-2 gap-4">
-                                               <Input name="treatmentMedical" placeholder="Medical management" required/>
-                                               <Input name="treatmentSurgical" placeholder="Surgical management" required/>
-                                               <Input name="treatmentIntensiveCare" placeholder="Intensive care" required/>
-                                               <Input name="treatmentInvestigation" placeholder="Investigation only" required/>
-                                               <Input name="treatmentNonAllopathic" placeholder="Non-allopathic" required/>
+                                               <Input name="treatmentMedical" placeholder="Medical management" />
+                                               <Input name="treatmentSurgical" placeholder="Surgical management" />
+                                               <Input name="treatmentIntensiveCare" placeholder="Intensive care" />
+                                               <Input name="treatmentInvestigation" placeholder="Investigation only" />
+                                               <Input name="treatmentNonAllopathic" placeholder="Non-allopathic" />
                                             </div>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="investigationDetails">Investigation / medical management details <span className="text-destructive">*</span></Label>
-                                            <Textarea id="investigationDetails" name="investigationDetails" required/>
+                                            <Label htmlFor="investigationDetails">Investigation / medical management details</Label>
+                                            <Textarea id="investigationDetails" name="investigationDetails" />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="drugRoute">Route of drug administration <span className="text-destructive">*</span></Label>
-                                            <Input id="drugRoute" name="drugRoute" required/>
+                                            <Label htmlFor="drugRoute">Route of drug administration</Label>
+                                            <Input id="drugRoute" name="drugRoute" />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="procedureName">Planned procedure / surgery name <span className="text-destructive">*</span></Label>
-                                            <Input id="procedureName" name="procedureName" required/>
+                                            <Label htmlFor="procedureName">Planned procedure / surgery name</Label>
+                                            <Input id="procedureName" name="procedureName" />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="icd10PcsCodes">ICD-10-PCS / procedure code(s) <span className="text-destructive">*</span></Label>
-                                            <Input id="icd10PcsCodes" name="icd10PcsCodes" required/>
+                                            <Label htmlFor="icd10PcsCodes">ICD-10-PCS / procedure code(s)</Label>
+                                            <Input id="icd10PcsCodes" name="icd10PcsCodes" />
                                         </div>
                                         <div className="space-y-2 md:col-span-2">
-                                            <Label htmlFor="otherTreatments">Any other treatments (details) <span className="text-destructive">*</span></Label>
-                                            <Textarea id="otherTreatments" name="otherTreatments" required/>
+                                            <Label htmlFor="otherTreatments">Any other treatments (details)</Label>
+                                            <Textarea id="otherTreatments" name="otherTreatments" />
                                         </div>
                                     </CardContent>
                                 </AccordionContent>
@@ -695,33 +695,33 @@ export default function NewPatientPage() {
                         <Card>
                             <AccordionItem value="cost-info">
                                 <AccordionTrigger className="p-6">
-                                    <CardTitle>G. Admission &amp; Cost Estimate <span className="text-destructive">*</span></CardTitle>
+                                    <CardTitle>G. Admission &amp; Cost Estimate</CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={calculateTotalCost}>
                                         <div className="space-y-2">
-                                            <Label htmlFor="admissionDate">Admission date <span className="text-destructive">*</span></Label>
-                                            <Input id="admissionDate" name="admissionDate" type="date" required/>
+                                            <Label htmlFor="admissionDate">Admission date</Label>
+                                            <Input id="admissionDate" name="admissionDate" type="date" />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="admissionTime">Admission time <span className="text-destructive">*</span></Label>
-                                            <Input id="admissionTime" name="admissionTime" type="time" required/>
+                                            <Label htmlFor="admissionTime">Admission time</Label>
+                                            <Input id="admissionTime" name="admissionTime" type="time" />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="admissionType">Type of admission <span className="text-destructive">*</span></Label>
-                                            <Input id="admissionType" name="admissionType" placeholder="e.g. Emergency, Planned" required/>
+                                            <Label htmlFor="admissionType">Type of admission</Label>
+                                            <Input id="admissionType" name="admissionType" placeholder="e.g. Emergency, Planned" />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="expectedStay">Expected days of stay <span className="text-destructive">*</span></Label>
-                                            <Input id="expectedStay" name="expectedStay" type="number" required/>
+                                            <Label htmlFor="expectedStay">Expected days of stay</Label>
+                                            <Input id="expectedStay" name="expectedStay" type="number" />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="expectedIcuStay">Expected days in ICU <span className="text-destructive">*</span></Label>
-                                            <Input id="expectedIcuStay" name="expectedIcuStay" type="number" required/>
+                                            <Label htmlFor="expectedIcuStay">Expected days in ICU</Label>
+                                            <Input id="expectedIcuStay" name="expectedIcuStay" type="number" />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="roomCategory">Requested room category <span className="text-destructive">*</span></Label>
-                                             <Select name="roomCategory" required>
+                                            <Label htmlFor="roomCategory">Requested room category</Label>
+                                             <Select name="roomCategory">
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Select a room category" />
                                                 </SelectTrigger>
@@ -733,36 +733,36 @@ export default function NewPatientPage() {
                                             </Select>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="roomNursingDietCost">Room + Nursing + Diet (₹) <span className="text-destructive">*</span></Label>
-                                            <Input id="roomNursingDietCost" name="roomNursingDietCost" type="number" required/>
+                                            <Label htmlFor="roomNursingDietCost">Room + Nursing + Diet (₹)</Label>
+                                            <Input id="roomNursingDietCost" name="roomNursingDietCost" type="number" />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="investigationCost">Diagnostics/investigations cost (₹) <span className="text-destructive">*</span></Label>
-                                            <Input id="investigationCost" name="investigationCost" type="number" required/>
+                                            <Label htmlFor="investigationCost">Diagnostics/investigations cost (₹)</Label>
+                                            <Input id="investigationCost" name="investigationCost" type="number" />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="icuCost">ICU charges (₹) <span className="text-destructive">*</span></Label>
-                                            <Input id="icuCost" name="icuCost" type="number" required/>
+                                            <Label htmlFor="icuCost">ICU charges (₹)</Label>
+                                            <Input id="icuCost" name="icuCost" type="number" />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="otCost">OT charges (₹) <span className="text-destructive">*</span></Label>
-                                            <Input id="otCost" name="otCost" type="number" required/>
+                                            <Label htmlFor="otCost">OT charges (₹)</Label>
+                                            <Input id="otCost" name="otCost" type="number" />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="professionalFees">Professional fees (₹) <span className="text-destructive">*</span></Label>
-                                            <Input id="professionalFees" name="professionalFees" type="number" required/>
+                                            <Label htmlFor="professionalFees">Professional fees (₹)</Label>
+                                            <Input id="professionalFees" name="professionalFees" type="number" />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="medicineCost">Medicines + consumables (₹) <span className="text-destructive">*</span></Label>
-                                            <Input id="medicineCost" name="medicineCost" type="number" required/>
+                                            <Label htmlFor="medicineCost">Medicines + consumables (₹)</Label>
+                                            <Input id="medicineCost" name="medicineCost" type="number" />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="otherHospitalExpenses">Other hospital expenses (₹) <span className="text-destructive">*</span></Label>
-                                            <Input id="otherHospitalExpenses" name="otherHospitalExpenses" type="number" required/>
+                                            <Label htmlFor="otherHospitalExpenses">Other hospital expenses (₹)</Label>
+                                            <Input id="otherHospitalExpenses" name="otherHospitalExpenses" type="number" />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="packageCharges">All-inclusive package charges (₹) <span className="text-destructive">*</span></Label>
-                                            <Input id="packageCharges" name="packageCharges" type="number" required/>
+                                            <Label htmlFor="packageCharges">All-inclusive package charges (₹)</Label>
+                                            <Input id="packageCharges" name="packageCharges" type="number" />
                                         </div>
                                         <div className="space-y-2 md:col-span-3">
                                             <Label htmlFor="totalExpectedCost">Total expected cost (₹)</Label>
