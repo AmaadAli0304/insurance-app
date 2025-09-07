@@ -15,15 +15,17 @@ interface PhoneInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElemen
   onChange?: (value: string) => void;
 }
 
+const getNumericCode = (code: string) => code.split('-')[0];
+
 const parsePhoneNumber = (fullNumber: string) => {
-    // Sort countries by longest code first to handle cases like +1, +1-242
-    const sortedCountries = [...countries].sort((a, b) => b.code.length - a.code.length);
-    const foundCountry = sortedCountries.find(c => fullNumber.startsWith(c.code));
+    const sortedCountries = [...countries].sort((a, b) => getNumericCode(b.code).length - getNumericCode(a.code).length);
+    const foundCountry = sortedCountries.find(c => fullNumber.startsWith(getNumericCode(c.code)));
     
     if (foundCountry) {
+        const numericCode = getNumericCode(foundCountry.code);
         return {
             code: foundCountry.code,
-            number: fullNumber.substring(foundCountry.code.length)
+            number: fullNumber.substring(numericCode.length)
         };
     }
     // Default to India if no country code matches or if number is empty
@@ -76,7 +78,7 @@ const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
     const cleanedNumber = number.replace(/\s/g, '');
     validatePhoneNumber(code, cleanedNumber);
     if (onChange) {
-        onChange(`${code}${cleanedNumber}`);
+        onChange(`${getNumericCode(code)}${cleanedNumber}`);
     }
   };
 
@@ -91,7 +93,7 @@ const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
     setNumber(newNumber);
     validatePhoneNumber(countryCode, newNumber);
     if (onChange) {
-        onChange(`${countryCode}${newNumber}`);
+        onChange(`${getNumericCode(countryCode)}${newNumber}`);
     }
   };
   
@@ -104,13 +106,13 @@ const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
   return (
     <div>
         <div className={cn("flex items-center group", className)}>
-            <input type="hidden" name={name} value={`${countryCode}${number}`} />
+            <input type="hidden" name={name} value={`${getNumericCode(countryCode)}${number}`} />
             <Select value={countryCode} onValueChange={handleCountryChange}>
                 <SelectTrigger className="w-[120px] rounded-r-none focus:ring-0 border-r-0 group-focus-within:border-ring group-focus-within:ring-2 group-focus-within:ring-ring group-focus-within:ring-offset-2">
                 <SelectValue placeholder="Code">
                     <span className="flex items-center gap-2">
                         <Image src={`https://flagcdn.com/16x12/${getCountryIsoCode(countryCode)}.png`} width={16} height={12} alt="Country Flag" />
-                        {countryCode}
+                        {getNumericCode(countryCode)}
                     </span>
                 </SelectValue>
                 </SelectTrigger>
@@ -119,7 +121,7 @@ const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
                         <SelectItem key={country.iso} value={country.code}>
                             <span className="flex items-center gap-2">
                                 <Image src={`https://flagcdn.com/16x12/${country.iso.toLowerCase()}.png`} width={16} height={12} alt={`${country.name} Flag`} />
-                                {country.name} ({country.code})
+                                {country.name} ({getNumericCode(country.code)})
                             </span>
                         </SelectItem>
                     ))}
