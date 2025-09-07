@@ -153,6 +153,7 @@ export default function EditPatientPage() {
     const [sumInsured, setSumInsured] = useState<number | string>('');
     const [sumUtilized, setSumUtilized] = useState<number | string>('');
     const [totalSum, setTotalSum] = useState<number | string>('');
+    const [age, setAge] = useState<number | string>('');
     
     const formRef = useRef<HTMLFormElement>(null);
 
@@ -222,6 +223,7 @@ export default function EditPatientPage() {
                 setTpas(tpas);
                 setDoctors(doctors);
                 setChiefComplaints(complaints);
+                setAge(patientData.age ?? '');
 
                 setSumInsured(patientData.sumInsured ?? '');
                 setSumUtilized(patientData.sumUtilized ?? '');
@@ -277,6 +279,22 @@ export default function EditPatientPage() {
         }
     }, [sumInsured, sumUtilized]);
 
+    const calculateAge = (birthDate: string): number | '' => {
+        if (!birthDate) return '';
+        const birth = new Date(birthDate);
+        const today = new Date();
+        let age = today.getFullYear() - birth.getFullYear();
+        const m = today.getMonth() - birth.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+            age--;
+        }
+        return age;
+    };
+
+    const handleDobChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const calculatedAge = calculateAge(e.target.value);
+        setAge(calculatedAge);
+    };
 
     if (isLoading) {
         return (
@@ -424,12 +442,12 @@ export default function EditPatientPage() {
                                             </Select>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="age">Age</Label>
-                                            <Input id="age" name="age" type="number" defaultValue={patient.age ?? ''} />
+                                            <Label htmlFor="birth_date">Date of birth</Label>
+                                            <Input id="birth_date" name="birth_date" type="date" defaultValue={patient.dateOfBirth ?? ''} max={today} onChange={handleDobChange} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="birth_date">Date of birth</Label>
-                                            <Input id="birth_date" name="birth_date" type="date" defaultValue={patient.dateOfBirth ?? ''} max={today} />
+                                            <Label htmlFor="age">Age</Label>
+                                            <Input id="age" name="age" type="number" value={age} onChange={(e) => setAge(e.target.value)} placeholder="Age" />
                                         </div>
                                         <div className="md:col-span-2 space-y-2">
                                             <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
@@ -848,3 +866,5 @@ export default function EditPatientPage() {
         </div>
     );
 }
+
+    

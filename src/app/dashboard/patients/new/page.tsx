@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useActionState, useEffect, useState, useRef, useMemo } from "react";
+import { useActionState, useEffect, useState, useRef } from "react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,18 +10,18 @@ import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
 import { handleAddPatient, getNewPatientPageData, getPresignedUrl, Doctor } from "../actions";
 import Link from "next/link";
-import { ArrowLeft, Upload, User as UserIcon, Loader2, Eye, File as FileIcon, XCircle, Send, Download } from "lucide-react";
+import { ArrowLeft, Upload, User as UserIcon, Loader2, Eye, File as FileIcon, XCircle, Send } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { Company, Hospital, Patient, TPA } from "@/lib/types";
+import type { Company, TPA } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth-provider";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { IctCodeSearch } from "@/components/ict-code-search";
-import { ChiefComplaintForm, Complaint } from "@/components/chief-complaint-form";
+import { ChiefComplaintForm } from "@/components/chief-complaint-form";
 import { PhoneInput } from "@/components/phone-input";
 import { DoctorSearch } from "@/components/doctor-search";
 
@@ -30,7 +30,8 @@ function SubmitButton() {
     const { pending } = useFormStatus();
     return (
         <Button type="submit" disabled={pending} size="lg">
-            {pending ? "Saving..." : "Save Patient"}
+            <Send className="mr-2 h-4 w-4" />
+            {pending ? "Saving..." : "Save & Create Pre-Auth"}
         </Button>
     );
 }
@@ -149,6 +150,7 @@ export default function NewPatientPage() {
     const [sumInsured, setSumInsured] = useState<number | string>('');
     const [sumUtilized, setSumUtilized] = useState<number | string>('');
     const [totalSum, setTotalSum] = useState<number | string>('');
+    const [age, setAge] = useState<number | string>('');
     
     const formRef = useRef<HTMLFormElement>(null);
 
@@ -230,6 +232,23 @@ export default function NewPatientPage() {
             setTotalSum('');
         }
     }, [sumInsured, sumUtilized]);
+    
+    const calculateAge = (birthDate: string): number | '' => {
+        if (!birthDate) return '';
+        const birth = new Date(birthDate);
+        const today = new Date();
+        let age = today.getFullYear() - birth.getFullYear();
+        const m = today.getMonth() - birth.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+            age--;
+        }
+        return age;
+    };
+
+    const handleDobChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const calculatedAge = calculateAge(e.target.value);
+        setAge(calculatedAge);
+    };
 
 
     if (isLoading) {
@@ -372,13 +391,13 @@ export default function NewPatientPage() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="age">Age</Label>
-                                            <Input id="age" name="age" type="number" />
+                                         <div className="space-y-2">
+                                            <Label htmlFor="birth_date">Date of birth</Label>
+                                            <Input id="birth_date" name="birth_date" type="date" max={today} onChange={handleDobChange} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="birth_date">Date of birth</Label>
-                                            <Input id="birth_date" name="birth_date" type="date" max={today} />
+                                            <Label htmlFor="age">Age</Label>
+                                            <Input id="age" name="age" type="number" value={age} onChange={(e) => setAge(e.target.value)} placeholder="Age" />
                                         </div>
                                         <div className="md:col-span-2 space-y-2">
                                             <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
@@ -797,3 +816,5 @@ export default function NewPatientPage() {
         </div>
     );
 }
+
+    
