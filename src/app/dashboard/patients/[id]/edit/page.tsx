@@ -26,6 +26,7 @@ import { ChiefComplaintForm, Complaint } from "@/components/chief-complaint-form
 import { PhoneInput } from "@/components/phone-input";
 import { DoctorSearch } from "@/components/doctor-search";
 import { intervalToDuration } from "date-fns";
+import { countries } from "@/lib/countries";
 
 
 function SubmitButton() {
