@@ -162,12 +162,12 @@ export default function EditPatientPage() {
         const form = formRef.current;
         if (doctor && form) {
             setDoctorContact(doctor.phone ?? '');
-            (form.elements.namedItem('hospitalDeclarationDoctorName') as HTMLInputElement).value = doctor.name ?? '';
             (form.elements.namedItem('treat_doc_qualification') as HTMLInputElement).value = doctor.qualification || '';
             (form.elements.namedItem('treat_doc_reg_no') as HTMLInputElement).value = doctor.reg_no || '';
         } else if (form) {
             setDoctorContact('');
-            (form.elements.namedItem('hospitalDeclarationDoctorName') as HTMLInputElement).value = '';
+            (form.elements.namedItem('treat_doc_qualification') as HTMLInputElement).value = '';
+            (form.elements.namedItem('treat_doc_reg_no') as HTMLInputElement).value = '';
         }
     };
 
