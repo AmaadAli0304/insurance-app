@@ -384,7 +384,7 @@ export default function EditPatientPage() {
                         />
                     </Card>
 
-                     <Accordion type="multiple" className="w-full space-y-6" defaultValue={["patient-details", "insurance-details", "clinical-info"]}>
+                     <Accordion type="multiple" className="w-full space-y-6" defaultValue={["patient-details", "kyc-documents", "insurance-details", "clinical-info", "accident-info", "maternity-info", "cost-info", "chief-complaints"]}>
                         <Card>
                             <AccordionItem value="patient-details">
                                 <AccordionTrigger className="p-6">
@@ -825,10 +825,19 @@ export default function EditPatientPage() {
                             </AccordionItem>
                         </Card>
                         
-                        <ChiefComplaintForm initialData={chiefComplaints} patientId={id} />
-                        
+                        <Card>
+                            <AccordionItem value="chief-complaints">
+                                <AccordionTrigger className="p-6">
+                                    <CardTitle>H. Medical History</CardTitle>
+                                </AccordionTrigger>
+                                <AccordionContent>
+                                    <CardContent>
+                                         <ChiefComplaintForm initialData={chiefComplaints} patientId={id} />
+                                    </CardContent>
+                                </AccordionContent>
+                            </AccordionItem>
+                        </Card>
                     </Accordion>
-
 
                     <div className="flex justify-end">
                         {state.type === 'error' && <p className="text-sm text-destructive self-center mr-4">{state.message}</p>}
