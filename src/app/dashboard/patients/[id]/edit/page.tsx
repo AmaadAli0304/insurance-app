@@ -24,6 +24,7 @@ import { IctCodeSearch } from "@/components/ict-code-search";
 import { ChiefComplaintForm, Complaint } from "@/components/chief-complaint-form";
 import { PhoneInput } from "@/components/phone-input";
 import { DoctorSearch } from "@/components/doctor-search";
+import { intervalToDuration } from "date-fns";
 
 
 function SubmitButton() {
@@ -153,7 +154,7 @@ export default function EditPatientPage() {
     const [sumInsured, setSumInsured] = useState<number | string>('');
     const [sumUtilized, setSumUtilized] = useState<number | string>('');
     const [totalSum, setTotalSum] = useState<number | string>('');
-    const [age, setAge] = useState<number | string>('');
+    const [age, setAge] = useState<string>('');
     
     const formRef = useRef<HTMLFormElement>(null);
 
@@ -223,7 +224,9 @@ export default function EditPatientPage() {
                 setTpas(tpas);
                 setDoctors(doctors);
                 setChiefComplaints(complaints);
-                setAge(patientData.age ?? '');
+                if (patientData.dateOfBirth) {
+                    setAge(calculateAge(patientData.dateOfBirth));
+                }
 
                 setSumInsured(patientData.sumInsured ?? '');
                 setSumUtilized(patientData.sumUtilized ?? '');
@@ -279,16 +282,33 @@ export default function EditPatientPage() {
         }
     }, [sumInsured, sumUtilized]);
 
-    const calculateAge = (birthDate: string): number | '' => {
-        if (!birthDate) return '';
-        const birth = new Date(birthDate);
+    const calculateAge = (birthDateString: string): string => {
+        if (!birthDateString) return '';
+        const birthDate = new Date(birthDateString);
         const today = new Date();
-        let age = today.getFullYear() - birth.getFullYear();
-        const m = today.getMonth() - birth.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-            age--;
+
+        if (birthDate > today) return '';
+
+        const duration = intervalToDuration({ start: birthDate, end: today });
+        const years = duration.years || 0;
+        const months = duration.months || 0;
+        const days = duration.days || 0;
+
+        if (years > 0) {
+            let result = `${years} year${years > 1 ? 's' : ''}`;
+            if (months > 0) {
+                result += `, ${months} month${months > 1 ? 's' : ''}`;
+            }
+            return result;
         }
-        return age;
+        if (months > 0) {
+            let result = `${months} month${months > 1 ? 's' : ''}`;
+            if (days > 0) {
+                result += `, ${days} day${days !== 1 ? 's' : ''}`;
+            }
+            return result;
+        }
+        return `${days} day${days !== 1 ? 's' : ''}`;
     };
 
     const handleDobChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -447,7 +467,7 @@ export default function EditPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="age">Age</Label>
-                                            <Input id="age" name="age" type="number" value={age} onChange={(e) => setAge(e.target.value)} placeholder="Age" />
+                                            <Input id="age" name="age" type="text" value={age} placeholder="Age" readOnly />
                                         </div>
                                         <div className="md:col-span-2 space-y-2">
                                             <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
