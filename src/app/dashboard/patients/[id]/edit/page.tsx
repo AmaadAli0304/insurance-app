@@ -150,8 +150,6 @@ export default function EditPatientPage() {
     const [documentUrls, setDocumentUrls] = useState<Record<string, { url: string, name: string }>>({});
     const [totalCost, setTotalCost] = useState(0);
 
-    const [doctorContact, setDoctorContact] = useState('');
-
     const [sumInsured, setSumInsured] = useState<number | string>('');
     const [sumUtilized, setSumUtilized] = useState<number | string>('');
     const [totalSum, setTotalSum] = useState<number | string>('');
@@ -161,13 +159,14 @@ export default function EditPatientPage() {
     const handleDoctorSelect = (doctor: Doctor | null) => {
         const form = formRef.current;
         if (doctor && form) {
-            setDoctorContact(doctor.phone ?? '');
             (form.elements.namedItem('treat_doc_qualification') as HTMLInputElement).value = doctor.qualification || '';
             (form.elements.namedItem('treat_doc_reg_no') as HTMLInputElement).value = doctor.reg_no || '';
+            (form.elements.namedItem('treat_doc_number') as HTMLInputElement).value = doctor.phone || '';
+
         } else if (form) {
-            setDoctorContact('');
             (form.elements.namedItem('treat_doc_qualification') as HTMLInputElement).value = '';
             (form.elements.namedItem('treat_doc_reg_no') as HTMLInputElement).value = '';
+            (form.elements.namedItem('treat_doc_number') as HTMLInputElement).value = '';
         }
     };
 
@@ -223,7 +222,6 @@ export default function EditPatientPage() {
                 setTpas(tpas);
                 setDoctors(doctors);
                 setChiefComplaints(complaints);
-                setDoctorContact(patientData.treat_doc_number ?? '');
 
                 setSumInsured(patientData.sumInsured ?? '');
                 setSumUtilized(patientData.sumUtilized ?? '');
@@ -386,7 +384,7 @@ export default function EditPatientPage() {
                         />
                     </Card>
 
-                     <Accordion type="multiple" className="w-full space-y-6" defaultValue={["patient-details", "insurance-details"]}>
+                     <Accordion type="multiple" className="w-full space-y-6" defaultValue={["patient-details", "insurance-details", "clinical-info"]}>
                         <Card>
                             <AccordionItem value="patient-details">
                                 <AccordionTrigger className="p-6">
@@ -591,7 +589,7 @@ export default function EditPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_number">Treating doctor’s contact <span className="text-destructive">*</span></Label>
-                                            <PhoneInput name="treat_doc_number" value={doctorContact} onChange={setDoctorContact} required />
+                                            <PhoneInput name="treat_doc_number" defaultValue={patient.treat_doc_number ?? ''} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_qualification">Doctor’s qualification <span className="text-destructive">*</span></Label>
