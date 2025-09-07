@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useActionState, useEffect, useState, useRef } from "react";
@@ -154,17 +155,18 @@ export default function NewPatientPage() {
     const [age, setAge] = useState<string>('');
     
     const formRef = useRef<HTMLFormElement>(null);
+    const [doctorContact, setDoctorContact] = useState('');
 
     const handleDoctorSelect = (doctor: Doctor | null) => {
         const form = formRef.current;
         if (doctor && form) {
+            setDoctorContact(doctor.phone || '');
             (form.elements.namedItem('treat_doc_qualification') as HTMLInputElement).value = doctor.qualification || '';
             (form.elements.namedItem('treat_doc_reg_no') as HTMLInputElement).value = doctor.reg_no || '';
-            (form.elements.namedItem('treat_doc_number') as HTMLInputElement).value = doctor.phone || '';
         } else if (form) {
+            setDoctorContact('');
             (form.elements.namedItem('treat_doc_qualification') as HTMLInputElement).value = '';
             (form.elements.namedItem('treat_doc_reg_no') as HTMLInputElement).value = '';
-            (form.elements.namedItem('treat_doc_number') as HTMLInputElement).value = '';
         }
     };
 
@@ -574,7 +576,7 @@ export default function NewPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_number">Treating doctor’s contact <span className="text-destructive">*</span></Label>
-                                            <PhoneInput name="treat_doc_number" required />
+                                            <PhoneInput name="treat_doc_number" value={doctorContact} onChange={setDoctorContact} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_qualification">Doctor’s qualification <span className="text-destructive">*</span></Label>
@@ -834,5 +836,3 @@ export default function NewPatientPage() {
         </div>
     );
 }
-
-    
