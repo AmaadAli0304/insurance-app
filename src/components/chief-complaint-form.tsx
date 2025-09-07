@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PlusCircle, Trash2 } from 'lucide-react';
 
 export interface Complaint {
   id: number;
@@ -17,17 +18,16 @@ export interface Complaint {
   durationUnit: 'Day' | 'Month' | 'Year';
 }
 
-const initialComplaints: Omit<Complaint, 'id' | 'selected' | 'durationValue' | 'durationUnit'>[] = [
-    { name: 'Diabetes' },
-    { name: 'Hypertension' },
-    { name: 'Heart disease' },
-    { name: 'Hyperlipidemia' },
-    { name: 'Osteoarthritis' },
-    { name: 'Asthma/COPD/Bronchitis' },
-    { name: 'Cancer' },
-    { name: 'Alcohol or drug abuse' },
-    { name: 'HIV/STD/related' },
-    { name: 'Any other chronic ailment (specify and since when)' },
+const initialComplaintNames: string[] = [
+    'Diabetes',
+    'Hypertension',
+    'Heart disease',
+    'Hyperlipidemia',
+    'Osteoarthritis',
+    'Asthma/COPD/Bronchitis',
+    'Cancer',
+    'Alcohol or drug abuse',
+    'HIV/STD/related',
 ];
 
 interface ChiefComplaintFormProps {
@@ -36,32 +36,56 @@ interface ChiefComplaintFormProps {
 }
 
 const MemoizedChiefComplaintForm = ({ initialData, patientId }: ChiefComplaintFormProps) => {
-  const [complaints, setComplaints] = useState<Complaint[]>(() =>
-    initialComplaints.map((c, index) => {
-      const existing = initialData?.find(d => d.name.toUpperCase() === c.name.toUpperCase());
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
+
+  useEffect(() => {
+    const initialMapped = initialComplaintNames.map((name, index) => {
+      const existing = initialData?.find(d => d.name.toUpperCase() === name.toUpperCase());
       return {
         id: existing?.id ?? Date.now() + index,
-        name: c.name,
+        name: name,
         selected: existing?.selected ?? false,
         durationValue: existing?.durationValue ?? '',
         durationUnit: existing?.durationUnit ?? 'Day',
       };
-    })
-  );
+    });
+    
+    // Add any custom complaints from initialData that are not in the default list
+    const customComplaints = initialData?.filter(d => !initialComplaintNames.includes(d.name)) || [];
+    setComplaints([...initialMapped, ...customComplaints]);
+
+  }, [initialData]);
+
 
   const handleToggle = (id: number) => {
     setComplaints(
       complaints.map(c =>
-        c.id === id ? { ...c, selected: !c.selected } : c
+        c.id === id ? { ...c, selected: !c.selected, durationValue: !c.selected ? c.durationValue : '', durationUnit: !c.selected ? c.durationUnit : 'Day' } : c
       )
     );
   };
 
-  const handleInputChange = (id: number, field: 'durationValue' | 'durationUnit', value: string) => {
+  const handleInputChange = (id: number, field: 'durationValue' | 'durationUnit' | 'name', value: string) => {
     setComplaints(
       complaints.map(c => (c.id === id ? { ...c, [field]: value } : c))
     );
   };
+
+  const addComplaint = () => {
+    const newComplaint: Complaint = {
+      id: Date.now(),
+      name: '',
+      selected: true,
+      durationValue: '',
+      durationUnit: 'Day',
+    };
+    setComplaints([...complaints, newComplaint]);
+  };
+  
+  const removeComplaint = (id: number) => {
+      setComplaints(complaints.filter(c => c.id !== id));
+  };
+
 
   return (
     <Card>
@@ -71,14 +95,15 @@ const MemoizedChiefComplaintForm = ({ initialData, patientId }: ChiefComplaintFo
       <CardContent>
         <input type="hidden" name="chiefComplaints" value={JSON.stringify(complaints.filter(c => c.selected))} />
         <div className="overflow-x-auto">
-            <div className="grid grid-cols-[auto_1fr_1fr_1fr] gap-x-4 items-center border-b pb-2 mb-2 font-medium">
+            <div className="grid grid-cols-[auto_1fr_1fr_1fr_auto] gap-x-4 items-center border-b pb-2 mb-2 font-medium">
                 <Label className="px-2">#</Label>
                 <Label>Complaint</Label>
-                <Label>From</Label>
-                <Label>To</Label>
+                <Label>Duration</Label>
+                <Label>Unit</Label>
+                <div className="w-8"></div>
             </div>
-             {complaints.map((complaint) => (
-                <div key={complaint.id} className="grid grid-cols-[auto_1fr_1fr_1fr] gap-x-4 items-center mb-2">
+             {complaints.map((complaint, index) => (
+                <div key={complaint.id} className="grid grid-cols-[auto_1fr_1fr_1fr_auto] gap-x-4 items-center mb-2">
                     <Checkbox
                         id={`complaint-checkbox-${complaint.id}`}
                         checked={complaint.selected}
@@ -86,24 +111,10 @@ const MemoizedChiefComplaintForm = ({ initialData, patientId }: ChiefComplaintFo
                     />
                     <Input
                         value={complaint.name}
-                        onChange={(e) => setComplaints(complaints.map(c => c.id === complaint.id ? { ...c, name: e.target.value } : c))}
+                        onChange={(e) => handleInputChange(complaint.id, 'name', e.target.value)}
                         placeholder="Enter complaint"
-                        disabled={!complaint.selected}
+                        disabled={!complaint.selected || initialComplaintNames.includes(complaint.name)}
                     />
-                    <Select
-                        value={complaint.durationUnit}
-                        onValueChange={(value) => handleInputChange(complaint.id, 'durationUnit', value)}
-                        disabled={!complaint.selected}
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select From" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="Day">Day</SelectItem>
-                            <SelectItem value="Month">Month</SelectItem>
-                            <SelectItem value="Year">Year</SelectItem>
-                        </SelectContent>
-                    </Select>
                     <Input
                         type="number"
                         value={complaint.durationValue}
@@ -111,11 +122,41 @@ const MemoizedChiefComplaintForm = ({ initialData, patientId }: ChiefComplaintFo
                         disabled={!complaint.selected}
                         placeholder="e.g. 3"
                     />
+                    <Select
+                        value={complaint.durationUnit}
+                        onValueChange={(value) => handleInputChange(complaint.id, 'durationUnit', value)}
+                        disabled={!complaint.selected}
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select unit" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Day">Day(s)</SelectItem>
+                            <SelectItem value="Month">Month(s)</SelectItem>
+                            <SelectItem value="Year">Year(s)</SelectItem>
+                        </SelectContent>
+                    </Select>
+                     <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => removeComplaint(complaint.id)}
+                        className="text-destructive hover:text-destructive"
+                        disabled={initialComplaintNames.includes(complaint.name)}
+                     >
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
                 </div>
             ))}
         </div>
+         <Button type="button" variant="outline" size="sm" onClick={addComplaint} className="mt-4">
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Medical History
+        </Button>
       </CardContent>
     </Card>
   );
 }
 export const ChiefComplaintForm = React.memo(MemoizedChiefComplaintForm);
+
+    
