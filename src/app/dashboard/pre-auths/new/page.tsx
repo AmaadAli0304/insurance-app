@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
 import { handleAddRequest, handleSaveDraftRequest } from "../actions";
 import Link from "next/link";
-import { ArrowLeft, Loader2, Download, Send, Check, Save } from "lucide-react";
+import { ArrowLeft, Loader2, Download, Send, Check, Save, File as FileIcon } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -79,6 +79,7 @@ export default function NewRequestPage() {
     const [subject, setSubject] = useState("");
     const [requestType, setRequestType] = useState("pre-auth");
     const [toEmail, setToEmail] = useState("");
+    const [selectedAttachments, setSelectedAttachments] = useState<string[]>([]);
 
     useEffect(() => {
         setEmailBody(draftToHtml(convertToRaw(editorState.getCurrentContent())));
@@ -370,6 +371,21 @@ export default function NewRequestPage() {
         }
 
     }, [requestType, patientDetails, hospitalDetails, totalCost, user]);
+
+    const documentFields: Array<{ key: keyof Patient, label: string }> = [
+        { key: 'adhaar_path', label: 'Aadhaar Card' },
+        { key: 'pan_path', label: 'PAN Card' },
+        { key: 'passport_path', label: 'Passport' },
+        { key: 'voter_id_path', label: 'Voter ID' },
+        { key: 'driving_licence_path', label: 'Driving License' },
+        { key: 'other_path', label: 'Other Document' },
+        { key: 'discharge_summary_path', label: 'Discharge Summary' },
+        { key: 'final_bill_path', label: 'Final Bill' },
+        { key: 'pharmacy_bill_path', label: 'Pharmacy Bill' },
+        { key: 'implant_bill_stickers_path', label: 'Implant Bill & Stickers' },
+        { key: 'lab_bill_path', label: 'Lab Bill' },
+        { key: 'ot_anesthesia_notes_path', label: 'OT & Anesthesia Notes' },
+    ];
 
 
     return (
@@ -957,6 +973,40 @@ export default function NewRequestPage() {
                                   toolbarClassName="border-b border-input"
                                 />
                             </div>
+                            {patientDetails && (
+                                <div className="space-y-2 pt-4 border-t">
+                                    <Label>Available Documents to Attach</Label>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                        {documentFields.map(({ key, label }) => {
+                                            const doc = patientDetails[key];
+                                            if (doc && typeof doc === 'object' && doc.url) {
+                                                return (
+                                                    <div key={key} className="flex items-center space-x-2">
+                                                        <Checkbox 
+                                                            id={`attach-${key}`} 
+                                                            name="email_attachments" 
+                                                            value={JSON.stringify({ name: doc.name, url: doc.url })}
+                                                            onCheckedChange={(checked) => {
+                                                                const attachmentString = JSON.stringify({ name: doc.name, url: doc.url });
+                                                                setSelectedAttachments(prev => 
+                                                                    checked 
+                                                                    ? [...prev, attachmentString]
+                                                                    : prev.filter(item => item !== attachmentString)
+                                                                );
+                                                            }}
+                                                        />
+                                                        <Label htmlFor={`attach-${key}`} className="font-normal flex items-center gap-1 cursor-pointer">
+                                                            <FileIcon className="h-4 w-4 text-muted-foreground" />
+                                                            {label}
+                                                        </Label>
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        })}
+                                    </div>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
 
