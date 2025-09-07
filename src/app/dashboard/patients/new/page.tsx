@@ -372,7 +372,7 @@ export default function NewPatientPage() {
                         />
                     </Card>
 
-                     <Accordion type="multiple" className="w-full space-y-6" defaultValue={["patient-details", "kyc-documents", "insurance-details", "clinical-info", "accident-info", "maternity-info", "cost-info", "chief-complaints"]}>
+                     <Accordion type="multiple" className="w-full space-y-6" defaultValue={["patient-details", "kyc-documents", "insurance-details", "clinical-info", "accident-info", "maternity-info", "cost-info", "chief-complaints", "declarations-info"]}>
                         <Card>
                             <AccordionItem value="patient-details">
                                 <AccordionTrigger className="p-6">

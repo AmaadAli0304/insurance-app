@@ -424,7 +424,7 @@ export default function EditPatientPage() {
                         />
                     </Card>
 
-                     <Accordion type="multiple" className="w-full space-y-6" defaultValue={["patient-details", "kyc-documents", "insurance-details", "clinical-info", "accident-info", "maternity-info", "cost-info", "chief-complaints"]}>
+                     <Accordion type="multiple" className="w-full space-y-6" defaultValue={["patient-details", "kyc-documents", "insurance-details", "clinical-info", "accident-info", "maternity-info", "cost-info", "chief-complaints", "declarations-info"]}>
                         <Card>
                             <AccordionItem value="patient-details">
                                 <AccordionTrigger className="p-6">
@@ -463,7 +463,7 @@ export default function EditPatientPage() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                        <div className="space-y-2">
+                                         <div className="space-y-2">
                                             <Label htmlFor="birth_date">Date of birth</Label>
                                             <Input id="birth_date" name="birth_date" type="date" defaultValue={patient.dateOfBirth ?? ''} max={today} onChange={handleDobChange} />
                                         </div>
