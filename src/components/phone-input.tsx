@@ -91,6 +91,7 @@ const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
                 onChange={handleNumberChange}
                 className="rounded-l-none"
                 placeholder="9876543210"
+                maxLength={countryCode === "+91" ? 10 : 15}
                 ref={ref}
                 {...props}
             />
