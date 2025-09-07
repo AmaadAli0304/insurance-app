@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useFormStatus } from "react-dom";
-import { handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable, handleCreateDoctorsTable, handleCreateChiefComplaintsTable, handleCreatePreAuthTable, handleCreateMedicalTable, handleCreateChatTable, handleAlterPreAuthTable, handleCreateClaimsTable, handleDeleteClaimsTable, handleDeletePreAuthRequestTable } from "./actions";
+import { handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable, handleCreateDoctorsTable, handleCreateChiefComplaintsTable, handleCreatePreAuthTable, handleCreateMedicalTable, handleCreateChatTable, handleAlterPreAuthTable, handleCreateClaimsTable, handleDeleteClaimsTable, handleDeletePreAuthRequestTable, handleUpdatePatientsTable } from "./actions";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble, Info, Stethoscope, FileHeart, Shield, MessageSquare, Pill, AlertTriangle, HandCoins, Trash2 } from "lucide-react";
+import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble, Info, Stethoscope, FileHeart, Shield, MessageSquare, Pill, AlertTriangle, HandCoins, Trash2, RefreshCcw } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 
 
@@ -49,6 +49,16 @@ function SubmitPatientTableButton() {
         <Button type="submit" disabled={pending} variant="secondary">
              <Users className="mr-2 h-4 w-4" />
             {pending ? "Creating..." : "Create Patient & Admission Tables"}
+        </Button>
+    );
+}
+
+function SubmitUpdatePatientTableButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending} variant="secondary">
+             <RefreshCcw className="mr-2 h-4 w-4" />
+            {pending ? "Updating..." : "Update Patients Table"}
         </Button>
     );
 }
@@ -190,6 +200,7 @@ export default function ImportPage() {
     const [createRelationshipTableState, createRelationshipTableAction] = useActionState(handleCreateRelationshipTables, { message: "", type: undefined });
     const [createHospitalTableState, createHospitalTableAction] = useActionState(handleCreateHospitalTable, { message: "", type: undefined });
     const [createPatientsTableState, createPatientsTableAction] = useActionState(handleCreatePatientsTable, { message: "", type: undefined });
+    const [updatePatientsTableState, updatePatientsTableAction] = useActionState(handleUpdatePatientsTable, { message: "", type: undefined });
     const [createFieldsTableState, createFieldsTableAction] = useActionState(handleCreateFieldsTable, { message: "", type: undefined });
     const [createFieldOptionsTableState, createFieldOptionsTableAction] = useActionState(handleCreateFieldOptionsTable, { message: "", type: undefined });
     const [createAdmissionsTableState, createAdmissionsTableAction] = useActionState(handleCreateAdmissionsTable, { message: "", type: undefined });
@@ -223,6 +234,7 @@ export default function ImportPage() {
     useToastEffect(createRelationshipTableState, "Database Action");
     useToastEffect(createHospitalTableState, "Database Action");
     useToastEffect(createPatientsTableState, "Database Action");
+    useToastEffect(updatePatientsTableState, "Database Action");
     useToastEffect(createFieldsTableState, "Database Action");
     useToastEffect(createFieldOptionsTableState, "Database Action");
     useToastEffect(createAdmissionsTableState, "Database Action");
@@ -304,6 +316,9 @@ export default function ImportPage() {
                  <CardContent className="flex flex-wrap gap-4">
                     <form action={alterPreAuthTableAction}>
                         <SubmitAlterPreAuthTableButton />
+                    </form>
+                    <form action={updatePatientsTableAction}>
+                        <SubmitUpdatePatientTableButton />
                     </form>
                     <form action={deleteClaimsTableAction}>
                         <SubmitDeleteClaimsTableButton />

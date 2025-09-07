@@ -244,6 +244,41 @@ export async function handleCreatePatientsTable(prevState: { message: string, ty
   }
 }
 
+export async function handleUpdatePatientsTable(prevState: { message: string, type?: string }, formData: FormData) {
+  try {
+    const pool = await getDbPool();
+    const request = pool.request();
+    const columns_to_add = [
+        { name: 'discharge_summary', type: 'NVARCHAR(MAX)' },
+        { name: 'final_bill', type: 'NVARCHAR(MAX)' },
+        { name: 'pharmacy_bill', type: 'NVARCHAR(MAX)' },
+        { name: 'implant_bill', type: 'NVARCHAR(MAX)' },
+        { name: 'lab_bill', type: 'NVARCHAR(MAX)' },
+        { name: 'ot_notes', type: 'NVARCHAR(MAX)' },
+        { name: 'status', type: 'NVARCHAR(50)' }
+    ];
+
+    let messages = [];
+
+    for (const col of columns_to_add) {
+        const checkColumnQuery = `
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'${col.name}' AND Object_ID = Object_ID(N'patients'))
+            BEGIN
+                ALTER TABLE patients ADD ${col.name} ${col.type};
+            END
+        `;
+        await request.query(checkColumnQuery);
+        messages.push(`Checked/Added column: ${col.name}`);
+    }
+
+    return { message: `Patients table updated successfully. ${messages.join(' ')}`, type: "success" };
+  } catch (error) {
+    const dbError = error as { message?: string };
+    console.error('Error updating Patients table:', dbError);
+    return { message: `Error updating table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+  }
+}
+
 export async function handleCreateFieldsTable(prevState: { message: string, type?: string }, formData: FormData) {
   try {
     const pool = await getDbPool();
