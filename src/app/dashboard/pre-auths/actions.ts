@@ -697,7 +697,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
             return { message: 'Chat and Claim record created for amount received.', type: 'success' };
         }
         
-        if (status === 'Amount Sanctioned' && preAuthDetails.admission_id) {
+        if (status === 'Final Amount Sanctioned' && preAuthDetails.admission_id) {
             await new sql.Request(transaction)
                 .input('admission_id', sql.NVarChar, preAuthDetails.admission_id)
                 .input('status', sql.NVarChar, 'Inactive')
