@@ -766,11 +766,6 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
             preAuthUpdateQuery += ', claim_id = @claim_id';
             preAuthRequest.input('claim_id', sql.NVarChar, claim_id);
         }
-
-        if (amount_sanctioned) {
-             preAuthUpdateQuery += ', amount_sanctioned = @amount_sanctioned';
-             preAuthRequest.input('amount_sanctioned', sql.Decimal(18,2), amount_sanctioned);
-        }
         
         preAuthUpdateQuery += ' WHERE id = @id';
         await preAuthRequest.query(preAuthUpdateQuery);
@@ -821,4 +816,3 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     revalidatePath('/dashboard/claims');
     return { message: 'Status updated and claim history recorded successfully.', type: 'success' };
 }
-
