@@ -11,7 +11,7 @@ import { PatientsTable } from "./patients-table"
 import type { Patient } from "@/lib/types"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useAuth } from "@/components/auth-provider";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function PatientsPage() {
   const { user, role } = useAuth();
@@ -49,13 +49,18 @@ export default function PatientsPage() {
             <CardTitle>Patients</CardTitle>
             <CardDescription>Manage patient records and their assigned insurance details.</CardDescription>
           </div>
-          <div className="flex items-center gap-2">
-            <Tabs value={statusFilter} onValueChange={(value) => setStatusFilter(value as 'Active' | 'Inactive')}>
-              <TabsList>
-                <TabsTrigger value="Active">Active</TabsTrigger>
-                <TabsTrigger value="Inactive">Inactive</TabsTrigger>
-              </TabsList>
-            </Tabs>
+          <div className="flex items-center gap-4">
+             <div className="flex items-center gap-2">
+                <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as 'Active' | 'Inactive')}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="Inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+            </div>
             <Button size="sm" className="gap-1" asChild>
               <Link href="/dashboard/patients/new">
                 <PlusCircle className="h-4 w-4" />
