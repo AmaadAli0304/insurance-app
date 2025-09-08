@@ -763,6 +763,30 @@ export async function handleCreateClaimsTable(prevState: { message: string, type
   }
 }
 
+export async function handleCreateChatFilesTable(prevState: { message: string, type?: string }, formData: FormData) {
+    try {
+        const pool = await getDbPool();
+        const request = pool.request();
+        const query = `
+            IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='chat_files' AND xtype='U')
+            BEGIN
+                CREATE TABLE chat_files (
+                    id INT IDENTITY(1,1) PRIMARY KEY,
+                    chat_id INT,
+                    path NVARCHAR(MAX) CHECK(ISJSON(path) = 1),
+                    CONSTRAINT FK__chat_files__chat FOREIGN KEY (chat_id) REFERENCES chat(id) ON DELETE CASCADE
+                );
+            END
+        `;
+        await request.query(query);
+        return { message: "Chat Files table created successfully or already exists.", type: "success" };
+    } catch (error) {
+        const dbError = error as { message?: string };
+        console.error('Error creating Chat Files table:', dbError);
+        return { message: `Error creating table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+    }
+}
+
 
 export async function handleDeleteClaimsTable(prevState: { message: string, type?: string }, formData: FormData) {
   try {

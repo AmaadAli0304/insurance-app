@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useFormStatus } from "react-dom";
-import { handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable, handleCreateDoctorsTable, handleCreateChiefComplaintsTable, handleCreatePreAuthTable, handleCreateMedicalTable, handleCreateChatTable, handleAlterPreAuthTable, handleCreateClaimsTable, handleDeleteClaimsTable, handleDeletePreAuthRequestTable, handleUpdatePatientsTable, handleSendEmail } from "./actions";
+import { handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable, handleCreateDoctorsTable, handleCreateChiefComplaintsTable, handleCreatePreAuthTable, handleCreateMedicalTable, handleCreateChatTable, handleAlterPreAuthTable, handleCreateClaimsTable, handleDeleteClaimsTable, handleDeletePreAuthRequestTable, handleUpdatePatientsTable, handleSendEmail, handleCreateChatFilesTable } from "./actions";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble, Info, Stethoscope, FileHeart, Shield, MessageSquare, Pill, AlertTriangle, HandCoins, Trash2, RefreshCcw, Send } from "lucide-react";
+import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble, Info, Stethoscope, FileHeart, Shield, MessageSquare, Pill, AlertTriangle, HandCoins, Trash2, RefreshCcw, Send, FileCode } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -206,6 +206,16 @@ function SubmitEmailButton() {
     );
 }
 
+function SubmitChatFilesTableButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending} variant="secondary">
+             <FileCode className="mr-2 h-4 w-4" />
+            {pending ? "Creating..." : "Create Chat Files Table"}
+        </Button>
+    );
+}
+
 
 export default function ImportPage() {
     const { user, role } = useAuth();
@@ -224,6 +234,7 @@ export default function ImportPage() {
     const [alterPreAuthTableState, alterPreAuthTableAction] = useActionState(handleAlterPreAuthTable, { message: "", type: undefined });
     const [createMedicalTableState, createMedicalTableAction] = useActionState(handleCreateMedicalTable, { message: "", type: undefined });
     const [createChatTableState, createChatTableAction] = useActionState(handleCreateChatTable, { message: "", type: undefined });
+    const [createChatFilesTableState, createChatFilesTableAction] = useActionState(handleCreateChatFilesTable, { message: "", type: undefined });
     const [createClaimsTableState, createClaimsTableAction] = useActionState(handleCreateClaimsTable, { message: "", type: undefined });
     const [deleteClaimsTableState, deleteClaimsTableAction] = useActionState(handleDeleteClaimsTable, { message: "", type: undefined });
     const [deletePreAuthTableState, deletePreAuthTableAction] = useActionState(handleDeletePreAuthRequestTable, { message: "", type: undefined });
@@ -259,6 +270,7 @@ export default function ImportPage() {
     useToastEffect(alterPreAuthTableState, "Database Action");
     useToastEffect(createMedicalTableState, "Database Action");
     useToastEffect(createChatTableState, "Database Action");
+    useToastEffect(createChatFilesTableState, "Database Action");
     useToastEffect(createClaimsTableState, "Database Action");
     useToastEffect(deleteClaimsTableState, "Database Action");
     useToastEffect(deletePreAuthTableState, "Database Action");
@@ -314,6 +326,9 @@ export default function ImportPage() {
                     </form>
                      <form action={createChatTableAction}>
                         <SubmitChatTableButton />
+                    </form>
+                    <form action={createChatFilesTableAction}>
+                        <SubmitChatFilesTableButton />
                     </form>
                      <form action={createClaimsTableAction}>
                         <SubmitClaimsTableButton />
