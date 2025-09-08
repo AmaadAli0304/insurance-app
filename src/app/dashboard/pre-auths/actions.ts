@@ -122,7 +122,7 @@ async function sendPreAuthEmail(requestData: {
     to: string, 
     subject: string, 
     html: string,
-    attachments: { filename: string, content: Buffer }[] 
+    attachments: { filename: string, content: Buffer, contentType: string }[] 
 }) {
     const { 
         MAILTRAP_HOST, 
@@ -202,16 +202,18 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
 
     if (shouldSendEmail) {
         const fetchedAttachments = await Promise.all(
-            parsedAttachments.map(async (att) => {
+            parsedAttachments.map(async (att: { name: string, url: string }) => {
                 try {
                     const response = await fetch(att.url);
                     if (!response.ok) {
                         throw new Error(`Failed to fetch attachment from ${att.url}`);
                     }
                     const buffer = await response.arrayBuffer();
+                    const contentType = response.headers.get('content-type') || 'application/octet-stream';
                     return {
                         filename: att.name,
                         content: Buffer.from(buffer),
+                        contentType: contentType
                     };
                 } catch (fetchError) {
                     console.error(`Error fetching attachment ${att.name}:`, fetchError);
@@ -220,7 +222,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
             })
         );
         
-        const validAttachments = fetchedAttachments.filter(att => att !== null) as { filename: string, content: Buffer }[];
+        const validAttachments = fetchedAttachments.filter(att => att !== null) as { filename: string, content: Buffer, contentType: string }[];
         
         await sendPreAuthEmail({ 
             fromName: hospitalName, 
@@ -493,7 +495,23 @@ export async function getPreAuthRequestById(id: string): Promise<StaffingRequest
                 .query(`SELECT id, status, reason, amount as claimAmount, updated_at FROM claims WHERE admission_id = @admission_id ORDER BY updated_at DESC`)
         ]);
 
-        request.chatHistory = chatResult.recordset as ChatMessage[];
+        const chatHistory = chatResult.recordset as ChatMessage[];
+
+        for (const chat of chatHistory) {
+            const attachmentsResult = await pool.request()
+                .input('chat_id', sql.Int, chat.id)
+                .query('SELECT path FROM chat_files WHERE chat_id = @chat_id');
+            
+            chat.attachments = attachmentsResult.recordset.map(row => {
+                try {
+                    return JSON.parse(row.path);
+                } catch {
+                    return { name: "Invalid Attachment", url: "#" };
+                }
+            });
+        }
+        
+        request.chatHistory = chatHistory;
         request.claimsHistory = claimsResult.recordset as Claim[];
         
         return request as StaffingRequest;

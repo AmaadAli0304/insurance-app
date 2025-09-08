@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
     User, Hospital, Building, DollarSign, Stethoscope, Loader2, Edit, Mail, Phone, Calendar, Clock, Hash, 
     HeartPulse, Pill, FileText, Briefcase, UserCheck, Shield, AlertTriangle, Baby, CircleDollarSign,
-    Info, Users, MapPin, Activity, History, Scissors, Syringe, MessageSquare, HandCoins
+    Info, Users, MapPin, Activity, History, Scissors, Syringe, MessageSquare, HandCoins, Download
 } from 'lucide-react';
 import type { StaffingRequest, PreAuthStatus, Claim } from "@/lib/types";
 import { getPreAuthRequestById } from "../../actions";
@@ -240,6 +240,21 @@ export default function ViewPreAuthPage() {
                                         </AccordionTrigger>
                                         <AccordionContent>
                                             <div className="p-4 border rounded-md bg-muted/50 text-sm prose-sm max-w-full" dangerouslySetInnerHTML={{ __html: chat.body || '<p>No content available.</p>' }} />
+                                            {chat.attachments && chat.attachments.length > 0 && (
+                                                <div className="mt-4 pt-4 border-t">
+                                                    <h4 className="font-semibold mb-2">Attachments</h4>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {chat.attachments.map((file) => (
+                                                            <Button key={file.name} variant="outline" size="sm" asChild>
+                                                                <a href={file.url} target="_blank" rel="noopener noreferrer">
+                                                                    <Download className="mr-2 h-4 w-4" />
+                                                                    {file.name}
+                                                                </a>
+                                                            </Button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </AccordionContent>
                                     </AccordionItem>
                                 ))}

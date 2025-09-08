@@ -227,6 +227,7 @@ export interface ChatMessage {
   body: string;
   request_type: string;
   created_at: string;
+  attachments?: { name: string, url: string }[];
 }
 
 export interface StaffingRequest {
