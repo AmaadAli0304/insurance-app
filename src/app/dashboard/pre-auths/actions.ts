@@ -420,24 +420,15 @@ export async function handleSaveDraftRequest(prevState: { message: string, type?
 export async function getPreAuthRequests(hospitalId: string | null | undefined, filter: 'Active' | 'Inactive' | 'All'): Promise<StaffingRequest[]> {
     if (!hospitalId) return [];
 
-    const activeStatuses = [
-        'Pending', 'Query Raised', 'Query Answered', 'Initial Approval Amount',
-        'Approval', 'Approved', 'Enhancement Request', 'Enhanced Amount', 'Pre auth Sent', 'Draft'
-    ];
-    const inactiveStatuses = [
-        'Amount Sanctioned', 'Final Amount Sanctioned', 'Amount Received', 'amount received',
-        'Settlement Done', 'Rejected', 'Final Discharge sent'
-    ];
-
     try {
         const pool = await getDbPool();
         const request = pool.request().input('hospitalId', sql.NVarChar, hospitalId);
 
         let statusFilterClause = '';
         if (filter === 'Active') {
-            statusFilterClause = `AND pr.status IN (${activeStatuses.map(s => `'${s}'`).join(',')})`;
+            statusFilterClause = `AND adm.status = 'Active'`;
         } else if (filter === 'Inactive') {
-            statusFilterClause = `AND pr.status IN (${inactiveStatuses.map(s => `'${s}'`).join(',')})`;
+            statusFilterClause = `AND adm.status = 'Inactive'`;
         }
 
         const query = `
@@ -451,6 +442,7 @@ export async function getPreAuthRequests(hospitalId: string | null | undefined, 
                 p.photo as patientPhoto
             FROM preauth_request pr
             LEFT JOIN patients p ON pr.patient_id = p.id
+            LEFT JOIN admissions adm ON pr.admission_id = adm.admission_id
             WHERE pr.hospital_id = @hospitalId ${statusFilterClause}
             ORDER BY pr.created_at DESC
         `;
