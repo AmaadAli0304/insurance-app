@@ -33,7 +33,7 @@ function SubmitButton() {
     return (
         <Button type="submit" disabled={pending} size="lg">
             <Send className="mr-2 h-4 w-4" />
-            {pending ? "Saving..." : "Save & Create Pre-Auth"}
+            {pending ? "Saving..." : "Save Patient"}
         </Button>
     );
 }
@@ -149,10 +149,8 @@ export default function NewPatientPage() {
     const [documentUrls, setDocumentUrls] = useState<Record<string, { url: string, name: string }>>({});
     const [totalCost, setTotalCost] = useState(0);
 
-    const [sumInsured, setSumInsured] = useState<number | string>('');
-    const [sumUtilized, setSumUtilized] = useState<number | string>('');
-    const [totalSum, setTotalSum] = useState<number | string>('');
     const [age, setAge] = useState<string>('');
+    const [totalSum, setTotalSum] = useState<number | string>('');
     
     const formRef = useRef<HTMLFormElement>(null);
     const [doctorContact, setDoctorContact] = useState('');
@@ -222,19 +220,6 @@ export default function NewPatientPage() {
             toast({ title: "Error", description: state.message, variant: "destructive" });
         }
     }, [state, toast, router]);
-
-    useEffect(() => {
-        const insured = typeof sumInsured === 'string' ? parseFloat(sumInsured) : sumInsured;
-        const utilized = typeof sumUtilized === 'string' ? parseFloat(sumUtilized) : sumUtilized;
-        
-        if (!isNaN(insured) && !isNaN(utilized)) {
-            setTotalSum(insured - utilized);
-        } else if (!isNaN(insured)) {
-            setTotalSum(insured);
-        } else {
-            setTotalSum('');
-        }
-    }, [sumInsured, sumUtilized]);
     
     const calculateAge = (birthDateString: string): string => {
         if (!birthDateString) return '';
@@ -270,6 +255,23 @@ export default function NewPatientPage() {
         setAge(calculatedAge);
     };
 
+    const handleSumInsuredBlur = () => {
+        const form = formRef.current;
+        if (form) {
+            const insuredInput = form.elements.namedItem('sumInsured') as HTMLInputElement;
+            const utilizedInput = form.elements.namedItem('sumUtilized') as HTMLInputElement;
+            const insured = parseFloat(insuredInput.value);
+            const utilized = parseFloat(utilizedInput.value);
+
+            if (!isNaN(insured) && !isNaN(utilized)) {
+                setTotalSum(insured - utilized);
+            } else if (!isNaN(insured)) {
+                setTotalSum(insured);
+            } else {
+                setTotalSum('');
+            }
+        }
+    };
 
     if (isLoading) {
         return (
@@ -413,7 +415,7 @@ export default function NewPatientPage() {
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="birth_date">Date of birth</Label>
-                                            <Input id="birth_date" name="birth_date" type="date" max={today} onChange={handleDobChange} />
+                                            <Input id="birth_date" name="birth_date" type="date" max={today} onBlur={handleDobChange} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="age">Age</Label>
@@ -474,7 +476,7 @@ export default function NewPatientPage() {
                                     <CardTitle>C. Insurance &amp; Admission Details</CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
-                                    <CardContent className="grid md:grid-cols-3 gap-4">
+                                    <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={handleSumInsuredBlur}>
                                         <div className="space-y-2">
                                             <Label htmlFor="admission_id">Admission ID <span className="text-destructive">*</span></Label>
                                             <Input id="admission_id" name="admission_id" required />
@@ -522,11 +524,11 @@ export default function NewPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="sumInsured">Sum Insured</Label>
-                                            <Input id="sumInsured" name="sumInsured" type="number" value={sumInsured} onChange={(e) => setSumInsured(e.target.value)} />
+                                            <Input id="sumInsured" name="sumInsured" type="number" />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="sumUtilized">Sum Utilized</Label>
-                                            <Input id="sumUtilized" name="sumUtilized" type="number" value={sumUtilized} onChange={(e) => setSumUtilized(e.target.value)} />
+                                            <Input id="sumUtilized" name="sumUtilized" type="number" />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="totalSum">Total Sum</Label>
