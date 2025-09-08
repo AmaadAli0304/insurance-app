@@ -329,7 +329,8 @@ export async function handleCreateAdmissionsTable(prevState: { message: string, 
           hospitalDeclarationTime NVARCHAR(50),
           attachments NVARCHAR(MAX),
           created_at DATETIME DEFAULT GETDATE(),
-          updated_at DATETIME DEFAULT GETDATE()
+          updated_at DATETIME DEFAULT GETDATE(),
+          status NVARCHAR(50)
         );
       END
     `;
@@ -747,5 +748,36 @@ export async function handleDeletePreAuthRequestTable(prevState: { message: stri
     const dbError = error as { message?: string };
     console.error('Error deleting Pre-Auth Request table:', dbError);
     return { message: `Error deleting Pre-Auth Request table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+  }
+}
+
+export async function handleAdmissionsTable(prevState: { message: string, type?: string }, formData: FormData) {
+  try {
+    const pool = await getDbPool();
+    const request = pool.request();
+    const createAdmissionsTableQuery = `
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='admissions' and xtype='U')
+      BEGIN
+        CREATE TABLE admissions (
+          id INT IDENTITY(1,1) PRIMARY KEY,
+          patient_id INT,
+          admission_id NVARCHAR(255),
+          -- other admission fields...
+          status NVARCHAR(50)
+        );
+      END
+      ELSE
+      BEGIN
+        IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'status' AND Object_ID = Object_ID(N'admissions'))
+        BEGIN
+            ALTER TABLE admissions ADD status NVARCHAR(50);
+        END
+      END
+    `;
+    await request.query(createAdmissionsTableQuery);
+    return { message: "Admissions table created or updated successfully.", type: "success" };
+  } catch (error) {
+    const dbError = error as { message?: string };
+    return { message: `Error handling Admissions table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }

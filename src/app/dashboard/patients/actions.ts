@@ -152,7 +152,7 @@ const patientAddFormSchema = basePatientObjectSchema;
 const patientUpdateFormSchema = basePatientObjectSchema.extend({
   id: z.string(), // Patient ID
   admission_db_id: z.coerce.number().optional().nullable(), // Admission ID from DB
-}));
+});
 
 
 export type Doctor = {
@@ -706,6 +706,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('otherHospitalExpenses', sql.Decimal(18, 2), data.otherHospitalExpenses)
       .input('packageCharges', sql.Decimal(18, 2), data.packageCharges)
       .input('totalExpectedCost', sql.Decimal(18, 2), data.totalExpectedCost)
+      .input('status', sql.NVarChar, 'Active')
       .query(`
         INSERT INTO admissions (
           patient_id, doctor_id, admission_id, relationship_policyholder, policy_number, insured_card_number, insurance_company, policy_start_date, policy_end_date, 
@@ -714,7 +715,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
           pastHistory, provisionalDiagnosis, icd10Codes, treatmentMedical, treatmentSurgical, treatmentIntensiveCare, treatmentInvestigation, treatmentNonAllopathic,
           investigationDetails, drugRoute, procedureName, icd10PcsCodes, otherTreatments, isInjury, injuryCause, isRta, injuryDate, isReportedToPolice, firNumber,
           isAlcoholSuspected, isToxicologyConducted, isMaternity, g, p, l, a, expectedDeliveryDate, admissionDate, admissionTime, admissionType, expectedStay,
-          expectedIcuStay, roomCategory, roomNursingDietCost, investigationCost, icuCost, otCost, professionalFees, medicineCost, otherHospitalExpenses, packageCharges, totalExpectedCost
+          expectedIcuStay, roomCategory, roomNursingDietCost, investigationCost, icuCost, otCost, professionalFees, medicineCost, otherHospitalExpenses, packageCharges, totalExpectedCost, status
         ) VALUES (
           @patient_id, @doctor_id, @admission_id, @relationship_policyholder, @policy_number, @insured_card_number, @insurance_company, @policy_start_date, @policy_end_date, 
           @sum_insured, @sum_utilized, @total_sum, @corporate_policy_number, @other_policy_name, @family_doctor_name, @family_doctor_phone, @payer_email, @payer_phone, @tpa_id, @hospital_id,
@@ -722,7 +723,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
           @pastHistory, @provisionalDiagnosis, @icd10Codes, @treatmentMedical, @treatmentSurgical, @treatmentIntensiveCare, @treatmentInvestigation, @treatmentNonAllopathic,
           @investigationDetails, @drugRoute, @procedureName, @icd10PcsCodes, @otherTreatments, @isInjury, @injuryCause, @isRta, @injuryDate, @isReportedToPolice, @firNumber,
           @isAlcoholSuspected, @isToxicologyConducted, @isMaternity, @g, @p, @l, @a, @expectedDeliveryDate, @admissionDate, @admissionTime, @admissionType, @expectedStay,
-          @expectedIcuStay, @roomCategory, @roomNursingDietCost, @investigationCost, @icuCost, @otCost, @professionalFees, @medicineCost, @otherHospitalExpenses, @packageCharges, @totalExpectedCost
+          @expectedIcuStay, @roomCategory, @roomNursingDietCost, @investigationCost, @icuCost, @otCost, @professionalFees, @medicineCost, @otherHospitalExpenses, @packageCharges, @totalExpectedCost, @status
         )
       `);
       
@@ -822,12 +823,14 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
               .input('id', sql.Int, admission_db_id)
               .input('doctor_id', sql.Int, data.doctor_id)
               .input('admission_id', sql.NVarChar, data.admission_id)
+              .input('status', sql.NVarChar, 'Active')
               // ... add all other fields for admissions table update
               .query(`
                 UPDATE admissions 
                 SET 
                   doctor_id = @doctor_id,
                   admission_id = @admission_id,
+                  status = @status,
                   -- etc for all other fields
                   updated_at = GETDATE()
                 WHERE id = @id
