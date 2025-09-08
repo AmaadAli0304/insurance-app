@@ -126,24 +126,29 @@ async function sendPreAuthEmail(requestData: { from: string, to: string, subject
 
     if (!MAILTRAP_HOST || !MAILTRAP_PORT || !MAILTRAP_USER || !MAILTRAP_PASS) {
         console.error("Mailtrap environment variables are not set.");
-        throw new Error("Email service is not configured.");
+        throw new Error("Email service is not configured. Please check server environment variables.");
     }
     
-    const transporter = nodemailer.createTransport({
-        host: MAILTRAP_HOST,
-        port: Number(MAILTRAP_PORT),
-        auth: {
-          user: MAILTRAP_USER,
-          pass: MAILTRAP_PASS
-        }
-    });
+    try {
+        const transporter = nodemailer.createTransport({
+            host: MAILTRAP_HOST,
+            port: Number(MAILTRAP_PORT),
+            auth: {
+              user: MAILTRAP_USER,
+              pass: MAILTRAP_PASS
+            }
+        });
 
-    await transporter.sendMail({
-        from: `"${requestData.from}" <donotreply@onestop.com>`,
-        to: requestData.to,
-        subject: requestData.subject,
-        html: requestData.html,
-    });
+        await transporter.sendMail({
+            from: `"${requestData.from}" <donotreply@onestop.com>`,
+            to: requestData.to,
+            subject: requestData.subject,
+            html: requestData.html,
+        });
+    } catch (error) {
+        console.error("Failed to send email:", error);
+        throw new Error("Failed to send email. Please check credentials and network.");
+    }
 }
 
 
@@ -158,9 +163,17 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
   if (!patientId) {
     return { message: 'Please select a patient before saving.', type: 'error' };
   }
+  
+  if (shouldSendEmail && (!from || !to || !subject || !details)) {
+      return { message: 'Missing required fields for sending email.', type: 'error' };
+  }
 
   let transaction;
   try {
+    if (shouldSendEmail) {
+        await sendPreAuthEmail({ from, to, subject, html: details });
+    }
+
     const pool = await getDbPool();
     transaction = new sql.Transaction(pool);
     await transaction.begin();
@@ -176,11 +189,6 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
       throw new Error("Could not find admission details for the selected patient.");
     }
     const originalPatientRecord = patientIdsResult.recordset[0];
-
-
-    if (shouldSendEmail && from && to && subject && details) {
-      await sendPreAuthEmail({ from, to, subject, html: details });
-    }
     
     const preAuthInsertRequest = new sql.Request(transaction);
     const preAuthRequestResult = await preAuthInsertRequest
