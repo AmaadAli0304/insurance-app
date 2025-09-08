@@ -1,4 +1,5 @@
 
+
 "use server";
 
 import { redirect } from 'next/navigation';
@@ -754,10 +755,10 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         }
 
         const preAuthRequest = new sql.Request(transaction);
-        let preAuthUpdateQuery = 'UPDATE preauth_request SET status = @status, updated_at = @updated_at';
+        let preAuthUpdateQuery = 'UPDATE preauth_request SET status = @status, updated_at = @now';
         preAuthRequest.input('id', sql.Int, Number(id))
                       .input('status', sql.NVarChar, status)
-                      .input('updated_at', sql.DateTime, now);
+                      .input('now', sql.DateTime, now);
         
         if (claim_id) {
             preAuthUpdateQuery += ', claim_id = @claim_id';
