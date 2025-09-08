@@ -189,13 +189,13 @@ export async function getPatients(hospitalId?: string | null, status?: 'Active' 
     }
     if (status) {
       request.input('status', sql.NVarChar, status);
-      whereClauses.push('p.status = @status');
+      whereClauses.push('a.status = @status');
     }
 
     const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
     const result = await request.query(`
-        SELECT p.id, p.first_name, p.last_name, p.photo, p.email_address, p.phone_number as phoneNumber, a.policy_number as policyNumber, co.name as companyName, p.status
+        SELECT p.id, p.first_name, p.last_name, p.photo, p.email_address, p.phone_number as phoneNumber, a.policy_number as policyNumber, co.name as companyName, a.status
         FROM patients p
         LEFT JOIN admissions a ON p.id = a.patient_id
         LEFT JOIN companies co ON a.insurance_company = co.id
