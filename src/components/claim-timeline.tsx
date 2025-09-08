@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { CheckCircle2, AlertCircle } from 'lucide-react';
+import { CheckCircle2, AlertCircle, HelpCircle, Send, MessageSquare, HandCoins, BadgeDollarSign, FileCheck2 } from 'lucide-react';
 import { format } from 'date-fns';
 import type { Claim, ClaimStatus } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -15,27 +15,28 @@ interface ClaimTimelineProps {
 
 const getStatusDetails = (status: ClaimStatus) => {
     switch (status) {
+        case 'Pre auth Sent':
+             return { icon: Send, color: 'text-blue-500', description: 'Pre-authorization sent to TPA/Insurer' };
         case 'Pending':
-            return { icon: CheckCircle2, color: 'text-red-500', description: 'Preauth submitted' };
+            return { icon: CheckCircle2, color: 'text-orange-500', description: 'Preauth submitted' };
         case 'Query Raised':
-            return { icon: CheckCircle2, color: 'text-yellow-500', description: 'TPA requested more information' };
+            return { icon: HelpCircle, color: 'text-yellow-600', description: 'TPA requested more information' };
         case 'Query Answered':
-             return { icon: CheckCircle2, color: 'text-green-500', description: 'Hospital provided the requested information' };
+             return { icon: MessageSquare, color: 'text-purple-500', description: 'Hospital provided the requested information' };
         case 'Initial Approval Amount':
-            return { icon: CheckCircle2, color: 'text-blue-500', description: 'Approved an initial amount' };
-        case 'Approval':
-            return { icon: CheckCircle2, color: 'text-orange-500', description: 'Claim approved' };
+        case 'Approved':
+            return { icon: BadgeDollarSign, color: 'text-teal-500', description: 'Approved an initial amount' };
         case 'Amount Sanctioned':
-             return { icon: CheckCircle2, color: 'text-blue-500', description: 'Final amount approved' };
+             return { icon: HandCoins, color: 'text-indigo-500', description: 'Final amount approved' };
         case 'Amount Received':
-            return { icon: CheckCircle2, color: 'text-green-500', description: 'Payment received from TPA/Insurer' };
+            return { icon: CheckCircle2, color: 'text-green-600', description: 'Payment received from TPA/Insurer' };
         case 'Settlement Done':
         case 'Paid':
-            return { icon: CheckCircle2, color: 'text-green-500', description: 'Claim closed and settled' };
+            return { icon: FileCheck2, color: 'text-green-700', description: 'Claim closed and settled' };
         case 'Rejected':
-            return { icon: AlertCircle, color: 'text-red-500', description: 'Claim rejected' };
+            return { icon: AlertCircle, color: 'text-red-600', description: 'Claim rejected' };
         default:
-            return { icon: CheckCircle2, color: 'text-gray-500', description: '' };
+            return { icon: CheckCircle2, color: 'text-gray-500', description: status };
     }
 };
 
@@ -76,7 +77,7 @@ export function ClaimTimeline({ claims, patientName }: ClaimTimelineProps) {
                                 <div className="ml-6 flex-1">
                                     <p className="font-semibold text-base">{claim.status}</p>
                                     <p className="text-sm text-muted-foreground">
-                                        {claim.reason || statusDetails.description} on {format(new Date(claim.updated_at), 'dd MMM')}
+                                        {claim.reason || statusDetails.description} on {format(new Date(claim.updated_at), 'dd MMM yyyy, p')}
                                     </p>
                                     {claim.paidAmount && (
                                         <p className="text-sm text-muted-foreground mt-1">Approved INR {claim.paidAmount.toLocaleString()} on {format(new Date(claim.updated_at), 'dd MMM')}</p>
@@ -90,4 +91,3 @@ export function ClaimTimeline({ claims, patientName }: ClaimTimelineProps) {
         </Card>
     );
 }
-
