@@ -685,6 +685,13 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
             revalidatePath('/dashboard/claims');
             return { message: 'Chat and Claim record created for amount received.', type: 'success' };
         }
+        
+        if (status === 'Amount Sanctioned') {
+            await new sql.Request(transaction)
+                .input('patient_id', sql.Int, preAuthDetails.patient_id)
+                .input('status', sql.NVarChar, 'Inactive')
+                .query('UPDATE admissions SET status = @status WHERE patient_id = @patient_id');
+        }
 
         const shouldSendEmail = statusesThatSendEmail.includes(status);
         const shouldLogTpaResponse = statusesThatLogTpaResponse.includes(status);
