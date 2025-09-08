@@ -122,7 +122,7 @@ async function sendPreAuthEmail(requestData: {
     to: string, 
     subject: string, 
     html: string,
-    attachments: { filename: string, path: string, contentType: string }[] 
+    attachments: { filename: string, content: Buffer }[] 
 }) {
     const { 
         MAILTRAP_HOST, 
@@ -199,20 +199,36 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
 
     if (shouldSendEmail) {
         const parsedAttachments = emailAttachmentsData
-            .map(att => typeof att === 'string' ? JSON.parse(att) : att)
-            .map(att => ({ 
-                filename: att.name, 
-                path: att.url,
-                contentType: 'application/octet-stream' // Generic content type for all files
-            }));
+            .map(att => typeof att === 'string' ? JSON.parse(att) : att);
 
+        const fetchedAttachments = await Promise.all(
+            parsedAttachments.map(async (att) => {
+                try {
+                    const response = await fetch(att.url);
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch attachment from ${att.url}`);
+                    }
+                    const buffer = await response.arrayBuffer();
+                    return {
+                        filename: att.name,
+                        content: Buffer.from(buffer),
+                    };
+                } catch (fetchError) {
+                    console.error(`Error fetching attachment ${att.name}:`, fetchError);
+                    return null; // Return null for failed downloads
+                }
+            })
+        );
+        
+        const validAttachments = fetchedAttachments.filter(att => att !== null) as { filename: string, content: Buffer }[];
+        
         await sendPreAuthEmail({ 
             fromName: hospitalName, 
             fromEmail: fromEmail, 
             to: tpaEmail, 
             subject: subject, 
             html: details,
-            attachments: parsedAttachments
+            attachments: validAttachments
         });
     }
 
