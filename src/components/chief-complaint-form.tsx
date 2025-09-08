@@ -42,7 +42,7 @@ const MemoizedChiefComplaintForm = ({ initialData, patientId }: ChiefComplaintFo
     const initialMapped = initialComplaintNames.map((name, index) => {
       const existing = initialData?.find(d => d.name.toUpperCase() === name.toUpperCase());
       return {
-        id: existing?.id ?? Date.now() + index,
+        id: existing?.id ?? index, // Use index for a stable initial ID
         name: name,
         selected: existing?.selected ?? false,
         durationValue: existing?.durationValue ?? '',
@@ -73,7 +73,7 @@ const MemoizedChiefComplaintForm = ({ initialData, patientId }: ChiefComplaintFo
 
   const addComplaint = () => {
     const newComplaint: Complaint = {
-      id: Date.now(),
+      id: Date.now(), // OK to use Date.now() here as it only happens on the client
       name: '',
       selected: true,
       durationValue: '',
@@ -103,7 +103,7 @@ const MemoizedChiefComplaintForm = ({ initialData, patientId }: ChiefComplaintFo
                 <div className="w-8"></div>
             </div>
              {complaints.map((complaint, index) => (
-                <div key={complaint.id} className="grid grid-cols-[auto_1fr_1fr_1fr_auto] gap-x-4 items-center mb-2">
+                <div key={`${complaint.name}-${complaint.id}-${index}`} className="grid grid-cols-[auto_1fr_1fr_1fr_auto] gap-x-4 items-center mb-2">
                     <Checkbox
                         id={`complaint-checkbox-${complaint.id}`}
                         checked={complaint.selected}
@@ -158,5 +158,3 @@ const MemoizedChiefComplaintForm = ({ initialData, patientId }: ChiefComplaintFo
   );
 }
 export const ChiefComplaintForm = React.memo(MemoizedChiefComplaintForm);
-
-    
