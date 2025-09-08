@@ -244,6 +244,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
       .input('id', sql.Int, Number(id))
        .query(`
         SELECT 
+          p.id as patient_db_id,
           p.first_name,
           p.last_name,
           p.email_address,
@@ -271,7 +272,6 @@ export async function getPatientById(id: string): Promise<Patient | null> {
           p.lab_bill,
           p.ot_notes,
           a.*,
-          p.id as patient_db_id,
           a.id as admission_db_id,
           c.name as companyName,
           t.name as tpaName,
@@ -952,4 +952,5 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
     
 
     
+
 
