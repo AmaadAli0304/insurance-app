@@ -164,10 +164,6 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
     return { message: 'Please select a patient before saving.', type: 'error' };
   }
   
-  if (shouldSendEmail && (!from || !to || !subject || !details)) {
-      return { message: 'Missing required fields for sending email.', type: 'error' };
-  }
-
   let transaction;
   try {
     if (shouldSendEmail) {
