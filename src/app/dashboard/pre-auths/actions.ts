@@ -599,7 +599,8 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     const status = formData.get('status') as PreAuthStatus;
     const claim_id = formData.get('claim_id') as string;
     const reason = formData.get('reason') as string;
-    const amount_sanctioned = formData.get('amount_sanctioned') as string;
+    const amount_sanctioned_str = formData.get('amount_sanctioned') as string;
+    const amount_sanctioned = amount_sanctioned_str ? parseFloat(amount_sanctioned_str) : null;
     const userId = formData.get('userId') as string;
 
     const from = formData.get('from') as string;
@@ -662,8 +663,8 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
                 .input('status', sql.NVarChar, status) 
                 .input('reason', sql.NVarChar, reason) 
                 .input('created_by', sql.NVarChar, userId || 'System Update') 
-                .input('amount', sql.Decimal(18, 2), amount_sanctioned ? parseFloat(amount_sanctioned) : preAuthDetails.totalExpectedCost)
-                .input('paidAmount', sql.Decimal(18, 2), amount_sanctioned ? parseFloat(amount_sanctioned) : null) 
+                .input('amount', sql.Decimal(18, 2), amount_sanctioned ? amount_sanctioned : preAuthDetails.totalExpectedCost)
+                .input('paidAmount', sql.Decimal(18, 2), amount_sanctioned) 
                 .input('hospital_id', sql.NVarChar, preAuthDetails.hospital_id)
                 .input('tpa_id', sql.Int, preAuthDetails.tpa_id)
                 .input('claim_id', sql.NVarChar, claim_id || preAuthDetails.claim_id) 
@@ -755,14 +756,20 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         }
 
         const preAuthRequest = new sql.Request(transaction);
-        let preAuthUpdateQuery = 'UPDATE preauth_request SET status = @status, updated_at = @now';
+        let preAuthUpdateQuery = 'UPDATE preauth_request SET status = @status, updated_at = @now, reason = @reason';
         preAuthRequest.input('id', sql.Int, Number(id))
                       .input('status', sql.NVarChar, status)
+                      .input('reason', sql.NVarChar, reason)
                       .input('now', sql.DateTime, now);
         
         if (claim_id) {
             preAuthUpdateQuery += ', claim_id = @claim_id';
             preAuthRequest.input('claim_id', sql.NVarChar, claim_id);
+        }
+
+        if (amount_sanctioned) {
+             preAuthUpdateQuery += ', amount_sanctioned = @amount_sanctioned';
+             preAuthRequest.input('amount_sanctioned', sql.Decimal(18,2), amount_sanctioned);
         }
         
         preAuthUpdateQuery += ' WHERE id = @id';
@@ -784,8 +791,8 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
             .input('status', sql.NVarChar, status) 
             .input('reason', sql.NVarChar, reason) 
             .input('created_by', sql.NVarChar, userId || 'System Update') 
-            .input('amount', sql.Decimal(18, 2), amount_sanctioned ? parseFloat(amount_sanctioned) : preAuthDetails.totalExpectedCost)
-            .input('paidAmount', sql.Decimal(18, 2), amount_sanctioned ? parseFloat(amount_sanctioned) : null) 
+            .input('amount', sql.Decimal(18, 2), amount_sanctioned ? amount_sanctioned : preAuthDetails.totalExpectedCost)
+            .input('paidAmount', sql.Decimal(18, 2), amount_sanctioned) 
             .input('hospital_id', sql.NVarChar, preAuthDetails.hospital_id)
             .input('tpa_id', sql.Int, preAuthDetails.tpa_id)
             .input('claim_id', sql.NVarChar, claim_id) 
@@ -814,3 +821,4 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     revalidatePath('/dashboard/claims');
     return { message: 'Status updated and claim history recorded successfully.', type: 'success' };
 }
+
