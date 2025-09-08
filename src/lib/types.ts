@@ -281,10 +281,24 @@ export interface StaffingRequest {
   payer_phone?: string;
   hospitalName?: string;
   companyName?: string;
+  tpaEmail?: string;
   treat_doc_name?: string;
   treat_doc_number?: string;
   treat_doc_qualification?: string;
   treat_doc_reg_no?: string;
+
+  adhaar_path?: { url: string; name: string; } | string | null;
+  pan_path?: { url: string; name: string; } | string | null;
+  passport_path?: { url: string; name: string; } | string | null;
+  voter_id_path?: { url: string; name: string; } | string | null;
+  driving_licence_path?: { url: string; name: string; } | string | null;
+  other_path?: { url: string; name: string; } | string | null;
+  discharge_summary_path?: { url: string; name: string; } | string | null;
+  final_bill_path?: { url: string; name: string; } | string | null;
+  pharmacy_bill_path?: { url: string; name: string; } | string | null;
+  implant_bill_stickers_path?: { url: string; name: string; } | string | null;
+  lab_bill_path?: { url: string; name: string; } | string | null;
+  ot_anesthesia_notes_path?: { url: string; name: string; } | string | null;
 
   // C. Clinical Information
   natureOfIllness?: string;

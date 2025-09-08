@@ -461,6 +461,22 @@ export async function getPreAuthRequests(hospitalId: string | null | undefined):
     }
 }
 
+const getDocumentData = (jsonString: string | null | undefined): { url: string; name: string } | null => {
+    if (!jsonString) return null;
+    try {
+        const parsed = JSON.parse(jsonString);
+        if (typeof parsed === 'object' && parsed !== null && 'url' in parsed) {
+            return { url: parsed.url, name: parsed.name || 'View Document' };
+        }
+    } catch (e) {
+        if (typeof jsonString === 'string' && jsonString.startsWith('http')) {
+            return { url: jsonString, name: 'View Document' };
+        }
+    }
+    return null;
+};
+
+
 export async function getPreAuthRequestById(id: string): Promise<StaffingRequest | null> {
     try {
         const pool = await getDbPool();
@@ -474,8 +490,21 @@ export async function getPreAuthRequestById(id: string): Promise<StaffingRequest
                     h.name as hospitalName,
                     h.email as fromEmail,
                     comp.name as companyName,
-                    tpa.email as tpaEmail
+                    tpa.email as tpaEmail,
+                    p.adhaar_path,
+                    p.pan_path,
+                    p.passport_path,
+                    p.voter_id_path,
+                    p.driving_licence_path,
+                    p.other_path,
+                    p.discharge_summary as discharge_summary_path,
+                    p.final_bill as final_bill_path,
+                    p.pharmacy_bill as pharmacy_bill_path,
+                    p.implant_bill as implant_bill_stickers_path,
+                    p.lab_bill as lab_bill_path,
+                    p.ot_notes as ot_anesthesia_notes_path
                 FROM preauth_request pr
+                LEFT JOIN patients p ON pr.patient_id = p.id
                 LEFT JOIN hospitals h ON pr.hospital_id = h.id
                 LEFT JOIN companies comp ON pr.company_id = comp.id
                 LEFT JOIN tpas tpa ON pr.tpa_id = tpa.id
@@ -485,6 +514,21 @@ export async function getPreAuthRequestById(id: string): Promise<StaffingRequest
         if (requestResult.recordset.length === 0) return null;
         
         const request = requestResult.recordset[0];
+        
+        // Populate document fields
+        request.adhaar_path = getDocumentData(request.adhaar_path);
+        request.pan_path = getDocumentData(request.pan_path);
+        request.passport_path = getDocumentData(request.passport_path);
+        request.voter_id_path = getDocumentData(request.voter_id_path);
+        request.driving_licence_path = getDocumentData(request.driving_licence_path);
+        request.other_path = getDocumentData(request.other_path);
+        request.discharge_summary_path = getDocumentData(request.discharge_summary_path);
+        request.final_bill_path = getDocumentData(request.final_bill_path);
+        request.pharmacy_bill_path = getDocumentData(request.pharmacy_bill_path);
+        request.implant_bill_stickers_path = getDocumentData(request.implant_bill_stickers_path);
+        request.lab_bill_path = getDocumentData(request.lab_bill_path);
+        request.ot_anesthesia_notes_path = getDocumentData(request.ot_anesthesia_notes_path);
+
 
         const [chatResult, claimsResult] = await Promise.all([
              pool.request()
@@ -561,6 +605,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     const to = formData.get('to') as string;
     const subject = formData.get('subject') as string;
     const details = formData.get('details') as string;
+    const emailAttachmentsData = formData.getAll('email_attachments');
 
     const statusesThatSendEmail = ['Query Answered', 'Enhancement Request', 'Final Discharge sent'];
     const statusesThatLogTpaResponse = ['Query Raised', 'Enhanced Amount', 'Final Amount Sanctioned'];
@@ -588,6 +633,9 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         }
         const preAuthDetails = preAuthDetailsResult.recordset[0];
         const fullName = `${preAuthDetails.first_name} ${preAuthDetails.last_name}`;
+        
+        const parsedAttachments = emailAttachmentsData
+            .map(att => typeof att === 'string' ? JSON.parse(att) : att);
 
         if (status === 'Amount received') {
             const tpaEmail = preAuthDetails.tpaEmail;
@@ -640,6 +688,20 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         const shouldLogTpaResponse = statusesThatLogTpaResponse.includes(status);
         
         if (shouldSendEmail) {
+            const fetchedAttachments = await Promise.all(
+                parsedAttachments.map(async (att: { name: string, url: string }) => {
+                    try {
+                        const response = await fetch(att.url);
+                        if (!response.ok) throw new Error(`Failed to fetch attachment from ${att.url}`);
+                        const buffer = await response.arrayBuffer();
+                        const contentType = response.headers.get('content-type') || 'application/octet-stream';
+                        return { filename: att.name, content: Buffer.from(buffer), contentType };
+                    } catch (fetchError) {
+                        console.error(`Error fetching attachment ${att.name}:`, fetchError);
+                        return null;
+                    }
+                })
+            );
             
             await sendPreAuthEmail({ 
                 fromName: preAuthDetails.hospitalName, 
@@ -647,10 +709,11 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
                 to, 
                 subject, 
                 html: details,
-                attachments: [] // attachments are not handled in update form currently
+                attachments: fetchedAttachments.filter(att => att !== null) as any
             });
+
             const chatInsertRequest = new sql.Request(transaction);
-            await chatInsertRequest
+            const chatResult = await chatInsertRequest
                 .input('preauth_id', sql.Int, Number(id))
                 .input('from_email', sql.NVarChar, from)
                 .input('to_email', sql.NVarChar, to)
@@ -658,7 +721,19 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
                 .input('body', sql.NVarChar, details)
                 .input('request_type', sql.NVarChar, status)
                 .input('created_at', sql.DateTime, now)
-                .query('INSERT INTO chat (preauth_id, from_email, to_email, subject, body, request_type, created_at) VALUES (@preauth_id, @from_email, @to_email, @subject, @body, @request_type, @created_at)');
+                .query('INSERT INTO chat (preauth_id, from_email, to_email, subject, body, request_type, created_at) OUTPUT INSERTED.id VALUES (@preauth_id, @from_email, @to_email, @subject, @body, @request_type, @created_at)');
+        
+            const chatId = chatResult.recordset[0]?.id;
+
+            if (chatId && parsedAttachments.length > 0) {
+                for (const attachment of parsedAttachments) {
+                    const attachmentRequest = new sql.Request(transaction);
+                    await attachmentRequest
+                        .input('chat_id', sql.Int, chatId)
+                        .input('path', sql.NVarChar, JSON.stringify(attachment))
+                        .query('INSERT INTO chat_files (chat_id, path) VALUES (@chat_id, @path)');
+                }
+            }
         }
 
         if (shouldLogTpaResponse) {
