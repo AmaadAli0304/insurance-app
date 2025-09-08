@@ -754,17 +754,14 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         }
 
         const preAuthRequest = new sql.Request(transaction);
-        let preAuthUpdateQuery = 'UPDATE preauth_request SET status = @status';
+        let preAuthUpdateQuery = 'UPDATE preauth_request SET status = @status, updated_at = @updated_at';
         preAuthRequest.input('id', sql.Int, Number(id))
-                      .input('status', sql.NVarChar, status);
+                      .input('status', sql.NVarChar, status)
+                      .input('updated_at', sql.DateTime, now);
         
         if (claim_id) {
             preAuthUpdateQuery += ', claim_id = @claim_id';
             preAuthRequest.input('claim_id', sql.NVarChar, claim_id);
-        }
-        if (amount_sanctioned) {
-             preAuthUpdateQuery += ', amount_sanctioned = @amount_sanctioned';
-             preAuthRequest.input('amount_sanctioned', sql.Decimal(18,2), parseFloat(amount_sanctioned));
         }
         
         preAuthUpdateQuery += ' WHERE id = @id';
