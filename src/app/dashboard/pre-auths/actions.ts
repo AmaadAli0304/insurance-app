@@ -594,9 +594,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         const shouldLogTpaResponse = statusesThatLogTpaResponse.includes(status);
         
         if (shouldSendEmail) {
-            if (!from || !to || !subject || !details) {
-                return { message: "Missing required fields for sending email.", type: 'error' };
-            }
+            
             await sendPreAuthEmail({ 
                 fromName: preAuthDetails.hospitalName, 
                 fromEmail: from, 
