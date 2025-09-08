@@ -158,7 +158,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
   formEntries.attachments = formData.getAll('attachments');
   
   const data = formEntries;
-  const { from, to, subject, details, requestType, patientId, totalExpectedCost, doctor_id, claim_id, userId } = data as Record<string, any>;
+  const { to, subject, details, requestType, patientId, totalExpectedCost, doctor_id, claim_id, userId, hospitalId } = data as Record<string, any>;
 
   if (!patientId) {
     return { message: 'Please select a patient before saving.', type: 'error' };
@@ -166,11 +166,16 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
   
   let transaction;
   try {
+    const pool = await getDbPool();
+    
+    // Fetch hospital details to get the fromEmail
+    const hospitalDetailsResult = await pool.request().input('hospitalId', sql.NVarChar, hospitalId).query('SELECT email FROM hospitals WHERE id = @hospitalId');
+    const fromEmail = hospitalDetailsResult.recordset[0]?.email;
+      
     if (shouldSendEmail) {
-        await sendPreAuthEmail({ from, to, subject, html: details });
+        await sendPreAuthEmail({ from: fromEmail, to, subject, html: details });
     }
 
-    const pool = await getDbPool();
     transaction = new sql.Transaction(pool);
     await transaction.begin();
     const now = new Date();
@@ -302,7 +307,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
     const chatInsertRequest = new sql.Request(transaction);
     await chatInsertRequest
         .input('preauth_id', sql.Int, preAuthId)
-        .input('from_email', sql.NVarChar, from)
+        .input('from_email', sql.NVarChar, fromEmail)
         .input('to_email', sql.NVarChar, to)
         .input('subject', sql.NVarChar, subject)
         .input('body', sql.NVarChar, details)
