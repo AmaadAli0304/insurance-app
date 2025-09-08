@@ -215,11 +215,11 @@ export default function EditPreAuthPage() {
                                  <div className="grid md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="to">To <span className="text-destructive">*</span></Label>
-                                        <Input id="to" name="to" value={request.tpaEmail || ''} required={showEmailFields} readOnly disabled />
+                                        <Input id="to" name="to" value={request.tpaEmail || ''} required={showEmailFields} readOnly />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="from">From</Label>
-                                        <Input id="from" name="from" value={request.fromEmail || user?.email || ''} readOnly disabled />
+                                        <Input id="from" name="from" value={request.fromEmail || user?.email || ''} readOnly />
                                     </div>
                                 </div>
                                 <div className="space-y-2">
