@@ -11,19 +11,21 @@ import { PatientsTable } from "./patients-table"
 import type { Patient } from "@/lib/types"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useAuth } from "@/components/auth-provider";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function PatientsPage() {
   const { user, role } = useAuth();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<'Active' | 'Inactive'>('Active');
 
   const loadPatients = useCallback(async () => {
     setIsLoading(true);
     try {
       // Pass the hospitalId only if the user is hospital staff
       const hospitalId = role === 'Hospital Staff' ? user?.hospitalId : null;
-      const patientData = await getPatients(hospitalId);
+      const patientData = await getPatients(hospitalId, statusFilter);
       setPatients(patientData);
       setError(null);
     } catch (e: any) {
@@ -31,7 +33,7 @@ export default function PatientsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [user, role]);
+  }, [user, role, statusFilter]);
 
   useEffect(() => {
     if (user) { // Only load patients if user is available
@@ -47,12 +49,20 @@ export default function PatientsPage() {
             <CardTitle>Patients</CardTitle>
             <CardDescription>Manage patient records and their assigned insurance details.</CardDescription>
           </div>
-          <Button size="sm" className="gap-1" asChild>
-            <Link href="/dashboard/patients/new">
-              <PlusCircle className="h-4 w-4" />
-              Add Patient
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Tabs value={statusFilter} onValueChange={(value) => setStatusFilter(value as 'Active' | 'Inactive')}>
+              <TabsList>
+                <TabsTrigger value="Active">Active</TabsTrigger>
+                <TabsTrigger value="Inactive">Inactive</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <Button size="sm" className="gap-1" asChild>
+              <Link href="/dashboard/patients/new">
+                <PlusCircle className="h-4 w-4" />
+                Add Patient
+              </Link>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
            {isLoading ? (

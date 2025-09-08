@@ -177,19 +177,25 @@ export async function getDoctors(): Promise<Doctor[]> {
   }
 }
 
-export async function getPatients(hospitalId?: string | null): Promise<Patient[]> {
+export async function getPatients(hospitalId?: string | null, status?: 'Active' | 'Inactive'): Promise<Patient[]> {
   try {
     const pool = await getDbPool();
     const request = pool.request();
     
-    let whereClause = '';
+    let whereClauses: string[] = [];
     if (hospitalId) {
       request.input('hospitalId', sql.NVarChar, hospitalId);
-      whereClause = 'WHERE p.hospital_id = @hospitalId';
+      whereClauses.push('p.hospital_id = @hospitalId');
+    }
+    if (status) {
+      request.input('status', sql.NVarChar, status);
+      whereClauses.push('p.status = @status');
     }
 
+    const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
     const result = await request.query(`
-        SELECT p.id, p.first_name, p.last_name, p.photo, p.email_address, p.phone_number as phoneNumber, a.policy_number as policyNumber, co.name as companyName
+        SELECT p.id, p.first_name, p.last_name, p.photo, p.email_address, p.phone_number as phoneNumber, a.policy_number as policyNumber, co.name as companyName, p.status
         FROM patients p
         LEFT JOIN admissions a ON p.id = a.patient_id
         LEFT JOIN companies co ON a.insurance_company = co.id

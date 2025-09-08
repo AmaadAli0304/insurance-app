@@ -97,6 +97,7 @@ export interface Patient {
   implant_bill_stickers_path?: { url: string; name: string; } | string | null;
   lab_bill_path?: { url: string; name: string; } | string | null;
   ot_anesthesia_notes_path?: { url: string; name: string; } | string | null;
+  status?: 'Active' | 'Inactive' | null;
 
   // Admission fields
   admission_id?: string;
