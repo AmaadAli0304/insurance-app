@@ -146,7 +146,7 @@ const basePatientObjectSchema = z.object({
 
   // H. Declarations & Attachments
   chiefComplaints: z.string().optional().nullable(),
-}).omit({ age: true });
+});
 
 const patientAddFormSchema = basePatientObjectSchema;
 
@@ -926,4 +926,6 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
         throw new Error("Failed to fetch claims from database for the timeline.");
     }
 }
+    
+
     
