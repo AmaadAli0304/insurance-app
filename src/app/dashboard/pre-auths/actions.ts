@@ -116,7 +116,14 @@ const saveDraftSchema = preAuthSchema.extend({
     status: z.string().optional().default('Draft'),
 });
 
-async function sendPreAuthEmail(requestData: { fromName: string, fromEmail: string, to: string, subject: string, html: string }) {
+async function sendPreAuthEmail(requestData: { 
+    fromName: string, 
+    fromEmail: string, 
+    to: string, 
+    subject: string, 
+    html: string,
+    attachments: { filename: string, path: string }[] 
+}) {
     const { 
         MAILTRAP_HOST, 
         MAILTRAP_PORT, 
@@ -144,6 +151,7 @@ async function sendPreAuthEmail(requestData: { fromName: string, fromEmail: stri
             to: requestData.to,
             subject: requestData.subject,
             html: requestData.html,
+            attachments: requestData.attachments
         });
     } catch (error) {
         console.error("Failed to send email:", error);
@@ -156,6 +164,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
   const formEntries = Object.fromEntries(formData.entries());
   // Handle checkbox arrays
   formEntries.attachments = formData.getAll('attachments');
+  const emailAttachmentsData = formData.getAll('email_attachments');
   
   const data = formEntries;
   const { subject, details, requestType, patientId, totalExpectedCost, doctor_id, claim_id, userId, hospitalId } = data as Record<string, any>;
@@ -193,10 +202,18 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
     const fromEmail = hospitalEmail;
 
     if (shouldSendEmail) {
-        if (!tpaEmail || !fromEmail || !subject || !details) {
-             throw new Error("Missing required email fields to send the email.");
-        }
-        await sendPreAuthEmail({ fromName: hospitalName, fromEmail, to: tpaEmail, subject, html: details });
+        const parsedAttachments = emailAttachmentsData
+            .map(att => typeof att === 'string' ? JSON.parse(att) : att)
+            .map(att => ({ filename: att.name, path: att.url }));
+
+        await sendPreAuthEmail({ 
+            fromName: hospitalName, 
+            fromEmail: fromEmail, 
+            to: tpaEmail, 
+            subject: subject, 
+            html: details,
+            attachments: parsedAttachments
+        });
     }
 
     transaction = new sql.Transaction(pool);
@@ -580,7 +597,14 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
             if (!from || !to || !subject || !details) {
                 return { message: "Missing required fields for sending email.", type: 'error' };
             }
-            await sendPreAuthEmail({ fromName: preAuthDetails.hospitalName, fromEmail: from, to, subject, html: details });
+            await sendPreAuthEmail({ 
+                fromName: preAuthDetails.hospitalName, 
+                fromEmail: from, 
+                to, 
+                subject, 
+                html: details,
+                attachments: [] // attachments are not handled in update form currently
+            });
             const chatInsertRequest = new sql.Request(transaction);
             await chatInsertRequest
                 .input('preauth_id', sql.Int, Number(id))
