@@ -116,7 +116,7 @@ const saveDraftSchema = preAuthSchema.extend({
     status: z.string().optional().default('Draft'),
 });
 
-async function sendPreAuthEmail(requestData: { from: string, to: string, subject: string, html: string }) {
+async function sendPreAuthEmail(requestData: { from?: string | null, to?: string | null, subject?: string | null, html?: string | null }) {
     const { 
         MAILTRAP_HOST, 
         MAILTRAP_PORT, 
@@ -140,10 +140,10 @@ async function sendPreAuthEmail(requestData: { from: string, to: string, subject
         });
 
         await transporter.sendMail({
-            from: `"${requestData.from}" <donotreply@onestop.com>`,
-            to: requestData.to,
-            subject: requestData.subject,
-            html: requestData.html,
+            from: `"${requestData.from || 'OneStop Portal'}" <donotreply@onestop.com>`,
+            to: requestData.to || '',
+            subject: requestData.subject || 'No Subject',
+            html: requestData.html || '<p>No content provided.</p>',
         });
     } catch (error) {
         console.error("Failed to send email:", error);
@@ -192,14 +192,14 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
         .input('patient_id', sql.Int, patientId)
         .input('admission_id', sql.NVarChar, data.admission_id)
         .input('claim_id', sql.NVarChar, claim_id)
-        .input('doctor_id', sql.Int, doctor_id)
+        .input('doctor_id', sql.Int, doctor_id ? Number(doctor_id) : null)
         .input('first_name', sql.NVarChar, data.first_name)
         .input('last_name', sql.NVarChar, data.last_name)
         .input('email_address', sql.NVarChar, data.email_address)
         .input('phone_number', sql.NVarChar, data.phone_number)
         .input('alternative_number', sql.NVarChar, data.alternative_number)
         .input('gender', sql.NVarChar, data.gender)
-        .input('age', sql.Int, data.age)
+        .input('age', sql.Int, data.age ? Number(data.age) : null)
         .input('birth_date', sql.Date, data.birth_date ? new Date(data.birth_date as string) : null)
         .input('address', sql.NVarChar, data.address)
         .input('occupation', sql.NVarChar, data.occupation)
@@ -212,9 +212,9 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
         .input('company_id', sql.NVarChar, originalPatientRecord.insurance_company)
         .input('policy_start_date', sql.Date, data.policy_start_date ? new Date(data.policy_start_date as string) : null)
         .input('policy_end_date', sql.Date, data.policy_end_date ? new Date(data.policy_end_date as string) : null)
-        .input('sum_insured', sql.Decimal(18, 2), data.sumInsured)
-        .input('sum_utilized', sql.Decimal(18, 2), data.sumUtilized)
-        .input('total_sum', sql.Decimal(18, 2), data.totalSum)
+        .input('sum_insured', sql.Decimal(18, 2), data.sumInsured ? Number(data.sumInsured) : null)
+        .input('sum_utilized', sql.Decimal(18, 2), data.sumUtilized ? Number(data.sumUtilized) : null)
+        .input('total_sum', sql.Decimal(18, 2), data.totalSum ? Number(data.totalSum) : null)
         .input('corporate_policy_number', sql.NVarChar, data.corporate_policy_number)
         .input('other_policy_name', sql.NVarChar, data.other_policy_name)
         .input('family_doctor_name', sql.NVarChar, data.family_doctor_name)
@@ -229,7 +229,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
         .input('treat_doc_reg_no', sql.NVarChar, data.treat_doc_reg_no)
         .input('natureOfIllness', sql.NVarChar, data.natureOfIllness)
         .input('clinicalFindings', sql.NVarChar, data.clinicalFindings)
-        .input('ailmentDuration', sql.Int, data.ailmentDuration)
+        .input('ailmentDuration', sql.Int, data.ailmentDuration ? Number(data.ailmentDuration) : null)
         .input('firstConsultationDate', sql.Date, data.firstConsultationDate ? new Date(data.firstConsultationDate as string) : null)
         .input('pastHistory', sql.NVarChar, data.pastHistory)
         .input('provisionalDiagnosis', sql.NVarChar, data.provisionalDiagnosis)
@@ -253,26 +253,26 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
         .input('isAlcoholSuspected', sql.Bit, data.isAlcoholSuspected === 'on' ? 1 : 0)
         .input('isToxicologyConducted', sql.Bit, data.isToxicologyConducted === 'on' ? 1 : 0)
         .input('isMaternity', sql.Bit, data.isMaternity === 'on' ? 1 : 0)
-        .input('g', sql.Int, data.g)
-        .input('p', sql.Int, data.p)
-        .input('l', sql.Int, data.l)
-        .input('a', sql.Int, data.a)
+        .input('g', sql.Int, data.g ? Number(data.g) : null)
+        .input('p', sql.Int, data.p ? Number(data.p) : null)
+        .input('l', sql.Int, data.l ? Number(data.l) : null)
+        .input('a', sql.Int, data.a ? Number(data.a) : null)
         .input('expectedDeliveryDate', sql.Date, data.expectedDeliveryDate ? new Date(data.expectedDeliveryDate as string) : null)
         .input('admissionDate', sql.Date, data.admissionDate ? new Date(data.admissionDate as string) : null)
         .input('admissionTime', sql.NVarChar, data.admissionTime)
         .input('admissionType', sql.NVarChar, data.admissionType)
-        .input('expectedStay', sql.Int, data.expectedStay)
-        .input('expectedIcuStay', sql.Int, data.expectedIcuStay)
+        .input('expectedStay', sql.Int, data.expectedStay ? Number(data.expectedStay) : null)
+        .input('expectedIcuStay', sql.Int, data.expectedIcuStay ? Number(data.expectedIcuStay) : null)
         .input('roomCategory', sql.NVarChar, data.roomCategory)
-        .input('roomNursingDietCost', sql.Decimal(18, 2), data.roomNursingDietCost)
-        .input('investigationCost', sql.Decimal(18, 2), data.investigationCost)
-        .input('icuCost', sql.Decimal(18, 2), data.icuCost)
-        .input('otCost', sql.Decimal(18, 2), data.otCost)
-        .input('professionalFees', sql.Decimal(18, 2), data.professionalFees)
-        .input('medicineCost', sql.Decimal(18, 2), data.medicineCost)
-        .input('otherHospitalExpenses', sql.Decimal(18, 2), data.otherHospitalExpenses)
-        .input('packageCharges', sql.Decimal(18, 2), data.packageCharges)
-        .input('totalExpectedCost', sql.Decimal(18, 2), totalExpectedCost)
+        .input('roomNursingDietCost', sql.Decimal(18, 2), data.roomNursingDietCost ? Number(data.roomNursingDietCost) : null)
+        .input('investigationCost', sql.Decimal(18, 2), data.investigationCost ? Number(data.investigationCost) : null)
+        .input('icuCost', sql.Decimal(18, 2), data.icuCost ? Number(data.icuCost) : null)
+        .input('otCost', sql.Decimal(18, 2), data.otCost ? Number(data.otCost) : null)
+        .input('professionalFees', sql.Decimal(18, 2), data.professionalFees ? Number(data.professionalFees) : null)
+        .input('medicineCost', sql.Decimal(18, 2), data.medicineCost ? Number(data.medicineCost) : null)
+        .input('otherHospitalExpenses', sql.Decimal(18, 2), data.otherHospitalExpenses ? Number(data.otherHospitalExpenses) : null)
+        .input('packageCharges', sql.Decimal(18, 2), data.packageCharges ? Number(data.packageCharges) : null)
+        .input('totalExpectedCost', sql.Decimal(18, 2), totalExpectedCost ? Number(totalExpectedCost) : null)
         .input('patientDeclarationName', sql.NVarChar, data.patientDeclarationName)
         .input('patientDeclarationContact', sql.NVarChar, data.patientDeclarationContact)
         .input('patientDeclarationEmail', sql.NVarChar, data.patientDeclarationEmail)
@@ -317,7 +317,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
         .input('admission_id', sql.NVarChar, data.admission_id)
         .input('status', sql.NVarChar, 'Pre auth Sent')
         .input('created_by', sql.NVarChar, userId)
-        .input('amount', sql.Decimal(18, 2), totalExpectedCost)
+        .input('amount', sql.Decimal(18, 2), totalExpectedCost ? Number(totalExpectedCost) : null)
         .input('hospital_id', sql.NVarChar, data.hospitalId)
         .input('tpa_id', sql.Int, originalPatientRecord.tpa_id)
         .input('created_at', sql.DateTime, now)
@@ -563,16 +563,13 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         const shouldSendEmail = statusesThatSendEmail.includes(status);
         const shouldLogTpaResponse = statusesThatLogTpaResponse.includes(status);
         
-        if (shouldSendEmail) {
-            const emailFrom = from || preAuthDetails.hospitalEmail;
-            const emailTo = to || preAuthDetails.tpaEmail;
-            
-            await sendPreAuthEmail({ from: emailFrom, to: emailTo, subject, html: details });
+        if (shouldSendEmail && from && to && subject && details) {
+            await sendPreAuthEmail({ from, to, subject, html: details });
             const chatInsertRequest = new sql.Request(transaction);
             await chatInsertRequest
                 .input('preauth_id', sql.Int, Number(id))
-                .input('from_email', sql.NVarChar, emailFrom)
-                .input('to_email', sql.NVarChar, emailTo)
+                .input('from_email', sql.NVarChar, from)
+                .input('to_email', sql.NVarChar, to)
                 .input('subject', sql.NVarChar, subject)
                 .input('body', sql.NVarChar, details)
                 .input('request_type', sql.NVarChar, status)
