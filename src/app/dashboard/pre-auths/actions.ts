@@ -686,11 +686,11 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
             return { message: 'Chat and Claim record created for amount received.', type: 'success' };
         }
         
-        if (status === 'Amount Sanctioned') {
+        if (status === 'Amount Sanctioned' && preAuthDetails.admission_id) {
             await new sql.Request(transaction)
-                .input('patient_id', sql.Int, preAuthDetails.patient_id)
+                .input('admission_id', sql.NVarChar, preAuthDetails.admission_id)
                 .input('status', sql.NVarChar, 'Inactive')
-                .query('UPDATE admissions SET status = @status WHERE patient_id = @patient_id');
+                .query('UPDATE admissions SET status = @status WHERE admission_id = @admission_id');
         }
 
         const shouldSendEmail = statusesThatSendEmail.includes(status);
@@ -821,3 +821,6 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     revalidatePath('/dashboard/claims');
     return { message: 'Status updated and claim history recorded successfully.', type: 'success' };
 }
+
+
+    
