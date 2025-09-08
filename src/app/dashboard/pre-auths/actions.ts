@@ -196,11 +196,11 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
     
     const { hospitalName, hospitalEmail, tpaEmail, tpaId, companyId } = detailsRequest.recordset[0];
     const fromEmail = hospitalEmail;
-
-    if (shouldSendEmail) {
-        const parsedAttachments = emailAttachmentsData
+    
+    const parsedAttachments = emailAttachmentsData
             .map(att => typeof att === 'string' ? JSON.parse(att) : att);
 
+    if (shouldSendEmail) {
         const fetchedAttachments = await Promise.all(
             parsedAttachments.map(async (att) => {
                 try {
@@ -350,7 +350,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
       .query('UPDATE preauth_request SET status = @status WHERE id = @id');
 
     const chatInsertRequest = new sql.Request(transaction);
-    await chatInsertRequest
+    const chatResult = await chatInsertRequest
         .input('preauth_id', sql.Int, preAuthId)
         .input('from_email', sql.NVarChar, fromEmail)
         .input('to_email', sql.NVarChar, tpaEmail)
@@ -358,7 +358,19 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
         .input('body', sql.NVarChar, details)
         .input('request_type', sql.NVarChar, requestType)
         .input('created_at', sql.DateTime, now)
-        .query('INSERT INTO chat (preauth_id, from_email, to_email, subject, body, request_type, created_at) VALUES (@preauth_id, @from_email, @to_email, @subject, @body, @request_type, @created_at)');
+        .query('INSERT INTO chat (preauth_id, from_email, to_email, subject, body, request_type, created_at) OUTPUT INSERTED.id VALUES (@preauth_id, @from_email, @to_email, @subject, @body, @request_type, @created_at)');
+    
+    const chatId = chatResult.recordset[0]?.id;
+
+    if (shouldSendEmail && chatId && parsedAttachments.length > 0) {
+        for (const attachment of parsedAttachments) {
+            const attachmentRequest = new sql.Request(transaction);
+            await attachmentRequest
+                .input('chat_id', sql.Int, chatId)
+                .input('path', sql.NVarChar, JSON.stringify(attachment))
+                .query('INSERT INTO chat_files (chat_id, path) VALUES (@chat_id, @path)');
+        }
+    }
         
     const claimInsertRequest = new sql.Request(transaction);
     await claimInsertRequest
