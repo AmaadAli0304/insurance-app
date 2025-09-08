@@ -244,7 +244,32 @@ export async function getPatientById(id: string): Promise<Patient | null> {
       .input('id', sql.Int, Number(id))
        .query(`
         SELECT 
-          p.*,
+          p.first_name,
+          p.last_name,
+          p.email_address,
+          p.phone_number,
+          p.alternative_number,
+          p.gender,
+          p.age,
+          p.birth_date,
+          p.address,
+          p.occupation,
+          p.employee_id,
+          p.abha_id,
+          p.health_id,
+          p.photo,
+          p.adhaar_path,
+          p.pan_path,
+          p.passport_path,
+          p.voter_id_path,
+          p.driving_licence_path,
+          p.other_path,
+          p.discharge_summary,
+          p.final_bill,
+          p.pharmacy_bill,
+          p.implant_bill,
+          p.lab_bill,
+          p.ot_notes,
           a.*,
           p.id as patient_db_id,
           a.id as admission_db_id,
@@ -927,3 +952,4 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
     
 
     
+
