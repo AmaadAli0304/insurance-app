@@ -122,7 +122,7 @@ async function sendPreAuthEmail(requestData: {
     to: string, 
     subject: string, 
     html: string,
-    attachments: { filename: string, path: string }[] 
+    attachments: { filename: string, path: string, contentType: string }[] 
 }) {
     const { 
         MAILTRAP_HOST, 
@@ -168,10 +168,6 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
   
   const data = formEntries;
   const { subject, details, requestType, patientId, totalExpectedCost, doctor_id, claim_id, userId, hospitalId } = data as Record<string, any>;
-
-  if (!patientId) {
-    return { message: 'Please select a patient before saving.', type: 'error' };
-  }
   
   let transaction;
   try {
@@ -204,7 +200,11 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
     if (shouldSendEmail) {
         const parsedAttachments = emailAttachmentsData
             .map(att => typeof att === 'string' ? JSON.parse(att) : att)
-            .map(att => ({ filename: att.name, path: att.url }));
+            .map(att => ({ 
+                filename: att.name, 
+                path: att.url,
+                contentType: 'application/octet-stream' // Generic content type for all files
+            }));
 
         await sendPreAuthEmail({ 
             fromName: hospitalName, 
