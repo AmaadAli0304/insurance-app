@@ -196,6 +196,35 @@ export default function NewPatientPage() {
         setTotalCost(sum);
     }, []);
 
+    const handleAgeAndTotalSumCalculation = React.useCallback(() => {
+        const form = formRef.current;
+        if (!form) return;
+
+        // Age
+        const dobInput = form.elements.namedItem('birth_date') as HTMLInputElement;
+        if (dobInput) {
+            setAge(calculateAge(dobInput.value));
+        }
+
+        // Total Sum
+        const insuredInput = form.elements.namedItem('sumInsured') as HTMLInputElement;
+        const utilizedInput = form.elements.namedItem('sumUtilized') as HTMLInputElement;
+        
+        if (insuredInput && utilizedInput) {
+            const insured = parseFloat(insuredInput.value);
+            const utilized = parseFloat(utilizedInput.value);
+
+            if (!isNaN(insured) && !isNaN(utilized)) {
+                setTotalSum(insured - utilized);
+            } else if (!isNaN(insured)) {
+                setTotalSum(insured);
+            } else {
+                setTotalSum('');
+            }
+        }
+    }, []);
+
+
     useEffect(() => {
         async function loadData() {
             try {
@@ -248,29 +277,6 @@ export default function NewPatientPage() {
             return result;
         }
         return `${days} day${days !== 1 ? 's' : ''}`;
-    };
-
-    const handleDobChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const calculatedAge = calculateAge(e.target.value);
-        setAge(calculatedAge);
-    };
-
-    const handleSumInsuredBlur = () => {
-        const form = formRef.current;
-        if (form) {
-            const insuredInput = form.elements.namedItem('sumInsured') as HTMLInputElement;
-            const utilizedInput = form.elements.namedItem('sumUtilized') as HTMLInputElement;
-            const insured = parseFloat(insuredInput.value);
-            const utilized = parseFloat(utilizedInput.value);
-
-            if (!isNaN(insured) && !isNaN(utilized)) {
-                setTotalSum(insured - utilized);
-            } else if (!isNaN(insured)) {
-                setTotalSum(insured);
-            } else {
-                setTotalSum('');
-            }
-        }
     };
 
     if (isLoading) {
@@ -381,7 +387,7 @@ export default function NewPatientPage() {
                                     <CardTitle>A. Patient Details</CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
-                                    <CardContent className="grid md:grid-cols-3 gap-4">
+                                    <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={handleAgeAndTotalSumCalculation}>
                                         <div className="space-y-2">
                                             <Label htmlFor="firstName">First Name <span className="text-destructive">*</span></Label>
                                             <Input id="firstName" name="firstName" required />
@@ -415,7 +421,7 @@ export default function NewPatientPage() {
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="birth_date">Date of birth</Label>
-                                            <Input id="birth_date" name="birth_date" type="date" max={today} onBlur={handleDobChange} />
+                                            <Input id="birth_date" name="birth_date" type="date" max={today} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="age">Age</Label>
@@ -476,7 +482,7 @@ export default function NewPatientPage() {
                                     <CardTitle>C. Insurance &amp; Admission Details</CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
-                                    <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={handleSumInsuredBlur}>
+                                    <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={handleAgeAndTotalSumCalculation}>
                                         <div className="space-y-2">
                                             <Label htmlFor="admission_id">Admission ID <span className="text-destructive">*</span></Label>
                                             <Input id="admission_id" name="admission_id" required />
@@ -486,6 +492,7 @@ export default function NewPatientPage() {
                                             <Select name="relationship_policyholder" required>
                                                 <SelectTrigger><SelectValue placeholder="Select relationship" /></SelectTrigger>
                                                 <SelectContent>
+                                                    <SelectItem value="Spouse">Spouse</SelectItem>
                                                     <SelectItem value="Sister">Sister</SelectItem>
                                                     <SelectItem value="Brother">Brother</SelectItem>
                                                     <SelectItem value="Mother">Mother</SelectItem>

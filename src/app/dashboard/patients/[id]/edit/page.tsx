@@ -217,11 +217,33 @@ export default function EditPatientPage() {
         setTotalCost(sum);
     }, []);
 
-    useEffect(() => {
-        if (patient) {
-            calculateTotalCost();
+    const handleAgeAndTotalSumCalculation = React.useCallback(() => {
+        const form = formRef.current;
+        if (!form) return;
+
+        // Age
+        const dobInput = form.elements.namedItem('birth_date') as HTMLInputElement;
+        if (dobInput) {
+            setAge(calculateAge(dobInput.value));
         }
-    }, [patient, calculateTotalCost]);
+
+        // Total Sum
+        const insuredInput = form.elements.namedItem('sumInsured') as HTMLInputElement;
+        const utilizedInput = form.elements.namedItem('sumUtilized') as HTMLInputElement;
+        
+        if (insuredInput && utilizedInput) {
+            const insured = parseFloat(insuredInput.value);
+            const utilized = parseFloat(utilizedInput.value);
+
+            if (!isNaN(insured) && !isNaN(utilized)) {
+                setTotalSum(insured - utilized);
+            } else if (!isNaN(insured)) {
+                setTotalSum(insured);
+            } else {
+                setTotalSum('');
+            }
+        }
+    }, []);
 
 
     useEffect(() => {
@@ -314,29 +336,6 @@ export default function EditPatientPage() {
         return `${days} day${days !== 1 ? 's' : ''}`;
     };
 
-    const handleDobChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const calculatedAge = calculateAge(e.target.value);
-        setAge(calculatedAge);
-    };
-
-    const handleSumInsuredBlur = () => {
-        const form = formRef.current;
-        if (form) {
-            const insuredInput = form.elements.namedItem('sumInsured') as HTMLInputElement;
-            const utilizedInput = form.elements.namedItem('sumUtilized') as HTMLInputElement;
-            const insured = parseFloat(insuredInput.value);
-            const utilized = parseFloat(utilizedInput.value);
-
-            if (!isNaN(insured) && !isNaN(utilized)) {
-                setTotalSum(insured - utilized);
-            } else if (!isNaN(insured)) {
-                setTotalSum(insured);
-            } else {
-                setTotalSum('');
-            }
-        }
-    };
-
     if (isLoading) {
         return (
             <div className="flex items-center justify-center h-full">
@@ -396,6 +395,7 @@ export default function EditPatientPage() {
             </div>
             <form action={formAction} ref={formRef}>
                  <input type="hidden" name="id" value={patient.id} />
+                 <input type="hidden" name="admission_db_id" value={patient.admission_db_id ?? ''} />
                  <input type="hidden" name="hospital_id" value={user?.hospitalId || ''} />
                  <input type="hidden" name="photoUrl" value={photoUrl || ''} />
                  <input type="hidden" name="photoName" value={photoName || ''} />
@@ -450,7 +450,7 @@ export default function EditPatientPage() {
                                     <CardTitle>A. Patient Details</CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
-                                    <CardContent className="grid md:grid-cols-3 gap-4">
+                                    <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={handleAgeAndTotalSumCalculation}>
                                         <div className="space-y-2">
                                             <Label htmlFor="firstName">First Name <span className="text-destructive">*</span></Label>
                                             <Input id="firstName" name="firstName" defaultValue={patient.firstName} required />
@@ -484,7 +484,7 @@ export default function EditPatientPage() {
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="birth_date">Date of birth</Label>
-                                            <Input id="birth_date" name="birth_date" type="date" defaultValue={patient.dateOfBirth ?? ''} max={today} onBlur={handleDobChange} />
+                                            <Input id="birth_date" name="birth_date" type="date" defaultValue={patient.dateOfBirth ?? ''} max={today} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="age">Age</Label>
@@ -545,7 +545,7 @@ export default function EditPatientPage() {
                                     <CardTitle>C. Insurance &amp; Admission Details</CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
-                                    <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={handleSumInsuredBlur}>
+                                    <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={handleAgeAndTotalSumCalculation}>
                                         <div className="space-y-2">
                                             <Label htmlFor="admission_id">Admission ID <span className="text-destructive">*</span></Label>
                                             <Input id="admission_id" name="admission_id" defaultValue={patient.admission_id ?? ''} required />
@@ -555,6 +555,7 @@ export default function EditPatientPage() {
                                             <Select name="relationship_policyholder" required defaultValue={patient.relationship_policyholder ?? undefined}>
                                                 <SelectTrigger><SelectValue placeholder="Select relationship" /></SelectTrigger>
                                                 <SelectContent>
+                                                    <SelectItem value="Spouse">Spouse</SelectItem>
                                                     <SelectItem value="Sister">Sister</SelectItem>
                                                     <SelectItem value="Brother">Brother</SelectItem>
                                                     <SelectItem value="Mother">Mother</SelectItem>
