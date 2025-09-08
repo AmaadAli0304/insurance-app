@@ -248,8 +248,6 @@ export async function getPatientById(id: string): Promise<Patient | null> {
           a.*,
           p.id as patient_db_id,
           a.id as admission_db_id,
-          p.first_name,
-          p.last_name,
           c.name as companyName,
           t.name as tpaName,
           t.email as tpaEmail
