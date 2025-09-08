@@ -417,26 +417,45 @@ export async function handleSaveDraftRequest(prevState: { message: string, type?
 }
 
 
-export async function getPreAuthRequests(hospitalId: string | null | undefined): Promise<StaffingRequest[]> {
+export async function getPreAuthRequests(hospitalId: string | null | undefined, filter: 'Active' | 'Inactive' | 'All'): Promise<StaffingRequest[]> {
     if (!hospitalId) return [];
+
+    const activeStatuses = [
+        'Pending', 'Query Raised', 'Query Answered', 'Initial Approval Amount',
+        'Approval', 'Approved', 'Enhancement Request', 'Enhanced Amount', 'Pre auth Sent', 'Draft'
+    ];
+    const inactiveStatuses = [
+        'Amount Sanctioned', 'Final Amount Sanctioned', 'Amount Received', 'amount received',
+        'Settlement Done', 'Rejected', 'Final Discharge sent'
+    ];
+
     try {
         const pool = await getDbPool();
-        const result = await pool.request()
-            .input('hospitalId', sql.NVarChar, hospitalId)
-            .query(`
-                SELECT 
-                    pr.id, 
-                    pr.patient_id as patientId, 
-                    pr.hospital_id as hospitalId,
-                    pr.status, 
-                    pr.created_at as createdAt,
-                    pr.first_name + ' ' + pr.last_name as fullName,
-                    p.photo as patientPhoto
-                FROM preauth_request pr
-                LEFT JOIN patients p ON pr.patient_id = p.id
-                WHERE pr.hospital_id = @hospitalId
-                ORDER BY pr.created_at DESC
-            `);
+        const request = pool.request().input('hospitalId', sql.NVarChar, hospitalId);
+
+        let statusFilterClause = '';
+        if (filter === 'Active') {
+            statusFilterClause = `AND pr.status IN (${activeStatuses.map(s => `'${s}'`).join(',')})`;
+        } else if (filter === 'Inactive') {
+            statusFilterClause = `AND pr.status IN (${inactiveStatuses.map(s => `'${s}'`).join(',')})`;
+        }
+
+        const query = `
+            SELECT 
+                pr.id, 
+                pr.patient_id as patientId, 
+                pr.hospital_id as hospitalId,
+                pr.status, 
+                pr.created_at as createdAt,
+                pr.first_name + ' ' + pr.last_name as fullName,
+                p.photo as patientPhoto
+            FROM preauth_request pr
+            LEFT JOIN patients p ON pr.patient_id = p.id
+            WHERE pr.hospital_id = @hospitalId ${statusFilterClause}
+            ORDER BY pr.created_at DESC
+        `;
+
+        const result = await request.query(query);
         
         return result.recordset.map(record => {
             let photoUrl = null;

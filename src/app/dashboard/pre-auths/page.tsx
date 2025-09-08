@@ -27,6 +27,7 @@ import type { StaffingRequest, PreAuthStatus } from "@/lib/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format, formatDistanceToNow } from 'date-fns';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
 export default function PreAuthsPage() {
@@ -36,6 +37,8 @@ export default function PreAuthsPage() {
   const [requests, setRequests] = useState<StaffingRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<'Active' | 'Inactive' | 'All'>('Active');
+
 
   const loadRequests = useCallback(async () => {
     if (!user?.hospitalId) {
@@ -44,14 +47,14 @@ export default function PreAuthsPage() {
     };
     setIsLoading(true);
     try {
-      const data = await getPreAuthRequests(user.hospitalId);
+      const data = await getPreAuthRequests(user.hospitalId, statusFilter);
       setRequests(data);
     } catch (err: any) {
       setError(err.message);
     } finally {
       setIsLoading(false);
     }
-  }, [user?.hospitalId]);
+  }, [user?.hospitalId, statusFilter]);
 
   useEffect(() => {
     if(user) {
@@ -94,12 +97,24 @@ export default function PreAuthsPage() {
             <CardTitle>Pre-Authorizations</CardTitle>
             <CardDescription>Manage pre-authorization requests.</CardDescription>
           </div>
-          <Button size="sm" className="gap-1" asChild>
-            <Link href="/dashboard/pre-auths/new">
-              <PlusCircle className="h-4 w-4" />
-              New Pre-Auth
-            </Link>
-          </Button>
+           <div className="flex items-center gap-4">
+             <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="Inactive">Inactive</SelectItem>
+                    <SelectItem value="All">All</SelectItem>
+                </SelectContent>
+            </Select>
+            <Button size="sm" className="gap-1" asChild>
+                <Link href="/dashboard/pre-auths/new">
+                <PlusCircle className="h-4 w-4" />
+                New Pre-Auth
+                </Link>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
            {isLoading ? (
