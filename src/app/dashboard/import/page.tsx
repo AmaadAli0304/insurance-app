@@ -7,10 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useFormStatus } from "react-dom";
-import { handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable, handleCreateDoctorsTable, handleCreateChiefComplaintsTable, handleCreatePreAuthTable, handleCreateMedicalTable, handleCreateChatTable, handleAlterPreAuthTable, handleCreateClaimsTable, handleDeleteClaimsTable, handleDeletePreAuthRequestTable, handleUpdatePatientsTable } from "./actions";
+import { handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable, handleCreateDoctorsTable, handleCreateChiefComplaintsTable, handleCreatePreAuthTable, handleCreateMedicalTable, handleCreateChatTable, handleAlterPreAuthTable, handleCreateClaimsTable, handleDeleteClaimsTable, handleDeletePreAuthRequestTable, handleUpdatePatientsTable, handleSendEmail } from "./actions";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble, Info, Stethoscope, FileHeart, Shield, MessageSquare, Pill, AlertTriangle, HandCoins, Trash2, RefreshCcw } from "lucide-react";
+import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble, Info, Stethoscope, FileHeart, Shield, MessageSquare, Pill, AlertTriangle, HandCoins, Trash2, RefreshCcw, Send } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 
 function SubmitTableButton() {
@@ -193,9 +196,19 @@ function SubmitDeletePreAuthRequestTableButton() {
     );
 }
 
+function SubmitEmailButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending} className="w-full">
+             <Send className="mr-2 h-4 w-4" />
+            {pending ? "Sending..." : "Send Email"}
+        </Button>
+    );
+}
+
 
 export default function ImportPage() {
-    const { role } = useAuth();
+    const { user, role } = useAuth();
     const [createTableState, createTableAction] = useActionState(handleCreateTable, { message: "", type: undefined });
     const [createRelationshipTableState, createRelationshipTableAction] = useActionState(handleCreateRelationshipTables, { message: "", type: undefined });
     const [createHospitalTableState, createHospitalTableAction] = useActionState(handleCreateHospitalTable, { message: "", type: undefined });
@@ -214,6 +227,7 @@ export default function ImportPage() {
     const [createClaimsTableState, createClaimsTableAction] = useActionState(handleCreateClaimsTable, { message: "", type: undefined });
     const [deleteClaimsTableState, deleteClaimsTableAction] = useActionState(handleDeleteClaimsTable, { message: "", type: undefined });
     const [deletePreAuthTableState, deletePreAuthTableAction] = useActionState(handleDeletePreAuthRequestTable, { message: "", type: undefined });
+    const [sendEmailState, sendEmailAction] = useActionState(handleSendEmail, { message: "", type: undefined });
 
 
 
@@ -248,6 +262,7 @@ export default function ImportPage() {
     useToastEffect(createClaimsTableState, "Database Action");
     useToastEffect(deleteClaimsTableState, "Database Action");
     useToastEffect(deletePreAuthTableState, "Database Action");
+    useToastEffect(sendEmailState, "Email Service");
 
     
 
@@ -328,6 +343,39 @@ export default function ImportPage() {
                     </form>
                  </CardContent>
             </Card>
+
+            {role === 'Company Admin' && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Send Email</CardTitle>
+                        <CardDescription>Compose and send an email notification.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <form action={sendEmailAction} className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="from">From</Label>
+                                    <Input id="from" name="from" type="email" value={user?.email ?? ''} readOnly />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="to">To</Label>
+                                    <Input id="to" name="to" type="email" placeholder="recipient@example.com" required />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="subject">Subject</Label>
+                                <Input id="subject" name="subject" placeholder="Email subject" required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="body">Message</Label>
+                                <Textarea id="body" name="body" placeholder="Type your message here." rows={6} required />
+                            </div>
+                            {sendEmailState.type === 'error' && <p className="text-sm text-destructive">{sendEmailState.message}</p>}
+                            <SubmitEmailButton />
+                        </form>
+                    </CardContent>
+                </Card>
+            )}
         </div>
     );
 }

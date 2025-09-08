@@ -5,6 +5,61 @@
 import * as XLSX from 'xlsx';
 import { getDbPool, sql } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
+import nodemailer from "nodemailer";
+
+async function sendEmail(requestData: { from: string, to?: string | null, subject?: string | null, html?: string | null }) {
+    const { 
+        MAILTRAP_HOST, 
+        MAILTRAP_PORT, 
+        MAILTRAP_USER, 
+        MAILTRAP_PASS 
+    } = process.env;
+
+    if (!MAILTRAP_HOST || !MAILTRAP_PORT || !MAILTRAP_USER || !MAILTRAP_PASS) {
+        console.error("Mailtrap environment variables are not set.");
+        throw new Error("Email service is not configured. Please check server environment variables.");
+    }
+    
+    try {
+        const transporter = nodemailer.createTransport({
+            host: MAILTRAP_HOST,
+            port: Number(MAILTRAP_PORT),
+            auth: {
+              user: MAILTRAP_USER,
+              pass: MAILTRAP_PASS
+            }
+        });
+
+        await transporter.sendMail({
+            from: requestData.from,
+            to: requestData.to || '',
+            subject: requestData.subject || 'No Subject',
+            html: requestData.html || '<p>No content provided.</p>',
+        });
+    } catch (error) {
+        console.error("Failed to send email:", error);
+        throw new Error("Failed to send email. Please check credentials and network.");
+    }
+}
+
+export async function handleSendEmail(prevState: { message: string, type?: string }, formData: FormData) {
+  const to = formData.get("to") as string;
+  const from = formData.get("from") as string;
+  const subject = formData.get("subject") as string;
+  const body = formData.get("body") as string;
+
+  if (!to || !from || !subject || !body) {
+    return { message: "All email fields are required.", type: 'error' };
+  }
+
+  try {
+    await sendEmail({ to, from, subject, html: body });
+    return { message: "Email sent successfully!", type: "success" };
+  } catch (error) {
+    const err = error as Error;
+    return { message: err.message, type: "error" };
+  }
+}
 
 export async function handleCreateTable(prevState: { message: string, type?: string }, formData: FormData) {
   try {
