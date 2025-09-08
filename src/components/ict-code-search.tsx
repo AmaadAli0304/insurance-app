@@ -97,7 +97,7 @@ export function IctCodeSearch({ name, defaultValue = "", required = false }: Ict
           <ul>
             {results.map((code) => (
               <li
-                key={code.shortcode}
+                key={`${code.shortcode}-${code.description}`}
                 className="p-2 hover:bg-accent cursor-pointer"
                 onMouseDown={() => handleSelect(code)}
               >
