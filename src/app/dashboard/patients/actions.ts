@@ -84,6 +84,7 @@ const basePatientObjectSchema = z.object({
   // Hospital & TPA
   tpa_id: z.coerce.number().optional().nullable(),
   hospital_id: z.string().optional().nullable(),
+  treat_doc_name: z.string().optional().nullable(),
   treat_doc_number: z.string().optional().nullable(),
   treat_doc_qualification: z.string().optional().nullable(),
   treat_doc_reg_no: z.string().optional().nullable(),
@@ -145,7 +146,7 @@ const basePatientObjectSchema = z.object({
 
   // H. Declarations & Attachments
   chiefComplaints: z.string().optional().nullable(),
-}).omit({ age: true });
+});
 
 const patientAddFormSchema = basePatientObjectSchema;
 
@@ -191,7 +192,7 @@ export async function getPatients(hospitalId?: string | null): Promise<Patient[]
         SELECT p.id, p.first_name, p.last_name, p.photo, p.email_address, p.phone_number as phoneNumber, a.policy_number as policyNumber, co.name as companyName
         FROM patients p
         LEFT JOIN admissions a ON p.id = a.patient_id
-        LEFT JOIN companies co ON a.insurance_company = c.id
+        LEFT JOIN companies co ON a.insurance_company = co.id
         ${whereClause}
       `);
       
