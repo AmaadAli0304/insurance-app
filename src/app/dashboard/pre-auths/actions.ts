@@ -116,7 +116,7 @@ const saveDraftSchema = preAuthSchema.extend({
     status: z.string().optional().default('Draft'),
 });
 
-async function sendPreAuthEmail(requestData: { fromName: string, fromEmail: string, to?: string | null, subject?: string | null, html?: string | null }) {
+async function sendPreAuthEmail(requestData: { fromName: string, fromEmail: string, to: string, subject: string, html: string }) {
     const { 
         MAILTRAP_HOST, 
         MAILTRAP_PORT, 
@@ -141,9 +141,9 @@ async function sendPreAuthEmail(requestData: { fromName: string, fromEmail: stri
 
         await transporter.sendMail({
             from: `"${requestData.fromName}" <${requestData.fromEmail}>`,
-            to: requestData.to || '',
-            subject: requestData.subject || 'No Subject',
-            html: requestData.html || '<p>No content provided.</p>',
+            to: requestData.to,
+            subject: requestData.subject,
+            html: requestData.html,
         });
     } catch (error) {
         console.error("Failed to send email:", error);
@@ -158,7 +158,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
   formEntries.attachments = formData.getAll('attachments');
   
   const data = formEntries;
-  const { to, subject, details, requestType, patientId, totalExpectedCost, doctor_id, claim_id, userId, hospitalId } = data as Record<string, any>;
+  const { subject, details, requestType, patientId, totalExpectedCost, doctor_id, claim_id, userId, hospitalId } = data as Record<string, any>;
 
   if (!patientId) {
     return { message: 'Please select a patient before saving.', type: 'error' };
@@ -168,30 +168,41 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
   try {
     const pool = await getDbPool();
     
-    // Fetch hospital details to get the fromEmail
-    const hospitalDetailsResult = await pool.request().input('hospitalId', sql.NVarChar, hospitalId).query('SELECT name, email FROM hospitals WHERE id = @hospitalId');
-    const hospitalName = hospitalDetailsResult.recordset[0]?.name;
-    const fromEmail = hospitalDetailsResult.recordset[0]?.email;
+    // Fetch hospital and TPA details in one go
+    const detailsRequest = await pool.request()
+      .input('hospitalId', sql.NVarChar, hospitalId)
+      .input('patientId', sql.Int, patientId)
+      .query(`
+        SELECT 
+          h.name as hospitalName, 
+          h.email as hospitalEmail,
+          t.email as tpaEmail,
+          a.tpa_id as tpaId,
+          a.insurance_company as companyId
+        FROM hospitals h
+        CROSS JOIN (SELECT TOP 1 tpa_id, insurance_company FROM admissions WHERE patient_id = @patientId ORDER BY id DESC) a
+        LEFT JOIN tpas t ON a.tpa_id = t.id
+        WHERE h.id = @hospitalId
+      `);
       
+    if (detailsRequest.recordset.length === 0) {
+        throw new Error("Could not find hospital or patient admission details.");
+    }
+    
+    const { hospitalName, hospitalEmail, tpaEmail, tpaId, companyId } = detailsRequest.recordset[0];
+    const fromEmail = hospitalEmail;
+
     if (shouldSendEmail) {
-        await sendPreAuthEmail({ fromName: hospitalName, fromEmail: fromEmail, to, subject, html: details });
+        if (!tpaEmail || !fromEmail || !subject || !details) {
+             throw new Error("Missing required email fields to send the email.");
+        }
+        await sendPreAuthEmail({ fromName: hospitalName, fromEmail, to: tpaEmail, subject, html: details });
     }
 
     transaction = new sql.Transaction(pool);
     await transaction.begin();
     const now = new Date();
 
-     // Fetch original patient admission details to get IDs (like company_id, tpa_id)
-    const patientIdsRequest = new sql.Request(transaction);
-    const patientIdsResult = await patientIdsRequest
-      .input('patient_id', sql.Int, patientId)
-      .query(`SELECT TOP 1 insurance_company, tpa_id FROM admissions WHERE patient_id = @patient_id ORDER BY id DESC`);
-
-    if (patientIdsResult.recordset.length === 0) {
-      throw new Error("Could not find admission details for the selected patient.");
-    }
-    const originalPatientRecord = patientIdsResult.recordset[0];
-    
     const preAuthInsertRequest = new sql.Request(transaction);
     const preAuthRequestResult = await preAuthInsertRequest
         .input('created_at', sql.DateTime, now)
@@ -215,7 +226,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
         .input('relationship_policyholder', sql.NVarChar, data.relationship_policyholder)
         .input('policy_number', sql.NVarChar, data.policy_number)
         .input('insured_card_number', sql.NVarChar, data.insured_card_number)
-        .input('company_id', sql.NVarChar, originalPatientRecord.insurance_company)
+        .input('company_id', sql.NVarChar, companyId)
         .input('policy_start_date', sql.Date, data.policy_start_date ? new Date(data.policy_start_date as string) : null)
         .input('policy_end_date', sql.Date, data.policy_end_date ? new Date(data.policy_end_date as string) : null)
         .input('sum_insured', sql.Decimal(18, 2), data.sumInsured ? Number(data.sumInsured) : null)
@@ -227,7 +238,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
         .input('family_doctor_phone', sql.NVarChar, data.family_doctor_phone)
         .input('payer_email', sql.NVarChar, data.payer_email)
         .input('payer_phone', sql.NVarChar, data.payer_phone)
-        .input('tpa_id', sql.Int, originalPatientRecord.tpa_id)
+        .input('tpa_id', sql.Int, tpaId)
         .input('hospital_id', sql.NVarChar, data.hospitalId)
         .input('treat_doc_name', sql.NVarChar, data.treat_doc_name)
         .input('treat_doc_number', sql.NVarChar, data.treat_doc_number)
@@ -309,7 +320,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
     await chatInsertRequest
         .input('preauth_id', sql.Int, preAuthId)
         .input('from_email', sql.NVarChar, fromEmail)
-        .input('to_email', sql.NVarChar, to)
+        .input('to_email', sql.NVarChar, tpaEmail)
         .input('subject', sql.NVarChar, subject)
         .input('body', sql.NVarChar, details)
         .input('request_type', sql.NVarChar, requestType)
@@ -325,7 +336,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
         .input('created_by', sql.NVarChar, userId)
         .input('amount', sql.Decimal(18, 2), totalExpectedCost ? Number(totalExpectedCost) : null)
         .input('hospital_id', sql.NVarChar, data.hospitalId)
-        .input('tpa_id', sql.Int, originalPatientRecord.tpa_id)
+        .input('tpa_id', sql.Int, tpaId)
         .input('created_at', sql.DateTime, now)
         .input('updated_at', sql.DateTime, now)
         .query('INSERT INTO claims (Patient_id, Patient_name, admission_id, status, created_by, amount, hospital_id, tpa_id, created_at, updated_at) VALUES (@Patient_id, @Patient_name, @admission_id, @status, @created_by, @amount, @hospital_id, @tpa_id, @created_at, @updated_at)');
@@ -488,10 +499,6 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     const subject = formData.get('subject') as string;
     const details = formData.get('details') as string;
 
-    if (!id || !status) {
-        return { message: 'Missing required fields for update.', type: 'error' };
-    }
-
     const statusesThatSendEmail = ['Query Answered', 'Enhancement Request', 'Final Discharge sent'];
     const statusesThatLogTpaResponse = ['Query Raised', 'Enhanced Amount', 'Final Amount Sanctioned'];
     
@@ -506,7 +513,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         const preAuthDetailsResult = await getPreAuthDetailsRequest
             .input('id', sql.Int, Number(id))
             .query(`
-                SELECT pr.*, t.email as tpaEmail, h.email as hospitalEmail
+                SELECT pr.*, t.email as tpaEmail, h.email as hospitalEmail, h.name as hospitalName
                 FROM preauth_request pr
                 LEFT JOIN tpas t ON pr.tpa_id = t.id
                 LEFT JOIN hospitals h ON pr.hospital_id = h.id
@@ -569,7 +576,10 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         const shouldSendEmail = statusesThatSendEmail.includes(status);
         const shouldLogTpaResponse = statusesThatLogTpaResponse.includes(status);
         
-        if (shouldSendEmail && from && to && subject && details) {
+        if (shouldSendEmail) {
+            if (!from || !to || !subject || !details) {
+                return { message: "Missing required fields for sending email.", type: 'error' };
+            }
             await sendPreAuthEmail({ fromName: preAuthDetails.hospitalName, fromEmail: from, to, subject, html: details });
             const chatInsertRequest = new sql.Request(transaction);
             await chatInsertRequest
