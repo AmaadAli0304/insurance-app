@@ -80,7 +80,7 @@ export function ClaimTimeline({ claims, patientName }: ClaimTimelineProps) {
                                         {claim.reason || statusDetails.description} on {format(new Date(claim.updated_at), 'dd MMM yyyy, p')}
                                     </p>
                                     {claim.paidAmount && (
-                                        <p className="text-sm text-muted-foreground mt-1">Approved INR {claim.paidAmount.toLocaleString()} on {format(new Date(claim.updated_at), 'dd MMM')}</p>
+                                        <p className="text-sm text-muted-foreground mt-1">Approved INR {claim.paidAmount.toLocaleString()} on {format(new Date(claim.updated_at), 'dd MMM yyyy, p')}</p>
                                     )}
                                 </div>
                             </div>
