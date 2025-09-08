@@ -116,7 +116,7 @@ const saveDraftSchema = preAuthSchema.extend({
     status: z.string().optional().default('Draft'),
 });
 
-async function sendPreAuthEmail(requestData: { from?: string | null, to?: string | null, subject?: string | null, html?: string | null }) {
+async function sendPreAuthEmail(requestData: { fromName: string, fromEmail: string, to?: string | null, subject?: string | null, html?: string | null }) {
     const { 
         MAILTRAP_HOST, 
         MAILTRAP_PORT, 
@@ -140,7 +140,7 @@ async function sendPreAuthEmail(requestData: { from?: string | null, to?: string
         });
 
         await transporter.sendMail({
-            from: `"${requestData.from || 'OneStop Portal'}" <donotreply@onestop.com>`,
+            from: `"${requestData.fromName}" <${requestData.fromEmail}>`,
             to: requestData.to || '',
             subject: requestData.subject || 'No Subject',
             html: requestData.html || '<p>No content provided.</p>',
@@ -169,11 +169,12 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
     const pool = await getDbPool();
     
     // Fetch hospital details to get the fromEmail
-    const hospitalDetailsResult = await pool.request().input('hospitalId', sql.NVarChar, hospitalId).query('SELECT email FROM hospitals WHERE id = @hospitalId');
+    const hospitalDetailsResult = await pool.request().input('hospitalId', sql.NVarChar, hospitalId).query('SELECT name, email FROM hospitals WHERE id = @hospitalId');
+    const hospitalName = hospitalDetailsResult.recordset[0]?.name;
     const fromEmail = hospitalDetailsResult.recordset[0]?.email;
       
     if (shouldSendEmail) {
-        await sendPreAuthEmail({ from: fromEmail, to, subject, html: details });
+        await sendPreAuthEmail({ fromName: hospitalName, fromEmail: fromEmail, to, subject, html: details });
     }
 
     transaction = new sql.Transaction(pool);
@@ -569,7 +570,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         const shouldLogTpaResponse = statusesThatLogTpaResponse.includes(status);
         
         if (shouldSendEmail && from && to && subject && details) {
-            await sendPreAuthEmail({ from, to, subject, html: details });
+            await sendPreAuthEmail({ fromName: preAuthDetails.hospitalName, fromEmail: from, to, subject, html: details });
             const chatInsertRequest = new sql.Request(transaction);
             await chatInsertRequest
                 .input('preauth_id', sql.Int, Number(id))
