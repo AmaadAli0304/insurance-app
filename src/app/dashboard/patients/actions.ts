@@ -288,6 +288,19 @@ export async function getPatientById(id: string): Promise<Patient | null> {
     }
     const record = result.recordset[0];
     
+    // Get chief complaints
+    const complaintsResult = await pool.request()
+        .input('patient_id', sql.Int, Number(id))
+        .query('SELECT * FROM chief_complaints WHERE patient_id = @patient_id');
+
+    const complaints = complaintsResult.recordset.map(c => ({
+        id: c.id,
+        name: c.complaint_name,
+        selected: true,
+        durationValue: c.duration_value,
+        durationUnit: c.duration_unit
+    }));
+    
     const patientData: Patient = {
         id: record.patient_db_id.toString(),
         admission_db_id: record.admission_db_id,
@@ -389,6 +402,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
         companyName: record.companyName,
         tpaName: record.tpaName,
         tpaEmail: record.tpaEmail,
+        complaints: complaints,
     };
 
     const dateFields: (keyof Patient)[] = ['dateOfBirth', 'policyStartDate', 'policyEndDate', 'firstConsultationDate', 'injuryDate', 'expectedDeliveryDate', 'admissionDate'];
@@ -524,7 +538,7 @@ const createDocumentJson = (url: string | undefined | null, name: string | undef
     return null;
 };
 
-async function handleSaveChiefComplaints(transaction: sql.Transaction, patientId: number, complaintsJson: string) {
+async function handleSaveChiefComplaints(transaction: sql.Transaction, patientId: number, complaintsJson?: string | null) {
     if (!complaintsJson) return;
 
     const complaints = JSON.parse(complaintsJson);
@@ -950,7 +964,3 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
     }
 }
     
-
-    
-
-

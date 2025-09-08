@@ -1,5 +1,7 @@
 
 
+import { Complaint } from "@/components/chief-complaint-form";
+
 export type UserRole = 'Admin' | 'Hospital Staff' | 'Company Admin';
 
 export interface User {
@@ -167,16 +169,7 @@ export interface Patient {
   totalExpectedCost?: number;
 
   // Medical History
-  diabetesSince?: string;
-  hypertensionSince?: string;
-  heartDiseaseSince?: string;
-  hyperlipidemiaSince?: string;
-  osteoarthritisSince?: string;
-  asthmaCopdSince?: string;
-  cancerSince?: string;
-  alcoholDrugAbuseSince?: string;
-  hivSince?: string;
-  otherChronicAilment?: string;
+  complaints?: Complaint[];
 
   // Declarations & Attachments
   patientDeclarationName?: string;
@@ -415,5 +408,3 @@ export interface Staff extends Omit<User, 'uid' | 'role' | 'companyId'> {
   hospitalName?: string;
   assignedHospitalsDetails?: { id: string | number, name: string }[];
 }
-
-    
