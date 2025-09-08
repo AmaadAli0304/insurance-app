@@ -146,7 +146,7 @@ const basePatientObjectSchema = z.object({
 
   // H. Declarations & Attachments
   chiefComplaints: z.string().optional().nullable(),
-});
+}).omit({ age: true });
 
 const patientAddFormSchema = basePatientObjectSchema;
 
@@ -501,31 +501,6 @@ const createDocumentJson = (url: string | undefined | null, name: string | undef
     return null;
 };
 
-const buildObjectFromFormData = (formData: FormData) => {
-    const data: { [key: string]: any } = {};
-    
-    formData.forEach((value, key) => {
-      if (!key.endsWith('-file')) {
-        if (key === 'attachments') {
-          if (!data[key]) {
-            data[key] = [];
-          }
-          data[key].push(value);
-        } else {
-          data[key] = value === '' ? null : value;
-        }
-      }
-    });
-
-    if (!data.attachments) {
-        data.attachments = [];
-    } else if (typeof data.attachments === 'string') {
-        data.attachments = [data.attachments];
-    }
-
-    return data;
-};
-
 async function handleSaveChiefComplaints(transaction: sql.Transaction, patientId: number, complaintsJson: string) {
     if (!complaintsJson) return;
 
@@ -555,7 +530,7 @@ async function handleSaveChiefComplaints(transaction: sql.Transaction, patientId
 
 
 export async function handleAddPatient(prevState: { message: string, type?: string }, formData: FormData) {
-  const formObject = buildObjectFromFormData(formData);
+  const formObject = Object.fromEntries(formData.entries());
   const validatedFields = patientAddFormSchema.safeParse(formObject);
   
   if (!validatedFields.success) {
@@ -743,7 +718,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
 }
 
 export async function handleUpdatePatient(prevState: { message: string, type?: string }, formData: FormData) {
-    const formObject = buildObjectFromFormData(formData);
+    const formObject = Object.fromEntries(formData.entries());
     const validatedFields = patientUpdateFormSchema.safeParse(formObject);
 
     if (!validatedFields.success) {
