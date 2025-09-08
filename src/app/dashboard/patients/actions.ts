@@ -27,8 +27,6 @@ const basePatientObjectSchema = z.object({
   phone_number: z.string().optional().nullable(),
   alternative_number: z.string().optional().nullable(),
   gender: z.string().optional().nullable(),
-  // age is now a display-only field and removed from backend validation
-  // age: z.coerce.number().optional().nullable(), 
   birth_date: z.string().optional().nullable(),
   address: z.string().optional().nullable(),
   occupation: z.string().optional().nullable(),
@@ -39,7 +37,7 @@ const basePatientObjectSchema = z.object({
   photoUrl: z.string().optional().nullable(),
   photoName: z.string().optional().nullable(),
 
-  // KYC Documents - now expect pairs of url/name
+  // KYC Documents
   adhaar_path_url: z.string().optional().nullable(),
   adhaar_path_name: z.string().optional().nullable(),
   pan_path_url: z.string().optional().nullable(),
@@ -65,7 +63,7 @@ const basePatientObjectSchema = z.object({
   ot_anesthesia_notes_path_url: z.string().optional().nullable(),
   ot_anesthesia_notes_path_name: z.string().optional().nullable(),
 
-  // Insurance Details
+  // Admission Details
   admission_id: z.string().optional().nullable(),
   relationship_policyholder: z.string().optional().nullable(),
   policy_number: z.string().optional().nullable(),
@@ -149,23 +147,11 @@ const basePatientObjectSchema = z.object({
   chiefComplaints: z.string().optional().nullable(),
 });
 
-const phoneNumberRefinement = (schema: typeof basePatientObjectSchema) => {
-    return schema.refine(data => {
-        if (data.phone_number?.startsWith('+91')) {
-            const numberPart = data.phone_number.substring(3);
-            return /^\d{10}$/.test(numberPart);
-        }
-        return true;
-    }, {
-        message: "Indian phone number must be 10 digits.",
-        path: ["phone_number"],
-    });
-};
+const patientAddFormSchema = basePatientObjectSchema;
 
-const addPatientFormSchema = phoneNumberRefinement(basePatientObjectSchema);
-
-const updatePatientFormSchema = phoneNumberRefinement(basePatientObjectSchema.extend({
+const patientUpdateFormSchema = basePatientObjectSchema.extend({
   id: z.string(), // Patient ID
+  admission_db_id: z.coerce.number().optional().nullable(), // Admission ID from DB
 }));
 
 
@@ -202,10 +188,10 @@ export async function getPatients(hospitalId?: string | null): Promise<Patient[]
     }
 
     const result = await request.query(`
-        SELECT p.id, p.first_name, p.last_name, p.photo, p.email_address, p.phone_number as phoneNumber, pr.policy_number as policyNumber, co.name as companyName
+        SELECT p.id, p.first_name, p.last_name, p.photo, p.email_address, p.phone_number as phoneNumber, a.policy_number as policyNumber, co.name as companyName
         FROM patients p
-        LEFT JOIN preauth_request pr ON p.id = pr.patient_id
-        LEFT JOIN companies co ON pr.company_id = co.id
+        LEFT JOIN admissions a ON p.id = a.patient_id
+        LEFT JOIN companies co ON a.insurance_company = co.id
         ${whereClause}
       `);
       
@@ -216,7 +202,6 @@ export async function getPatients(hospitalId?: string | null): Promise<Patient[]
                 const parsedPhoto = JSON.parse(record.photo);
                 photoUrl = parsedPhoto.url;
             } catch (e) {
-                 // Fallback for non-JSON string
                 if (typeof record.photo === 'string' && record.photo.startsWith('http')) {
                     photoUrl = record.photo;
                 }
@@ -224,9 +209,9 @@ export async function getPatients(hospitalId?: string | null): Promise<Patient[]
         }
         return {
             ...record,
-            id: record.id.toString(), // Ensure id is a string
+            id: record.id.toString(),
             fullName: `${record.first_name || ''} ${record.last_name || ''}`.trim(),
-            photo: photoUrl // only send url to client for table view
+            photo: photoUrl
         }
     }) as Patient[];
   } catch (error) {
@@ -235,7 +220,6 @@ export async function getPatients(hospitalId?: string | null): Promise<Patient[]
   }
 }
 
-// Helper to safely parse a JSON string
 const getDocumentData = (jsonString: string | null | undefined): { url: string; name: string } | null => {
     if (!jsonString) return null;
     try {
@@ -244,7 +228,6 @@ const getDocumentData = (jsonString: string | null | undefined): { url: string; 
             return { url: parsed.url, name: parsed.name || 'View Document' };
         }
     } catch (e) {
-        // Fallback for legacy plain URL strings
         if (typeof jsonString === 'string' && jsonString.startsWith('http')) {
             return { url: jsonString, name: 'View Document' };
         }
@@ -261,17 +244,18 @@ export async function getPatientById(id: string): Promise<Patient | null> {
        .query(`
         SELECT 
           p.*,
-          pr.*,
-          p.id,
+          a.*,
+          p.id as patient_db_id,
+          a.id as admission_db_id,
           p.first_name,
           p.last_name,
           c.name as companyName,
           t.name as tpaName,
           t.email as tpaEmail
         FROM patients p
-        LEFT JOIN preauth_request pr ON p.id = pr.patient_id
-        LEFT JOIN companies c ON pr.company_id = c.id
-        LEFT JOIN tpas t ON pr.tpa_id = t.id
+        LEFT JOIN admissions a ON p.id = a.patient_id
+        LEFT JOIN companies c ON a.insurance_company = c.id
+        LEFT JOIN tpas t ON a.tpa_id = t.id
         WHERE p.id = @id
       `);
       
@@ -281,7 +265,8 @@ export async function getPatientById(id: string): Promise<Patient | null> {
     const record = result.recordset[0];
     
     const patientData: Patient = {
-        id: record.id.toString(),
+        id: record.patient_db_id.toString(),
+        admission_db_id: record.admission_db_id,
         fullName: `${record.first_name || ''} ${record.last_name || ''}`.trim(),
         firstName: record.first_name,
         lastName: record.last_name,
@@ -303,12 +288,12 @@ export async function getPatientById(id: string): Promise<Patient | null> {
         voter_id_path: getDocumentData(record.voter_id_path),
         driving_licence_path: getDocumentData(record.driving_licence_path),
         other_path: getDocumentData(record.other_path),
-        discharge_summary_path: getDocumentData(record.discharge_summary_path),
-        final_bill_path: getDocumentData(record.final_bill_path),
-        pharmacy_bill_path: getDocumentData(record.pharmacy_bill_path),
-        implant_bill_stickers_path: getDocumentData(record.implant_bill_stickers_path),
-        lab_bill_path: getDocumentData(record.lab_bill_path),
-        ot_anesthesia_notes_path: getDocumentData(record.ot_anesthesia_notes_path),
+        discharge_summary_path: getDocumentData(record.discharge_summary),
+        final_bill_path: getDocumentData(record.final_bill),
+        pharmacy_bill_path: getDocumentData(record.pharmacy_bill),
+        implant_bill_stickers_path: getDocumentData(record.implant_bill),
+        lab_bill_path: getDocumentData(record.lab_bill),
+        ot_anesthesia_notes_path: getDocumentData(record.ot_notes),
         admission_id: record.admission_id,
         relationship_policyholder: record.relationship_policyholder,
         policyNumber: record.policy_number,
@@ -382,8 +367,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
         tpaEmail: record.tpaEmail,
     };
 
-
-    const dateFields: (keyof Patient)[] = ['dateOfBirth', 'policyStartDate', 'policyEndDate', 'firstConsultationDate', 'injuryDate', 'expectedDeliveryDate', 'admissionDate', 'patientDeclarationDate', 'hospitalDeclarationDate'];
+    const dateFields: (keyof Patient)[] = ['dateOfBirth', 'policyStartDate', 'policyEndDate', 'firstConsultationDate', 'injuryDate', 'expectedDeliveryDate', 'admissionDate'];
     for (const field of dateFields) {
         if (patientData[field]) {
             // @ts-ignore
@@ -468,9 +452,9 @@ export async function getPatientsForPreAuth(hospitalId: string): Promise<{ id: s
     const result = await pool.request()
       .input('hospitalId', sql.NVarChar, hospitalId)
       .query(`
-        SELECT p.id, p.first_name + ' ' + p.last_name as fullName, pr.admission_id
+        SELECT p.id, p.first_name + ' ' + p.last_name as fullName, a.admission_id
         FROM patients p
-        LEFT JOIN preauth_request pr ON p.id = pr.patient_id
+        LEFT JOIN admissions a ON p.id = a.patient_id
         WHERE p.hospital_id = @hospitalId
       `);
     return result.recordset.map(r => ({...r, id: r.id.toString()}));
@@ -506,8 +490,6 @@ export async function getPresignedUrl(
     }
 }
 
-
-// Helper to create a JSON string from a URL and name
 const createDocumentJson = (url: string | undefined | null, name: string | undefined | null): string | null => {
     if (url && name) {
         return JSON.stringify({ url, name });
@@ -518,24 +500,22 @@ const createDocumentJson = (url: string | undefined | null, name: string | undef
     return null;
 };
 
-// Helper function to build the object from FormData
 const buildObjectFromFormData = (formData: FormData) => {
     const data: { [key: string]: any } = {};
     
     formData.forEach((value, key) => {
-      if (!key.endsWith('-file')) { // exclude raw file inputs
+      if (!key.endsWith('-file')) {
         if (key === 'attachments') {
           if (!data[key]) {
             data[key] = [];
           }
           data[key].push(value);
-        } else if (key !== 'age') { // Exclude age from the submitted data
+        } else {
           data[key] = value === '' ? null : value;
         }
       }
     });
 
-    // Ensure attachments is an array even if it's empty or has one item
     if (!data.attachments) {
         data.attachments = [];
     } else if (typeof data.attachments === 'string') {
@@ -551,13 +531,11 @@ async function handleSaveChiefComplaints(transaction: sql.Transaction, patientId
     const complaints = JSON.parse(complaintsJson);
     if (!Array.isArray(complaints) || complaints.length === 0) return;
     
-    // Clear existing complaints for the patient
     const deleteRequest = new sql.Request(transaction);
     await deleteRequest
       .input('patient_id', sql.Int, patientId)
       .query('DELETE FROM chief_complaints WHERE patient_id = @patient_id');
 
-    // Insert new complaints
     for (const complaint of complaints) {
         if(complaint.selected && complaint.name){
             const insertRequest = new sql.Request(transaction);
@@ -577,7 +555,7 @@ async function handleSaveChiefComplaints(transaction: sql.Transaction, patientId
 
 export async function handleAddPatient(prevState: { message: string, type?: string }, formData: FormData) {
   const formObject = buildObjectFromFormData(formData);
-  const validatedFields = addPatientFormSchema.safeParse(formObject);
+  const validatedFields = patientAddFormSchema.safeParse(formObject);
   
   if (!validatedFields.success) {
         const errorMessages = validatedFields.error.errors.map(e => `${e.path.join('.')} - ${e.message}`).join(', ');
@@ -599,6 +577,12 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
     const voterIdJson = createDocumentJson(data.voter_id_path_url, data.voter_id_path_name);
     const drivingLicenceJson = createDocumentJson(data.driving_licence_path_url, data.driving_licence_path_name);
     const otherJson = createDocumentJson(data.other_path_url, data.other_path_name);
+    const dischargeSummaryJson = createDocumentJson(data.discharge_summary_path_url, data.discharge_summary_path_name);
+    const finalBillJson = createDocumentJson(data.final_bill_path_url, data.final_bill_path_name);
+    const pharmacyBillJson = createDocumentJson(data.pharmacy_bill_path_url, data.pharmacy_bill_path_name);
+    const implantBillJson = createDocumentJson(data.implant_bill_stickers_path_url, data.implant_bill_stickers_path_name);
+    const labBillJson = createDocumentJson(data.lab_bill_path_url, data.lab_bill_path_name);
+    const otNotesJson = createDocumentJson(data.ot_anesthesia_notes_path_url, data.ot_anesthesia_notes_path_name);
     
     // Insert into patients table
     const patientRequest = new sql.Request(transaction);
@@ -623,10 +607,24 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('voter_id_path', sql.NVarChar, voterIdJson)
       .input('driving_licence_path', sql.NVarChar, drivingLicenceJson)
       .input('other_path', sql.NVarChar, otherJson)
+      .input('discharge_summary', sql.NVarChar, dischargeSummaryJson)
+      .input('final_bill', sql.NVarChar, finalBillJson)
+      .input('pharmacy_bill', sql.NVarChar, pharmacyBillJson)
+      .input('implant_bill', sql.NVarChar, implantBillJson)
+      .input('lab_bill', sql.NVarChar, labBillJson)
+      .input('ot_notes', sql.NVarChar, otNotesJson)
       .query(`
-        INSERT INTO patients (first_name, last_name, email_address, phone_number, alternative_number, gender, birth_date, address, occupation, employee_id, abha_id, health_id, hospital_id, photo, adhaar_path, pan_path, passport_path, voter_id_path, driving_licence_path, other_path)
+        INSERT INTO patients (
+          first_name, last_name, email_address, phone_number, alternative_number, gender, birth_date, address, occupation, 
+          employee_id, abha_id, health_id, hospital_id, photo, adhaar_path, pan_path, passport_path, voter_id_path, 
+          driving_licence_path, other_path, discharge_summary, final_bill, pharmacy_bill, implant_bill, lab_bill, ot_notes
+        )
         OUTPUT INSERTED.id
-        VALUES (@first_name, @last_name, @email_address, @phone_number, @alternative_number, @gender, @birth_date, @address, @occupation, @employee_id, @abha_id, @health_id, @hospital_id, @photo, @adhaar_path, @pan_path, @passport_path, @voter_id_path, @driving_licence_path, @other_path)
+        VALUES (
+          @first_name, @last_name, @email_address, @phone_number, @alternative_number, @gender, @birth_date, @address, @occupation,
+          @employee_id, @abha_id, @health_id, @hospital_id, @photo, @adhaar_path, @pan_path, @passport_path, @voter_id_path, 
+          @driving_licence_path, @other_path, @discharge_summary, @final_bill, @pharmacy_bill, @implant_bill, @lab_bill, @ot_notes
+        )
       `);
     
     const patientId = patientResult.recordset[0]?.id;
@@ -634,6 +632,99 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
     if (!patientId || typeof patientId !== 'number') {
         throw new Error("Failed to create patient record or retrieve ID.");
     }
+      
+    // Insert into admissions table
+    const admissionRequest = new sql.Request(transaction);
+    await admissionRequest
+      .input('patient_id', sql.Int, patientId)
+      .input('doctor_id', sql.Int, data.doctor_id)
+      .input('admission_id', sql.NVarChar, data.admission_id)
+      .input('relationship_policyholder', sql.NVarChar, data.relationship_policyholder)
+      .input('policy_number', sql.NVarChar, data.policy_number)
+      .input('insured_card_number', sql.NVarChar, data.insured_card_number)
+      .input('insurance_company', sql.NVarChar, data.company_id)
+      .input('policy_start_date', sql.Date, data.policy_start_date ? new Date(data.policy_start_date) : null)
+      .input('policy_end_date', sql.Date, data.policy_end_date ? new Date(data.policy_end_date) : null)
+      .input('sum_insured', sql.Decimal(18, 2), data.sumInsured)
+      .input('sum_utilized', sql.Decimal(18, 2), data.sumUtilized)
+      .input('total_sum', sql.Decimal(18, 2), data.totalSum)
+      .input('corporate_policy_number', sql.NVarChar, data.corporate_policy_number)
+      .input('other_policy_name', sql.NVarChar, data.other_policy_name)
+      .input('family_doctor_name', sql.NVarChar, data.family_doctor_name)
+      .input('family_doctor_phone', sql.NVarChar, data.family_doctor_phone)
+      .input('payer_email', sql.NVarChar, data.payer_email)
+      .input('payer_phone', sql.NVarChar, data.payer_phone)
+      .input('tpa_id', sql.Int, data.tpa_id)
+      .input('hospital_id', sql.NVarChar, data.hospital_id)
+      .input('treat_doc_name', sql.NVarChar, data.treat_doc_name)
+      .input('treat_doc_number', sql.NVarChar, data.treat_doc_number)
+      .input('treat_doc_qualification', sql.NVarChar, data.treat_doc_qualification)
+      .input('treat_doc_reg_no', sql.NVarChar, data.treat_doc_reg_no)
+      .input('natureOfIllness', sql.NVarChar, data.natureOfIllness)
+      .input('clinicalFindings', sql.NVarChar, data.clinicalFindings)
+      .input('ailmentDuration', sql.Int, data.ailmentDuration)
+      .input('firstConsultationDate', sql.Date, data.firstConsultationDate ? new Date(data.firstConsultationDate) : null)
+      .input('pastHistory', sql.NVarChar, data.pastHistory)
+      .input('provisionalDiagnosis', sql.NVarChar, data.provisionalDiagnosis)
+      .input('icd10Codes', sql.NVarChar, data.icd10Codes)
+      .input('treatmentMedical', sql.NVarChar, data.treatmentMedical)
+      .input('treatmentSurgical', sql.NVarChar, data.treatmentSurgical)
+      .input('treatmentIntensiveCare', sql.NVarChar, data.treatmentIntensiveCare)
+      .input('treatmentInvestigation', sql.NVarChar, data.treatmentInvestigation)
+      .input('treatmentNonAllopathic', sql.NVarChar, data.treatmentNonAllopathic)
+      .input('investigationDetails', sql.NVarChar, data.investigationDetails)
+      .input('drugRoute', sql.NVarChar, data.drugRoute)
+      .input('procedureName', sql.NVarChar, data.procedureName)
+      .input('icd10PcsCodes', sql.NVarChar, data.icd10PcsCodes)
+      .input('otherTreatments', sql.NVarChar, data.otherTreatments)
+      .input('isInjury', sql.Bit, data.isInjury === 'on' ? 1 : 0)
+      .input('injuryCause', sql.NVarChar, data.injuryCause)
+      .input('isRta', sql.Bit, data.isRta === 'on' ? 1 : 0)
+      .input('injuryDate', sql.Date, data.injuryDate ? new Date(data.injuryDate) : null)
+      .input('isReportedToPolice', sql.Bit, data.isReportedToPolice === 'on' ? 1 : 0)
+      .input('firNumber', sql.NVarChar, data.firNumber)
+      .input('isAlcoholSuspected', sql.Bit, data.isAlcoholSuspected === 'on' ? 1 : 0)
+      .input('isToxicologyConducted', sql.Bit, data.isToxicologyConducted === 'on' ? 1 : 0)
+      .input('isMaternity', sql.Bit, data.isMaternity === 'on' ? 1 : 0)
+      .input('g', sql.Int, data.g)
+      .input('p', sql.Int, data.p)
+      .input('l', sql.Int, data.l)
+      .input('a', sql.Int, data.a)
+      .input('expectedDeliveryDate', sql.Date, data.expectedDeliveryDate ? new Date(data.expectedDeliveryDate) : null)
+      .input('admissionDate', sql.Date, data.admissionDate ? new Date(data.admissionDate) : null)
+      .input('admissionTime', sql.NVarChar, data.admissionTime)
+      .input('admissionType', sql.NVarChar, data.admissionType)
+      .input('expectedStay', sql.Int, data.expectedStay)
+      .input('expectedIcuStay', sql.Int, data.expectedIcuStay)
+      .input('roomCategory', sql.NVarChar, data.roomCategory)
+      .input('roomNursingDietCost', sql.Decimal(18, 2), data.roomNursingDietCost)
+      .input('investigationCost', sql.Decimal(18, 2), data.investigationCost)
+      .input('icuCost', sql.Decimal(18, 2), data.icuCost)
+      .input('otCost', sql.Decimal(18, 2), data.otCost)
+      .input('professionalFees', sql.Decimal(18, 2), data.professionalFees)
+      .input('medicineCost', sql.Decimal(18, 2), data.medicineCost)
+      .input('otherHospitalExpenses', sql.Decimal(18, 2), data.otherHospitalExpenses)
+      .input('packageCharges', sql.Decimal(18, 2), data.packageCharges)
+      .input('totalExpectedCost', sql.Decimal(18, 2), data.totalExpectedCost)
+      .query(`
+        INSERT INTO admissions (
+          patient_id, doctor_id, admission_id, relationship_policyholder, policy_number, insured_card_number, insurance_company, policy_start_date, policy_end_date, 
+          sum_insured, sum_utilized, total_sum, corporate_policy_number, other_policy_name, family_doctor_name, family_doctor_phone, payer_email, payer_phone, tpa_id, hospital_id,
+          treat_doc_name, treat_doc_number, treat_doc_qualification, treat_doc_reg_no, natureOfIllness, clinicalFindings, ailmentDuration, firstConsultationDate,
+          pastHistory, provisionalDiagnosis, icd10Codes, treatmentMedical, treatmentSurgical, treatmentIntensiveCare, treatmentInvestigation, treatmentNonAllopathic,
+          investigationDetails, drugRoute, procedureName, icd10PcsCodes, otherTreatments, isInjury, injuryCause, isRta, injuryDate, isReportedToPolice, firNumber,
+          isAlcoholSuspected, isToxicologyConducted, isMaternity, g, p, l, a, expectedDeliveryDate, admissionDate, admissionTime, admissionType, expectedStay,
+          expectedIcuStay, roomCategory, roomNursingDietCost, investigationCost, icuCost, otCost, professionalFees, medicineCost, otherHospitalExpenses, packageCharges, totalExpectedCost
+        ) VALUES (
+          @patient_id, @doctor_id, @admission_id, @relationship_policyholder, @policy_number, @insured_card_number, @insurance_company, @policy_start_date, @policy_end_date, 
+          @sum_insured, @sum_utilized, @total_sum, @corporate_policy_number, @other_policy_name, @family_doctor_name, @family_doctor_phone, @payer_email, @payer_phone, @tpa_id, @hospital_id,
+          @treat_doc_name, @treat_doc_number, @treat_doc_qualification, @treat_doc_reg_no, @natureOfIllness, @clinicalFindings, @ailmentDuration, @firstConsultationDate,
+          @pastHistory, @provisionalDiagnosis, @icd10Codes, @treatmentMedical, @treatmentSurgical, @treatmentIntensiveCare, @treatmentInvestigation, @treatmentNonAllopathic,
+          @investigationDetails, @drugRoute, @procedureName, @icd10PcsCodes, @otherTreatments, @isInjury, @injuryCause, @isRta, @injuryDate, @isReportedToPolice, @firNumber,
+          @isAlcoholSuspected, @isToxicologyConducted, @isMaternity, @g, @p, @l, @a, @expectedDeliveryDate, @admissionDate, @admissionTime, @admissionType, @expectedStay,
+          @expectedIcuStay, @roomCategory, @roomNursingDietCost, @investigationCost, @icuCost, @otCost, @professionalFees, @medicineCost, @otherHospitalExpenses, @packageCharges, @totalExpectedCost
+        )
+      `);
       
     await handleSaveChiefComplaints(transaction, patientId, data.chiefComplaints);
 
@@ -651,7 +742,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
 
 export async function handleUpdatePatient(prevState: { message: string, type?: string }, formData: FormData) {
     const formObject = buildObjectFromFormData(formData);
-    const validatedFields = updatePatientFormSchema.safeParse(formObject);
+    const validatedFields = patientUpdateFormSchema.safeParse(formObject);
 
     if (!validatedFields.success) {
         const errorMessages = validatedFields.error.errors.map(e => `${e.path.join('.')} - ${e.message}`).join(', ');
@@ -659,7 +750,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
     }
 
     const { data } = validatedFields;
-    const { id: patientId } = data;
+    const { id: patientId, admission_db_id } = data;
     let transaction;
 
     try {
@@ -667,7 +758,6 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
         transaction = new sql.Transaction(pool);
         await transaction.begin();
 
-        // 1. Update Patients Table
         const photoJson = createDocumentJson(data.photoUrl, data.photoName);
         const adhaarJson = createDocumentJson(data.adhaar_path_url, data.adhaar_path_name);
         const panJson = createDocumentJson(data.pan_path_url, data.pan_path_name);
@@ -705,12 +795,12 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
             .input('voter_id_path', sql.NVarChar, voterIdJson)
             .input('driving_licence_path', sql.NVarChar, drivingLicenceJson)
             .input('other_path', sql.NVarChar, otherJson)
-            .input('discharge_summary_path', sql.NVarChar, dischargeSummaryJson)
-            .input('final_bill_path', sql.NVarChar, finalBillJson)
-            .input('pharmacy_bill_path', sql.NVarChar, pharmacyBillJson)
-            .input('implant_bill_stickers_path', sql.NVarChar, implantBillJson)
-            .input('lab_bill_path', sql.NVarChar, labBillJson)
-            .input('ot_anesthesia_notes_path', sql.NVarChar, otNotesJson)
+            .input('discharge_summary', sql.NVarChar, dischargeSummaryJson)
+            .input('final_bill', sql.NVarChar, finalBillJson)
+            .input('pharmacy_bill', sql.NVarChar, pharmacyBillJson)
+            .input('implant_bill', sql.NVarChar, implantBillJson)
+            .input('lab_bill', sql.NVarChar, labBillJson)
+            .input('ot_notes', sql.NVarChar, otNotesJson)
             .query(`
                 UPDATE patients 
                 SET 
@@ -719,11 +809,30 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
                 employee_id = @employee_id, abha_id = @abha_id, health_id = @health_id, hospital_id = @hospital_id,
                 photo = @photo, adhaar_path = @adhaar_path, pan_path = @pan_path, passport_path = @passport_path, 
                 voter_id_path = @voter_id_path, driving_licence_path = @driving_licence_path, other_path = @other_path,
-                discharge_summary_path = @discharge_summary_path, final_bill_path = @final_bill_path, pharmacy_bill_path = @pharmacy_bill_path,
-                implant_bill_stickers_path = @implant_bill_stickers_path, lab_bill_path = @lab_bill_path, ot_anesthesia_notes_path = @ot_anesthesia_notes_path,
+                discharge_summary = @discharge_summary, final_bill = @final_bill, pharmacy_bill = @pharmacy_bill,
+                implant_bill = @implant_bill, lab_bill = @lab_bill, ot_notes = @ot_notes,
                 updated_at = GETDATE()
                 WHERE id = @id
             `);
+
+        // Update admissions table
+        if (admission_db_id) {
+          const admissionRequest = new sql.Request(transaction);
+          await admissionRequest
+              .input('id', sql.Int, admission_db_id)
+              .input('doctor_id', sql.Int, data.doctor_id)
+              .input('admission_id', sql.NVarChar, data.admission_id)
+              // ... add all other fields for admissions table update
+              .query(`
+                UPDATE admissions 
+                SET 
+                  doctor_id = @doctor_id,
+                  admission_id = @admission_id,
+                  -- etc for all other fields
+                  updated_at = GETDATE()
+                WHERE id = @id
+              `);
+        }
 
         await handleSaveChiefComplaints(transaction, Number(patientId), data.chiefComplaints);
 
@@ -740,7 +849,6 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
     revalidatePath(`/dashboard/patients/${patientId}/edit`);
     redirect('/dashboard/patients');
 }
-
 
 export async function handleDeletePatient(prevState: { message: string, type?: string }, formData: FormData) {
     const id = formData.get("id") as string;
@@ -760,8 +868,8 @@ export async function handleDeletePatient(prevState: { message: string, type?: s
 
         await new sql.Request(transaction)
           .input('patient_id', sql.Int, Number(id))
-          .query('DELETE FROM preauth_request WHERE patient_id = @patient_id');
-
+          .query('DELETE FROM admissions WHERE patient_id = @patient_id');
+        
         const result = await new sql.Request(transaction)
             .input('id', sql.Int, Number(id))
             .query('DELETE FROM patients WHERE id = @id');
@@ -840,9 +948,3 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
     }
 }
     
-
-    
-
-
-
-

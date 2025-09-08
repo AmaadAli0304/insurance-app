@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleUpdatePatient, getPatientEditPageData, getPresignedUrl, Doctor } from "../../../actions";
+import { handleUpdatePatient, getPatientEditPageData, getPresignedUrl, Doctor } from "../actions";
 import Link from "next/link";
 import { ArrowLeft, Upload, User as UserIcon, Loader2, Eye, File as FileIcon, XCircle } from "lucide-react";
 import { notFound, useParams, useRouter } from "next/navigation";
@@ -25,6 +25,8 @@ import { IctCodeSearch } from "@/components/ict-code-search";
 import { ChiefComplaintForm, Complaint } from "@/components/chief-complaint-form";
 import { PhoneInput } from "@/components/phone-input";
 import { DoctorSearch } from "@/components/doctor-search";
+import { intervalToDuration } from "date-fns";
+import { countries } from "@/lib/countries";
 
 
 function SubmitButton() {
@@ -61,6 +63,7 @@ async function uploadFile(file: File): Promise<{ publicUrl: string } | { error: 
     return { publicUrl };
 }
 
+
 const FileUploadField = React.memo(({ label, name, onUploadComplete, initialData }: { label: string; name: string; onUploadComplete: (fieldName: string, name: string, url: string) => void; initialData?: { url: string | null; name: string | null } | null }) => {
     const [isUploading, setIsUploading] = useState(false);
     const [fileUrl, setFileUrl] = useState<string | null>(initialData?.url || null);
@@ -89,12 +92,27 @@ const FileUploadField = React.memo(({ label, name, onUploadComplete, initialData
         }
     };
     
+    const handleCancelUpload = () => {
+        setIsUploading(false);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = ""; // Reset file input
+        }
+        toast({ title: "Cancelled", description: "File upload has been cancelled.", variant: "default" });
+    };
+
     return (
         <div className="space-y-2">
             <Label htmlFor={name}>{label}</Label>
             <div className="flex items-center gap-2">
                 <Input ref={fileInputRef} id={name} name={`${name}-file`} type="file" onChange={handleFileChange} disabled={isUploading} className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
-                {isUploading && <Loader2 className="h-5 w-5 animate-spin" />}
+                {isUploading && (
+                    <div className="flex items-center gap-2">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <Button variant="ghost" size="icon" onClick={handleCancelUpload}>
+                            <XCircle className="h-5 w-5 text-destructive" />
+                        </Button>
+                    </div>
+                )}
                 {fileUrl && !isUploading && (
                     <div className="flex items-center gap-2">
                         {fileName && <span className="text-sm text-muted-foreground truncate max-w-[100px]">{fileName}</span>}
@@ -134,23 +152,39 @@ export default function EditPatientPage() {
 
     const [documentUrls, setDocumentUrls] = useState<Record<string, { url: string, name: string }>>({});
     const [totalCost, setTotalCost] = useState(0);
-
+    
+    const formRef = useRef<HTMLFormElement>(null);
     const [doctorContact, setDoctorContact] = useState('');
-
-    const [sumInsured, setSumInsured] = useState<number | string>('');
-    const [sumUtilized, setSumUtilized] = useState<number | string>('');
+    const [age, setAge] = useState<string>('');
     const [totalSum, setTotalSum] = useState<number | string>('');
 
+    const getNumericCode = (code: string) => code.split('-')[0];
+
+    const parsePhoneNumber = (fullNumber: string | null | undefined) => {
+        if (!fullNumber) return { code: "+91", number: "" };
+        const sortedCountries = [...countries].sort((a, b) => getNumericCode(b.code).length - getNumericCode(a.code).length);
+        const foundCountry = sortedCountries.find(c => fullNumber.startsWith(getNumericCode(c.code)));
+        
+        if (foundCountry) {
+            const numericCode = getNumericCode(foundCountry.code);
+            return {
+                code: foundCountry.code,
+                number: fullNumber.substring(numericCode.length)
+            };
+        }
+        return { code: "+91", number: fullNumber.replace(/^\+91/, '') };
+    };
+
     const handleDoctorSelect = (doctor: Doctor | null) => {
-        if (doctor) {
-            setDoctorContact(doctor.phone ?? '');
-            const form = document.querySelector('form');
-            if(form) {
-                (form.querySelector<HTMLInputElement>('input[name="treat_doc_qualification"]'))!.value = doctor.qualification || '';
-                (form.querySelector<HTMLInputElement>('input[name="treat_doc_reg_no"]'))!.value = doctor.reg_no || '';
-            }
-        } else {
+        const form = formRef.current;
+        if (doctor && form) {
+            setDoctorContact(doctor.phone || '');
+            (form.elements.namedItem('treat_doc_qualification') as HTMLInputElement).value = doctor.qualification || '';
+            (form.elements.namedItem('treat_doc_reg_no') as HTMLInputElement).value = doctor.reg_no || '';
+        } else if (form) {
             setDoctorContact('');
+            (form.elements.namedItem('treat_doc_qualification') as HTMLInputElement).value = '';
+            (form.elements.namedItem('treat_doc_reg_no') as HTMLInputElement).value = '';
         }
     };
 
@@ -166,7 +200,7 @@ export default function EditPatientPage() {
     ];
 
      const calculateTotalCost = React.useCallback(() => {
-        const form = document.querySelector('form');
+        const form = formRef.current;
         if (!form) return;
         const costs = [
             'roomNursingDietCost', 'investigationCost', 'icuCost',
@@ -206,11 +240,12 @@ export default function EditPatientPage() {
                 setTpas(tpas);
                 setDoctors(doctors);
                 setChiefComplaints(complaints);
-                setDoctorContact(patientData.treat_doc_number ?? '');
+                if (patientData.dateOfBirth) {
+                    setAge(calculateAge(patientData.dateOfBirth));
+                }
 
-                setSumInsured(patientData.sumInsured ?? '');
-                setSumUtilized(patientData.sumUtilized ?? '');
                 setTotalSum(patientData.totalSum ?? '');
+                setDoctorContact(patientData.treat_doc_number ?? '');
 
                 if (patientData.photo && typeof patientData.photo === 'object') {
                     setPhotoUrl(patientData.photo.url);
@@ -218,7 +253,10 @@ export default function EditPatientPage() {
                 }
                 
                 const initialDocUrls: Record<string, { url: string, name: string }> = {};
-                const docFields: (keyof Patient)[] = ['adhaar_path', 'pan_path', 'passport_path', 'voter_id_path', 'driving_licence_path', 'other_path'];
+                const docFields: (keyof Patient)[] = [
+                    'adhaar_path', 'pan_path', 'passport_path', 'voter_id_path', 'driving_licence_path', 'other_path',
+                    'discharge_summary_path', 'final_bill_path', 'pharmacy_bill_path', 'implant_bill_stickers_path', 'lab_bill_path', 'ot_anesthesia_notes_path'
+                ];
 
                 for (const field of docFields) {
                     const value = patientData[field];
@@ -246,19 +284,57 @@ export default function EditPatientPage() {
         }
     }, [state, toast, router]);
 
-    useEffect(() => {
-        const insured = typeof sumInsured === 'string' ? parseFloat(sumInsured) : sumInsured;
-        const utilized = typeof sumUtilized === 'string' ? parseFloat(sumUtilized) : sumUtilized;
-        
-        if (!isNaN(insured) && !isNaN(utilized)) {
-            setTotalSum(insured - utilized);
-        } else if (!isNaN(insured)) {
-            setTotalSum(insured);
-        } else {
-            setTotalSum('');
-        }
-    }, [sumInsured, sumUtilized]);
+    const calculateAge = (birthDateString: string): string => {
+        if (!birthDateString) return '';
+        const birthDate = new Date(birthDateString);
+        const today = new Date();
 
+        if (birthDate > today) return '';
+
+        const duration = intervalToDuration({ start: birthDate, end: today });
+        const years = duration.years || 0;
+        const months = duration.months || 0;
+        const days = duration.days || 0;
+
+        if (years > 0) {
+            let result = `${years} year${years > 1 ? 's' : ''}`;
+            if (months > 0) {
+                result += `, ${months} month${months > 1 ? 's' : ''}`;
+            }
+            return result;
+        }
+        if (months > 0) {
+            let result = `${months} month${months > 1 ? 's' : ''}`;
+            if (days > 0) {
+                result += `, ${days} day${days !== 1 ? 's' : ''}`;
+            }
+            return result;
+        }
+        return `${days} day${days !== 1 ? 's' : ''}`;
+    };
+
+    const handleDobChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const calculatedAge = calculateAge(e.target.value);
+        setAge(calculatedAge);
+    };
+
+    const handleSumInsuredBlur = () => {
+        const form = formRef.current;
+        if (form) {
+            const insuredInput = form.elements.namedItem('sumInsured') as HTMLInputElement;
+            const utilizedInput = form.elements.namedItem('sumUtilized') as HTMLInputElement;
+            const insured = parseFloat(insuredInput.value);
+            const utilized = parseFloat(utilizedInput.value);
+
+            if (!isNaN(insured) && !isNaN(utilized)) {
+                setTotalSum(insured - utilized);
+            } else if (!isNaN(insured)) {
+                setTotalSum(insured);
+            } else {
+                setTotalSum('');
+            }
+        }
+    };
 
     if (isLoading) {
         return (
@@ -317,8 +393,9 @@ export default function EditPatientPage() {
                 </Button>
                 <h1 className="text-lg font-semibold md:text-2xl">Edit Patient</h1>
             </div>
-            <form action={formAction}>
+            <form action={formAction} ref={formRef}>
                  <input type="hidden" name="id" value={patient.id} />
+                 <input type="hidden" name="admission_db_id" value={patient.admission_db_id ?? ''} />
                  <input type="hidden" name="hospital_id" value={user?.hospitalId || ''} />
                  <input type="hidden" name="photoUrl" value={photoUrl || ''} />
                  <input type="hidden" name="photoName" value={photoName || ''} />
@@ -366,7 +443,7 @@ export default function EditPatientPage() {
                         />
                     </Card>
 
-                     <Accordion type="multiple" className="w-full space-y-6" defaultValue={["patient-details", "insurance-details"]}>
+                     <Accordion type="multiple" className="w-full space-y-6" defaultValue={["patient-details", "kyc-documents", "insurance-details", "clinical-info", "accident-info", "maternity-info", "cost-info", "chief-complaints", "declarations-info"]}>
                         <Card>
                             <AccordionItem value="patient-details">
                                 <AccordionTrigger className="p-6">
@@ -405,13 +482,13 @@ export default function EditPatientPage() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="age">Age</Label>
-                                            <Input id="age" name="age" type="number" defaultValue={patient.age ?? ''} />
+                                         <div className="space-y-2">
+                                            <Label htmlFor="birth_date">Date of birth</Label>
+                                            <Input id="birth_date" name="birth_date" type="date" defaultValue={patient.dateOfBirth ?? ''} max={today} onBlur={handleDobChange} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="birth_date">Date of birth</Label>
-                                            <Input id="birth_date" name="birth_date" type="date" defaultValue={patient.dateOfBirth ?? ''} max={today} />
+                                            <Label htmlFor="age">Age</Label>
+                                            <Input id="age" name="age" type="text" value={age} placeholder="Age" readOnly />
                                         </div>
                                         <div className="md:col-span-2 space-y-2">
                                             <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
@@ -451,6 +528,12 @@ export default function EditPatientPage() {
                                         <FileUploadField label="Driving License" name="driving_licence_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.driving_licence_path as {url: string, name: string} | undefined} />
                                         <FileUploadField label="Voter ID" name="voter_id_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.voter_id_path as {url: string, name: string} | undefined} />
                                         <FileUploadField label="Other Document" name="other_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.other_path as {url: string, name: string} | undefined} />
+                                        <FileUploadField label="Discharge Summary" name="discharge_summary_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.discharge_summary_path as {url: string, name: string} | undefined} />
+                                        <FileUploadField label="Final Bill" name="final_bill_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.final_bill_path as {url: string, name: string} | undefined} />
+                                        <FileUploadField label="Pharmacy Bill" name="pharmacy_bill_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.pharmacy_bill_path as {url: string, name: string} | undefined} />
+                                        <FileUploadField label="Implant Bill & Stickers" name="implant_bill_stickers_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.implant_bill_stickers_path as {url: string, name: string} | undefined} />
+                                        <FileUploadField label="Lab Bill" name="lab_bill_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.lab_bill_path as {url: string, name: string} | undefined} />
+                                        <FileUploadField label="OT &amp; Anesthesia Notes" name="ot_anesthesia_notes_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.ot_anesthesia_notes_path as {url: string, name: string} | undefined} />
                                     </CardContent>
                                 </AccordionContent>
                             </AccordionItem>
@@ -462,7 +545,7 @@ export default function EditPatientPage() {
                                     <CardTitle>C. Insurance &amp; Admission Details</CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
-                                    <CardContent className="grid md:grid-cols-3 gap-4">
+                                    <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={handleSumInsuredBlur}>
                                         <div className="space-y-2">
                                             <Label htmlFor="admission_id">Admission ID <span className="text-destructive">*</span></Label>
                                             <Input id="admission_id" name="admission_id" defaultValue={patient.admission_id ?? ''} required />
@@ -510,11 +593,11 @@ export default function EditPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="sumInsured">Sum Insured</Label>
-                                            <Input id="sumInsured" name="sumInsured" type="number" value={sumInsured} onChange={(e) => setSumInsured(e.target.value)} />
+                                            <Input id="sumInsured" name="sumInsured" type="number" defaultValue={patient.sumInsured ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="sumUtilized">Sum Utilized</Label>
-                                            <Input id="sumUtilized" name="sumUtilized" type="number" value={sumUtilized} onChange={(e) => setSumUtilized(e.target.value)} />
+                                            <Input id="sumUtilized" name="sumUtilized" type="number" defaultValue={patient.sumUtilized ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="totalSum">Total Sum</Label>
@@ -565,7 +648,7 @@ export default function EditPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_number">Treating doctor’s contact <span className="text-destructive">*</span></Label>
-                                            <PhoneInput id="treat_doc_number" name="treat_doc_number" defaultValue={doctorContact} required />
+                                            <PhoneInput name="treat_doc_number" value={doctorContact} onChange={setDoctorContact} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_qualification">Doctor’s qualification <span className="text-destructive">*</span></Label>
@@ -583,67 +666,67 @@ export default function EditPatientPage() {
                         <Card>
                             <AccordionItem value="clinical-info">
                                 <AccordionTrigger className="p-6">
-                                    <CardTitle>D. Clinical Information <span className="text-destructive">*</span></CardTitle>
+                                    <CardTitle>D. Clinical Information</CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-2 gap-4">
                                         <div className="space-y-2 md:col-span-2">
-                                            <Label htmlFor="natureOfIllness">Nature of illness / presenting complaints <span className="text-destructive">*</span></Label>
-                                            <Textarea id="natureOfIllness" name="natureOfIllness" defaultValue={patient.natureOfIllness ?? ''} required/>
+                                            <Label htmlFor="natureOfIllness">Nature of illness / presenting complaints</Label>
+                                            <Textarea id="natureOfIllness" name="natureOfIllness" defaultValue={patient.natureOfIllness ?? ''} />
                                         </div>
                                         <div className="space-y-2 md:col-span-2">
-                                            <Label htmlFor="clinicalFindings">Relevant clinical findings <span className="text-destructive">*</span></Label>
-                                            <Textarea id="clinicalFindings" name="clinicalFindings" defaultValue={patient.clinicalFindings ?? ''} required/>
+                                            <Label htmlFor="clinicalFindings">Relevant clinical findings</Label>
+                                            <Textarea id="clinicalFindings" name="clinicalFindings" defaultValue={patient.clinicalFindings ?? ''} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="ailmentDuration">Duration of present ailment (days) <span className="text-destructive">*</span></Label>
-                                            <Input id="ailmentDuration" name="ailmentDuration" type="number" defaultValue={patient.ailmentDuration ?? ''} required/>
+                                            <Label htmlFor="ailmentDuration">Duration of present ailment (days)</Label>
+                                            <Input id="ailmentDuration" name="ailmentDuration" type="number" defaultValue={patient.ailmentDuration ?? ''} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="firstConsultationDate">Date of first consultation <span className="text-destructive">*</span></Label>
-                                            <Input id="firstConsultationDate" name="firstConsultationDate" type="date" defaultValue={patient.firstConsultationDate ?? ''} required/>
+                                            <Label htmlFor="firstConsultationDate">Date of first consultation</Label>
+                                            <Input id="firstConsultationDate" name="firstConsultationDate" type="date" defaultValue={patient.firstConsultationDate ?? ''} />
                                         </div>
                                         <div className="space-y-2 md:col-span-2">
-                                            <Label htmlFor="pastHistory">Past history of present ailment <span className="text-destructive">*</span></Label>
-                                            <Textarea id="pastHistory" name="pastHistory" defaultValue={patient.pastHistory ?? ''} required/>
+                                            <Label htmlFor="pastHistory">Past history of present ailment</Label>
+                                            <Textarea id="pastHistory" name="pastHistory" defaultValue={patient.pastHistory ?? ''} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="provisionalDiagnosis">Provisional diagnosis <span className="text-destructive">*</span></Label>
-                                            <Input id="provisionalDiagnosis" name="provisionalDiagnosis" defaultValue={patient.provisionalDiagnosis ?? ''} required/>
+                                            <Label htmlFor="provisionalDiagnosis">Provisional diagnosis</Label>
+                                            <Input id="provisionalDiagnosis" name="provisionalDiagnosis" defaultValue={patient.provisionalDiagnosis ?? ''} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="icd10Codes">ICD-10 diagnosis code(s) <span className="text-destructive">*</span></Label>
-                                            <IctCodeSearch name="icd10Codes" defaultValue={patient.icd10Codes ?? ''} required />
+                                            <Label htmlFor="icd10Codes">ICD-10 diagnosis code(s)</Label>
+                                            <IctCodeSearch name="icd10Codes" defaultValue={patient.icd10Codes ?? ''} />
                                         </div>
                                         <div className="space-y-2 md:col-span-2">
-                                            <Label>Proposed line of treatment <span className="text-destructive">*</span></Label>
+                                            <Label>Proposed line of treatment</Label>
                                             <div className="grid md:grid-cols-2 gap-4">
-                                               <Input name="treatmentMedical" placeholder="Medical management" defaultValue={patient.treatmentMedical ?? ''} required/>
-                                               <Input name="treatmentSurgical" placeholder="Surgical management" defaultValue={patient.treatmentSurgical ?? ''} required/>
-                                               <Input name="treatmentIntensiveCare" placeholder="Intensive care" defaultValue={patient.treatmentIntensiveCare ?? ''} required/>
-                                               <Input name="treatmentInvestigation" placeholder="Investigation only" defaultValue={patient.treatmentInvestigation ?? ''} required/>
-                                               <Input name="treatmentNonAllopathic" placeholder="Non-allopathic" defaultValue={patient.treatmentNonAllopathic ?? ''} required/>
+                                               <Input name="treatmentMedical" placeholder="Medical management" defaultValue={patient.treatmentMedical ?? ''} />
+                                               <Input name="treatmentSurgical" placeholder="Surgical management" defaultValue={patient.treatmentSurgical ?? ''} />
+                                               <Input name="treatmentIntensiveCare" placeholder="Intensive care" defaultValue={patient.treatmentIntensiveCare ?? ''} />
+                                               <Input name="treatmentInvestigation" placeholder="Investigation only" defaultValue={patient.treatmentInvestigation ?? ''} />
+                                               <Input name="treatmentNonAllopathic" placeholder="Non-allopathic" defaultValue={patient.treatmentNonAllopathic ?? ''} />
                                             </div>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="investigationDetails">Investigation / medical management details <span className="text-destructive">*</span></Label>
-                                            <Textarea id="investigationDetails" name="investigationDetails" defaultValue={patient.investigationDetails ?? ''} required/>
+                                            <Label htmlFor="investigationDetails">Investigation / medical management details</Label>
+                                            <Textarea id="investigationDetails" name="investigationDetails" defaultValue={patient.investigationDetails ?? ''} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="drugRoute">Route of drug administration <span className="text-destructive">*</span></Label>
-                                            <Input id="drugRoute" name="drugRoute" defaultValue={patient.drugRoute ?? ''} required/>
+                                            <Label htmlFor="drugRoute">Route of drug administration</Label>
+                                            <Input id="drugRoute" name="drugRoute" defaultValue={patient.drugRoute ?? ''} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="procedureName">Planned procedure / surgery name <span className="text-destructive">*</span></Label>
-                                            <Input id="procedureName" name="procedureName" defaultValue={patient.procedureName ?? ''} required/>
+                                            <Label htmlFor="procedureName">Planned procedure / surgery name</Label>
+                                            <Input id="procedureName" name="procedureName" defaultValue={patient.procedureName ?? ''} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="icd10PcsCodes">ICD-10-PCS / procedure code(s) <span className="text-destructive">*</span></Label>
-                                            <Input id="icd10PcsCodes" name="icd10PcsCodes" defaultValue={patient.icd10PcsCodes ?? ''} required/>
+                                            <Label htmlFor="icd10PcsCodes">ICD-10-PCS / procedure code(s)</Label>
+                                            <Input id="icd10PcsCodes" name="icd10PcsCodes" defaultValue={patient.icd10PcsCodes ?? ''} />
                                         </div>
                                         <div className="space-y-2 md:col-span-2">
-                                            <Label htmlFor="otherTreatments">Any other treatments (details) <span className="text-destructive">*</span></Label>
-                                            <Textarea id="otherTreatments" name="otherTreatments" defaultValue={patient.otherTreatments ?? ''} required/>
+                                            <Label htmlFor="otherTreatments">Any other treatments (details)</Label>
+                                            <Textarea id="otherTreatments" name="otherTreatments" defaultValue={patient.otherTreatments ?? ''} />
                                         </div>
                                     </CardContent>
                                 </AccordionContent>
@@ -723,33 +806,33 @@ export default function EditPatientPage() {
                         <Card>
                             <AccordionItem value="cost-info">
                                 <AccordionTrigger className="p-6">
-                                    <CardTitle>G. Admission &amp; Cost Estimate <span className="text-destructive">*</span></CardTitle>
+                                    <CardTitle>G. Admission &amp; Cost Estimate</CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={calculateTotalCost}>
                                         <div className="space-y-2">
-                                            <Label htmlFor="admissionDate">Admission date <span className="text-destructive">*</span></Label>
-                                            <Input id="admissionDate" name="admissionDate" type="date" defaultValue={patient.admissionDate ?? ''} required/>
+                                            <Label htmlFor="admissionDate">Admission date</Label>
+                                            <Input id="admissionDate" name="admissionDate" type="date" defaultValue={patient.admissionDate ?? ''} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="admissionTime">Admission time <span className="text-destructive">*</span></Label>
-                                            <Input id="admissionTime" name="admissionTime" type="time" defaultValue={patient.admissionTime ?? ''} required/>
+                                            <Label htmlFor="admissionTime">Admission time</Label>
+                                            <Input id="admissionTime" name="admissionTime" type="time" defaultValue={patient.admissionTime ?? ''} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="admissionType">Type of admission <span className="text-destructive">*</span></Label>
-                                            <Input id="admissionType" name="admissionType" placeholder="e.g. Emergency, Planned" defaultValue={patient.admissionType ?? ''} required/>
+                                            <Label htmlFor="admissionType">Type of admission</Label>
+                                            <Input id="admissionType" name="admissionType" placeholder="e.g. Emergency, Planned" defaultValue={patient.admissionType ?? ''} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="expectedStay">Expected days of stay <span className="text-destructive">*</span></Label>
-                                            <Input id="expectedStay" name="expectedStay" type="number" defaultValue={patient.expectedStay ?? ''} required/>
+                                            <Label htmlFor="expectedStay">Expected days of stay</Label>
+                                            <Input id="expectedStay" name="expectedStay" type="number" defaultValue={patient.expectedStay ?? ''} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="expectedIcuStay">Expected days in ICU <span className="text-destructive">*</span></Label>
-                                            <Input id="expectedIcuStay" name="expectedIcuStay" type="number" defaultValue={patient.expectedIcuStay ?? ''} required/>
+                                            <Label htmlFor="expectedIcuStay">Expected days in ICU</Label>
+                                            <Input id="expectedIcuStay" name="expectedIcuStay" type="number" defaultValue={patient.expectedIcuStay ?? ''} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="roomCategory">Requested room category <span className="text-destructive">*</span></Label>
-                                             <Select name="roomCategory" required defaultValue={patient.roomCategory ?? undefined}>
+                                            <Label htmlFor="roomCategory">Requested room category</Label>
+                                             <Select name="roomCategory" defaultValue={patient.roomCategory ?? undefined}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Select a room category" />
                                                 </SelectTrigger>
@@ -761,36 +844,36 @@ export default function EditPatientPage() {
                                             </Select>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="roomNursingDietCost">Room + Nursing + Diet (₹) <span className="text-destructive">*</span></Label>
-                                            <Input id="roomNursingDietCost" name="roomNursingDietCost" type="number" defaultValue={patient.roomNursingDietCost ?? ''} required/>
+                                            <Label htmlFor="roomNursingDietCost">Room + Nursing + Diet (₹)</Label>
+                                            <Input id="roomNursingDietCost" name="roomNursingDietCost" type="number" defaultValue={patient.roomNursingDietCost ?? ''} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="investigationCost">Diagnostics/investigations cost (₹) <span className="text-destructive">*</span></Label>
-                                            <Input id="investigationCost" name="investigationCost" type="number" defaultValue={patient.investigationCost ?? ''} required/>
+                                            <Label htmlFor="investigationCost">Diagnostics/investigations cost (₹)</Label>
+                                            <Input id="investigationCost" name="investigationCost" type="number" defaultValue={patient.investigationCost ?? ''} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="icuCost">ICU charges (₹) <span className="text-destructive">*</span></Label>
-                                            <Input id="icuCost" name="icuCost" type="number" defaultValue={patient.icuCost ?? ''} required/>
+                                            <Label htmlFor="icuCost">ICU charges (₹)</Label>
+                                            <Input id="icuCost" name="icuCost" type="number" defaultValue={patient.icuCost ?? ''} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="otCost">OT charges (₹) <span className="text-destructive">*</span></Label>
-                                            <Input id="otCost" name="otCost" type="number" defaultValue={patient.otCost ?? ''} required/>
+                                            <Label htmlFor="otCost">OT charges (₹)</Label>
+                                            <Input id="otCost" name="otCost" type="number" defaultValue={patient.otCost ?? ''} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="professionalFees">Professional fees (₹) <span className="text-destructive">*</span></Label>
-                                            <Input id="professionalFees" name="professionalFees" type="number" defaultValue={patient.professionalFees ?? ''} required/>
+                                            <Label htmlFor="professionalFees">Professional fees (₹)</Label>
+                                            <Input id="professionalFees" name="professionalFees" type="number" defaultValue={patient.professionalFees ?? ''} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="medicineCost">Medicines + consumables (₹) <span className="text-destructive">*</span></Label>
-                                            <Input id="medicineCost" name="medicineCost" type="number" defaultValue={patient.medicineCost ?? ''} required/>
+                                            <Label htmlFor="medicineCost">Medicines + consumables (₹)</Label>
+                                            <Input id="medicineCost" name="medicineCost" type="number" defaultValue={patient.medicineCost ?? ''} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="otherHospitalExpenses">Other hospital expenses (₹) <span className="text-destructive">*</span></Label>
-                                            <Input id="otherHospitalExpenses" name="otherHospitalExpenses" type="number" defaultValue={patient.otherHospitalExpenses ?? ''} required/>
+                                            <Label htmlFor="otherHospitalExpenses">Other hospital expenses (₹)</Label>
+                                            <Input id="otherHospitalExpenses" name="otherHospitalExpenses" type="number" defaultValue={patient.otherHospitalExpenses ?? ''} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="packageCharges">All-inclusive package charges (₹) <span className="text-destructive">*</span></Label>
-                                            <Input id="packageCharges" name="packageCharges" type="number" defaultValue={patient.packageCharges ?? ''} required/>
+                                            <Label htmlFor="packageCharges">All-inclusive package charges (₹)</Label>
+                                            <Input id="packageCharges" name="packageCharges" type="number" defaultValue={patient.packageCharges ?? ''} />
                                         </div>
                                         <div className="space-y-2 md:col-span-3">
                                             <Label htmlFor="totalExpectedCost">Total expected cost (₹)</Label>
@@ -801,68 +884,19 @@ export default function EditPatientPage() {
                             </AccordionItem>
                         </Card>
                         
-                        <ChiefComplaintForm initialData={chiefComplaints} patientId={id} />
-                        
                         <Card>
-                            <AccordionItem value="declarations-info">
+                            <AccordionItem value="chief-complaints">
                                 <AccordionTrigger className="p-6">
-                                    <CardTitle>I. Declarations &amp; Attachments <span className="text-destructive">*</span></CardTitle>
+                                    <CardTitle>H. Medical History</CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
-                                    <CardContent className="space-y-4">
-                                        <div className="grid md:grid-cols-3 gap-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="patientDeclarationName">Patient/insured name <span className="text-destructive">*</span></Label>
-                                                <Input id="patientDeclarationName" name="patientDeclarationName" defaultValue={patient.patientDeclarationName ?? ''} required />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="patientDeclarationContact">Contact number <span className="text-destructive">*</span></Label>
-                                                <PhoneInput name="patientDeclarationContact" defaultValue={patient.patientDeclarationContact ?? ''} required />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="patientDeclarationEmail">Email ID <span className="text-destructive">*</span></Label>
-                                                <Input id="patientDeclarationEmail" name="patientDeclarationEmail" type="email" defaultValue={patient.patientDeclarationEmail ?? ''} required />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="patientDeclarationDate">Declaration date <span className="text-destructive">*</span></Label>
-                                                <Input id="patientDeclarationDate" name="patientDeclarationDate" type="date" defaultValue={patient.patientDeclarationDate ?? ''} required />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="patientDeclarationTime">Declaration time <span className="text-destructive">*</span></Label>
-                                                <Input id="patientDeclarationTime" name="patientDeclarationTime" type="time" defaultValue={patient.patientDeclarationTime ?? ''} required />
-                                            </div>
-                                        </div>
-                                        <div className="grid md:grid-cols-3 gap-4 border-t pt-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="hospitalDeclarationDoctorName">Hospital declaration – doctor name <span className="text-destructive">*</span></Label>
-                                                <Input id="hospitalDeclarationDoctorName" name="hospitalDeclarationDoctorName" defaultValue={patient.hospitalDeclarationDoctorName ?? ''} required />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="hospitalDeclarationDate">Declaration date <span className="text-destructive">*</span></Label>
-                                                <Input id="hospitalDeclarationDate" name="hospitalDeclarationDate" type="date" defaultValue={patient.hospitalDeclarationDate ?? ''} required />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="hospitalDeclarationTime">Declaration time <span className="text-destructive">*</span></Label>
-                                                <Input id="hospitalDeclarationTime" name="hospitalDeclarationTime" type="time" defaultValue={patient.hospitalDeclarationTime ?? ''} required />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2 pt-4 border-t">
-                                            <Label>Attachments to enclose</Label>
-                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                                {['ID proof', 'Policy copy', 'Doctor’s notes', 'Investigations', 'Estimate'].map(item => (
-                                                    <div key={item} className="flex items-center space-x-2">
-                                                        <Checkbox id={`att-${item}`} name="attachments" value={item} defaultChecked={patient.attachments?.includes(item)} />
-                                                        <Label htmlFor={`att-${item}`} className="font-normal">{item}</Label>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
+                                    <CardContent>
+                                         <ChiefComplaintForm initialData={chiefComplaints} patientId={id} />
                                     </CardContent>
                                 </AccordionContent>
                             </AccordionItem>
                         </Card>
                     </Accordion>
-
 
                     <div className="flex justify-end">
                         {state.type === 'error' && <p className="text-sm text-destructive self-center mr-4">{state.message}</p>}

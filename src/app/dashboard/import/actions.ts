@@ -145,102 +145,11 @@ export async function handleCreatePatientsTable(prevState: { message: string, ty
     `;
     await request.query(createPatientsTableQuery);
     
-    const createAdmissionsTableQuery = `
-      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='admissions' and xtype='U')
-      BEGIN
-        CREATE TABLE admissions (
-          id INT IDENTITY(1,1) PRIMARY KEY,
-          patient_id INT,
-          doctor_id INT,
-          admission_id NVARCHAR(255),
-          relationship_policyholder NVARCHAR(255),
-          policy_number NVARCHAR(255),
-          insured_card_number NVARCHAR(255),
-          insurance_company NVARCHAR(255),
-          policy_start_date DATE,
-          policy_end_date DATE,
-          sum_insured DECIMAL(18, 2),
-          sum_utilized DECIMAL(18, 2),
-          total_sum DECIMAL(18, 2),
-          corporate_policy_number NVARCHAR(255),
-          other_policy_name NVARCHAR(255),
-          family_doctor_name NVARCHAR(255),
-          family_doctor_phone NVARCHAR(50),
-          payer_email NVARCHAR(255),
-          payer_phone NVARCHAR(50),
-          tpa_id INT,
-          hospital_id NVARCHAR(255),
-          treat_doc_name NVARCHAR(255),
-          treat_doc_number NVARCHAR(50),
-          treat_doc_qualification NVARCHAR(255),
-          treat_doc_reg_no NVARCHAR(255),
-          natureOfIllness NVARCHAR(MAX),
-          clinicalFindings NVARCHAR(MAX),
-          ailmentDuration INT,
-          firstConsultationDate DATE,
-          pastHistory NVARCHAR(MAX),
-          provisionalDiagnosis NVARCHAR(MAX),
-          icd10Codes NVARCHAR(255),
-          treatmentMedical NVARCHAR(MAX),
-          treatmentSurgical NVARCHAR(MAX),
-          treatmentIntensiveCare NVARCHAR(MAX),
-          treatmentInvestigation NVARCHAR(MAX),
-          treatmentNonAllopathic NVARCHAR(MAX),
-          investigationDetails NVARCHAR(MAX),
-          drugRoute NVARCHAR(255),
-          procedureName NVARCHAR(MAX),
-          icd10PcsCodes NVARCHAR(255),
-          otherTreatments NVARCHAR(MAX),
-          isInjury BIT,
-          injuryCause NVARCHAR(MAX),
-          isRta BIT,
-          injuryDate DATE,
-          isReportedToPolice BIT,
-          firNumber NVARCHAR(255),
-          isAlcoholSuspected BIT,
-          isToxicologyConducted BIT,
-          isMaternity BIT,
-          g INT,
-          p INT,
-          l INT,
-          a INT,
-          expectedDeliveryDate DATE,
-          admissionDate DATE,
-          admissionTime NVARCHAR(50),
-          admissionType NVARCHAR(255),
-          expectedStay INT,
-          expectedIcuStay INT,
-          roomCategory NVARCHAR(255),
-          roomNursingDietCost DECIMAL(18, 2),
-          investigationCost DECIMAL(18, 2),
-          icuCost DECIMAL(18, 2),
-          otCost DECIMAL(18, 2),
-          professionalFees DECIMAL(18, 2),
-          medicineCost DECIMAL(18, 2),
-          otherHospitalExpenses DECIMAL(18, 2),
-          packageCharges DECIMAL(18, 2),
-          totalExpectedCost DECIMAL(18, 2),
-          patientDeclarationName NVARCHAR(255),
-          patientDeclarationContact NVARCHAR(50),
-          patientDeclarationEmail NVARCHAR(255),
-          patientDeclarationDate DATE,
-          patientDeclarationTime NVARCHAR(50),
-          hospitalDeclarationDoctorName NVARCHAR(255),
-          hospitalDeclarationDate DATE,
-          hospitalDeclarationTime NVARCHAR(50),
-          attachments NVARCHAR(MAX),
-          created_at DATETIME DEFAULT GETDATE(),
-          updated_at DATETIME DEFAULT GETDATE()
-        );
-      END
-    `;
-    await request.query(createAdmissionsTableQuery);
-
-    return { message: "Patients and Admissions tables created successfully or already exist.", type: "success" };
+    return { message: "Patients table created successfully or already exists.", type: "success" };
   } catch (error) {
     const dbError = error as { message?: string };
-    console.error('Error creating Patients/Admissions tables:', dbError);
-    return { message: `Error creating Patients/Admissions tables: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+    console.error('Error creating Patients table:', dbError);
+    return { message: `Error creating Patients table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
 
