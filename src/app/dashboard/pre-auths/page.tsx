@@ -138,67 +138,75 @@ export default function PreAuthsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {requests.map(r => (
-                <TableRow key={r.id} onClick={() => handleRowClick(r.id)} className="cursor-pointer">
-                  <TableCell className="font-medium flex items-center gap-3">
-                     <Avatar className="h-10 w-10">
-                        <AvatarImage src={r.patientPhoto ?? undefined} alt={r.fullName} />
-                        <AvatarFallback>{getInitials(r.fullName!)}</AvatarFallback>
-                    </Avatar>
-                    {r.fullName}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusVariant(r.status)} className={r.status === 'Approval' ? 'bg-accent text-accent-foreground' : ''}>{r.status}</Badge>
-                  </TableCell>
-                  <TableCell>{format(new Date(r.createdAt), 'PPP')}</TableCell>
-                  <TableCell>{format(new Date(r.createdAt), 'p')}</TableCell>
-                  <TableCell>{formatDistanceToNow(new Date(r.createdAt), { addSuffix: true })}</TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <AlertDialog>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                           <DropdownMenuItem asChild>
-                             <Link href={`/dashboard/pre-auths/${r.id}/view`} className="flex items-center gap-2 cursor-pointer">
-                                <Eye className="h-4 w-4" /> View Details
-                             </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                             <Link href={`/dashboard/pre-auths/${r.id}/edit`} className="flex items-center gap-2 cursor-pointer">
-                                <Edit className="h-4 w-4" /> Edit Status
-                             </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                           <AlertDialogTrigger asChild>
-                             <DropdownMenuItem className="text-destructive flex items-center gap-2 cursor-pointer" onSelect={(e) => e.preventDefault()}>
-                               <Trash className="h-4 w-4" /> Delete
-                             </DropdownMenuItem>
-                           </AlertDialogTrigger>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the request.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                           <form action={async (formData) => {
-                             await handleDeleteRequest(formData);
-                             loadRequests();
-                           }}>
-                              <input type="hidden" name="id" value={r.id} />
-                              <AlertDialogAction type="submit">Continue</AlertDialogAction>
-                           </form>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+              {requests.length > 0 ? (
+                requests.map(r => (
+                  <TableRow key={r.id} onClick={() => handleRowClick(r.id)} className="cursor-pointer">
+                    <TableCell className="font-medium flex items-center gap-3">
+                       <Avatar className="h-10 w-10">
+                          <AvatarImage src={r.patientPhoto ?? undefined} alt={r.fullName} />
+                          <AvatarFallback>{getInitials(r.fullName!)}</AvatarFallback>
+                      </Avatar>
+                      {r.fullName}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusVariant(r.status)} className={r.status === 'Approval' ? 'bg-accent text-accent-foreground' : ''}>{r.status}</Badge>
+                    </TableCell>
+                    <TableCell>{format(new Date(r.createdAt), 'PPP')}</TableCell>
+                    <TableCell>{format(new Date(r.createdAt), 'p')}</TableCell>
+                    <TableCell>{formatDistanceToNow(new Date(r.createdAt), { addSuffix: true })}</TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <AlertDialog>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                             <DropdownMenuItem asChild>
+                               <Link href={`/dashboard/pre-auths/${r.id}/view`} className="flex items-center gap-2 cursor-pointer">
+                                  <Eye className="h-4 w-4" /> View Details
+                               </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                               <Link href={`/dashboard/pre-auths/${r.id}/edit`} className="flex items-center gap-2 cursor-pointer">
+                                  <Edit className="h-4 w-4" /> Edit Status
+                               </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                             <AlertDialogTrigger asChild>
+                               <DropdownMenuItem className="text-destructive flex items-center gap-2 cursor-pointer" onSelect={(e) => e.preventDefault()}>
+                                 <Trash className="h-4 w-4" /> Delete
+                               </DropdownMenuItem>
+                             </AlertDialogTrigger>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete the request.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                             <form action={async (formData) => {
+                               await handleDeleteRequest(formData);
+                               loadRequests();
+                             }}>
+                                <input type="hidden" name="id" value={r.id} />
+                                <AlertDialogAction type="submit">Continue</AlertDialogAction>
+                             </form>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center">
+                    Data not found
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
            )}
