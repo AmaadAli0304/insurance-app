@@ -806,11 +806,11 @@ export default function NewRequestPage() {
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="expectedStay">Expected days of stay</Label>
-                                            <Input id="expectedStay" name="expectedStay" type="number" defaultValue={patientDetails.expectedStay ?? ''} />
+                                            <Input id="expectedStay" name="expectedStay" type="number" min="0" defaultValue={patientDetails.expectedStay ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="expectedIcuStay">Expected days in ICU</Label>
-                                            <Input id="expectedIcuStay" name="expectedIcuStay" type="number" defaultValue={patientDetails.expectedIcuStay ?? ''} />
+                                            <Input id="expectedIcuStay" name="expectedIcuStay" type="number" min="0" defaultValue={patientDetails.expectedIcuStay ?? ''} />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="roomCategory">Requested room category</Label>
@@ -827,39 +827,39 @@ export default function NewRequestPage() {
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="roomNursingDietCost">Room + Nursing + Diet (₹)</Label>
-                                            <Input id="roomNursingDietCost" name="roomNursingDietCost" type="number" defaultValue={patientDetails.roomNursingDietCost ?? ''} />
+                                            <Input id="roomNursingDietCost" name="roomNursingDietCost" type="number" min="0" defaultValue={patientDetails.roomNursingDietCost ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="investigationCost">Diagnostics/investigations cost (₹)</Label>
-                                            <Input id="investigationCost" name="investigationCost" type="number" defaultValue={patientDetails.investigationCost ?? ''} />
+                                            <Input id="investigationCost" name="investigationCost" type="number" min="0" defaultValue={patientDetails.investigationCost ?? ''} />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="icuCost">ICU charges (₹)</Label>
-                                            <Input id="icuCost" name="icuCost" type="number" defaultValue={patientDetails.icuCost ?? ''} />
+                                            <Input id="icuCost" name="icuCost" type="number" min="0" defaultValue={patientDetails.icuCost ?? ''} />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="otCost">OT charges (₹)</Label>
-                                            <Input id="otCost" name="otCost" type="number" defaultValue={patientDetails.otCost ?? ''} />
+                                            <Input id="otCost" name="otCost" type="number" min="0" defaultValue={patientDetails.otCost ?? ''} />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="professionalFees">Professional fees (₹)</Label>
-                                            <Input id="professionalFees" name="professionalFees" type="number" defaultValue={patientDetails.professionalFees ?? ''} />
+                                            <Input id="professionalFees" name="professionalFees" type="number" min="0" defaultValue={patientDetails.professionalFees ?? ''} />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="medicineCost">Medicines + consumables (₹)</Label>
-                                            <Input id="medicineCost" name="medicineCost" type="number" defaultValue={patientDetails.medicineCost ?? ''} />
+                                            <Input id="medicineCost" name="medicineCost" type="number" min="0" defaultValue={patientDetails.medicineCost ?? ''} />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="otherHospitalExpenses">Other hospital expenses (₹)</Label>
-                                            <Input id="otherHospitalExpenses" name="otherHospitalExpenses" type="number" defaultValue={patientDetails.otherHospitalExpenses ?? ''} />
+                                            <Input id="otherHospitalExpenses" name="otherHospitalExpenses" type="number" min="0" defaultValue={patientDetails.otherHospitalExpenses ?? ''} />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="packageCharges">All-inclusive package charges (₹)</Label>
-                                            <Input id="packageCharges" name="packageCharges" type="number" defaultValue={patientDetails.packageCharges ?? ''} />
+                                            <Input id="packageCharges" name="packageCharges" type="number" min="0" defaultValue={patientDetails.packageCharges ?? ''} />
                                         </div>
                                          <div className="space-y-2 md:col-span-3">
                                             <Label htmlFor="totalExpectedCost-display">Total expected cost (₹)</Label>
-                                            <Input id="totalExpectedCost-display" name="totalExpectedCost-display" type="number" value={totalCost} readOnly className="font-bold text-lg" />
+                                            <Input id="totalExpectedCost-display" name="totalExpectedCost-display" type="number" min="0" value={totalCost} readOnly className="font-bold text-lg" />
                                         </div>
                                     </CardContent>
                                 </AccordionContent>
@@ -1029,3 +1029,4 @@ export default function NewRequestPage() {
         </div>
     );
 }
+
