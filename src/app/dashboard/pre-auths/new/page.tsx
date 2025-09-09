@@ -149,12 +149,6 @@ export default function NewRequestPage() {
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, height);
         pdf.save(`pre-auth-request-${patientDetails.fullName.replace(/ /g, '_')}.pdf`);
     };
-
-    useEffect(() => {
-        if (patientDetails) {
-            calculateTotalCost();
-        }
-    }, [patientDetails, calculateTotalCost]);
     
     useEffect(() => {
         const state = addState.type === 'initial' ? draftState : addState;
@@ -210,15 +204,27 @@ export default function NewRequestPage() {
             if (!selectedPatientId) {
                 setPatientDetails(null);
                 setToEmail("");
+                setTotalCost(0);
                 return;
             }
             setIsLoadingPatient(true);
             try {
                 const details = await getPatientWithDetailsForForm(selectedPatientId);
                 setPatientDetails(details);
-                 if (details?.tpaEmail) {
-                    setToEmail(details.tpaEmail);
-                }
+                 if (details) {
+                    if (details.tpaEmail) {
+                        setToEmail(details.tpaEmail);
+                    }
+                    const costFields: (keyof Patient)[] = [
+                        'roomNursingDietCost', 'investigationCost', 'icuCost',
+                        'otCost', 'professionalFees', 'medicineCost', 'otherHospitalExpenses'
+                    ];
+                    const sum = costFields.reduce((acc, field) => {
+                        const value = details[field];
+                        return acc + (typeof value === 'number' ? value : 0);
+                    }, 0);
+                    setTotalCost(sum);
+                 }
             } catch (error) {
                 toast({ title: "Error", description: "Failed to fetch patient details.", variant: 'destructive' });
             } finally {
@@ -860,7 +866,7 @@ export default function NewRequestPage() {
                             </AccordionItem>
                              </Card>
                              
-                            <PreAuthMedicalHistory initialData={patientDetails.complaints} />
+                            <PreAuthMedicalHistory initialData={patientDetails.complaints || []} />
                              
                               <Card>
                              <AccordionItem value="declarations-info">
