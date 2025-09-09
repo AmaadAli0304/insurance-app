@@ -99,7 +99,7 @@ export default function NewRequestPage() {
         if (!pdfFormRef.current) return;
         const costs = [
             'roomNursingDietCost', 'investigationCost', 'icuCost',
-            'otCost', 'professionalFees', 'medicineCost', 'otherHospitalExpenses'
+            'otCost', 'professionalFees', 'medicineCost', 'otherHospitalExpenses', 'packageCharges'
         ];
         let sum = 0;
         costs.forEach(id => {
@@ -217,7 +217,7 @@ export default function NewRequestPage() {
                     }
                     const costFields: (keyof Patient)[] = [
                         'roomNursingDietCost', 'investigationCost', 'icuCost',
-                        'otCost', 'professionalFees', 'medicineCost', 'otherHospitalExpenses'
+                        'otCost', 'professionalFees', 'medicineCost', 'otherHospitalExpenses', 'packageCharges'
                     ];
                     const sum = costFields.reduce((acc, field) => {
                         const value = details[field];
@@ -991,9 +991,9 @@ export default function NewRequestPage() {
                                                         <Checkbox 
                                                             id={`attach-${key}`} 
                                                             name="email_attachments" 
-                                                            value={JSON.stringify({ name: doc.name, url: doc.url })}
+                                                            value={JSON.stringify({ name: (doc as any).name, url: (doc as any).url })}
                                                             onCheckedChange={(checked) => {
-                                                                const attachmentString = JSON.stringify({ name: doc.name, url: doc.url });
+                                                                const attachmentString = JSON.stringify({ name: (doc as any).name, url: (doc as any).url });
                                                                 setSelectedAttachments(prev => 
                                                                     checked 
                                                                     ? [...prev, attachmentString]
