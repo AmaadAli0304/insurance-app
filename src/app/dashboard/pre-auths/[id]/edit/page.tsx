@@ -52,7 +52,8 @@ const preAuthStatuses: PreAuthStatus[] = [
     'Enhanced Amount', 
     'Final Discharge sent', 
     'Final Amount Sanctioned', 
-    'Amount received'
+    'Amount received',
+    'Rejected'
 ];
 
 const statusesThatRequireEmail: PreAuthStatus[] = [
