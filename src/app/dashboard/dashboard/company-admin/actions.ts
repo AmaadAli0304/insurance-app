@@ -11,15 +11,7 @@ export async function getCompanyAdminDashboardStats(companyId: string) {
 
     const statsQuery = `
       SELECT 
-        (SELECT COUNT(DISTINCT hospital_id) FROM hospital_companies WHERE company_id = @companyId) as totalHospitals,
-        (SELECT COUNT(id) FROM preauth_request WHERE company_id = @companyId AND status = 'Pending') as pendingRequests,
-        (SELECT COUNT(id) FROM preauth_request WHERE company_id = @companyId AND status = 'Rejected') as rejectedRequests,
-        (
-          SELECT COUNT(DISTINCT patient_id) 
-          FROM preauth_request
-          WHERE company_id = @companyId 
-          AND status NOT IN ('Settlement Done', 'Rejected', 'Draft', 'Final Amount Sanctioned', 'Amount received')
-        ) as livePatients;
+        (SELECT COUNT(DISTINCT hospital_id) FROM hospital_companies WHERE company_id = @companyId) as totalHospitals;
     `;
 
     const result = await pool
@@ -27,16 +19,16 @@ export async function getCompanyAdminDashboardStats(companyId: string) {
       .input('companyId', sql.NVarChar, companyId)
       .query(statsQuery);
 
-    if (result.recordset.length === 0) {
-      return {
-        totalHospitals: 0,
-        livePatients: 0,
-        pendingRequests: 0,
-        rejectedRequests: 0,
-      };
-    }
+    const stats = result.recordset[0] || { totalHospitals: 0 };
 
-    return result.recordset[0];
+    // Returning other stats as 0 for now to prevent breaking the UI
+    return {
+      totalHospitals: stats.totalHospitals,
+      livePatients: 0,
+      pendingRequests: 0,
+      rejectedRequests: 0,
+    };
+    
   } catch (error) {
     console.error('Error fetching company admin dashboard stats:', error);
     throw new Error('Failed to load dashboard statistics.');
