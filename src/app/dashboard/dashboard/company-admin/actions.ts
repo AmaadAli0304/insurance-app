@@ -9,23 +9,24 @@ export async function getCompanyAdminDashboardStats(companyId: string) {
   try {
     const pool = await getDbPool();
 
-    // Correctly and simply count all hospitals from the hospitals table.
+    // Correctly and simply count all hospitals from the hospitals table, and live patients from admissions.
     const statsQuery = `
       SELECT 
-        (SELECT COUNT(*) FROM hospitals) as totalHospitals;
+        (SELECT COUNT(*) FROM hospitals) as totalHospitals,
+        (SELECT COUNT(*) FROM admissions WHERE status = 'Active') as livePatients;
     `;
 
     const result = await pool
       .request()
-      .input('companyId', sql.NVarChar, companyId) // Kept for consistency, though not used in this simplified query
+      .input('companyId', sql.NVarChar, companyId)
       .query(statsQuery);
 
-    const stats = result.recordset[0] || { totalHospitals: 0 };
+    const stats = result.recordset[0] || { totalHospitals: 0, livePatients: 0 };
 
-    // Returning other stats as 0 to focus on fixing the hospital count first.
+    // Returning other stats as 0 for now.
     return {
       totalHospitals: stats.totalHospitals,
-      livePatients: 0,
+      livePatients: stats.livePatients,
       pendingRequests: 0,
       rejectedRequests: 0,
     };
