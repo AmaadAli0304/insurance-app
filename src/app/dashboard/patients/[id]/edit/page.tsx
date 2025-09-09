@@ -205,7 +205,7 @@ export default function EditPatientPage() {
         if (!form) return;
         const costs = [
             'roomNursingDietCost', 'investigationCost', 'icuCost',
-            'otCost', 'professionalFees', 'medicineCost', 'otherHospitalExpenses'
+            'otCost', 'professionalFees', 'medicineCost', 'otherHospitalExpenses', 'packageCharges'
         ];
         let sum = 0;
         costs.forEach(id => {
