@@ -245,6 +245,7 @@ export interface StaffingRequest {
   requestAmount?: number; 
   claim_id?: string | null;
   amount_sanctioned?: number;
+  latestSanctionedAmount?: number | null;
   reason?: string;
   patientPhoto?: string | null;
   chatHistory?: ChatMessage[];

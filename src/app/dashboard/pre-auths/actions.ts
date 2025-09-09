@@ -552,7 +552,7 @@ export async function getPreAuthRequestById(id: string): Promise<StaffingRequest
                 .query('SELECT * FROM chat WHERE preauth_id = @id ORDER BY created_at DESC'),
             pool.request()
                 .input('admission_id', sql.NVarChar, request.admission_id)
-                .query(`SELECT id, status, reason, amount as claimAmount, updated_at FROM claims WHERE admission_id = @admission_id ORDER BY updated_at DESC`)
+                .query(`SELECT id, status, reason, amount as claimAmount, paidAmount, updated_at FROM claims WHERE admission_id = @admission_id ORDER BY updated_at DESC`)
         ]);
 
         const chatHistory = chatResult.recordset as ChatMessage[];
@@ -574,6 +574,9 @@ export async function getPreAuthRequestById(id: string): Promise<StaffingRequest
         request.chatHistory = chatHistory;
         request.claimsHistory = claimsResult.recordset as Claim[];
         
+        const latestClaimWithSanctionedAmount = (claimsResult.recordset as Claim[]).find(c => c.paidAmount != null);
+        request.latestSanctionedAmount = latestClaimWithSanctionedAmount?.paidAmount ?? null;
+
         return request as StaffingRequest;
     } catch (error) {
         console.error("Error fetching pre-auth request by ID:", error);
