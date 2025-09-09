@@ -604,15 +604,15 @@ export default function EditPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="sumInsured">Sum Insured</Label>
-                                            <Input id="sumInsured" name="sumInsured" type="number" defaultValue={patient.sumInsured ?? ''} />
+                                            <Input id="sumInsured" name="sumInsured" type="number" min="0" defaultValue={patient.sumInsured ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="sumUtilized">Sum Utilized</Label>
-                                            <Input id="sumUtilized" name="sumUtilized" type="number" defaultValue={patient.sumUtilized ?? ''} />
+                                            <Input id="sumUtilized" name="sumUtilized" type="number" min="0" defaultValue={patient.sumUtilized ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="totalSum">Total Sum</Label>
-                                            <Input id="totalSum" name="totalSum" type="number" value={totalSum} readOnly />
+                                            <Input id="totalSum" name="totalSum" type="number" min="0" value={totalSum} readOnly />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="corporate_policy_number">Corporate policy name/number</Label>
@@ -691,7 +691,7 @@ export default function EditPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="ailmentDuration">Duration of present ailment (days)</Label>
-                                            <Input id="ailmentDuration" name="ailmentDuration" type="number" defaultValue={patient.ailmentDuration ?? ''} />
+                                            <Input id="ailmentDuration" name="ailmentDuration" type="number" min="0" defaultValue={patient.ailmentDuration ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="firstConsultationDate">Date of first consultation</Label>
@@ -800,10 +800,10 @@ export default function EditPatientPage() {
                                             <Label htmlFor="isMaternity">Is this a maternity case?</Label>
                                         </div>
                                         <div className="grid grid-cols-4 gap-2 md:col-span-2">
-                                            <Input name="g" type="number" placeholder="G" defaultValue={patient.g ?? ''} />
-                                            <Input name="p" type="number" placeholder="P" defaultValue={patient.p ?? ''} />
-                                            <Input name="l" type="number" placeholder="L" defaultValue={patient.l ?? ''} />
-                                            <Input name="a" type="number" placeholder="A" defaultValue={patient.a ?? ''} />
+                                            <Input name="g" type="number" min="0" placeholder="G" defaultValue={patient.g ?? ''} />
+                                            <Input name="p" type="number" min="0" placeholder="P" defaultValue={patient.p ?? ''} />
+                                            <Input name="l" type="number" min="0" placeholder="L" defaultValue={patient.l ?? ''} />
+                                            <Input name="a" type="number" min="0" placeholder="A" defaultValue={patient.a ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="expectedDeliveryDate">Expected date of delivery</Label>
@@ -835,11 +835,11 @@ export default function EditPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="expectedStay">Expected days of stay</Label>
-                                            <Input id="expectedStay" name="expectedStay" type="number" defaultValue={patient.expectedStay ?? ''} />
+                                            <Input id="expectedStay" name="expectedStay" type="number" min="0" defaultValue={patient.expectedStay ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="expectedIcuStay">Expected days in ICU</Label>
-                                            <Input id="expectedIcuStay" name="expectedIcuStay" type="number" defaultValue={patient.expectedIcuStay ?? ''} />
+                                            <Input id="expectedIcuStay" name="expectedIcuStay" type="number" min="0" defaultValue={patient.expectedIcuStay ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="roomCategory">Requested room category</Label>
@@ -856,39 +856,39 @@ export default function EditPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="roomNursingDietCost">Room + Nursing + Diet (₹)</Label>
-                                            <Input id="roomNursingDietCost" name="roomNursingDietCost" type="number" defaultValue={patient.roomNursingDietCost ?? ''} />
+                                            <Input id="roomNursingDietCost" name="roomNursingDietCost" type="number" min="0" defaultValue={patient.roomNursingDietCost ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="investigationCost">Diagnostics/investigations cost (₹)</Label>
-                                            <Input id="investigationCost" name="investigationCost" type="number" defaultValue={patient.investigationCost ?? ''} />
+                                            <Input id="investigationCost" name="investigationCost" type="number" min="0" defaultValue={patient.investigationCost ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="icuCost">ICU charges (₹)</Label>
-                                            <Input id="icuCost" name="icuCost" type="number" defaultValue={patient.icuCost ?? ''} />
+                                            <Input id="icuCost" name="icuCost" type="number" min="0" defaultValue={patient.icuCost ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="otCost">OT charges (₹)</Label>
-                                            <Input id="otCost" name="otCost" type="number" defaultValue={patient.otCost ?? ''} />
+                                            <Input id="otCost" name="otCost" type="number" min="0" defaultValue={patient.otCost ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="professionalFees">Professional fees (₹)</Label>
-                                            <Input id="professionalFees" name="professionalFees" type="number" defaultValue={patient.professionalFees ?? ''} />
+                                            <Input id="professionalFees" name="professionalFees" type="number" min="0" defaultValue={patient.professionalFees ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="medicineCost">Medicines + consumables (₹)</Label>
-                                            <Input id="medicineCost" name="medicineCost" type="number" defaultValue={patient.medicineCost ?? ''} />
+                                            <Input id="medicineCost" name="medicineCost" type="number" min="0" defaultValue={patient.medicineCost ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="otherHospitalExpenses">Other hospital expenses (₹)</Label>
-                                            <Input id="otherHospitalExpenses" name="otherHospitalExpenses" type="number" defaultValue={patient.otherHospitalExpenses ?? ''} />
+                                            <Input id="otherHospitalExpenses" name="otherHospitalExpenses" type="number" min="0" defaultValue={patient.otherHospitalExpenses ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="packageCharges">All-inclusive package charges (₹)</Label>
-                                            <Input id="packageCharges" name="packageCharges" type="number" defaultValue={patient.packageCharges ?? ''} />
+                                            <Input id="packageCharges" name="packageCharges" type="number" min="0" defaultValue={patient.packageCharges ?? ''} />
                                         </div>
                                         <div className="space-y-2 md:col-span-3">
                                             <Label htmlFor="totalExpectedCost">Total expected cost (₹)</Label>
-                                            <Input id="totalExpectedCost" name="totalExpectedCost" type="number" value={totalCost} readOnly className="font-bold text-lg" />
+                                            <Input id="totalExpectedCost" name="totalExpectedCost" type="number" min="0" value={totalCost} readOnly className="font-bold text-lg" />
                                         </div>
                                     </CardContent>
                                 </AccordionContent>

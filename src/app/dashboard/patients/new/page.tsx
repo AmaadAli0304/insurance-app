@@ -531,15 +531,15 @@ export default function NewPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="sumInsured">Sum Insured</Label>
-                                            <Input id="sumInsured" name="sumInsured" type="number" />
+                                            <Input id="sumInsured" name="sumInsured" type="number" min="0" />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="sumUtilized">Sum Utilized</Label>
-                                            <Input id="sumUtilized" name="sumUtilized" type="number" />
+                                            <Input id="sumUtilized" name="sumUtilized" type="number" min="0" />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="totalSum">Total Sum</Label>
-                                            <Input id="totalSum" name="totalSum" type="number" value={totalSum} readOnly />
+                                            <Input id="totalSum" name="totalSum" type="number" min="0" value={totalSum} readOnly />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="corporate_policy_number">Corporate policy name/number</Label>
@@ -617,7 +617,7 @@ export default function NewPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="ailmentDuration">Duration of present ailment (days)</Label>
-                                            <Input id="ailmentDuration" name="ailmentDuration" type="number" />
+                                            <Input id="ailmentDuration" name="ailmentDuration" type="number" min="0" />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="firstConsultationDate">Date of first consultation</Label>
@@ -726,10 +726,10 @@ export default function NewPatientPage() {
                                             <Label htmlFor="isMaternity">Is this a maternity case?</Label>
                                         </div>
                                         <div className="grid grid-cols-4 gap-2 md:col-span-2">
-                                            <Input name="g" type="number" placeholder="G" />
-                                            <Input name="p" type="number" placeholder="P" />
-                                            <Input name="l" type="number" placeholder="L" />
-                                            <Input name="a" type="number" placeholder="A" />
+                                            <Input name="g" type="number" min="0" placeholder="G" />
+                                            <Input name="p" type="number" min="0" placeholder="P" />
+                                            <Input name="l" type="number" min="0" placeholder="L" />
+                                            <Input name="a" type="number" min="0" placeholder="A" />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="expectedDeliveryDate">Expected date of delivery</Label>
@@ -761,11 +761,11 @@ export default function NewPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="expectedStay">Expected days of stay</Label>
-                                            <Input id="expectedStay" name="expectedStay" type="number" />
+                                            <Input id="expectedStay" name="expectedStay" type="number" min="0" />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="expectedIcuStay">Expected days in ICU</Label>
-                                            <Input id="expectedIcuStay" name="expectedIcuStay" type="number" />
+                                            <Input id="expectedIcuStay" name="expectedIcuStay" type="number" min="0" />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="roomCategory">Requested room category</Label>
@@ -782,39 +782,39 @@ export default function NewPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="roomNursingDietCost">Room + Nursing + Diet (₹)</Label>
-                                            <Input id="roomNursingDietCost" name="roomNursingDietCost" type="number" />
+                                            <Input id="roomNursingDietCost" name="roomNursingDietCost" type="number" min="0" />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="investigationCost">Diagnostics/investigations cost (₹)</Label>
-                                            <Input id="investigationCost" name="investigationCost" type="number" />
+                                            <Input id="investigationCost" name="investigationCost" type="number" min="0" />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="icuCost">ICU charges (₹)</Label>
-                                            <Input id="icuCost" name="icuCost" type="number" />
+                                            <Input id="icuCost" name="icuCost" type="number" min="0" />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="otCost">OT charges (₹)</Label>
-                                            <Input id="otCost" name="otCost" type="number" />
+                                            <Input id="otCost" name="otCost" type="number" min="0" />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="professionalFees">Professional fees (₹)</Label>
-                                            <Input id="professionalFees" name="professionalFees" type="number" />
+                                            <Input id="professionalFees" name="professionalFees" type="number" min="0" />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="medicineCost">Medicines + consumables (₹)</Label>
-                                            <Input id="medicineCost" name="medicineCost" type="number" />
+                                            <Input id="medicineCost" name="medicineCost" type="number" min="0" />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="otherHospitalExpenses">Other hospital expenses (₹)</Label>
-                                            <Input id="otherHospitalExpenses" name="otherHospitalExpenses" type="number" />
+                                            <Input id="otherHospitalExpenses" name="otherHospitalExpenses" type="number" min="0" />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="packageCharges">All-inclusive package charges (₹)</Label>
-                                            <Input id="packageCharges" name="packageCharges" type="number" />
+                                            <Input id="packageCharges" name="packageCharges" type="number" min="0" />
                                         </div>
                                         <div className="space-y-2 md:col-span-3">
                                             <Label htmlFor="totalExpectedCost">Total expected cost (₹)</Label>
-                                            <Input id="totalExpectedCost" name="totalExpectedCost" type="number" value={totalCost} readOnly className="font-bold text-lg" />
+                                            <Input id="totalExpectedCost" name="totalExpectedCost" type="number" min="0" value={totalCost} readOnly className="font-bold text-lg" />
                                         </div>
                                     </CardContent>
                                 </AccordionContent>
