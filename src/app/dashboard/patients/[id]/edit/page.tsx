@@ -288,6 +288,16 @@ export default function EditPatientPage() {
                     }
                 }
                 setDocumentUrls(initialDocUrls);
+                
+                const costFields: (keyof Patient)[] = [
+                    'roomNursingDietCost', 'investigationCost', 'icuCost',
+                    'otCost', 'professionalFees', 'medicineCost', 'otherHospitalExpenses', 'packageCharges'
+                ];
+                const initialTotalCost = costFields.reduce((acc, field) => {
+                    const value = patientData[field];
+                    return acc + (typeof value === 'number' ? value : 0);
+                }, 0);
+                setTotalCost(initialTotalCost);
 
             } catch (error) {
                 toast({ title: "Error", description: "Failed to load patient data.", variant: "destructive" });
