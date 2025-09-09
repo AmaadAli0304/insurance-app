@@ -9,6 +9,7 @@ export async function getCompanyAdminDashboardStats(companyId: string) {
   try {
     const pool = await getDbPool();
 
+    // This query now correctly counts the distinct hospitals linked to the company.
     const statsQuery = `
       SELECT 
         (SELECT COUNT(DISTINCT hospital_id) FROM hospital_companies WHERE company_id = @companyId) as totalHospitals;
@@ -21,7 +22,7 @@ export async function getCompanyAdminDashboardStats(companyId: string) {
 
     const stats = result.recordset[0] || { totalHospitals: 0 };
 
-    // Returning other stats as 0 for now to prevent breaking the UI
+    // Returning other stats as 0 to focus on fixing the hospital count first.
     return {
       totalHospitals: stats.totalHospitals,
       livePatients: 0,
