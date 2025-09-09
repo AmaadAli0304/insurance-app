@@ -9,15 +9,15 @@ export async function getCompanyAdminDashboardStats(companyId: string) {
   try {
     const pool = await getDbPool();
 
-    // This query now correctly counts the distinct hospitals linked to the company.
+    // Correctly and simply count all hospitals from the hospitals table.
     const statsQuery = `
       SELECT 
-        (SELECT COUNT(DISTINCT hospital_id) FROM hospital_companies WHERE company_id = @companyId) as totalHospitals;
+        (SELECT COUNT(*) FROM hospitals) as totalHospitals;
     `;
 
     const result = await pool
       .request()
-      .input('companyId', sql.NVarChar, companyId)
+      .input('companyId', sql.NVarChar, companyId) // Kept for consistency, though not used in this simplified query
       .query(statsQuery);
 
     const stats = result.recordset[0] || { totalHospitals: 0 };
