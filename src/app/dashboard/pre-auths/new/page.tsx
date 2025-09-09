@@ -411,6 +411,7 @@ export default function NewRequestPage() {
                  <input type="hidden" name="userId" value={user?.uid || ''} />
                  <input type="hidden" name="doctor_id" value={patientDetails?.doctor_id || ''} />
                  <input type="hidden" name="from" value={hospitalDetails?.email || user?.email || ''} />
+                 <input type="hidden" name="to" value={toEmail} />
                  <input type="hidden" name="details" value={emailBody} />
                  <input type="hidden" name="requestType" value={requestType} />
                  <input type="hidden" name="totalExpectedCost" value={totalCost} />
@@ -769,10 +770,10 @@ export default function NewRequestPage() {
                                             <Label htmlFor="isMaternity">Is this a maternity case?</Label>
                                         </div>
                                         <div className="grid grid-cols-4 gap-2 md:col-span-2">
-                                            <Input name="g" type="number" placeholder="G" defaultValue={patientDetails.g ?? ''} />
-                                            <Input name="p" type="number" placeholder="P" defaultValue={patientDetails.p ?? ''} />
-                                            <Input name="l" type="number" placeholder="L" defaultValue={patientDetails.l ?? ''} />
-                                            <Input name="a" type="number" placeholder="A" defaultValue={patientDetails.a ?? ''} />
+                                            <Input name="g" type="number" min="0" placeholder="G" defaultValue={patientDetails.g ?? ''} />
+                                            <Input name="p" type="number" min="0" placeholder="P" defaultValue={patientDetails.p ?? ''} />
+                                            <Input name="l" type="number" min="0" placeholder="L" defaultValue={patientDetails.l ?? ''} />
+                                            <Input name="a" type="number" min="0" placeholder="A" defaultValue={patientDetails.a ?? ''} />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="expectedDeliveryDate">Expected date of delivery</Label>
@@ -956,11 +957,11 @@ export default function NewRequestPage() {
                             </div>
                             <div className="grid md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="to">To <span className="text-destructive">*</span></Label>
-                                    <Input id="to" name="to" placeholder="Select a patient to populate TPA email" value={toEmail} required readOnly disabled />
+                                    <Label htmlFor="to-display">To <span className="text-destructive">*</span></Label>
+                                    <Input id="to-display" name="to-display" placeholder="Select a patient to populate TPA email" value={toEmail} required readOnly disabled />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="from">From</Label>
+                                    <Label htmlFor="from-display">From</Label>
                                     <Input id="from-display" name="from-display" value={hospitalDetails?.email || user?.email || ''} readOnly disabled />
                                 </div>
                             </div>
@@ -1029,4 +1030,5 @@ export default function NewRequestPage() {
         </div>
     );
 }
+
 

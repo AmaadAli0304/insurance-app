@@ -168,7 +168,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
   const emailAttachmentsData = formData.getAll('email_attachments');
   
   const data = formEntries;
-  const { subject, details, requestType, patientId, totalExpectedCost, doctor_id, claim_id, userId, hospitalId } = data as Record<string, any>;
+  const { subject, details, requestType, patientId, totalExpectedCost, doctor_id, claim_id, userId, hospitalId, to: toEmailFromForm } = data as Record<string, any>;
   
   let transaction;
   try {
@@ -202,6 +202,10 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
             .map(att => typeof att === 'string' ? JSON.parse(att) : att);
 
     if (shouldSendEmail) {
+        if (!toEmailFromForm) {
+            throw new Error("Recipient email address (To) is missing.");
+        }
+
         const fetchedAttachments = await Promise.all(
             parsedAttachments.map(async (att: { name: string, url: string }) => {
                 try {
@@ -228,7 +232,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
         await sendPreAuthEmail({ 
             fromName: hospitalName, 
             fromEmail: fromEmail, 
-            to: tpaEmail, 
+            to: toEmailFromForm, 
             subject: subject, 
             html: details,
             attachments: validAttachments
@@ -356,7 +360,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
     const chatResult = await chatInsertRequest
         .input('preauth_id', sql.Int, preAuthId)
         .input('from_email', sql.NVarChar, fromEmail)
-        .input('to_email', sql.NVarChar, tpaEmail)
+        .input('to_email', sql.NVarChar, toEmailFromForm)
         .input('subject', sql.NVarChar, subject)
         .input('body', sql.NVarChar, details)
         .input('request_type', sql.NVarChar, requestType)
