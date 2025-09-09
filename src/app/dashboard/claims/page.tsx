@@ -148,67 +148,75 @@ export default function ClaimsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {claims.map(c => (
-                <TableRow key={c.id} onClick={() => handleRowClick(c.id)} className="cursor-pointer">
-                   <TableCell className="font-medium flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
-                        <AvatarImage src={c.patientPhoto ?? undefined} alt={c.Patient_name} />
-                        <AvatarFallback>{getInitials(c.Patient_name)}</AvatarFallback>
-                    </Avatar>
-                    {c.Patient_name}
-                  </TableCell>
-                  <TableCell className="font-mono">{c.claim_id || 'N/A'}</TableCell>
-                  <TableCell>{c.hospitalName || 'N/A'}</TableCell>
-                  <TableCell>${c.claimAmount?.toLocaleString() || 'N/A'}</TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusVariant(c.status)} className={c.status === 'Paid' || c.status === 'Approved' ? 'bg-accent text-accent-foreground' : ''}>{c.status}</Badge>
-                  </TableCell>
-                  <TableCell>{c.reason || 'N/A'}</TableCell>
-                  <TableCell>{new Date(c.updated_at).toLocaleDateString()}</TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem asChild>
-                           <Link href={`/dashboard/claims/${c.id}/view`} className="flex items-center gap-2 cursor-pointer">
-                              <Eye className="h-4 w-4" /> View Details
-                           </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => handleHistoryClick(c.Patient_id, c.Patient_name)} className="flex items-center gap-2 cursor-pointer">
-                          <History className="h-4 w-4" /> History
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                         <AlertDialog>
-                           <AlertDialogTrigger asChild>
-                           <DropdownMenuItem className="text-destructive flex items-center gap-2 cursor-pointer" onSelect={(e) => e.preventDefault()}>
-                             <Trash className="h-4 w-4" /> Delete
-                           </DropdownMenuItem>
-                           </AlertDialogTrigger>
-                           <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This action cannot be undone. This will permanently delete this claim.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <form action={async (formData) => {
-                                  await handleDeleteClaim(formData);
-                                  loadClaims();
-                                }}>
-                                    <input type="hidden" name="id" value={c.id} />
-                                    <AlertDialogAction type="submit">Continue</AlertDialogAction>
-                                </form>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                         </AlertDialog>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+              {claims.length > 0 ? (
+                claims.map(c => (
+                  <TableRow key={c.id} onClick={() => handleRowClick(c.id)} className="cursor-pointer">
+                    <TableCell className="font-medium flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                          <AvatarImage src={c.patientPhoto ?? undefined} alt={c.Patient_name} />
+                          <AvatarFallback>{getInitials(c.Patient_name)}</AvatarFallback>
+                      </Avatar>
+                      {c.Patient_name}
+                    </TableCell>
+                    <TableCell className="font-mono">{c.claim_id || 'N/A'}</TableCell>
+                    <TableCell>{c.hospitalName || 'N/A'}</TableCell>
+                    <TableCell>${c.claimAmount?.toLocaleString() || 'N/A'}</TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusVariant(c.status)} className={c.status === 'Paid' || c.status === 'Approved' ? 'bg-accent text-accent-foreground' : ''}>{c.status}</Badge>
+                    </TableCell>
+                    <TableCell>{c.reason || 'N/A'}</TableCell>
+                    <TableCell>{new Date(c.updated_at).toLocaleDateString()}</TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/dashboard/claims/${c.id}/view`} className="flex items-center gap-2 cursor-pointer">
+                                <Eye className="h-4 w-4" /> View Details
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => handleHistoryClick(c.Patient_id, c.Patient_name)} className="flex items-center gap-2 cursor-pointer">
+                            <History className="h-4 w-4" /> History
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                            <DropdownMenuItem className="text-destructive flex items-center gap-2 cursor-pointer" onSelect={(e) => e.preventDefault()}>
+                              <Trash className="h-4 w-4" /> Delete
+                            </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This action cannot be undone. This will permanently delete this claim.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <form action={async (formData) => {
+                                    await handleDeleteClaim(formData);
+                                    loadClaims();
+                                  }}>
+                                      <input type="hidden" name="id" value={c.id} />
+                                      <AlertDialogAction type="submit">Continue</AlertDialogAction>
+                                  </form>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                          </AlertDialog>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={8} className="h-24 text-center">
+                    Data not found
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
            )}
