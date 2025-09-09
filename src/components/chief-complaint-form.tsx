@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -37,12 +37,13 @@ interface ChiefComplaintFormProps {
 
 const MemoizedChiefComplaintForm = ({ initialData, patientId }: ChiefComplaintFormProps) => {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const newComplaintIdCounter = useRef(Date.now());
 
   useEffect(() => {
     const initialMapped = initialComplaintNames.map((name, index) => {
       const existing = initialData?.find(d => d.name.toUpperCase() === name.toUpperCase());
       return {
-        id: existing?.id ?? index, // Use index for a stable initial ID
+        id: existing?.id ?? index, 
         name: name,
         selected: existing?.selected ?? false,
         durationValue: existing?.durationValue ?? '',
@@ -50,40 +51,40 @@ const MemoizedChiefComplaintForm = ({ initialData, patientId }: ChiefComplaintFo
       };
     });
     
-    // Add any custom complaints from initialData that are not in the default list
-    const customComplaints = initialData?.filter(d => !initialComplaintNames.includes(d.name)) || [];
+    const customComplaints = initialData?.filter(d => !initialComplaintNames.some(initialName => initialName.toUpperCase() === d.name.toUpperCase())) || [];
     setComplaints([...initialMapped, ...customComplaints]);
 
   }, [initialData]);
 
 
   const handleToggle = (id: number) => {
-    setComplaints(
-      complaints.map(c =>
+    setComplaints(prevComplaints =>
+      prevComplaints.map(c =>
         c.id === id ? { ...c, selected: !c.selected, durationValue: !c.selected ? c.durationValue : '', durationUnit: !c.selected ? c.durationUnit : 'Day' } : c
       )
     );
   };
 
   const handleInputChange = (id: number, field: 'durationValue' | 'durationUnit' | 'name', value: string) => {
-    setComplaints(
-      complaints.map(c => (c.id === id ? { ...c, [field]: value } : c))
+    setComplaints(prevComplaints =>
+      prevComplaints.map(c => (c.id === id ? { ...c, [field]: value } : c))
     );
   };
 
   const addComplaint = () => {
+    newComplaintIdCounter.current += 1;
     const newComplaint: Complaint = {
-      id: Date.now(), // OK to use Date.now() here as it only happens on the client
+      id: newComplaintIdCounter.current,
       name: '',
       selected: true,
       durationValue: '',
       durationUnit: 'Day',
     };
-    setComplaints([...complaints, newComplaint]);
+    setComplaints(prevComplaints => [...prevComplaints, newComplaint]);
   };
   
   const removeComplaint = (id: number) => {
-      setComplaints(complaints.filter(c => c.id !== id));
+      setComplaints(prevComplaints => prevComplaints.filter(c => c.id !== id));
   };
 
 
@@ -93,7 +94,7 @@ const MemoizedChiefComplaintForm = ({ initialData, patientId }: ChiefComplaintFo
             <CardTitle>Medical History</CardTitle>
         </CardHeader>
       <CardContent>
-        <input type="hidden" name="chiefComplaints" value={JSON.stringify(complaints.filter(c => c.selected))} />
+        <input type="hidden" name="chiefComplaints" value={JSON.stringify(complaints.filter(c => c.selected && c.name))} />
         <div className="overflow-x-auto">
             <div className="grid grid-cols-[auto_1fr_1fr_1fr_auto] gap-x-4 items-center border-b pb-2 mb-2 font-medium">
                 <Label className="px-2">#</Label>
@@ -102,8 +103,8 @@ const MemoizedChiefComplaintForm = ({ initialData, patientId }: ChiefComplaintFo
                 <Label>Unit</Label>
                 <div className="w-8"></div>
             </div>
-             {complaints.map((complaint, index) => (
-                <div key={`${complaint.name}-${complaint.id}-${index}`} className="grid grid-cols-[auto_1fr_1fr_1fr_auto] gap-x-4 items-center mb-2">
+             {complaints.map((complaint) => (
+                <div key={complaint.id} className="grid grid-cols-[auto_1fr_1fr_1fr_auto] gap-x-4 items-center mb-2">
                     <Checkbox
                         id={`complaint-checkbox-${complaint.id}`}
                         checked={complaint.selected}
@@ -113,7 +114,7 @@ const MemoizedChiefComplaintForm = ({ initialData, patientId }: ChiefComplaintFo
                         value={complaint.name}
                         onChange={(e) => handleInputChange(complaint.id, 'name', e.target.value)}
                         placeholder="Enter complaint"
-                        disabled={!complaint.selected || initialComplaintNames.includes(complaint.name)}
+                        disabled={initialComplaintNames.some(initialName => initialName.toUpperCase() === complaint.name.toUpperCase())}
                     />
                     <Input
                         type="number"
@@ -142,7 +143,7 @@ const MemoizedChiefComplaintForm = ({ initialData, patientId }: ChiefComplaintFo
                         size="icon" 
                         onClick={() => removeComplaint(complaint.id)}
                         className="text-destructive hover:text-destructive"
-                        disabled={initialComplaintNames.includes(complaint.name)}
+                        disabled={initialComplaintNames.some(initialName => initialName.toUpperCase() === complaint.name.toUpperCase())}
                      >
                         <Trash2 className="h-4 w-4" />
                     </Button>
