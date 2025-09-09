@@ -96,7 +96,7 @@ export function CompanyAdminDashboard() {
         </Card>
         <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">SLA Breaches</CardTitle>
+                <CardTitle className="text-sm font-medium">Rejected Requests</CardTitle>
                 <AlertTriangle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -105,9 +105,6 @@ export function CompanyAdminDashboard() {
         </Card>
       </div>
       
-      {/* The HospitalsTable could also be refactored to use live data in the future */}
-      {/* For now, it will remain as is, using mock data */}
-
     </div>
   )
 }
