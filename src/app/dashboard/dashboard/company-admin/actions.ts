@@ -15,9 +15,10 @@ export async function getCompanyAdminDashboardStats(companyId: string) {
         (SELECT COUNT(id) FROM preauth_request WHERE company_id = @companyId AND status = 'Pending') as pendingRequests,
         (SELECT COUNT(id) FROM preauth_request WHERE company_id = @companyId AND status = 'Rejected') as rejectedRequests,
         (
-          SELECT COUNT(DISTINCT pr.patient_id) 
-          FROM preauth_request pr
-          WHERE pr.company_id = @companyId AND pr.status NOT IN ('Settlement Done', 'Rejected', 'Draft', 'Final Amount Sanctioned', 'Amount received')
+          SELECT COUNT(DISTINCT patient_id) 
+          FROM preauth_request
+          WHERE company_id = @companyId 
+          AND status NOT IN ('Settlement Done', 'Rejected', 'Draft', 'Final Amount Sanctioned', 'Amount received')
         ) as livePatients;
     `;
 
