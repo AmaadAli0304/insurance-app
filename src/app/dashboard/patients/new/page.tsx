@@ -492,6 +492,7 @@ export default function NewPatientPage() {
                                             <Select name="relationship_policyholder" required>
                                                 <SelectTrigger><SelectValue placeholder="Select relationship" /></SelectTrigger>
                                                 <SelectContent>
+                                                    <SelectItem value="Self">Self</SelectItem>
                                                     <SelectItem value="Spouse">Spouse</SelectItem>
                                                     <SelectItem value="Sister">Sister</SelectItem>
                                                     <SelectItem value="Brother">Brother</SelectItem>
