@@ -836,6 +836,3 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     revalidatePath('/dashboard/claims');
     return { message: 'Status updated and claim history recorded successfully.', type: 'success' };
 }
-
-
-    
