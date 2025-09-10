@@ -49,7 +49,7 @@ export async function getCompanyAdminDashboardStats(companyId: string, dateRange
       pool.request().query(totalHospitalsQuery),
       admissionsRequest.query(livePatientsQuery),
       preAuthRequest.query(pendingRequestsQuery),
-      rejectedRequestsResult,
+      preAuthRequest.query(rejectedRequestsQuery),
     ]);
 
     return {
