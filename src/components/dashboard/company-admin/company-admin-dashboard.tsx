@@ -1,12 +1,12 @@
-
 "use client"
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building, Users, Clock, AlertTriangle, Loader2 } from "lucide-react";
-import { getCompanyAdminDashboardStats } from "@/app/dashboard/dashboard/company-admin/actions";
+import { getCompanyAdminDashboardStats, getHospitalBusinessStats, HospitalBusinessStats } from "@/app/dashboard/dashboard/company-admin/actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { BusinessSummaryTable } from "@/app/dashboard/dashboard/company-admin/business-summary-table";
 
 interface DashboardStats {
   totalHospitals: number;
@@ -20,6 +20,7 @@ export function CompanyAdminDashboard() {
   const companyId = user?.companyId;
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [businessStats, setBusinessStats] = useState<HospitalBusinessStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,11 +31,15 @@ export function CompanyAdminDashboard() {
       return;
     }
 
-    async function fetchStats() {
+    async function fetchAllStats() {
       try {
         setIsLoading(true);
-        const data = await getCompanyAdminDashboardStats(companyId!);
-        setStats(data);
+        const [dashboardData, businessData] = await Promise.all([
+            getCompanyAdminDashboardStats(companyId!),
+            getHospitalBusinessStats()
+        ]);
+        setStats(dashboardData);
+        setBusinessStats(businessData);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -42,7 +47,7 @@ export function CompanyAdminDashboard() {
       }
     }
 
-    fetchStats();
+    fetchAllStats();
   }, [companyId]);
 
   if (isLoading) {
@@ -65,7 +70,7 @@ export function CompanyAdminDashboard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Insurance Dashboard for {user?.name}</h1>
+      <h1 className="text-3xl font-bold">Admin Dashboard for {user?.name}</h1>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -105,6 +110,8 @@ export function CompanyAdminDashboard() {
             </CardContent>
         </Card>
       </div>
+
+      <BusinessSummaryTable stats={businessStats} />
       
     </div>
   )
