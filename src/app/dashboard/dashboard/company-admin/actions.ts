@@ -152,7 +152,7 @@ export async function getPatientBilledStats(dateRange?: DateRange): Promise<Pati
             const toDate = dateRange.to || new Date();
             request.input('dateFrom', sql.DateTime, dateRange.from);
             request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-            dateFilter = 'AND c.created_at BETWEEN @dateFrom AND @dateTo';
+            dateFilter = "AND c.created_at BETWEEN @dateFrom AND @dateTo";
         }
 
         const query = `
@@ -183,7 +183,7 @@ export async function getPatientBilledStats(dateRange?: DateRange): Promise<Pati
                 hospitalName: record.hospitalName,
                 billedAmount: record.billedAmount,
             };
-        }) as PatientBilledStats[];
+        });
     } catch (error) {
         console.error('Error fetching patient billed stats:', error);
         throw new Error('Failed to fetch patient billed statistics.');
