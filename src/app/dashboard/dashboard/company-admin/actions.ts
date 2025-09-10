@@ -84,7 +84,7 @@ export async function getHospitalBusinessStats(dateRange?: DateRange): Promise<H
     
     let dateFilterClauses: string[] = [];
     if (dateRange?.from) {
-        const toDate = dateRange.to || new Date(); // Use today if 'to' is not set
+        const toDate = dateRange.to || new Date(); 
         request.input('dateFrom', sql.DateTime, dateRange.from);
         request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
         dateFilterClauses.push('created_at BETWEEN @dateFrom AND @dateTo');
