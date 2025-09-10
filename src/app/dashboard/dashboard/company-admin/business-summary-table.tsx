@@ -4,12 +4,15 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
 import type { HospitalBusinessStats } from "./actions";
+import type { DateRange } from "react-day-picker";
+import { format } from "date-fns";
 
 interface BusinessSummaryTableProps {
   stats: HospitalBusinessStats[];
+  dateRange?: DateRange;
 }
 
-export function BusinessSummaryTable({ stats }: BusinessSummaryTableProps) {
+export function BusinessSummaryTable({ stats, dateRange }: BusinessSummaryTableProps) {
     
     const totals = stats.reduce(
         (acc, curr) => {
@@ -31,11 +34,21 @@ export function BusinessSummaryTable({ stats }: BusinessSummaryTableProps) {
         }
     );
     
+    const getDateRangeDescription = () => {
+        if (dateRange?.from) {
+            if (dateRange.to) {
+                return `From ${format(dateRange.from, "LLL dd, y")} to ${format(dateRange.to, "LLL dd, y")}`;
+            }
+            return `For ${format(dateRange.from, "LLL dd, y")}`;
+        }
+        return "A summary of business activity across all hospitals.";
+    };
+    
     return (
         <Card>
             <CardHeader>
                 <CardTitle>Hospital Business Summary</CardTitle>
-                <CardDescription>A summary of business activity across all hospitals.</CardDescription>
+                <CardDescription>{getDateRangeDescription()}</CardDescription>
             </CardHeader>
             <CardContent>
                 <Table>
