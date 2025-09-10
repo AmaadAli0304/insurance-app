@@ -5,7 +5,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building, Users, Clock, AlertTriangle, Loader2, Calendar as CalendarIcon } from "lucide-react";
-import { getCompanyAdminDashboardStats, getHospitalBusinessStats, HospitalBusinessStats } from "./actions";
+import { getCompanyAdminDashboardStats, getHospitalBusinessStats, getPatientBillingStats, HospitalBusinessStats, PatientBilledStat } from "./actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { BusinessSummaryTable } from "./business-summary-table";
 import { DateRange } from "react-day-picker";
@@ -29,6 +29,7 @@ export function CompanyAdminDashboard() {
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [businessStats, setBusinessStats] = useState<HospitalBusinessStats[]>([]);
+  const [patientBillingStats, setPatientBillingStats] = useState<PatientBilledStat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -47,12 +48,14 @@ export function CompanyAdminDashboard() {
     try {
       setIsLoading(true);
       setError(null);
-      const [dashboardData, businessData] = await Promise.all([
+      const [dashboardData, businessData, patientBillingData] = await Promise.all([
           getCompanyAdminDashboardStats(companyId, date),
           getHospitalBusinessStats(date),
+          getPatientBillingStats(date),
       ]);
       setStats(dashboardData);
       setBusinessStats(businessData);
+      setPatientBillingStats(patientBillingData);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -163,7 +166,7 @@ export function CompanyAdminDashboard() {
                 </PopoverContent>
               </Popover>
           </BusinessSummaryTable>
-          <PatientBillingTable />
+          <PatientBillingTable stats={patientBillingStats} />
         </>
       )}
     </div>

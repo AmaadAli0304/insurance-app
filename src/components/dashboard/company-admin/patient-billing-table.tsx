@@ -3,15 +3,13 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import type { PatientBilledStat } from "./actions";
 
-const dummyPatients = [
-  { patientId: 'PAT-001', patientName: 'John Doe', patientPhoto: null, hospitalName: 'General Hospital', billedAmount: 5200, tpaName: 'HealthServe TPA' },
-  { patientId: 'PAT-002', patientName: 'Jane Smith', patientPhoto: null, hospitalName: 'City Clinic', billedAmount: 1250, tpaName: 'MediCare Assist' },
-  { patientId: 'PAT-003', patientName: 'Peter Jones', patientPhoto: null, hospitalName: 'Sunrise Medical', billedAmount: 15000, tpaName: 'HealthServe TPA' },
-  { patientId: 'PAT-004', patientName: 'Mary Johnson', patientPhoto: null, hospitalName: 'General Hospital', billedAmount: 3400, tpaName: 'MediCare Assist' },
-];
+interface PatientBillingTableProps {
+  stats: PatientBilledStat[];
+}
 
-export function PatientBillingTable() {
+export function PatientBillingTable({ stats }: PatientBillingTableProps) {
     
     const getInitials = (name: string) => {
         if (!name) return 'P';
@@ -22,7 +20,7 @@ export function PatientBillingTable() {
         <Card>
             <CardHeader>
                 <CardTitle>Patient Billing Summary</CardTitle>
-                <CardDescription>A summary of billed amounts per patient.</CardDescription>
+                <CardDescription>A summary of billed amounts per patient based on Pre-auth and Enhancement requests.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Table>
@@ -36,8 +34,8 @@ export function PatientBillingTable() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {dummyPatients.length > 0 ? (
-                            dummyPatients.map((stat, index) => (
+                        {stats && stats.length > 0 ? (
+                            stats.map((stat, index) => (
                                 <TableRow key={stat.patientId}>
                                     <TableCell>{index + 1}</TableCell>
                                     <TableCell className="font-medium flex items-center gap-3">

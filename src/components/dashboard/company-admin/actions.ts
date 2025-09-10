@@ -117,3 +117,70 @@ export async function getHospitalBusinessStats(dateRange?: DateRange): Promise<H
     throw new Error('Failed to fetch hospital business statistics.');
   }
 }
+
+export type PatientBilledStat = {
+  patientId: number;
+  patientName: string;
+  patientPhoto: string | null;
+  hospitalName: string;
+  tpaName: string;
+  billedAmount: number;
+};
+
+export async function getPatientBillingStats(dateRange?: DateRange): Promise<PatientBilledStat[]> {
+    try {
+        const pool = await getDbPool();
+        const request = pool.request();
+
+        let dateFilter = '';
+        if (dateRange?.from) {
+            const toDate = dateRange.to || new Date(); 
+            request.input('dateFrom', sql.DateTime, dateRange.from);
+            request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+            dateFilter = 'AND c.created_at BETWEEN @dateFrom AND @dateTo';
+        }
+
+        const query = `
+            SELECT
+                p.id AS patientId,
+                p.first_name + ' ' + p.last_name AS patientName,
+                p.photo AS patientPhoto,
+                h.name AS hospitalName,
+                t.name AS tpaName,
+                SUM(c.amount) as billedAmount
+            FROM claims c
+            JOIN patients p ON c.Patient_id = p.id
+            JOIN hospitals h ON c.hospital_id = h.id
+            JOIN tpas t ON c.tpa_id = t.id
+            WHERE c.status IN ('Pre auth Sent', 'Enhancement Request') ${dateFilter}
+            GROUP BY
+                p.id,
+                p.first_name,
+                p.last_name,
+                p.photo,
+                h.name,
+                t.name
+            ORDER BY
+                billedAmount DESC;
+        `;
+
+        const result = await request.query(query);
+        
+        return result.recordset.map(row => {
+            let photoUrl = null;
+            if (row.patientPhoto) {
+                try {
+                    const parsed = JSON.parse(row.patientPhoto);
+                    photoUrl = parsed.url;
+                } catch {
+                    photoUrl = null;
+                }
+            }
+            return { ...row, patientPhoto: photoUrl };
+        });
+
+    } catch (error) {
+        console.error('Error fetching patient billing stats:', error);
+        throw new Error('Failed to fetch patient billing statistics.');
+    }
+}
