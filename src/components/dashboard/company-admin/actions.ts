@@ -1,4 +1,3 @@
-
 'use server';
 
 import { getDbPool, sql } from '@/lib/db';
@@ -50,7 +49,7 @@ export async function getCompanyAdminDashboardStats(companyId: string, dateRange
       pool.request().query(totalHospitalsQuery),
       admissionsRequest.query(livePatientsQuery),
       preAuthRequest.query(pendingRequestsQuery),
-      preAuthRequest.query(rejectedRequestsQuery),
+      rejectedRequestsResult,
     ]);
 
     return {
