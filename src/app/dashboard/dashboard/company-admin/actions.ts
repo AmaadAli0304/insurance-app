@@ -32,14 +32,14 @@ export async function getCompanyAdminDashboardStats(companyId: string, dateRange
         admissionsRequest.input('dateFrom', sql.DateTime, dateRange.from);
         admissionsRequest.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
         
-        preAuthDateFilter = 'AND created_at BETWEEN @dateFrom AND @dateTo';
-        admissionsDateFilter = 'AND created_at BETWEEN @dateFrom AND @dateTo';
+        preAuthDateFilter = 'AND pr.created_at BETWEEN @dateFrom AND @dateTo';
+        admissionsDateFilter = 'AND a.created_at BETWEEN @dateFrom AND @dateTo';
     }
 
     const totalHospitalsQuery = `SELECT COUNT(*) as totalHospitals FROM hospitals`;
-    const livePatientsQuery = `SELECT COUNT(*) as livePatients FROM admissions WHERE status = 'Active' ${admissionsDateFilter}`;
-    const pendingRequestsQuery = `SELECT COUNT(*) as pendingRequests FROM preauth_request WHERE status = 'Pre auth Sent' ${preAuthDateFilter}`;
-    const rejectedRequestsQuery = `SELECT COUNT(*) as rejectedRequests FROM preauth_request WHERE status = 'Rejected' ${preAuthDateFilter}`;
+    const livePatientsQuery = `SELECT COUNT(*) as livePatients FROM admissions a WHERE a.status = 'Active' ${admissionsDateFilter}`;
+    const pendingRequestsQuery = `SELECT COUNT(*) as pendingRequests FROM preauth_request pr WHERE pr.status = 'Pre auth Sent' ${preAuthDateFilter}`;
+    const rejectedRequestsQuery = `SELECT COUNT(*) as rejectedRequests FROM preauth_request pr WHERE pr.status = 'Rejected' ${preAuthDateFilter}`;
 
     const [
       hospitalsResult,
@@ -87,12 +87,11 @@ export async function getHospitalBusinessStats(dateRange?: DateRange): Promise<H
         const toDate = dateRange.to || new Date(); 
         request.input('dateFrom', sql.DateTime, dateRange.from);
         request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-        dateFilterClauses.push('created_at BETWEEN @dateFrom AND @dateTo');
     }
 
     const getDateFilter = (alias: string) => {
-        if (dateFilterClauses.length > 0) {
-            return `AND ${alias}.${dateFilterClauses.join(' AND ')}`;
+        if (dateRange?.from) {
+            return `AND ${alias}.created_at BETWEEN @dateFrom AND @dateTo`;
         }
         return '';
     }
@@ -118,4 +117,65 @@ export async function getHospitalBusinessStats(dateRange?: DateRange): Promise<H
     console.error('Error fetching hospital business stats:', error);
     throw new Error('Failed to fetch hospital business statistics.');
   }
+}
+
+export type PatientBilledStats = {
+  patientId: number;
+  patientName: string;
+  patientPhoto: string | null;
+  hospitalName: string;
+  billedAmount: number;
+};
+
+export async function getPatientBilledStats(dateRange?: DateRange): Promise<PatientBilledStats[]> {
+    try {
+        const pool = await getDbPool();
+        const request = pool.request();
+
+        let dateFilter = '';
+        if (dateRange?.from) {
+            const toDate = dateRange.to || new Date();
+            request.input('dateFrom', sql.DateTime, dateRange.from);
+            request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+            dateFilter = 'AND c.created_at BETWEEN @dateFrom AND @dateTo';
+        }
+
+        const query = `
+            SELECT
+                c.Patient_id as patientId,
+                c.Patient_name as patientName,
+                p.photo as patientPhoto,
+                h.name as hospitalName,
+                SUM(c.amount) as billedAmount
+            FROM claims c
+            LEFT JOIN patients p ON c.Patient_id = p.id
+            LEFT JOIN hospitals h ON c.hospital_id = h.id
+            WHERE c.status IN ('Pre auth Sent', 'Enhancement Request')
+            ${dateFilter}
+            GROUP BY c.Patient_id, c.Patient_name, p.photo, h.name
+            HAVING SUM(c.amount) > 0
+            ORDER BY billedAmount DESC
+        `;
+        
+        const result = await request.query(query);
+
+        return result.recordset.map(record => {
+            let photoUrl = null;
+            if (record.patientPhoto) {
+                try {
+                    const parsedPhoto = JSON.parse(record.patientPhoto);
+                    photoUrl = parsedPhoto.url;
+                } catch {
+                    photoUrl = null;
+                }
+            }
+            return {
+                ...record,
+                patientPhoto: photoUrl
+            };
+        }) as PatientBilledStats[];
+    } catch (error) {
+        console.error('Error fetching patient billed stats:', error);
+        throw new Error('Failed to fetch patient billed statistics.');
+    }
 }

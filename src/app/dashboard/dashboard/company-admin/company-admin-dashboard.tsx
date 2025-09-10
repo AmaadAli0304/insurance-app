@@ -5,7 +5,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building, Users, Clock, AlertTriangle, Loader2, Calendar as CalendarIcon } from "lucide-react";
-import { getCompanyAdminDashboardStats, getHospitalBusinessStats, HospitalBusinessStats } from "./actions";
+import { getCompanyAdminDashboardStats, getHospitalBusinessStats, HospitalBusinessStats, getPatientBilledStats, PatientBilledStats } from "./actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { BusinessSummaryTable } from "./business-summary-table";
 import { DateRange } from "react-day-picker";
@@ -14,6 +14,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format, subDays } from "date-fns";
 import { cn } from "@/lib/utils";
+import { PatientBillingTable } from "./patient-billing-table";
 
 interface DashboardStats {
   totalHospitals: number;
@@ -28,6 +29,7 @@ export function CompanyAdminDashboard() {
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [businessStats, setBusinessStats] = useState<HospitalBusinessStats[]>([]);
+  const [patientBilling, setPatientBilling] = useState<PatientBilledStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -46,12 +48,14 @@ export function CompanyAdminDashboard() {
     try {
       setIsLoading(true);
       setError(null);
-      const [dashboardData, businessData] = await Promise.all([
+      const [dashboardData, businessData, patientData] = await Promise.all([
           getCompanyAdminDashboardStats(companyId, date),
-          getHospitalBusinessStats(date)
+          getHospitalBusinessStats(date),
+          getPatientBilledStats(date)
       ]);
       setStats(dashboardData);
       setBusinessStats(businessData);
+      setPatientBilling(patientData);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -163,6 +167,7 @@ export function CompanyAdminDashboard() {
           </div>
     
           <BusinessSummaryTable stats={businessStats} dateRange={date} />
+          <PatientBillingTable stats={patientBilling} dateRange={date} />
         </>
       )}
     </div>
