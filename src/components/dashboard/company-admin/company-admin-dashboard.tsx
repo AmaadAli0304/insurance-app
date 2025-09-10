@@ -1,11 +1,12 @@
 
+
 "use client"
 
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building, Users, Clock, AlertTriangle, Loader2, Calendar as CalendarIcon } from "lucide-react";
-import { getCompanyAdminDashboardStats, getHospitalBusinessStats, getPatientBillingStats, HospitalBusinessStats, PatientBilledStat } from "./actions";
+import { getCompanyAdminDashboardStats, getHospitalBusinessStats, getPatientBillingStats, getSimpleHospitalBusinessStats, HospitalBusinessStats, PatientBilledStat, SimpleHospitalStat } from "./actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { BusinessSummaryTable } from "./business-summary-table";
 import { DateRange } from "react-day-picker";
@@ -15,6 +16,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format, subDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { PatientBillingTable } from "./patient-billing-table";
+import { SimpleBusinessSummaryTable } from "./simple-business-summary-table";
+
 
 interface DashboardStats {
   totalHospitals: number;
@@ -29,6 +32,7 @@ export function CompanyAdminDashboard() {
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [businessStats, setBusinessStats] = useState<HospitalBusinessStats[]>([]);
+  const [simpleBusinessStats, setSimpleBusinessStats] = useState<SimpleHospitalStat[]>([]);
   const [patientBillingStats, setPatientBillingStats] = useState<PatientBilledStat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,14 +52,16 @@ export function CompanyAdminDashboard() {
     try {
       setIsLoading(true);
       setError(null);
-      const [dashboardData, businessData, patientBillingData] = await Promise.all([
+      const [dashboardData, businessData, patientBillingData, simpleBusinessData] = await Promise.all([
           getCompanyAdminDashboardStats(companyId, date),
           getHospitalBusinessStats(date),
           getPatientBillingStats(date),
+          getSimpleHospitalBusinessStats(date),
       ]);
       setStats(dashboardData);
       setBusinessStats(businessData);
       setPatientBillingStats(patientBillingData);
+      setSimpleBusinessStats(simpleBusinessData);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -166,6 +172,9 @@ export function CompanyAdminDashboard() {
                 </PopoverContent>
               </Popover>
           </BusinessSummaryTable>
+
+          <SimpleBusinessSummaryTable stats={simpleBusinessStats} />
+          
           <PatientBillingTable stats={patientBillingStats} />
         </>
       )}

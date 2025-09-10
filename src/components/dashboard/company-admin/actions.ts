@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { getDbPool, sql } from '@/lib/db';
@@ -183,5 +184,45 @@ export async function getPatientBillingStats(dateRange?: DateRange): Promise<Pat
     } catch (error) {
         console.error('Error fetching patient billing stats:', error);
         throw new Error('Failed to fetch patient billing statistics.');
+    }
+}
+
+export type SimpleHospitalStat = {
+  hospitalId: string;
+  hospitalName: string;
+  numOfPatients: number;
+  amount: number;
+};
+
+export async function getSimpleHospitalBusinessStats(dateRange?: DateRange): Promise<SimpleHospitalStat[]> {
+    try {
+        const pool = await getDbPool();
+        const request = pool.request();
+        
+        let dateFilter = '';
+        if (dateRange?.from) {
+            const toDate = dateRange.to || new Date(); 
+            request.input('dateFrom', sql.DateTime, dateRange.from);
+            request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+            dateFilter = 'WHERE c.created_at BETWEEN @dateFrom AND @dateTo';
+        }
+
+        const query = `
+            SELECT
+                h.id as hospitalId,
+                h.name as hospitalName,
+                COUNT(DISTINCT c.Patient_id) as numOfPatients,
+                ISNULL(SUM(CASE WHEN c.status IN ('Pre auth Sent', 'Enhancement Request') THEN c.amount ELSE 0 END), 0) as amount
+            FROM hospitals h
+            LEFT JOIN claims c ON h.id = c.hospital_id ${dateFilter}
+            GROUP BY h.id, h.name
+            ORDER BY h.name;
+        `;
+        
+        const result = await request.query(query);
+        return result.recordset as SimpleHospitalStat[];
+    } catch (error) {
+        console.error('Error fetching simple hospital business stats:', error);
+        throw new Error('Failed to fetch simplified hospital statistics.');
     }
 }
