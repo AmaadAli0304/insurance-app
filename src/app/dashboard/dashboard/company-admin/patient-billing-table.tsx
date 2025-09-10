@@ -3,28 +3,17 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import type { PatientBilledStats } from "./actions";
-import type { DateRange } from "react-day-picker";
-import { format } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-interface PatientBillingTableProps {
-  stats: PatientBilledStats[];
-  dateRange?: DateRange;
-}
+const dummyPatients = [
+  { patientId: 'PAT-001', patientName: 'John Doe', patientPhoto: null, hospitalName: 'General Hospital', billedAmount: 5200, tpaName: 'HealthServe TPA' },
+  { patientId: 'PAT-002', patientName: 'Jane Smith', patientPhoto: null, hospitalName: 'City Clinic', billedAmount: 1250, tpaName: 'MediCare Assist' },
+  { patientId: 'PAT-003', patientName: 'Peter Jones', patientPhoto: null, hospitalName: 'Sunrise Medical', billedAmount: 15000, tpaName: 'HealthServe TPA' },
+  { patientId: 'PAT-004', patientName: 'Mary Johnson', patientPhoto: null, hospitalName: 'General Hospital', billedAmount: 3400, tpaName: 'MediCare Assist' },
+];
 
-export function PatientBillingTable({ stats, dateRange }: PatientBillingTableProps) {
+export function PatientBillingTable() {
     
-    const getDateRangeDescription = () => {
-        if (dateRange?.from) {
-            if (dateRange.to) {
-                return `From ${format(dateRange.from, "LLL dd, y")} to ${format(dateRange.to, "LLL dd, y")}`;
-            }
-            return `For ${format(dateRange.from, "LLL dd, y")}`;
-        }
-        return "A summary of billed amounts per patient.";
-    };
-
     const getInitials = (name: string) => {
         if (!name) return 'P';
         return name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -34,21 +23,24 @@ export function PatientBillingTable({ stats, dateRange }: PatientBillingTablePro
         <Card>
             <CardHeader>
                 <CardTitle>Patient Billing Summary</CardTitle>
-                <CardDescription>{getDateRangeDescription()}</CardDescription>
+                <CardDescription>A summary of billed amounts per patient.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Patient</TableHead>
+                            <TableHead>Sr No</TableHead>
+                            <TableHead>Patient Name</TableHead>
                             <TableHead>Hospital</TableHead>
-                            <TableHead className="text-right">Billed Amount</TableHead>
+                            <TableHead>TPA / Insurance</TableHead>
+                            <TableHead className="text-right">Amount</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {stats.length > 0 ? (
-                            stats.map((stat) => (
+                        {dummyPatients.length > 0 ? (
+                            dummyPatients.map((stat, index) => (
                                 <TableRow key={stat.patientId}>
+                                    <TableCell>{index + 1}</TableCell>
                                     <TableCell className="font-medium flex items-center gap-3">
                                       <Avatar className="h-10 w-10">
                                           <AvatarImage src={stat.patientPhoto ?? undefined} alt={stat.patientName} />
@@ -57,13 +49,14 @@ export function PatientBillingTable({ stats, dateRange }: PatientBillingTablePro
                                       {stat.patientName}
                                     </TableCell>
                                     <TableCell>{stat.hospitalName}</TableCell>
+                                    <TableCell>{stat.tpaName}</TableCell>
                                     <TableCell className="text-right font-mono">${stat.billedAmount.toLocaleString()}</TableCell>
                                 </TableRow>
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={3} className="h-24 text-center">
-                                    No patient billing data for the selected period.
+                                <TableCell colSpan={5} className="h-24 text-center">
+                                    No patient billing data available.
                                 </TableCell>
                             </TableRow>
                         )}
