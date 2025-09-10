@@ -16,7 +16,6 @@ export function BusinessSummaryTable({ stats }: BusinessSummaryTableProps) {
             acc.preAuthApproved += curr.preAuthApproved;
             acc.preAuthPending += curr.preAuthPending;
             acc.finalAuthSanctioned += curr.finalAuthSanctioned;
-            acc.finalAuthPending += curr.finalAuthPending;
             return acc;
         },
         {
@@ -24,7 +23,6 @@ export function BusinessSummaryTable({ stats }: BusinessSummaryTableProps) {
             preAuthApproved: 0,
             preAuthPending: 0,
             finalAuthSanctioned: 0,
-            finalAuthPending: 0,
         }
     );
     
@@ -40,10 +38,9 @@ export function BusinessSummaryTable({ stats }: BusinessSummaryTableProps) {
                         <TableRow>
                             <TableHead className="w-[250px]">Hospital Name</TableHead>
                             <TableHead className="text-right">Active Patients</TableHead>
-                            <TableHead className="text-right">Pre-Auth Approved</TableHead>
-                            <TableHead className="text-right">Pre-Auth Pending</TableHead>
-                            <TableHead className="text-right">Final Auth Sanctioned</TableHead>
-                            <TableHead className="text-right">Final Auth Pending</TableHead>
+                            <TableHead className="text-right">Pre-Auths Approved</TableHead>
+                            <TableHead className="text-right">Pre-Auths Pending</TableHead>
+                            <TableHead className="text-right">Final Auths Sanctioned</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -54,7 +51,6 @@ export function BusinessSummaryTable({ stats }: BusinessSummaryTableProps) {
                                 <TableCell className="text-right">{stat.preAuthApproved}</TableCell>
                                 <TableCell className="text-right">{stat.preAuthPending}</TableCell>
                                 <TableCell className="text-right">{stat.finalAuthSanctioned}</TableCell>
-                                <TableCell className="text-right">{stat.finalAuthPending}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -65,7 +61,6 @@ export function BusinessSummaryTable({ stats }: BusinessSummaryTableProps) {
                             <TableHead className="text-right">{totals.preAuthApproved}</TableHead>
                             <TableHead className="text-right">{totals.preAuthPending}</TableHead>
                             <TableHead className="text-right">{totals.finalAuthSanctioned}</TableHead>
-                            <TableHead className="text-right">{totals.finalAuthPending}</TableHead>
                         </TableRow>
                     </TableFooter>
                 </Table>

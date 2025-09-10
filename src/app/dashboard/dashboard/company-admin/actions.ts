@@ -3,9 +3,6 @@
 import { getDbPool, sql } from '@/lib/db';
 
 export async function getCompanyAdminDashboardStats(companyId: string) {
-  if (!companyId) {
-    throw new Error('Company ID is required.');
-  }
   try {
     const pool = await getDbPool();
 
@@ -44,7 +41,6 @@ export type HospitalBusinessStats = {
   preAuthApproved: number;
   preAuthPending: number;
   finalAuthSanctioned: number;
-  finalAuthPending: number;
 };
 
 export async function getHospitalBusinessStats(): Promise<HospitalBusinessStats[]> {
@@ -55,10 +51,9 @@ export async function getHospitalBusinessStats(): Promise<HospitalBusinessStats[
         h.id AS hospitalId,
         h.name AS hospitalName,
         (SELECT COUNT(*) FROM admissions a WHERE a.hospital_id = h.id AND a.status = 'Active') as activePatients,
-        (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status IN ('Approved', 'Amount Sanctioned', 'Initial Approval Amount')) as preAuthApproved,
+        (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Final Discharge sent') as preAuthApproved,
         (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Pre auth Sent') as preAuthPending,
-        (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Final Amount Sanctioned') as finalAuthSanctioned,
-        (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Final Discharge sent') as finalAuthPending
+        (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Final Amount Sanctioned') as finalAuthSanctioned
       FROM hospitals h
       ORDER BY h.name
     `);
