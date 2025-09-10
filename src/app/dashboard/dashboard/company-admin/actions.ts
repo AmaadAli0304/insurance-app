@@ -82,24 +82,31 @@ export async function getHospitalBusinessStats(dateRange?: DateRange): Promise<H
     const pool = await getDbPool();
     const request = pool.request();
     
-    let dateFilter = '';
+    let dateFilterClauses: string[] = [];
     if (dateRange?.from) {
+        const toDate = dateRange.to || new Date(); // Use today if 'to' is not set
         request.input('dateFrom', sql.DateTime, dateRange.from);
-        const toDate = dateRange.to || new Date();
         request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-        dateFilter = 'AND created_at BETWEEN @dateFrom AND @dateTo';
+        dateFilterClauses.push('created_at BETWEEN @dateFrom AND @dateTo');
+    }
+
+    const getDateFilter = (alias: string) => {
+        if (dateFilterClauses.length > 0) {
+            return `AND ${alias}.${dateFilterClauses.join(' AND ')}`;
+        }
+        return '';
     }
 
     const query = `
       SELECT
         h.id AS hospitalId,
         h.name AS hospitalName,
-        (SELECT COUNT(*) FROM admissions a WHERE a.hospital_id = h.id AND a.status = 'Active' ${dateFilter.replace('created_at', 'a.created_at')}) as activePatients,
-        (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Final Discharge sent' ${dateFilter.replace('created_at', 'pr.created_at')}) as preAuthApproved,
-        (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Pre auth Sent' ${dateFilter.replace('created_at', 'pr.created_at')}) as preAuthPending,
-        (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Final Amount Sanctioned' ${dateFilter.replace('created_at', 'pr.created_at')}) as finalAuthSanctioned,
-        ISNULL((SELECT SUM(c.amount) FROM claims c WHERE c.hospital_id = h.id AND c.status IN ('Pre auth Sent', 'Enhancement Request') ${dateFilter.replace('created_at', 'c.created_at')}), 0) as billedAmount,
-        ISNULL((SELECT SUM(c.amount) FROM claims c WHERE c.hospital_id = h.id AND c.status = 'Final Amount Sanctioned' ${dateFilter.replace('created_at', 'c.created_at')}), 0) as collection
+        (SELECT COUNT(*) FROM admissions a WHERE a.hospital_id = h.id AND a.status = 'Active' ${getDateFilter('a')}) as activePatients,
+        (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Final Discharge sent' ${getDateFilter('pr')}) as preAuthApproved,
+        (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Pre auth Sent' ${getDateFilter('pr')}) as preAuthPending,
+        (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Final Amount Sanctioned' ${getDateFilter('pr')}) as finalAuthSanctioned,
+        ISNULL((SELECT SUM(c.amount) FROM claims c WHERE c.hospital_id = h.id AND c.status IN ('Pre auth Sent', 'Enhancement Request') ${getDateFilter('c')}), 0) as billedAmount,
+        ISNULL((SELECT SUM(c.amount) FROM claims c WHERE c.hospital_id = h.id AND c.status = 'Final Amount Sanctioned' ${getDateFilter('c')}), 0) as collection
       FROM hospitals h
       ORDER BY h.name
     `;
