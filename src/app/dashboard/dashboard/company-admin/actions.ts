@@ -120,7 +120,7 @@ export async function getHospitalBusinessStats(dateRange?: DateRange): Promise<H
 }
 
 export type PatientBilledStats = {
-  patientId: number;
+  patientId: string;
   patientName: string;
   patientPhoto: string | null;
   hospitalName: string;
@@ -177,8 +177,11 @@ export async function getPatientBilledStats(dateRange?: DateRange): Promise<Pati
         return result.recordset.map(record => {
             const photoData = getDocumentData(record.patientPhoto);
             return {
-                ...record,
-                patientPhoto: photoData?.url ?? null
+                patientId: String(record.patientId),
+                patientName: record.patientName,
+                patientPhoto: photoData?.url ?? null,
+                hospitalName: record.hospitalName,
+                billedAmount: record.billedAmount,
             };
         }) as PatientBilledStats[];
     } catch (error) {
