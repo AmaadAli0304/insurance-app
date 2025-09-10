@@ -15,35 +15,49 @@ export type DateRangePickerValue = z.infer<typeof DateRangeSchema>;
 export async function getCompanyAdminDashboardStats(companyId: string, dateRange?: DateRange) {
   try {
     const pool = await getDbPool();
-    const request = pool.request().input('companyId', sql.NVarChar, companyId);
     
-    let dateFilterPreAuth = '';
-    let dateFilterAdmissions = '';
+    const preAuthRequest = pool.request();
+    const admissionsRequest = pool.request();
+
+    preAuthRequest.input('companyId', sql.NVarChar, companyId);
+    admissionsRequest.input('companyId', sql.NVarChar, companyId);
+    
+    let preAuthDateFilter = '';
+    let admissionsDateFilter = '';
+
     if (dateRange?.from) {
-        request.input('dateFrom', sql.DateTime, dateRange.from);
         const toDate = dateRange.to || new Date();
-        request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999))); // Ensure the 'to' date includes the entire day
-        dateFilterPreAuth = 'AND created_at BETWEEN @dateFrom AND @dateTo';
-        dateFilterAdmissions = 'AND created_at BETWEEN @dateFrom AND @dateTo';
+        preAuthRequest.input('dateFrom', sql.DateTime, dateRange.from);
+        preAuthRequest.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+        admissionsRequest.input('dateFrom', sql.DateTime, dateRange.from);
+        admissionsRequest.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+        
+        preAuthDateFilter = 'AND created_at BETWEEN @dateFrom AND @dateTo';
+        admissionsDateFilter = 'AND created_at BETWEEN @dateFrom AND @dateTo';
     }
 
-    const statsQuery = `
-      SELECT 
-        (SELECT COUNT(*) FROM hospitals) as totalHospitals,
-        (SELECT COUNT(*) FROM admissions WHERE status = 'Active' ${dateFilterAdmissions}) as livePatients,
-        (SELECT COUNT(*) FROM preauth_request WHERE status = 'Pre auth Sent' ${dateFilterPreAuth}) as pendingRequests,
-        (SELECT COUNT(*) FROM preauth_request WHERE status = 'Rejected' ${dateFilterPreAuth}) as rejectedRequests;
-    `;
+    const totalHospitalsQuery = `SELECT COUNT(*) as totalHospitals FROM hospitals`;
+    const livePatientsQuery = `SELECT COUNT(*) as livePatients FROM admissions WHERE status = 'Active' ${admissionsDateFilter}`;
+    const pendingRequestsQuery = `SELECT COUNT(*) as pendingRequests FROM preauth_request WHERE status = 'Pre auth Sent' ${preAuthDateFilter}`;
+    const rejectedRequestsQuery = `SELECT COUNT(*) as rejectedRequests FROM preauth_request WHERE status = 'Rejected' ${preAuthDateFilter}`;
 
-    const result = await request.query(statsQuery);
-
-    const stats = result.recordset[0] || { totalHospitals: 0, livePatients: 0, pendingRequests: 0, rejectedRequests: 0 };
+    const [
+      hospitalsResult,
+      livePatientsResult,
+      pendingRequestsResult,
+      rejectedRequestsResult,
+    ] = await Promise.all([
+      pool.request().query(totalHospitalsQuery),
+      admissionsRequest.query(livePatientsQuery),
+      preAuthRequest.query(pendingRequestsQuery),
+      preAuthRequest.query(rejectedRequestsQuery),
+    ]);
 
     return {
-      totalHospitals: stats.totalHospitals,
-      livePatients: stats.livePatients,
-      pendingRequests: stats.pendingRequests,
-      rejectedRequests: stats.rejectedRequests,
+      totalHospitals: hospitalsResult.recordset[0]?.totalHospitals ?? 0,
+      livePatients: livePatientsResult.recordset[0]?.livePatients ?? 0,
+      pendingRequests: pendingRequestsResult.recordset[0]?.pendingRequests ?? 0,
+      rejectedRequests: rejectedRequestsResult.recordset[0]?.rejectedRequests ?? 0,
     };
     
   } catch (error) {
@@ -68,32 +82,29 @@ export async function getHospitalBusinessStats(dateRange?: DateRange): Promise<H
     const pool = await getDbPool();
     const request = pool.request();
     
-    let dateFilterAdmissions = '';
-    let dateFilterPreAuth = '';
-    let dateFilterClaims = '';
-
+    let dateFilter = '';
     if (dateRange?.from) {
         request.input('dateFrom', sql.DateTime, dateRange.from);
         const toDate = dateRange.to || new Date();
-        request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999))); // Ensure the 'to' date includes the entire day
-        dateFilterAdmissions = 'AND a.created_at BETWEEN @dateFrom AND @dateTo';
-        dateFilterPreAuth = 'AND pr.created_at BETWEEN @dateFrom AND @dateTo';
-        dateFilterClaims = 'AND c.created_at BETWEEN @dateFrom AND @dateTo';
+        request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+        dateFilter = 'AND created_at BETWEEN @dateFrom AND @dateTo';
     }
 
-    const result = await request.query(`
+    const query = `
       SELECT
         h.id AS hospitalId,
         h.name AS hospitalName,
-        (SELECT COUNT(*) FROM admissions a WHERE a.hospital_id = h.id AND a.status = 'Active' ${dateFilterAdmissions}) as activePatients,
-        (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Final Discharge sent' ${dateFilterPreAuth}) as preAuthApproved,
-        (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Pre auth Sent' ${dateFilterPreAuth}) as preAuthPending,
-        (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Final Amount Sanctioned' ${dateFilterPreAuth}) as finalAuthSanctioned,
-        ISNULL((SELECT SUM(c.amount) FROM claims c WHERE c.hospital_id = h.id AND c.status IN ('Pre auth Sent', 'Enhancement Request') ${dateFilterClaims}), 0) as billedAmount,
-        ISNULL((SELECT SUM(c.amount) FROM claims c WHERE c.hospital_id = h.id AND c.status = 'Final Amount Sanctioned' ${dateFilterClaims}), 0) as collection
+        (SELECT COUNT(*) FROM admissions a WHERE a.hospital_id = h.id AND a.status = 'Active' ${dateFilter.replace('created_at', 'a.created_at')}) as activePatients,
+        (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Final Discharge sent' ${dateFilter.replace('created_at', 'pr.created_at')}) as preAuthApproved,
+        (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Pre auth Sent' ${dateFilter.replace('created_at', 'pr.created_at')}) as preAuthPending,
+        (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Final Amount Sanctioned' ${dateFilter.replace('created_at', 'pr.created_at')}) as finalAuthSanctioned,
+        ISNULL((SELECT SUM(c.amount) FROM claims c WHERE c.hospital_id = h.id AND c.status IN ('Pre auth Sent', 'Enhancement Request') ${dateFilter.replace('created_at', 'c.created_at')}), 0) as billedAmount,
+        ISNULL((SELECT SUM(c.amount) FROM claims c WHERE c.hospital_id = h.id AND c.status = 'Final Amount Sanctioned' ${dateFilter.replace('created_at', 'c.created_at')}), 0) as collection
       FROM hospitals h
       ORDER BY h.name
-    `);
+    `;
+
+    const result = await request.query(query);
 
     return result.recordset as HospitalBusinessStats[];
   } catch (error) {
