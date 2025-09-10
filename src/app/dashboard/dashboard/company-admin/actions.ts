@@ -15,19 +15,21 @@ export async function getCompanyAdminDashboardStats(companyId: string, dateRange
     const pool = await getDbPool();
     const request = pool.request().input('companyId', sql.NVarChar, companyId);
     
-    let dateFilter = '';
+    let dateFilterPreAuth = '';
+    let dateFilterAdmissions = '';
     if (dateRange?.from && dateRange?.to) {
-        dateFilter = 'AND created_at BETWEEN @dateFrom AND @dateTo';
         request.input('dateFrom', sql.DateTime, dateRange.from);
         request.input('dateTo', sql.DateTime, dateRange.to);
+        dateFilterPreAuth = 'AND created_at BETWEEN @dateFrom AND @dateTo';
+        dateFilterAdmissions = 'AND created_at BETWEEN @dateFrom AND @dateTo';
     }
 
     const statsQuery = `
       SELECT 
         (SELECT COUNT(*) FROM hospitals) as totalHospitals,
-        (SELECT COUNT(*) FROM admissions WHERE status = 'Active' ${dateFilter.replace('created_at', 'created_at')}) as livePatients,
-        (SELECT COUNT(*) FROM preauth_request WHERE status = 'Pre auth Sent' ${dateFilter}) as pendingRequests,
-        (SELECT COUNT(*) FROM preauth_request WHERE status = 'Rejected' ${dateFilter}) as rejectedRequests;
+        (SELECT COUNT(*) FROM admissions WHERE status = 'Active' ${dateFilterAdmissions}) as livePatients,
+        (SELECT COUNT(*) FROM preauth_request WHERE status = 'Pre auth Sent' ${dateFilterPreAuth}) as pendingRequests,
+        (SELECT COUNT(*) FROM preauth_request WHERE status = 'Rejected' ${dateFilterPreAuth}) as rejectedRequests;
     `;
 
     const result = await request.query(statsQuery);
@@ -75,8 +77,7 @@ export async function getHospitalBusinessStats(dateRange?: DateRange): Promise<H
         dateFilterClaims = 'AND c.created_at BETWEEN @dateFrom AND @dateTo';
     }
 
-
-    const result = await pool.request().query(`
+    const result = await request.query(`
       SELECT
         h.id AS hospitalId,
         h.name AS hospitalName,
