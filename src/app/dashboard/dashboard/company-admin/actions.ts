@@ -36,3 +36,36 @@ export async function getCompanyAdminDashboardStats(companyId: string) {
     throw new Error('Failed to load dashboard statistics.');
   }
 }
+
+export type HospitalBusinessStats = {
+  hospitalId: string;
+  hospitalName: string;
+  activePatients: number;
+  preAuthApproved: number;
+  preAuthPending: number;
+  finalAuthSanctioned: number;
+  finalAuthPending: number;
+};
+
+export async function getHospitalBusinessStats(): Promise<HospitalBusinessStats[]> {
+  try {
+    const pool = await getDbPool();
+    const result = await pool.request().query(`
+      SELECT
+        h.id AS hospitalId,
+        h.name AS hospitalName,
+        (SELECT COUNT(*) FROM admissions a WHERE a.hospital_id = h.id AND a.status = 'Active') as activePatients,
+        (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status IN ('Approved', 'Amount Sanctioned', 'Initial Approval Amount')) as preAuthApproved,
+        (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Pre auth Sent') as preAuthPending,
+        (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Final Amount Sanctioned') as finalAuthSanctioned,
+        (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Final Discharge sent') as finalAuthPending
+      FROM hospitals h
+      ORDER BY h.name
+    `);
+
+    return result.recordset as HospitalBusinessStats[];
+  } catch (error) {
+    console.error('Error fetching hospital business stats:', error);
+    throw new Error('Failed to fetch hospital business statistics.');
+  }
+}
