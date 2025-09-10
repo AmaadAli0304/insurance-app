@@ -436,7 +436,7 @@ export async function getPreAuthRequests(hospitalId: string | null | undefined, 
         }
 
         const query = `
-            SELECT 
+            SELECT DISTINCT
                 pr.id, 
                 pr.patient_id as patientId, 
                 pr.hospital_id as hospitalId,
@@ -446,7 +446,7 @@ export async function getPreAuthRequests(hospitalId: string | null | undefined, 
                 p.photo as patientPhoto
             FROM preauth_request pr
             LEFT JOIN patients p ON pr.patient_id = p.id
-            LEFT JOIN admissions adm ON pr.admission_id = adm.admission_id
+            LEFT JOIN admissions adm ON pr.patient_id = adm.patient_id
             WHERE pr.hospital_id = @hospitalId ${statusFilterClause}
             ORDER BY pr.created_at DESC
         `;
