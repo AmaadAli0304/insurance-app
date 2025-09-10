@@ -42,6 +42,7 @@ export type HospitalBusinessStats = {
   preAuthPending: number;
   finalAuthSanctioned: number;
   billedAmount: number;
+  collection: number;
 };
 
 export async function getHospitalBusinessStats(): Promise<HospitalBusinessStats[]> {
@@ -55,7 +56,8 @@ export async function getHospitalBusinessStats(): Promise<HospitalBusinessStats[
         (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Final Discharge sent') as preAuthApproved,
         (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Pre auth Sent') as preAuthPending,
         (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Final Amount Sanctioned') as finalAuthSanctioned,
-        ISNULL((SELECT SUM(c.amount) FROM claims c WHERE c.hospital_id = h.id AND c.status IN ('Pre auth Sent', 'Enhancement Request')), 0) as billedAmount
+        ISNULL((SELECT SUM(c.amount) FROM claims c WHERE c.hospital_id = h.id AND c.status IN ('Pre auth Sent', 'Enhancement Request')), 0) as billedAmount,
+        ISNULL((SELECT SUM(c.amount) FROM claims c WHERE c.hospital_id = h.id AND c.status = 'Final Amount Sanctioned'), 0) as collection
       FROM hospitals h
       ORDER BY h.name
     `);
