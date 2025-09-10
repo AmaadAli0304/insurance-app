@@ -860,3 +860,61 @@ export async function handleAdmissionsTable(prevState: { message: string, type?:
     return { message: `Error handling Admissions table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
+
+export async function handleCreateInvoicesTable(prevState: { message: string, type?: string }, formData: FormData) {
+  try {
+    const pool = await getDbPool();
+    const request = pool.request();
+    const createInvoicesTableQuery = `
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='invoices' and xtype='U')
+      BEGIN
+        CREATE TABLE invoices (
+          id INT IDENTITY(1,1) PRIMARY KEY,
+          invoice_number NVARCHAR(255) NOT NULL UNIQUE,
+          staff_id NVARCHAR(255) NOT NULL,
+          issue_date DATE NOT NULL,
+          due_date DATE NOT NULL,
+          subtotal DECIMAL(18, 2) NOT NULL,
+          tax DECIMAL(18, 2) NOT NULL,
+          total DECIMAL(18, 2) NOT NULL,
+          notes NVARCHAR(MAX),
+          terms NVARCHAR(MAX),
+          status NVARCHAR(50) NOT NULL,
+          created_at DATETIME DEFAULT GETDATE(),
+          updated_at DATETIME DEFAULT GETDATE()
+        );
+      END
+    `;
+    await request.query(createInvoicesTableQuery);
+    return { message: "Invoices table created successfully or already exists.", type: "success" };
+  } catch (error) {
+    const dbError = error as { message?: string };
+    return { message: `Error creating Invoices table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+  }
+}
+
+export async function handleCreateInvoiceItemsTable(prevState: { message: string, type?: string }, formData: FormData) {
+  try {
+    const pool = await getDbPool();
+    const request = pool.request();
+    const createInvoiceItemsTableQuery = `
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='invoice_items' and xtype='U')
+      BEGIN
+        CREATE TABLE invoice_items (
+          id INT IDENTITY(1,1) PRIMARY KEY,
+          invoice_id INT NOT NULL,
+          description NVARCHAR(MAX) NOT NULL,
+          quantity INT NOT NULL,
+          rate DECIMAL(18, 2) NOT NULL,
+          amount DECIMAL(18, 2) NOT NULL,
+          CONSTRAINT FK_invoice_items_invoice FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
+        );
+      END
+    `;
+    await request.query(createInvoiceItemsTableQuery);
+    return { message: "Invoice Items table created successfully or already exists.", type: "success" };
+  } catch (error) {
+    const dbError = error as { message?: string };
+    return { message: `Error creating Invoice Items table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+  }
+}

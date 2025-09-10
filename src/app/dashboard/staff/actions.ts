@@ -27,6 +27,29 @@ const staffUpdateSchema = staffSchema.extend({
     password: z.string().optional(),
 });
 
+const invoiceItemSchema = z.object({
+  description: z.string().min(1, "Description is required."),
+  quantity: z.coerce.number().min(0, "Quantity must be positive."),
+  rate: z.coerce.number().min(0, "Rate must be positive."),
+});
+
+const invoiceSchema = z.object({
+  staffId: z.string(),
+  invoiceNumber: z.string().min(1, "Invoice number is required."),
+  issueDate: z.string().min(1, "Issue date is required."),
+  dueDate: z.string().min(1, "Due date is required."),
+  notes: z.string().optional(),
+  terms: z.string().optional(),
+  items: z.preprocess((val) => {
+    try {
+      return JSON.parse(val as string);
+    } catch {
+      return [];
+    }
+  }, z.array(invoiceItemSchema)),
+  tax: z.coerce.number().min(0).optional().default(0),
+});
+
 
 export async function getStaff(): Promise<Staff[]> {
   try {
@@ -288,4 +311,82 @@ export async function handleDeleteStaff(prevState: { message: string, type?: str
     }
     
     return { message: "Staff member deleted successfully.", type: 'success' };
+}
+
+export async function handleSaveInvoice(prevState: { message: string, type?: string }, formData: FormData) {
+  const parsed = invoiceSchema.safeParse(Object.fromEntries(formData));
+
+  if (!parsed.success) {
+    const errorMessages = parsed.error.errors.map(e => e.message).join(', ');
+    return { message: `Invalid data: ${errorMessages}`, type: 'error' };
+  }
+
+  const { staffId, invoiceNumber, issueDate, dueDate, notes, terms, items, tax } = parsed.data;
+  const status = formData.get('status') as 'draft' | 'sent';
+
+  if (!status) {
+      return { message: 'Invoice status is missing.', type: 'error' };
+  }
+  
+  const subtotal = items.reduce((acc, item) => acc + item.quantity * item.rate, 0);
+  const total = subtotal * (1 + tax / 100);
+
+  let transaction;
+  try {
+      const db = await poolConnect;
+      transaction = new sql.Transaction(db);
+      await transaction.begin();
+
+      const invoiceRequest = new sql.Request(transaction);
+      const invoiceResult = await invoiceRequest
+          .input('invoice_number', sql.NVarChar, invoiceNumber)
+          .input('staff_id', sql.NVarChar, staffId)
+          .input('issue_date', sql.Date, new Date(issueDate))
+          .input('due_date', sql.Date, new Date(dueDate))
+          .input('subtotal', sql.Decimal(18, 2), subtotal)
+          .input('tax', sql.Decimal(18, 2), tax)
+          .input('total', sql.Decimal(18, 2), total)
+          .input('notes', sql.NVarChar, notes)
+          .input('terms', sql.NVarChar, terms)
+          .input('status', sql.NVarChar, status)
+          .query(`
+              INSERT INTO invoices (invoice_number, staff_id, issue_date, due_date, subtotal, tax, total, notes, terms, status)
+              OUTPUT INSERTED.id
+              VALUES (@invoice_number, @staff_id, @issue_date, @due_date, @subtotal, @tax, @total, @notes, @terms, @status)
+          `);
+      
+      const invoiceId = invoiceResult.recordset[0].id;
+
+      if (!invoiceId) {
+          throw new Error("Failed to create invoice or retrieve ID.");
+      }
+
+      for (const item of items) {
+          const itemRequest = new sql.Request(transaction);
+          await itemRequest
+              .input('invoice_id', sql.Int, invoiceId)
+              .input('description', sql.NVarChar, item.description)
+              .input('quantity', sql.Int, item.quantity)
+              .input('rate', sql.Decimal(18, 2), item.rate)
+              .input('amount', sql.Decimal(18, 2), item.quantity * item.rate)
+              .query(`
+                  INSERT INTO invoice_items (invoice_id, description, quantity, rate, amount)
+                  VALUES (@invoice_id, @description, @quantity, @rate, @amount)
+              `);
+      }
+
+      await transaction.commit();
+
+  } catch (error) {
+      if (transaction) await transaction.rollback();
+      console.error('Database Error:', error);
+      const dbError = error as { message?: string, number?: number };
+      if (dbError.number === 2627) { // Unique constraint violation
+        return { message: "Database Error: An invoice with this number already exists.", type: "error" };
+      }
+      return { message: `Database Error: ${dbError.message || 'Unknown error'}`, type: "error" };
+  }
+  
+  revalidatePath('/dashboard/staff');
+  return { message: `Invoice successfully saved as ${status}.`, type: "success" };
 }

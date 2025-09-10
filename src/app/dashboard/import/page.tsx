@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useFormStatus } from "react-dom";
-import { handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable, handleCreateDoctorsTable, handleCreateChiefComplaintsTable, handleCreatePreAuthTable, handleCreateMedicalTable, handleCreateChatTable, handleAlterPreAuthTable, handleCreateClaimsTable, handleDeleteClaimsTable, handleDeletePreAuthRequestTable, handleUpdatePatientsTable, handleSendEmail, handleCreateChatFilesTable } from "./actions";
+import { handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable, handleCreateDoctorsTable, handleCreateChiefComplaintsTable, handleCreatePreAuthTable, handleCreateMedicalTable, handleCreateChatTable, handleAlterPreAuthTable, handleCreateClaimsTable, handleDeleteClaimsTable, handleDeletePreAuthRequestTable, handleUpdatePatientsTable, handleSendEmail, handleCreateChatFilesTable, handleCreateInvoicesTable, handleCreateInvoiceItemsTable } from "./actions";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble, Info, Stethoscope, FileHeart, Shield, MessageSquare, Pill, AlertTriangle, HandCoins, Trash2, RefreshCcw, Send, FileCode } from "lucide-react";
+import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble, Info, Stethoscope, FileHeart, Shield, MessageSquare, Pill, AlertTriangle, HandCoins, Trash2, RefreshCcw, Send, FileCode, FileSpreadsheet } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -216,6 +216,16 @@ function SubmitChatFilesTableButton() {
     );
 }
 
+function SubmitInvoicesTableButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending} variant="secondary">
+             <FileSpreadsheet className="mr-2 h-4 w-4" />
+            {pending ? "Creating..." : "Create Invoices Tables"}
+        </Button>
+    );
+}
+
 
 export default function ImportPage() {
     const { user, role } = useAuth();
@@ -239,9 +249,8 @@ export default function ImportPage() {
     const [deleteClaimsTableState, deleteClaimsTableAction] = useActionState(handleDeleteClaimsTable, { message: "", type: undefined });
     const [deletePreAuthTableState, deletePreAuthTableAction] = useActionState(handleDeletePreAuthRequestTable, { message: "", type: undefined });
     const [sendEmailState, sendEmailAction] = useActionState(handleSendEmail, { message: "", type: undefined });
-
-
-
+    const [createInvoicesTableState, createInvoicesTableAction] = useActionState(handleCreateInvoicesTable, { message: "", type: undefined });
+    const [createInvoiceItemsTableState, createInvoiceItemsTableAction] = useActionState(handleCreateInvoiceItemsTable, { message: "", type: undefined });
 
     const { toast } = useToast();
 
@@ -275,6 +284,8 @@ export default function ImportPage() {
     useToastEffect(deleteClaimsTableState, "Database Action");
     useToastEffect(deletePreAuthTableState, "Database Action");
     useToastEffect(sendEmailState, "Email Service");
+    useToastEffect(createInvoicesTableState, "Database Action");
+    useToastEffect(createInvoiceItemsTableState, "Database Action");
 
     
 
@@ -332,6 +343,12 @@ export default function ImportPage() {
                     </form>
                      <form action={createClaimsTableAction}>
                         <SubmitClaimsTableButton />
+                    </form>
+                     <form action={handleCreateInvoicesTable}>
+                        <SubmitInvoicesTableButton />
+                    </form>
+                     <form action={handleCreateInvoiceItemsTable}>
+                        <Button type="submit" variant="secondary"><FileSpreadsheet className="mr-2 h-4 w-4" /> Create Invoice Items Table</Button>
                     </form>
                 </CardContent>
             </Card>

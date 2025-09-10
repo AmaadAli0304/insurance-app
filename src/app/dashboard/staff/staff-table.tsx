@@ -5,7 +5,7 @@ import { useActionState, useEffect, useRef } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal, Trash, Edit, Eye } from "lucide-react"
+import { MoreHorizontal, Trash, Edit, Eye, FileText } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
 import { handleDeleteStaff } from "./actions"
@@ -106,6 +106,11 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
                       <DropdownMenuItem asChild>
                         <Link href={`/dashboard/staff/${s.id}/edit`} className="flex items-center gap-2 cursor-pointer">
                           <Edit className="h-4 w-4" /> Edit
+                        </Link>
+                      </DropdownMenuItem>
+                       <DropdownMenuItem asChild>
+                        <Link href={`/dashboard/staff/${s.id}/invoice/new`} className="flex items-center gap-2 cursor-pointer">
+                          <FileText className="h-4 w-4" /> Create Invoice
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />

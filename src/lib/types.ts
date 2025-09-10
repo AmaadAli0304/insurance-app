@@ -425,3 +425,28 @@ export interface Staff extends Omit<User, 'uid' | 'role' | 'companyId'> {
   hospitalName?: string;
   assignedHospitalsDetails?: { id: string | number, name: string }[];
 }
+
+export interface Invoice {
+    id: number;
+    invoice_number: string;
+    staff_id: string;
+    issue_date: string;
+    due_date: string;
+    subtotal: number;
+    tax: number;
+    total: number;
+    notes?: string;
+    terms?: string;
+    status: 'draft' | 'sent' | 'paid';
+    staff?: Staff;
+    items?: InvoiceItem[];
+}
+
+export interface InvoiceItem {
+    id: number;
+    invoice_id: number;
+    description: string;
+    quantity: number;
+    rate: number;
+    amount: number;
+}
