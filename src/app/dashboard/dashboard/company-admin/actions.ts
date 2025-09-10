@@ -127,6 +127,21 @@ export type PatientBilledStats = {
   billedAmount: number;
 };
 
+const getDocumentData = (jsonString: string | null | undefined): { url: string; name: string } | null => {
+    if (!jsonString) return null;
+    try {
+        const parsed = JSON.parse(jsonString);
+        if (typeof parsed === 'object' && parsed !== null && 'url' in parsed) {
+            return { url: parsed.url, name: parsed.name || 'View Document' };
+        }
+    } catch (e) {
+        if (typeof jsonString === 'string' && jsonString.startsWith('http')) {
+            return { url: jsonString, name: 'View Document' };
+        }
+    }
+    return null;
+};
+
 export async function getPatientBilledStats(dateRange?: DateRange): Promise<PatientBilledStats[]> {
     try {
         const pool = await getDbPool();
@@ -160,18 +175,10 @@ export async function getPatientBilledStats(dateRange?: DateRange): Promise<Pati
         const result = await request.query(query);
 
         return result.recordset.map(record => {
-            let photoUrl = null;
-            if (record.patientPhoto) {
-                try {
-                    const parsedPhoto = JSON.parse(record.patientPhoto);
-                    photoUrl = parsedPhoto.url;
-                } catch {
-                    photoUrl = null;
-                }
-            }
+            const photoData = getDocumentData(record.patientPhoto);
             return {
                 ...record,
-                patientPhoto: photoUrl
+                patientPhoto: photoData?.url ?? null
             };
         }) as PatientBilledStats[];
     } catch (error) {
