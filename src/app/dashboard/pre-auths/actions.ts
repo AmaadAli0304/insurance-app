@@ -551,8 +551,8 @@ export async function getPreAuthRequestById(id: string): Promise<StaffingRequest
                 .input('id', sql.Int, Number(id))
                 .query('SELECT * FROM chat WHERE preauth_id = @id ORDER BY created_at DESC'),
             pool.request()
-                .input('admission_id', sql.NVarChar, request.admission_id)
-                .query(`SELECT id, status, reason, amount as claimAmount, paidAmount, updated_at FROM claims WHERE admission_id = @admission_id ORDER BY updated_at DESC`)
+                .input('patient_id', sql.Int, request.patientId)
+                .query(`SELECT id, status, reason, amount as claimAmount, paidAmount, updated_at FROM claims WHERE Patient_id = @patient_id ORDER BY updated_at DESC`)
         ]);
 
         const chatHistory = chatResult.recordset as ChatMessage[];
