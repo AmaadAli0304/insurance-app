@@ -1,3 +1,4 @@
+
 'use server';
 
 import { getDbPool, sql } from '@/lib/db';
@@ -20,8 +21,8 @@ export async function getCompanyAdminDashboardStats(companyId: string, dateRange
     let dateFilterAdmissions = '';
     if (dateRange?.from) {
         request.input('dateFrom', sql.DateTime, dateRange.from);
-        // If no 'to' date, use the 'from' date for both ends of the range for a single-day filter
-        request.input('dateTo', sql.DateTime, dateRange.to || dateRange.from);
+        const toDate = dateRange.to || new Date();
+        request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999))); // Ensure the 'to' date includes the entire day
         dateFilterPreAuth = 'AND created_at BETWEEN @dateFrom AND @dateTo';
         dateFilterAdmissions = 'AND created_at BETWEEN @dateFrom AND @dateTo';
     }
@@ -73,7 +74,8 @@ export async function getHospitalBusinessStats(dateRange?: DateRange): Promise<H
 
     if (dateRange?.from) {
         request.input('dateFrom', sql.DateTime, dateRange.from);
-        request.input('dateTo', sql.DateTime, dateRange.to || dateRange.from);
+        const toDate = dateRange.to || new Date();
+        request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999))); // Ensure the 'to' date includes the entire day
         dateFilterAdmissions = 'AND a.created_at BETWEEN @dateFrom AND @dateTo';
         dateFilterPreAuth = 'AND pr.created_at BETWEEN @dateFrom AND @dateTo';
         dateFilterClaims = 'AND c.created_at BETWEEN @dateFrom AND @dateTo';
