@@ -9,11 +9,11 @@ export async function getCompanyAdminDashboardStats(companyId: string) {
   try {
     const pool = await getDbPool();
 
-    // Correctly and simply count all hospitals from the hospitals table, and live patients from admissions.
     const statsQuery = `
       SELECT 
         (SELECT COUNT(*) FROM hospitals) as totalHospitals,
-        (SELECT COUNT(*) FROM admissions WHERE status = 'Active') as livePatients;
+        (SELECT COUNT(*) FROM admissions WHERE status = 'Active') as livePatients,
+        (SELECT COUNT(*) FROM preauth_request WHERE status = 'Pre auth Sent') as pendingRequests;
     `;
 
     const result = await pool
@@ -21,14 +21,13 @@ export async function getCompanyAdminDashboardStats(companyId: string) {
       .input('companyId', sql.NVarChar, companyId)
       .query(statsQuery);
 
-    const stats = result.recordset[0] || { totalHospitals: 0, livePatients: 0 };
+    const stats = result.recordset[0] || { totalHospitals: 0, livePatients: 0, pendingRequests: 0 };
 
-    // Returning other stats as 0 for now.
     return {
       totalHospitals: stats.totalHospitals,
       livePatients: stats.livePatients,
-      pendingRequests: 0,
-      rejectedRequests: 0,
+      pendingRequests: stats.pendingRequests,
+      rejectedRequests: 0, // Keeping this as 0 for now
     };
     
   } catch (error) {
