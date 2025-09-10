@@ -2,12 +2,13 @@
 
 import { getDbPool, sql } from '@/lib/db';
 import { z } from 'zod';
+import { DateRange } from 'react-day-picker';
 
 const DateRangeSchema = z.object({
   from: z.date().optional(),
   to: z.date().optional(),
 });
-export type DateRange = z.infer<typeof DateRangeSchema>;
+export type DateRangePickerValue = z.infer<typeof DateRangeSchema>;
 
 
 export async function getCompanyAdminDashboardStats(companyId: string, dateRange?: DateRange) {
@@ -17,9 +18,10 @@ export async function getCompanyAdminDashboardStats(companyId: string, dateRange
     
     let dateFilterPreAuth = '';
     let dateFilterAdmissions = '';
-    if (dateRange?.from && dateRange?.to) {
+    if (dateRange?.from) {
         request.input('dateFrom', sql.DateTime, dateRange.from);
-        request.input('dateTo', sql.DateTime, dateRange.to);
+        // If no 'to' date, use the 'from' date for both ends of the range for a single-day filter
+        request.input('dateTo', sql.DateTime, dateRange.to || dateRange.from);
         dateFilterPreAuth = 'AND created_at BETWEEN @dateFrom AND @dateTo';
         dateFilterAdmissions = 'AND created_at BETWEEN @dateFrom AND @dateTo';
     }
@@ -69,9 +71,9 @@ export async function getHospitalBusinessStats(dateRange?: DateRange): Promise<H
     let dateFilterPreAuth = '';
     let dateFilterClaims = '';
 
-    if (dateRange?.from && dateRange?.to) {
+    if (dateRange?.from) {
         request.input('dateFrom', sql.DateTime, dateRange.from);
-        request.input('dateTo', sql.DateTime, dateRange.to);
+        request.input('dateTo', sql.DateTime, dateRange.to || dateRange.from);
         dateFilterAdmissions = 'AND a.created_at BETWEEN @dateFrom AND @dateTo';
         dateFilterPreAuth = 'AND pr.created_at BETWEEN @dateFrom AND @dateTo';
         dateFilterClaims = 'AND c.created_at BETWEEN @dateFrom AND @dateTo';
