@@ -152,23 +152,31 @@ export async function getPatientBilledStats(dateRange?: DateRange): Promise<Pati
             const toDate = dateRange.to || new Date();
             request.input('dateFrom', sql.DateTime, dateRange.from);
             request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-            dateFilter = "AND c.created_at BETWEEN @dateFrom AND @dateTo";
+            dateFilter = "AND pr.created_at BETWEEN @dateFrom AND @dateTo";
         }
 
         const query = `
-            SELECT
-                c.Patient_id as patientId,
-                c.Patient_name as patientName,
+            SELECT 
+                pr.patient_id as patientId,
+                pr.first_name + ' ' + pr.last_name as patientName,
                 p.photo as patientPhoto,
-                h.name as hospitalName,
-                SUM(c.amount) as billedAmount
-            FROM claims c
-            LEFT JOIN patients p ON c.Patient_id = p.id
-            LEFT JOIN hospitals h ON c.hospital_id = h.id
-            WHERE c.status IN ('Pre auth Sent', 'Enhancement Request')
-            ${dateFilter}
-            GROUP BY c.Patient_id, c.Patient_name, p.photo, h.name
-            HAVING SUM(c.amount) > 0
+                pr.hospital_name as hospitalName,
+                (
+                    SELECT SUM(c.amount)
+                    FROM claims c
+                    WHERE c.Patient_id = pr.patient_id
+                    AND c.status IN ('Pre auth Sent', 'Enhancement Request')
+                ) as billedAmount
+            FROM preauth_request pr
+            LEFT JOIN patients p ON pr.patient_id = p.id
+            WHERE 1=1 ${dateFilter}
+            GROUP BY pr.patient_id, pr.first_name, pr.last_name, p.photo, pr.hospital_name
+            HAVING (
+                SELECT SUM(c.amount)
+                FROM claims c
+                WHERE c.Patient_id = pr.patient_id
+                AND c.status IN ('Pre auth Sent', 'Enhancement Request')
+            ) > 0
             ORDER BY billedAmount DESC
         `;
         
