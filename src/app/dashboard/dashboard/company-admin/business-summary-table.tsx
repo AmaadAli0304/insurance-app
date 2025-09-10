@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,10 +41,10 @@ export function BusinessSummaryTable({ stats }: BusinessSummaryTableProps) {
                         <TableRow>
                             <TableHead className="w-[250px]">Hospital Name</TableHead>
                             <TableHead className="text-right">Active Patients</TableHead>
-                            <TableHead className="text-right">Billed Amount</TableHead>
                             <TableHead className="text-right">Pre-Auths Approved</TableHead>
                             <TableHead className="text-right">Pre-Auths Pending</TableHead>
                             <TableHead className="text-right">Final Auths Sanctioned</TableHead>
+                            <TableHead className="text-right">Billed Amount</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -51,10 +52,10 @@ export function BusinessSummaryTable({ stats }: BusinessSummaryTableProps) {
                             <TableRow key={stat.hospitalId}>
                                 <TableCell className="font-medium">{stat.hospitalName}</TableCell>
                                 <TableCell className="text-right">{stat.activePatients}</TableCell>
-                                <TableCell className="text-right">${stat.billedAmount.toLocaleString()}</TableCell>
                                 <TableCell className="text-right">{stat.preAuthApproved}</TableCell>
                                 <TableCell className="text-right">{stat.preAuthPending}</TableCell>
                                 <TableCell className="text-right">{stat.finalAuthSanctioned}</TableCell>
+                                <TableCell className="text-right">${stat.billedAmount.toLocaleString()}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -62,10 +63,10 @@ export function BusinessSummaryTable({ stats }: BusinessSummaryTableProps) {
                         <TableRow>
                             <TableHead>TOTAL</TableHead>
                             <TableHead className="text-right">{totals.activePatients}</TableHead>
-                            <TableHead className="text-right">${totals.billedAmount.toLocaleString()}</TableHead>
                             <TableHead className="text-right">{totals.preAuthApproved}</TableHead>
                             <TableHead className="text-right">{totals.preAuthPending}</TableHead>
                             <TableHead className="text-right">{totals.finalAuthSanctioned}</TableHead>
+                            <TableHead className="text-right">${totals.billedAmount.toLocaleString()}</TableHead>
                         </TableRow>
                     </TableFooter>
                 </Table>
