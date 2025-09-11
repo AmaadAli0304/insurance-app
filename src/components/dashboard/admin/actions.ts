@@ -9,18 +9,20 @@ export async function getAdminDashboardStats(dateRange?: DateRange) {
         const pool = await getDbPool();
         
         const staffRequest = pool.request();
-        let staffWhereClauses: string[] = ["role = 'Hospital Staff'"];
+        let staffWhereClauses: string[] = ["u.role = 'Hospital Staff'"];
 
         if (dateRange?.from) {
             const toDate = dateRange.to || new Date();
             staffRequest.input('dateFrom', sql.DateTime, dateRange.from);
             staffRequest.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-            staffWhereClauses.push('joiningDate BETWEEN @dateFrom AND @dateTo');
+            staffWhereClauses.push('u.joiningDate BETWEEN @dateFrom AND @dateTo');
         }
+
+        const whereClause = `WHERE ${staffWhereClauses.join(' AND ')}`;
 
         const totalHospitalsQuery = `SELECT COUNT(*) as totalHospitals FROM hospitals`;
         const totalCompaniesQuery = `SELECT COUNT(*) as totalCompanies FROM companies`;
-        const totalStaffQuery = `SELECT COUNT(*) as totalStaff FROM users WHERE ${staffWhereClauses.join(' AND ')}`;
+        const totalStaffQuery = `SELECT COUNT(*) as totalStaff FROM users u ${whereClause}`;
 
         const [
             hospitalsResult,
@@ -67,18 +69,16 @@ export async function getActivePatients(dateRange?: DateRange): Promise<ActivePa
         
         const query = `
             SELECT 
-                p.first_name + ' ' + p.last_name as patientName,
+                pr.first_name + ' ' + pr.last_name as patientName,
                 pr.admission_id as admissionId,
                 COALESCE(t.name, co.name, 'N/A') as tpaName,
                 pr.totalExpectedCost as amountRequested,
                 pr.amount_sanctioned as amountSanctioned,
                 pr.status
             FROM preauth_request pr
-            JOIN patients p ON pr.patient_id = p.id
-            LEFT JOIN admissions a ON pr.admission_id = a.admission_id
-            LEFT JOIN companies co ON a.insurance_company = co.id
-            LEFT JOIN tpas t ON a.tpa_id = t.id
-            WHERE pr.status NOT IN ('Settlement Done', 'Rejected', 'Final Amount Sanctioned')
+            LEFT JOIN companies co ON pr.company_id = co.id
+            LEFT JOIN tpas t ON pr.tpa_id = t.id
+            WHERE pr.status NOT IN ('Settlement Done', 'Rejected', 'Final Amount Sanctioned', 'Amount received')
             ${dateFilter}
             ORDER BY pr.created_at DESC
         `;
