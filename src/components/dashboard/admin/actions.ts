@@ -9,20 +9,20 @@ export async function getAdminDashboardStats(dateRange?: DateRange) {
         const pool = await getDbPool();
         
         const staffRequest = pool.request();
-        let staffWhereClauses: string[] = ["u.role = 'Hospital Staff'"];
+        let staffWhereClauses: string[] = ["role = 'Hospital Staff'"];
 
         if (dateRange?.from) {
             const toDate = dateRange.to || new Date();
             staffRequest.input('dateFrom', sql.DateTime, dateRange.from);
             staffRequest.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-            staffWhereClauses.push('u.joiningDate BETWEEN @dateFrom AND @dateTo');
+            staffWhereClauses.push('joiningDate BETWEEN @dateFrom AND @dateTo');
         }
 
         const whereClause = `WHERE ${staffWhereClauses.join(' AND ')}`;
 
         const totalHospitalsQuery = `SELECT COUNT(*) as totalHospitals FROM hospitals`;
         const totalCompaniesQuery = `SELECT COUNT(*) as totalCompanies FROM companies`;
-        const totalStaffQuery = `SELECT COUNT(*) as totalStaff FROM users u ${whereClause}`;
+        const totalStaffQuery = `SELECT COUNT(*) as totalStaff FROM users ${whereClause}`;
 
         const [
             hospitalsResult,
@@ -64,7 +64,7 @@ export async function getActivePatients(dateRange?: DateRange): Promise<ActivePa
             const toDate = dateRange.to || new Date();
             request.input('dateFrom', sql.DateTime, dateRange.from);
             request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-            dateFilter = 'AND pr.created_at BETWEEN @dateFrom AND @dateTo';
+            dateFilter = 'WHERE pr.created_at BETWEEN @dateFrom AND @dateTo';
         }
         
         const query = `
@@ -78,7 +78,6 @@ export async function getActivePatients(dateRange?: DateRange): Promise<ActivePa
             FROM preauth_request pr
             LEFT JOIN companies co ON pr.company_id = co.id
             LEFT JOIN tpas t ON pr.tpa_id = t.id
-            WHERE pr.status NOT IN ('Settlement Done', 'Rejected', 'Final Amount Sanctioned', 'Amount received')
             ${dateFilter}
             ORDER BY pr.created_at DESC
         `;
