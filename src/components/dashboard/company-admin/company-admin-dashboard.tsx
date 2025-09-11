@@ -6,7 +6,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building, Users, Clock, AlertTriangle, Loader2, Calendar as CalendarIcon } from "lucide-react";
-import { getCompanyAdminDashboardStats, getHospitalBusinessStats, getSimpleHospitalBusinessStats, getStaffPerformanceStats, HospitalBusinessStats, PatientBilledStat, SimpleHospitalStat, StaffPerformanceStat } from "./actions";
+import { getCompanyAdminDashboardStats, getHospitalBusinessStats, getPatientBilledStats, getSimpleHospitalBusinessStats, getStaffPerformanceStats, HospitalBusinessStats, PatientBilledStat, SimpleHospitalStat, StaffPerformanceStat } from "./actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { BusinessSummaryTable } from "./business-summary-table";
 import { DateRange } from "react-day-picker";
@@ -54,15 +54,17 @@ export function CompanyAdminDashboard() {
     try {
       setIsLoading(true);
       setError(null);
-      const [dashboardData, businessData, simpleBusinessData, staffPerformanceData] = await Promise.all([
+      const [dashboardData, businessData, simpleBusinessData, patientData, staffPerformanceData] = await Promise.all([
           getCompanyAdminDashboardStats(companyId, date),
           getHospitalBusinessStats(date),
           getSimpleHospitalBusinessStats(date),
+          getPatientBilledStats(date),
           getStaffPerformanceStats(date),
       ]);
       setStats(dashboardData);
       setBusinessStats(businessData);
       setSimpleBusinessStats(simpleBusinessData);
+      setPatientBillingStats(patientData);
       setStaffPerformanceStats(staffPerformanceData);
     } catch (err: any) {
       setError(err.message);
@@ -176,6 +178,8 @@ export function CompanyAdminDashboard() {
           </BusinessSummaryTable>
 
           <SimpleBusinessSummaryTable stats={simpleBusinessStats} />
+
+          <PatientBillingTable stats={patientBillingStats} />
           
           <StaffPerformanceTable stats={staffPerformanceStats} />
         </>
