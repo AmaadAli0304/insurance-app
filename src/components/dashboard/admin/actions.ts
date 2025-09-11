@@ -7,7 +7,6 @@ import { DateRange } from 'react-day-picker';
 export async function getAdminDashboardStats(dateRange?: DateRange) {
     try {
         const pool = await getDbPool();
-        const request = pool.request();
         
         const staffRequest = pool.request();
         let staffWhereClauses: string[] = ["role = 'Hospital Staff'"];
@@ -28,8 +27,8 @@ export async function getAdminDashboardStats(dateRange?: DateRange) {
             companiesResult,
             staffResult,
         ] = await Promise.all([
-            request.query(totalHospitalsQuery),
-            request.query(totalCompaniesQuery),
+            pool.request().query(totalHospitalsQuery),
+            pool.request().query(totalCompaniesQuery),
             staffRequest.query(totalStaffQuery)
         ]);
         
@@ -63,24 +62,25 @@ export async function getActivePatients(dateRange?: DateRange): Promise<ActivePa
             const toDate = dateRange.to || new Date();
             request.input('dateFrom', sql.DateTime, dateRange.from);
             request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-            dateFilter = 'AND a.created_at BETWEEN @dateFrom AND @dateTo';
+            dateFilter = 'AND pr.created_at BETWEEN @dateFrom AND @dateTo';
         }
         
         const query = `
             SELECT 
                 p.first_name + ' ' + p.last_name as patientName,
-                a.admission_id as admissionId,
+                pr.admission_id as admissionId,
                 COALESCE(t.name, co.name, 'N/A') as tpaName,
-                a.totalExpectedCost as amountRequested,
-                a.amount_sanctioned as amountSanctioned,
-                a.status
-            FROM preauth_request a
-            JOIN patients p ON a.patient_id = p.id
-            LEFT JOIN companies co ON a.company_id = co.id
+                pr.totalExpectedCost as amountRequested,
+                pr.amount_sanctioned as amountSanctioned,
+                pr.status
+            FROM preauth_request pr
+            JOIN patients p ON pr.patient_id = p.id
+            LEFT JOIN admissions a ON pr.admission_id = a.admission_id
+            LEFT JOIN companies co ON a.insurance_company = co.id
             LEFT JOIN tpas t ON a.tpa_id = t.id
-            WHERE a.status NOT IN ('Settlement Done', 'Rejected', 'Final Amount Sanctioned')
+            WHERE pr.status NOT IN ('Settlement Done', 'Rejected', 'Final Amount Sanctioned')
             ${dateFilter}
-            ORDER BY a.created_at DESC
+            ORDER BY pr.created_at DESC
         `;
 
         const result = await request.query(query);
