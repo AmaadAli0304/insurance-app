@@ -51,7 +51,7 @@ export async function getCompanyAdminDashboardStats(companyId: string, dateRange
       pool.request().query(totalHospitalsQuery),
       admissionsRequest.query(livePatientsQuery),
       preAuthRequest.query(pendingRequestsQuery),
-      preAuthRequest.query(rejectedRequestsQuery),
+      rejectedRequestsResult.query(rejectedRequestsQuery),
     ]);
 
     return {
@@ -249,20 +249,35 @@ export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<S
         }
 
         const query = `
+            WITH StaffCases AS (
+              SELECT
+                staff_id,
+                COUNT(DISTINCT id) AS numOfCases
+              FROM preauth_request
+              WHERE staff_id IS NOT NULL ${dateFilter.replace('pr.created_at', 'created_at')}
+              GROUP BY staff_id
+            ), StaffCollections AS (
+              SELECT
+                pr.staff_id,
+                SUM(ISNULL(c.amount, 0)) AS totalCollection
+              FROM claims c
+              JOIN preauth_request pr ON c.admission_id = pr.admission_id
+              WHERE c.status = 'Final Amount Sanctioned' ${dateFilter}
+              GROUP BY pr.staff_id
+            )
             SELECT
                 u.uid AS staffId,
                 u.name AS staffName,
                 ISNULL(h.name, 'N/A') AS hospitalName,
-                COUNT(DISTINCT pr.id) AS numOfCases,
-                ISNULL(SUM(CASE WHEN c.status = 'Final Amount Sanctioned' THEN c.amount ELSE 0 END), 0) AS totalCollection
+                ISNULL(sc.numOfCases, 0) AS numOfCases,
+                ISNULL(scc.totalCollection, 0) AS totalCollection
             FROM users u
             LEFT JOIN hospital_staff hs ON u.uid = hs.staff_id
             LEFT JOIN hospitals h ON hs.hospital_id = h.id
-            LEFT JOIN preauth_request pr ON u.uid = pr.staff_id ${dateFilter}
-            LEFT JOIN claims c ON pr.admission_id = c.admission_id
+            LEFT JOIN StaffCases sc ON u.uid = sc.staff_id
+            LEFT JOIN StaffCollections scc ON u.uid = scc.staff_id
             WHERE u.role = 'Hospital Staff'
-            GROUP BY u.uid, u.name, h.name
-            ORDER BY totalCollection DESC;
+            ORDER BY u.name;
         `;
         
         const result = await request.query(query);
