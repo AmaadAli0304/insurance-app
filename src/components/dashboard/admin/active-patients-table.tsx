@@ -32,6 +32,7 @@ export function AdminPatientBillingTable({ stats }: AdminPatientBillingTableProp
                             <TableHead>Hospital</TableHead>
                             <TableHead>TPA / Insurance</TableHead>
                             <TableHead className="text-right">Amount</TableHead>
+                            <TableHead className="text-right">Amount Sanctioned</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -49,11 +50,12 @@ export function AdminPatientBillingTable({ stats }: AdminPatientBillingTableProp
                                     <TableCell>{stat.hospitalName}</TableCell>
                                     <TableCell>{stat.tpaName}</TableCell>
                                     <TableCell className="text-right font-mono">${stat.billedAmount.toLocaleString()}</TableCell>
+                                    <TableCell className="text-right font-mono">${stat.sanctionedAmount.toLocaleString()}</TableCell>
                                 </TableRow>
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={5} className="h-24 text-center">
+                                <TableCell colSpan={6} className="h-24 text-center">
                                     No patient billing data available for the selected period.
                                 </TableCell>
                             </TableRow>

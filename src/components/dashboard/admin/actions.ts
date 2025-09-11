@@ -11,6 +11,7 @@ export type PatientBilledStat = {
   hospitalName: string;
   tpaName: string;
   billedAmount: number;
+  sanctionedAmount: number;
 };
 
 export async function getPatientBilledStatsForAdmin(dateRange?: DateRange): Promise<PatientBilledStat[]> {
@@ -23,7 +24,7 @@ export async function getPatientBilledStatsForAdmin(dateRange?: DateRange): Prom
             const toDate = dateRange.to || new Date(); 
             request.input('dateFrom', sql.DateTime, dateRange.from);
             request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-            dateFilter = 'AND c.created_at BETWEEN @dateFrom AND @dateTo';
+            dateFilter = 'WHERE c.created_at BETWEEN @dateFrom AND @dateTo';
         }
 
         const query = `
@@ -33,14 +34,15 @@ export async function getPatientBilledStatsForAdmin(dateRange?: DateRange): Prom
                 p.photo AS patientPhoto,
                 h.name AS hospitalName,
                 COALESCE(t.name, co.name, 'N/A') as tpaName,
-                SUM(c.amount) as billedAmount
+                ISNULL(SUM(CASE WHEN c.status IN ('Pre auth Sent', 'Enhancement Request') THEN c.amount ELSE 0 END), 0) as billedAmount,
+                ISNULL(SUM(CASE WHEN c.status IN ('Amount Sanctioned', 'Final Amount Sanctioned', 'Amount Received', 'Settlement Done', 'Paid') THEN c.paidAmount ELSE 0 END), 0) as sanctionedAmount
             FROM claims c
             JOIN patients p ON c.Patient_id = p.id
             JOIN hospitals h ON c.hospital_id = h.id
             JOIN preauth_request pr ON c.admission_id = pr.admission_id
             LEFT JOIN companies co ON pr.company_id = co.id
             LEFT JOIN tpas t ON c.tpa_id = t.id
-            WHERE c.status IN ('Pre auth Sent', 'Enhancement Request') ${dateFilter}
+            ${dateFilter}
             GROUP BY
                 p.id,
                 p.first_name,
