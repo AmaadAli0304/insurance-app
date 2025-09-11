@@ -20,6 +20,7 @@ export interface PendingPreAuth extends StaffingRequest {
 export interface DashboardData {
     stats: DashboardStats;
     pendingPreAuths: PendingPreAuth[];
+    queryRaisedPreAuths: PendingPreAuth[];
 }
 
 export async function getDashboardData(hospitalId: string): Promise<DashboardData> {
@@ -56,11 +57,30 @@ export async function getDashboardData(hospitalId: string): Promise<DashboardDat
                 WHERE pr.hospital_id = @hospitalId AND pr.status = 'Pre auth Sent'
                 ORDER BY pr.created_at DESC
             `);
+        
+        // Query Raised Pre-Auths query
+        const queryRaisedPreAuthsQuery = pool.request()
+            .input('hospitalId', sql.NVarChar, hospitalId)
+            .query(`
+                SELECT 
+                    pr.id,
+                    pr.patient_id as patientId,
+                    p.first_name + ' ' + p.last_name as patientName,
+                    COALESCE(tpa.name, comp.name, 'N/A') as tpaOrInsurerName,
+                    pr.totalExpectedCost as amountRequested
+                FROM preauth_request pr
+                JOIN patients p ON pr.patient_id = p.id
+                LEFT JOIN companies comp ON pr.company_id = comp.id
+                LEFT JOIN tpas tpa ON pr.tpa_id = tpa.id
+                WHERE pr.hospital_id = @hospitalId AND pr.status = 'Query Raised'
+                ORDER BY pr.created_at DESC
+            `);
 
-        const [livePatientsResult, requestsResult, pendingPreAuthsResult] = await Promise.all([
+        const [livePatientsResult, requestsResult, pendingPreAuthsResult, queryRaisedResult] = await Promise.all([
             livePatientsQuery,
             requestsQuery,
-            pendingPreAuthsQuery
+            pendingPreAuthsQuery,
+            queryRaisedPreAuthsQuery
         ]);
 
         const stats: DashboardStats = {
@@ -73,6 +93,7 @@ export async function getDashboardData(hospitalId: string): Promise<DashboardDat
         return {
             stats,
             pendingPreAuths: pendingPreAuthsResult.recordset as PendingPreAuth[],
+            queryRaisedPreAuths: queryRaisedResult.recordset as PendingPreAuth[],
         };
 
     } catch (error) {

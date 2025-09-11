@@ -102,6 +102,16 @@ export function HospitalStaffDashboard() {
           <PendingPreAuthsTable requests={data?.pendingPreAuths ?? []} />
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Query Raised Pre-Auths</CardTitle>
+          <CardDescription>These requests have queries raised by the TPA/Insurer and require your action.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <PendingPreAuthsTable requests={data?.queryRaisedPreAuths ?? []} />
+        </CardContent>
+      </Card>
     </div>
   )
 }
