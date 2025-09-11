@@ -4,13 +4,13 @@
 import { revalidatePath } from "next/cache";
 import pool, { sql, poolConnect } from "@/lib/db";
 import { z } from 'zod';
-import { Staff, Hospital } from "@/lib/types";
+import { Staff, Hospital, UserRole } from "@/lib/types";
 
 const staffSchema = z.object({
   name: z.string().min(1, "Full Name is required."),
   email: z.string().email("Invalid email address.").min(1, "Email is required."),
   password: z.string().min(6, "Password must be at least 6 characters."),
-  role: z.enum(['Admin', 'Hospital Staff', 'Company Admin']),
+  role: z.enum(['Admin', 'Hospital Staff']),
   hospitalId: z.string().optional().nullable(),
   designation: z.string().optional().nullable(),
   department: z.string().optional().nullable(),
@@ -57,11 +57,11 @@ export async function getStaff(): Promise<Staff[]> {
     const db = await poolConnect;
     const result = await db.request()
       .query(`
-        SELECT u.uid as id, u.name, u.email, u.designation, u.department, u.status, h.name as hospitalName
+        SELECT u.uid as id, u.name, u.email, u.designation, u.department, u.status, u.role, h.name as hospitalName
         FROM users u
         LEFT JOIN hospital_staff hs ON u.uid = hs.staff_id
         LEFT JOIN hospitals h ON hs.hospital_id = h.id
-        WHERE u.role = 'Hospital Staff'
+        WHERE u.role IN ('Admin', 'Hospital Staff')
       `);
     return result.recordset as Staff[];
   } catch (error) {
