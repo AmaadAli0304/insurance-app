@@ -65,7 +65,7 @@ export function HospitalStaffDashboard() {
         <h1 className="text-3xl font-bold">Staff Dashboard</h1>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <StatCard
           title="Live Patients"
           value={data?.stats?.livePatients ?? 0}
@@ -84,12 +84,6 @@ export function HospitalStaffDashboard() {
           icon={FileText}
           color="bg-slate-800"
           isCurrency={false}
-        />
-        <StatCard
-          title="SLA Breaches"
-          value={data?.stats?.slaBreaches ?? 0}
-          icon={AlertTriangle}
-          color="bg-red-500"
         />
       </div>
 

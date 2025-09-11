@@ -8,7 +8,6 @@ export interface DashboardStats {
     livePatients: number;
     pendingRequests: number;
     totalRequests: number;
-    slaBreaches: number;
 }
 
 export interface PendingPreAuth extends StaffingRequest {
@@ -87,7 +86,6 @@ export async function getDashboardData(hospitalId: string): Promise<DashboardDat
             livePatients: livePatientsResult.recordset[0]?.count ?? 0,
             totalRequests: requestsResult.recordset.length,
             pendingRequests: requestsResult.recordset.filter(r => r.status === 'Pre auth Sent').length,
-            slaBreaches: requestsResult.recordset.filter(r => r.status === 'Rejected').length,
         };
 
         return {
