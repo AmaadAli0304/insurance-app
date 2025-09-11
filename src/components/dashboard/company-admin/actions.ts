@@ -51,7 +51,7 @@ export async function getCompanyAdminDashboardStats(companyId: string, dateRange
       pool.request().query(totalHospitalsQuery),
       admissionsRequest.query(livePatientsQuery),
       preAuthRequest.query(pendingRequestsQuery),
-      rejectedRequestsResult.query(rejectedRequestsQuery),
+      preAuthRequest.query(rejectedRequestsQuery), // Corrected to use preAuthRequest
     ]);
 
     return {
@@ -90,9 +90,9 @@ export async function getHospitalBusinessStats(dateRange?: DateRange): Promise<H
         request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
     }
 
-    const getDateFilter = (alias: string) => {
+    const getDateFilter = (alias: string, column: string = 'created_at') => {
         if (dateRange?.from) {
-            return `AND ${alias}.created_at BETWEEN @dateFrom AND @dateTo`;
+            return `AND ${alias}.${column} BETWEEN @dateFrom AND @dateTo`;
         }
         return '';
     }
@@ -249,14 +249,7 @@ export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<S
         }
 
         const query = `
-            WITH StaffCases AS (
-              SELECT
-                staff_id,
-                COUNT(DISTINCT id) AS numOfCases
-              FROM preauth_request
-              WHERE staff_id IS NOT NULL ${dateFilter.replace('pr.created_at', 'created_at')}
-              GROUP BY staff_id
-            ), StaffCollections AS (
+            WITH StaffCollections AS (
               SELECT
                 pr.staff_id,
                 SUM(ISNULL(c.amount, 0)) AS totalCollection
@@ -269,12 +262,16 @@ export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<S
                 u.uid AS staffId,
                 u.name AS staffName,
                 ISNULL(h.name, 'N/A') AS hospitalName,
-                ISNULL(sc.numOfCases, 0) AS numOfCases,
+                (
+                    SELECT COUNT(DISTINCT pr_inner.id) 
+                    FROM preauth_request pr_inner 
+                    WHERE pr_inner.staff_id = u.uid 
+                    ${dateFilter.replace('pr.created_at', 'pr_inner.created_at')}
+                ) AS numOfCases,
                 ISNULL(scc.totalCollection, 0) AS totalCollection
             FROM users u
             LEFT JOIN hospital_staff hs ON u.uid = hs.staff_id
             LEFT JOIN hospitals h ON hs.hospital_id = h.id
-            LEFT JOIN StaffCases sc ON u.uid = sc.staff_id
             LEFT JOIN StaffCollections scc ON u.uid = scc.staff_id
             WHERE u.role = 'Hospital Staff'
             ORDER BY u.name;
