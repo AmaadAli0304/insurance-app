@@ -28,7 +28,7 @@ function SubmitButton() {
     );
 }
 
-const roles: UserRole[] = ['Admin', 'Hospital Staff'];
+const roles: UserRole[] = ['Admin', 'Hospital Staff', 'Company Admin'];
 
 export default function NewStaffPage() {
     const [state, formAction] = useActionState(handleAddStaff, { message: "", type: "initial" });
