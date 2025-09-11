@@ -78,6 +78,7 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
           <TableHead>Full Name</TableHead>
           <TableHead>Assigned Hospital</TableHead>
           <TableHead>Email</TableHead>
+          <TableHead>Role</TableHead>
           <TableHead>Status</TableHead>
           <TableHead><span className="sr-only">Actions</span></TableHead>
         </TableRow>
@@ -89,6 +90,7 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
               <TableCell className="font-medium">{s.name}</TableCell>
               <TableCell>{s.hospitalName || 'N/A'}</TableCell>
               <TableCell>{s.email}</TableCell>
+              <TableCell>{s.role || 'N/A'}</TableCell>
               <TableCell>
                 <Badge variant={s.status === 'Active' ? 'default' : 'destructive'} className={s.status === 'Active' ? 'bg-accent text-accent-foreground' : ''}>{s.status}</Badge>
               </TableCell>
@@ -109,7 +111,7 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
                         </Link>
                       </DropdownMenuItem>
                        <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/staff/${s.id}/invoice/new`} className="flex items-center gap-2 cursor-pointer">
+                        <Link href={`/dashboard/staff/invoice/new?staffId=${s.id}`} className="flex items-center gap-2 cursor-pointer">
                           <FileText className="h-4 w-4" /> Create Invoice
                         </Link>
                       </DropdownMenuItem>
@@ -142,7 +144,7 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
           ))
         ) : (
           <TableRow>
-            <TableCell colSpan={5} className="h-24 text-center">
+            <TableCell colSpan={6} className="h-24 text-center">
               No data found
             </TableCell>
           </TableRow>

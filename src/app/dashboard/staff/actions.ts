@@ -10,6 +10,7 @@ const staffSchema = z.object({
   name: z.string().min(1, "Full Name is required."),
   email: z.string().email("Invalid email address.").min(1, "Email is required."),
   password: z.string().min(6, "Password must be at least 6 characters."),
+  role: z.enum(['Admin', 'Hospital Staff', 'Company Admin']),
   hospitalId: z.string().optional().nullable(),
   designation: z.string().optional().nullable(),
   department: z.string().optional().nullable(),
@@ -124,6 +125,7 @@ export async function handleAddStaff(prevState: { message: string, type?: string
     name: formData.get("name"),
     email: formData.get("email"),
     password: formData.get("password"),
+    role: formData.get("role"),
     hospitalId: formData.get("hospitalId"),
     designation: formData.get("designation"),
     department: formData.get("department"),
@@ -144,7 +146,6 @@ export async function handleAddStaff(prevState: { message: string, type?: string
   
   const { data } = validatedFields;
   const uid = `user-${Date.now()}`;
-  const role = 'Hospital Staff';
   let transaction;
 
   try {
@@ -157,7 +158,7 @@ export async function handleAddStaff(prevState: { message: string, type?: string
       .input('uid', sql.NVarChar, uid)
       .input('name', sql.NVarChar, data.name)
       .input('email', sql.NVarChar, data.email)
-      .input('role', sql.NVarChar, role)
+      .input('role', sql.NVarChar, data.role)
       .input('password', sql.NVarChar, data.password)
       .input('designation', sql.NVarChar, data.designation)
       .input('department', sql.NVarChar, data.department)
@@ -171,7 +172,7 @@ export async function handleAddStaff(prevState: { message: string, type?: string
         VALUES (@uid, @name, @email, @role, @password, @designation, @department, @joiningDate, @endDate, @shiftTime, @status, @number)
       `);
     
-    if (data.hospitalId && data.hospitalId !== 'none') {
+    if (data.role === 'Hospital Staff' && data.hospitalId && data.hospitalId !== 'none') {
       const assignmentRequest = new sql.Request(transaction);
       await assignmentRequest
         .input('staff_id', sql.NVarChar, uid)
@@ -184,10 +185,14 @@ export async function handleAddStaff(prevState: { message: string, type?: string
   } catch (error) {
       if (transaction) await transaction.rollback();
       console.error('Error adding staff:', error);
-      const dbError = error as { message?: string };
+      const dbError = error as { message?: string, number?: number };
+      if (dbError.number === 2627) {
+        return { message: "A user with this email already exists.", type: "error" };
+      }
       return { message: `Database Error: ${dbError.message || 'Unknown error'}`, type: "error" };
   }
   
+  revalidatePath('/dashboard/staff');
   return { message: "Staff member added successfully.", type: "success" };
 }
 
@@ -295,7 +300,7 @@ export async function handleDeleteStaff(prevState: { message: string, type?: str
         // Then delete from users
         const result = await new sql.Request(transaction)
             .input('uid', sql.NVarChar, id)
-            .query("DELETE FROM users WHERE uid = @uid AND role = 'Hospital Staff'");
+            .query("DELETE FROM users WHERE uid = @uid");
 
         if (result.rowsAffected[0] === 0) {
             await transaction.rollback();

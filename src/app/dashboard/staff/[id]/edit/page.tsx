@@ -10,7 +10,7 @@ import { useFormStatus } from "react-dom";
 import { handleUpdateStaff, getStaffById, getHospitalsForForm } from "../../actions";
 import { useRouter, useParams, notFound } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { Staff, Hospital } from "@/lib/types";
+import type { Staff, Hospital, UserRole } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { format } from 'date-fns';
 import Link from "next/link";
@@ -24,6 +24,8 @@ function SubmitButton() {
         </Button>
     );
 }
+
+const roles: UserRole[] = ['Admin', 'Hospital Staff'];
 
 export default function EditStaffPage() {
     const params = useParams();
@@ -175,6 +177,21 @@ export default function EditStaffPage() {
                             <CardDescription>Update roles and departments.</CardDescription>
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="role">Role <span className="text-destructive">*</span></Label>
+                                <Select name="role" required defaultValue={staff.role}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {roles.map(role => (
+                                            <SelectItem key={role} value={role}>
+                                                {role}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                             <div className="space-y-2">
                                 <Label htmlFor="hospitalId">Assign Hospital</Label>
                                     <input type="hidden" name="hospitalId" value={selectedHospitalId} />

@@ -1,3 +1,4 @@
+
 "use client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -37,7 +38,7 @@ export default function StaffPage() {
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Staff Management</CardTitle>
-            <CardDescription>Manage staff member details.</CardDescription>
+            <CardDescription>Manage staff member details, roles, and assignments.</CardDescription>
           </div>
           <Button size="sm" className="gap-1" asChild>
             <Link href="/dashboard/staff/new">

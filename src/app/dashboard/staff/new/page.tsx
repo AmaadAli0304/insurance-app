@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import type { Hospital } from "@/lib/types";
+import type { Hospital, UserRole } from "@/lib/types";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -27,6 +27,8 @@ function SubmitButton() {
         </Button>
     );
 }
+
+const roles: UserRole[] = ['Admin', 'Hospital Staff'];
 
 export default function NewStaffPage() {
     const [state, formAction] = useActionState(handleAddStaff, { message: "", type: "initial" });
@@ -114,6 +116,21 @@ export default function NewStaffPage() {
                              <CardDescription>Assign roles and departments.</CardDescription>
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-2 gap-6">
+                             <div className="space-y-2">
+                                <Label htmlFor="role">Role <span className="text-destructive">*</span></Label>
+                                <Select name="role" required defaultValue="Hospital Staff">
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {roles.map(role => (
+                                            <SelectItem key={role} value={role}>
+                                                {role}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                              <div className="space-y-2">
                                 <Label htmlFor="hospitalId">Assign Hospital</Label>
                                 <Select name="hospitalId" defaultValue="none">
