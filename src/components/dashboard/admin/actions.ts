@@ -59,12 +59,12 @@ export async function getActivePatients(dateRange?: DateRange): Promise<ActivePa
         const pool = await getDbPool();
         const request = pool.request();
 
-        let dateFilter = '';
+        let whereClause = '';
         if (dateRange?.from) {
             const toDate = dateRange.to || new Date();
             request.input('dateFrom', sql.DateTime, dateRange.from);
             request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-            dateFilter = 'WHERE pr.created_at BETWEEN @dateFrom AND @dateTo';
+            whereClause = 'WHERE pr.created_at BETWEEN @dateFrom AND @dateTo';
         }
         
         const query = `
@@ -78,7 +78,7 @@ export async function getActivePatients(dateRange?: DateRange): Promise<ActivePa
             FROM preauth_request pr
             LEFT JOIN companies co ON pr.company_id = co.id
             LEFT JOIN tpas t ON pr.tpa_id = t.id
-            ${dateFilter}
+            ${whereClause}
             ORDER BY pr.created_at DESC
         `;
 
