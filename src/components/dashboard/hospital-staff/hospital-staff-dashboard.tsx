@@ -1,66 +1,93 @@
 
 "use client"
 
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { FileText, Users, Clock, AlertTriangle } from "lucide-react"
+import { FileText, Users, Clock, AlertTriangle, Loader2 } from "lucide-react"
 import { useAuth } from "@/components/auth-provider"
-import { mockPatients, mockStaffingRequests } from "@/lib/mock-data"
 import { StatCard } from "@/components/dashboard/stat-card"
+import { getDashboardData, DashboardData } from "./actions";
+import { PendingPreAuthsTable } from "./pending-preauths-table";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 export function HospitalStaffDashboard() {
   const { user } = useAuth();
   const hospitalId = user?.hospitalId;
 
-  const requests = mockStaffingRequests.filter(r => r.hospitalId === hospitalId);
-  const patients = mockPatients.filter(p => p.hospitalId === hospitalId);
-  const pendingRequests = requests.filter(r => r.status === 'Pending').length;
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
-  // Using a placeholder for rejected requests as SLA Breaches
-  const slaBreaches = requests.filter(r => r.status === 'Rejected').length;
-
-  const getPatientName = (id: string) => mockPatients.find(p => p.id === id)?.fullName || 'Unknown Patient';
-  
-  const getRequestAmount = (patientId: string, requestAmount?: number) => {
-    if (requestAmount !== undefined) {
-      return requestAmount;
+  const loadDashboardData = useCallback(async () => {
+    if (!hospitalId) {
+        setIsLoading(false);
+        setError("You are not assigned to a hospital. Please contact an administrator.");
+        return;
     }
-    const patient = mockPatients.find(p => p.id === patientId);
-    return patient?.estimatedCost || 0;
+    setIsLoading(true);
+    try {
+        const dashboardData = await getDashboardData(hospitalId);
+        setData(dashboardData);
+    } catch(err: any) {
+        setError(err.message);
+    } finally {
+        setIsLoading(false);
+    }
+  }, [hospitalId]);
+
+  useEffect(() => {
+    if (user) {
+        loadDashboardData();
+    }
+  }, [user, loadDashboardData]);
+  
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
   }
 
+  if (error) {
+     return (
+        <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Error Loading Dashboard</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+        </Alert>
+     );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h1 className="text-3xl font-bold">Staff Dashboard</h1>
-        {/* Placeholder for search bar if needed in the future */}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Live Patients"
-          value={patients.length}
+          value={data?.stats?.livePatients ?? 0}
           icon={Users}
           color="bg-blue-500"
         />
         <StatCard
           title="Pending Requests"
-          value={pendingRequests}
+          value={data?.stats?.pendingRequests ?? 0}
           icon={Clock}
           color="bg-teal-500"
         />
         <StatCard
           title="Total Requests"
-          value={requests.length}
+          value={data?.stats?.totalRequests ?? 0}
           icon={FileText}
           color="bg-slate-800"
           isCurrency={false}
         />
         <StatCard
           title="SLA Breaches"
-          value={slaBreaches}
+          value={data?.stats?.slaBreaches ?? 0}
           icon={AlertTriangle}
           color="bg-red-500"
         />
@@ -68,34 +95,11 @@ export function HospitalStaffDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Your Submitted Requests</CardTitle>
-          <CardDescription>Track the status of staffing requests you have submitted.</CardDescription>
+          <CardTitle>Pending Pre-Auths</CardTitle>
+          <CardDescription>These pre-authorization requests are awaiting action from the TPA/Insurer.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Patient</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Request ID</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {requests.map(request => (
-                <TableRow key={request.id}>
-                  <TableCell className="font-medium">{getPatientName(request.patientId)}</TableCell>
-                  <TableCell>${getRequestAmount(request.patientId, request.requestAmount).toLocaleString()}</TableCell>
-                  <TableCell>
-                    <Badge variant={request.status === 'Approved' ? 'default' : request.status === 'Rejected' ? 'destructive' : 'secondary'} className={request.status === 'Approved' ? 'bg-accent text-accent-foreground' : ''}>{request.status}</Badge>
-                  </TableCell>
-                  <TableCell>{new Date(request.createdAt).toLocaleDateString()}</TableCell>
-                  <TableCell className="font-mono text-xs">{request.id}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <PendingPreAuthsTable requests={data?.pendingPreAuths ?? []} />
         </CardContent>
       </Card>
     </div>
