@@ -16,10 +16,15 @@ export interface PendingPreAuth extends StaffingRequest {
     amountRequested: number;
 }
 
+export interface RejectedPreAuth extends PendingPreAuth {
+    reason?: string | null;
+}
+
 export interface DashboardData {
     stats: DashboardStats;
     pendingPreAuths: PendingPreAuth[];
     queryRaisedPreAuths: PendingPreAuth[];
+    rejectedPreAuths: RejectedPreAuth[];
 }
 
 export async function getDashboardData(hospitalId: string): Promise<DashboardData> {
@@ -74,12 +79,33 @@ export async function getDashboardData(hospitalId: string): Promise<DashboardDat
                 WHERE pr.hospital_id = @hospitalId AND pr.status = 'Query Raised'
                 ORDER BY pr.created_at DESC
             `);
+        
+        // Rejected Pre-Auths from Claims table
+        const rejectedPreAuthsQuery = pool.request()
+            .input('hospitalId', sql.NVarChar, hospitalId)
+            .query(`
+                SELECT 
+                    c.id,
+                    c.Patient_id as patientId,
+                    c.Patient_name as patientName,
+                    COALESCE(t.name, co.name, 'N/A') as tpaOrInsurerName,
+                    c.amount as amountRequested,
+                    c.reason
+                FROM claims c
+                LEFT JOIN preauth_request pr ON c.admission_id = pr.admission_id
+                LEFT JOIN tpas t ON c.tpa_id = t.id
+                LEFT JOIN companies co ON pr.company_id = co.id
+                WHERE c.hospital_id = @hospitalId AND c.status = 'Rejected'
+                ORDER BY c.updated_at DESC
+            `);
 
-        const [livePatientsResult, requestsResult, pendingPreAuthsResult, queryRaisedResult] = await Promise.all([
+
+        const [livePatientsResult, requestsResult, pendingPreAuthsResult, queryRaisedResult, rejectedResult] = await Promise.all([
             livePatientsQuery,
             requestsQuery,
             pendingPreAuthsQuery,
-            queryRaisedPreAuthsQuery
+            queryRaisedPreAuthsQuery,
+            rejectedPreAuthsQuery,
         ]);
 
         const stats: DashboardStats = {
@@ -92,6 +118,7 @@ export async function getDashboardData(hospitalId: string): Promise<DashboardDat
             stats,
             pendingPreAuths: pendingPreAuthsResult.recordset as PendingPreAuth[],
             queryRaisedPreAuths: queryRaisedResult.recordset as PendingPreAuth[],
+            rejectedPreAuths: rejectedResult.recordset as RejectedPreAuth[],
         };
 
     } catch (error) {

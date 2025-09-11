@@ -8,6 +8,7 @@ import { useAuth } from "@/components/auth-provider"
 import { StatCard } from "@/components/dashboard/stat-card"
 import { getDashboardData, DashboardData } from "./actions";
 import { PendingPreAuthsTable } from "./pending-preauths-table";
+import { RejectedPreAuthsTable } from "./rejected-preauths-table";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 export function HospitalStaffDashboard() {
@@ -104,6 +105,16 @@ export function HospitalStaffDashboard() {
         </CardHeader>
         <CardContent>
           <PendingPreAuthsTable requests={data?.queryRaisedPreAuths ?? []} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Rejected Pre-Auths</CardTitle>
+          <CardDescription>These requests have been rejected by the TPA/Insurer.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <RejectedPreAuthsTable requests={data?.rejectedPreAuths ?? []} />
         </CardContent>
       </Card>
     </div>
