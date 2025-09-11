@@ -4,47 +4,6 @@
 import { getDbPool, sql } from '@/lib/db';
 import { DateRange } from 'react-day-picker';
 
-export async function getAdminDashboardStats(dateRange?: DateRange) {
-    try {
-        const pool = await getDbPool();
-        
-        const staffRequest = pool.request();
-        let staffWhereClauses: string[] = ["role = 'Hospital Staff'"];
-
-        if (dateRange?.from) {
-            const toDate = dateRange.to || new Date();
-            staffRequest.input('dateFrom', sql.DateTime, dateRange.from);
-            staffRequest.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-            staffWhereClauses.push('joiningDate BETWEEN @dateFrom AND @dateTo');
-        }
-
-        const whereClause = staffWhereClauses.length > 0 ? `WHERE ${staffWhereClauses.join(' AND ')}` : '';
-
-        const totalHospitalsQuery = `SELECT COUNT(*) as totalHospitals FROM hospitals`;
-        const totalCompaniesQuery = `SELECT COUNT(*) as totalCompanies FROM companies`;
-        const totalStaffQuery = `SELECT COUNT(*) as totalStaff FROM users ${whereClause}`;
-
-        const [
-            hospitalsResult,
-            companiesResult,
-            staffResult,
-        ] = await Promise.all([
-            pool.request().query(totalHospitalsQuery),
-            pool.request().query(totalCompaniesQuery),
-            staffRequest.query(totalStaffQuery)
-        ]);
-        
-        return {
-            totalHospitals: hospitalsResult.recordset[0]?.totalHospitals ?? 0,
-            totalCompanies: companiesResult.recordset[0]?.totalCompanies ?? 0,
-            totalStaff: staffResult.recordset[0]?.totalStaff ?? 0,
-        };
-    } catch (error) {
-        console.error('Error fetching admin dashboard stats:', error);
-        throw new Error('Failed to load dashboard statistics.');
-    }
-}
-
 export type PatientBilledStat = {
   patientId: number;
   patientName: string;

@@ -3,10 +3,9 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/components/auth-provider";
-import { Users, Building, Factory, Loader2, Calendar as CalendarIcon, AlertTriangle } from "lucide-react";
-import { StatCard } from "@/components/dashboard/stat-card";
+import { Loader2, Calendar as CalendarIcon, AlertTriangle } from "lucide-react";
 import { DateRange } from "react-day-picker";
-import { getAdminDashboardStats, getPatientBilledStatsForAdmin, PatientBilledStat } from "./actions";
+import { getPatientBilledStatsForAdmin, PatientBilledStat } from "./actions";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -19,7 +18,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 export function AdminDashboard() {
   const { user } = useAuth();
 
-  const [stats, setStats] = useState<{ totalHospitals: number; totalCompanies: number; totalStaff: number; } | null>(null);
   const [patientBillingStats, setPatientBillingStats] = useState<PatientBilledStat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,11 +31,7 @@ export function AdminDashboard() {
     try {
       setIsLoading(true);
       setError(null);
-      const [dashboardData, patientData] = await Promise.all([
-        getAdminDashboardStats(date),
-        getPatientBilledStatsForAdmin(date),
-      ]);
-      setStats(dashboardData);
+      const patientData = await getPatientBilledStatsForAdmin(date);
       setPatientBillingStats(patientData);
     } catch (err: any) {
       setError(err.message);
@@ -109,12 +103,6 @@ export function AdminDashboard() {
         </div>
        ) : (
         <>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                 <StatCard title="Total Hospitals" value={stats?.totalHospitals ?? 0} icon={Building} color="bg-blue-500" />
-                 <StatCard title="Total Companies" value={stats?.totalCompanies ?? 0} icon={Factory} color="bg-teal-500" />
-                 <StatCard title="Total Staff" value={stats?.totalStaff ?? 0} icon={Users} color="bg-slate-800" />
-            </div>
-
             <AdminPatientBillingTable stats={patientBillingStats} />
         </>
        )}
