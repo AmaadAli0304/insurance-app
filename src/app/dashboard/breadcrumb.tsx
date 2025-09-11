@@ -41,7 +41,7 @@ export function Breadcrumb() {
   const segments = pathname.split('/').filter(Boolean);
 
   const breadcrumbs = segments.map((segment, index) => {
-    const href = '/' + segments.slice(0, index + 1).join('/');
+    let href = '/' + segments.slice(0, index + 1).join('/');
     const isLast = index === segments.length - 1;
     
     let label = capitalize(segment);
@@ -55,12 +55,13 @@ export function Breadcrumb() {
         if (index > 0) {
             const parentSegment = segments[index - 1];
             const singularParentLabel = breadcrumbNameMap[parentSegment] || capitalize(parentSegment).replace(/s$/, '');
-            // Check if there is a view/edit segment after ID
+            label = `${singularParentLabel} Details`;
+            // If the next segment is 'view' or 'edit', make the Details breadcrumb link to the view page.
             if (segments[index + 1] === 'view' || segments[index + 1] === 'edit') {
-                 label = `${singularParentLabel} Details`;
-                 isClickable = true; // Make the details breadcrumb clickable
-            } else {
-                label = `${singularParentLabel} Details`;
+                 href = href + '/view'; 
+                 isClickable = true;
+            } else if (!isLast) { // If it's not the last segment but not followed by view/edit
+                 isClickable = true;
             }
         }
     } else if (breadcrumbNameMap[segment]) {
