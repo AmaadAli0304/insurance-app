@@ -9,27 +9,34 @@ export async function getAdminDashboardStats(dateRange?: DateRange) {
         const pool = await getDbPool();
         const request = pool.request();
         
-        let dateFilter = '';
+        const staffRequest = pool.request();
+        let staffWhereClauses = ["role = 'Hospital Staff'"];
+
         if (dateRange?.from) {
             const toDate = dateRange.to || new Date();
-            request.input('dateFrom', sql.DateTime, dateRange.from);
-            request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-            dateFilter = 'WHERE u.joiningDate BETWEEN @dateFrom AND @dateTo';
+            staffRequest.input('dateFrom', sql.DateTime, dateRange.from);
+            staffRequest.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+            staffWhereClauses.push('joiningDate BETWEEN @dateFrom AND @dateTo');
         }
 
-        const statsQuery = `
-            SELECT
-                (SELECT COUNT(*) FROM hospitals) as totalHospitals,
-                (SELECT COUNT(*) FROM companies) as totalCompanies,
-                (SELECT COUNT(*) FROM users u WHERE u.role = 'Hospital Staff' ${dateFilter}) as totalStaff
-        `;
-        
-        const result = await request.query(statsQuery);
+        const totalHospitalsQuery = `SELECT COUNT(*) as totalHospitals FROM hospitals`;
+        const totalCompaniesQuery = `SELECT COUNT(*) as totalCompanies FROM companies`;
+        const totalStaffQuery = `SELECT COUNT(*) as totalStaff FROM users WHERE ${staffWhereClauses.join(' AND ')}`;
+
+        const [
+            hospitalsResult,
+            companiesResult,
+            staffResult,
+        ] = await Promise.all([
+            request.query(totalHospitalsQuery),
+            request.query(totalCompaniesQuery),
+            staffRequest.query(totalStaffQuery)
+        ]);
         
         return {
-            totalHospitals: result.recordset[0]?.totalHospitals ?? 0,
-            totalCompanies: result.recordset[0]?.totalCompanies ?? 0,
-            totalStaff: result.recordset[0]?.totalStaff ?? 0,
+            totalHospitals: hospitalsResult.recordset[0]?.totalHospitals ?? 0,
+            totalCompanies: companiesResult.recordset[0]?.totalCompanies ?? 0,
+            totalStaff: staffResult.recordset[0]?.totalStaff ?? 0,
         };
     } catch (error) {
         console.error('Error fetching admin dashboard stats:', error);
