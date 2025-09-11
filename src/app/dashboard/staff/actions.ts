@@ -155,7 +155,7 @@ export async function handleAddStaff(prevState: { message: string, type?: string
         VALUES (@uid, @name, @email, @role, @password, @designation, @department, @joiningDate, @endDate, @shiftTime, @status, @number)
       `);
     
-    if (data.role === 'Hospital Staff' && data.hospitalId && data.hospitalId !== 'none') {
+    if (data.hospitalId && data.hospitalId !== 'none') {
       const assignmentRequest = new sql.Request(transaction);
       await assignmentRequest
         .input('staff_id', sql.NVarChar, uid)
@@ -187,6 +187,7 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
     name: formData.get("name"),
     email: formData.get("email"),
     role: formData.get("role"),
+    hospitalId: formData.get("hospitalId"),
     designation: formData.get("designation"),
     department: formData.get("department"),
     number: formData.get("number"),
@@ -194,8 +195,6 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
     endDate: formData.get("endDate") || null,
     shiftTime: formData.get("shiftTime"),
     status: formData.get("status"),
-    // Not part of schema, but we get it from form data
-    hospitalId: formData.get("hospitalId")
   });
 
   if (!validatedFields.success) {
@@ -203,8 +202,7 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
       return { message: `Invalid data: ${errorMessages}`, type: 'error' };
   }
   
-  const { id: staffId, ...data } = validatedFields.data;
-  const hospitalId = validatedFields.data.hospitalId as string | undefined;
+  const { id: staffId, hospitalId, ...data } = validatedFields.data;
 
   let transaction;
 
@@ -213,7 +211,6 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
     transaction = new sql.Transaction(db);
     await transaction.begin();
 
-    // 1. Update user details
     const request = new sql.Request(transaction);
     let setClauses = [
         `name = @name`, `email = @email`, `role = @role`, `number = @number`,
@@ -234,21 +231,19 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
       .input('shiftTime', sql.NVarChar, data.shiftTime)
       .input('status', sql.NVarChar, data.status);
 
-    if (password) {
+    if (password && password.length >= 6) {
         setClauses.push('password = @password');
         request.input('password', sql.NVarChar, password);
     }
     
     await request.query(`UPDATE users SET ${setClauses.join(', ')} WHERE uid = @uid`);
 
-    // 2. Clear existing hospital assignment
     const deleteAssignmentRequest = new sql.Request(transaction);
     await deleteAssignmentRequest
       .input('staff_id', sql.NVarChar, staffId)
       .query('DELETE FROM hospital_staff WHERE staff_id = @staff_id');
     
-    // 3. Insert new hospital assignment if applicable
-    if (data.role === 'Hospital Staff' && hospitalId && hospitalId !== 'none') {
+    if (hospitalId && hospitalId !== 'none') {
       const newAssignmentRequest = new sql.Request(transaction);
       await newAssignmentRequest
         .input('staff_id', sql.NVarChar, staffId)
@@ -281,10 +276,8 @@ export async function handleDeleteStaff(prevState: { message: string, type?: str
         transaction = new sql.Transaction(db);
         await transaction.begin();
 
-        // Delete from hospital_staff first
         await new sql.Request(transaction).input('staff_id', sql.NVarChar, id).query('DELETE FROM hospital_staff WHERE staff_id = @staff_id');
         
-        // Then delete from users
         const result = await new sql.Request(transaction)
             .input('uid', sql.NVarChar, id)
             .query("DELETE FROM users WHERE uid = @uid");
