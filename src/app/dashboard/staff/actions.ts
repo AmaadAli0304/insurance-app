@@ -28,7 +28,7 @@ const staffUpdateSchema = staffSchema.extend({
     id: z.coerce.string(),
     password: z.string().optional(),
     hospitalId: z.string().optional().nullable(),
-}).omit({ password: true }); // Omit password from base validation and handle it separately.
+}).omit({ password: true });
 
 
 export async function getStaff(): Promise<Staff[]> {
@@ -182,27 +182,30 @@ export async function handleAddStaff(prevState: { message: string, type?: string
 
 export async function handleUpdateStaff(prevState: { message: string, type?: string }, formData: FormData) {
   const password = formData.get("password") as string;
-  const parsed = staffUpdateSchema.safeParse({
+  const validatedFields = staffUpdateSchema.safeParse({
     id: formData.get("id"),
     name: formData.get("name"),
+    email: formData.get("email"),
     role: formData.get("role"),
-    hospitalId: formData.get("hospitalId"),
     designation: formData.get("designation"),
     department: formData.get("department"),
     number: formData.get("number"),
-    email: formData.get("email"),
     joiningDate: formData.get("joiningDate") || null,
     endDate: formData.get("endDate") || null,
     shiftTime: formData.get("shiftTime"),
     status: formData.get("status"),
+    // Not part of schema, but we get it from form data
+    hospitalId: formData.get("hospitalId")
   });
 
-  if (!parsed.success) {
-      const errorMessages = parsed.error.errors.map(e => e.message).join(', ');
+  if (!validatedFields.success) {
+      const errorMessages = validatedFields.error.errors.map(e => `${e.path.join('.')} - ${e.message}`).join(', ');
       return { message: `Invalid data: ${errorMessages}`, type: 'error' };
   }
   
-  const { id: staffId, hospitalId, ...data } = parsed.data;
+  const { id: staffId, ...data } = validatedFields.data;
+  const hospitalId = validatedFields.data.hospitalId as string | undefined;
+
   let transaction;
 
   try {
@@ -210,19 +213,13 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
     transaction = new sql.Transaction(db);
     await transaction.begin();
 
+    // 1. Update user details
     const request = new sql.Request(transaction);
     let setClauses = [
-        `name = @name`,
-        `email = @email`,
-        `role = @role`,
-        `number = @number`,
-        `designation = @designation`,
-        `department = @department`,
-        `joiningDate = @joiningDate`,
-        `endDate = @endDate`,
-        `shiftTime = @shiftTime`,
-        `status = @status`
-    ].filter(Boolean);
+        `name = @name`, `email = @email`, `role = @role`, `number = @number`,
+        `designation = @designation`, `department = @department`, `joiningDate = @joiningDate`,
+        `endDate = @endDate`, `shiftTime = @shiftTime`, `status = @status`
+    ];
     
     request
       .input('uid', sql.NVarChar, staffId)
@@ -242,12 +239,15 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
         request.input('password', sql.NVarChar, password);
     }
     
-    const result = await request.query(`UPDATE users SET ${setClauses.join(', ')} WHERE uid = @uid`);
+    await request.query(`UPDATE users SET ${setClauses.join(', ')} WHERE uid = @uid`);
 
-    // Handle hospital assignment
-    const assignmentRequest = new sql.Request(transaction);
-    await assignmentRequest.input('staff_id', sql.NVarChar, staffId).query('DELETE FROM hospital_staff WHERE staff_id = @staff_id');
+    // 2. Clear existing hospital assignment
+    const deleteAssignmentRequest = new sql.Request(transaction);
+    await deleteAssignmentRequest
+      .input('staff_id', sql.NVarChar, staffId)
+      .query('DELETE FROM hospital_staff WHERE staff_id = @staff_id');
     
+    // 3. Insert new hospital assignment if applicable
     if (data.role === 'Hospital Staff' && hospitalId && hospitalId !== 'none') {
       const newAssignmentRequest = new sql.Request(transaction);
       await newAssignmentRequest
