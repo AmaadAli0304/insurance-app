@@ -148,7 +148,9 @@ const basePatientObjectSchema = z.object({
   chiefComplaints: z.string().optional().nullable(),
 });
 
-const patientAddFormSchema = basePatientObjectSchema;
+const patientAddFormSchema = basePatientObjectSchema.extend({
+  staff_id: z.string().optional().nullable(),
+});
 
 const patientUpdateFormSchema = basePatientObjectSchema.extend({
   id: z.string(), // Patient ID
@@ -619,6 +621,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('abha_id', sql.NVarChar, data.abha_id || null)
       .input('health_id', sql.NVarChar, data.health_id || null)
       .input('hospital_id', sql.NVarChar, data.hospital_id || null)
+      .input('staff_id', sql.NVarChar, data.staff_id || null)
       .input('photo', sql.NVarChar, photoJson)
       .input('adhaar_path', sql.NVarChar, adhaarJson)
       .input('pan_path', sql.NVarChar, panJson)
@@ -635,13 +638,13 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .query(`
         INSERT INTO patients (
           first_name, last_name, email_address, phone_number, alternative_number, gender, birth_date, address, occupation, 
-          employee_id, abha_id, health_id, hospital_id, photo, adhaar_path, pan_path, passport_path, voter_id_path, 
+          employee_id, abha_id, health_id, hospital_id, staff_id, photo, adhaar_path, pan_path, passport_path, voter_id_path, 
           driving_licence_path, other_path, discharge_summary, final_bill, pharmacy_bill, implant_bill, lab_bill, ot_notes
         )
         OUTPUT INSERTED.id
         VALUES (
           @first_name, @last_name, @email_address, @phone_number, @alternative_number, @gender, @birth_date, @address, @occupation,
-          @employee_id, @abha_id, @health_id, @hospital_id, @photo, @adhaar_path, @pan_path, @passport_path, @voter_id_path, 
+          @employee_id, @abha_id, @health_id, @hospital_id, @staff_id, @photo, @adhaar_path, @pan_path, @passport_path, @voter_id_path, 
           @driving_licence_path, @other_path, @discharge_summary, @final_bill, @pharmacy_bill, @implant_bill, @lab_bill, @ot_notes
         )
       `);

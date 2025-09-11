@@ -193,14 +193,22 @@ export async function handleCreatePatientsTable(prevState: { message: string, ty
           health_id NVARCHAR(255),
           hospital_id NVARCHAR(255),
           photo NVARCHAR(MAX),
+          staff_id NVARCHAR(255),
           created_at DATETIME DEFAULT GETDATE(),
           updated_at DATETIME DEFAULT GETDATE()
         );
       END
+      ELSE
+      BEGIN
+        IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'staff_id' AND Object_ID = Object_ID(N'patients'))
+        BEGIN
+            ALTER TABLE patients ADD staff_id NVARCHAR(255);
+        END
+      END
     `;
     await request.query(createPatientsTableQuery);
     
-    return { message: "Patients table created successfully or already exists.", type: "success" };
+    return { message: "Patients table created or altered successfully.", type: "success" };
   } catch (error) {
     const dbError = error as { message?: string };
     console.error('Error creating Patients table:', dbError);

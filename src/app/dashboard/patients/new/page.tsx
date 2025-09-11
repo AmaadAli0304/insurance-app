@@ -334,6 +334,7 @@ export default function NewPatientPage() {
             </div>
             <form action={formAction} ref={formRef}>
                  <input type="hidden" name="hospital_id" value={user?.hospitalId || ''} />
+                 <input type="hidden" name="staff_id" value={user?.uid || ''} />
                  <input type="hidden" name="photoUrl" value={photoUrl || ''} />
                  <input type="hidden" name="photoName" value={photoName || ''} />
                  {Object.entries(documentUrls).map(([key, value]) => (
