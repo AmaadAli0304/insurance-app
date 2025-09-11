@@ -280,6 +280,7 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
     return { message: "Failed to update staff member in the database.", type: 'error' };
   }
   
+  revalidatePath('/dashboard/staff');
   return { message: "Staff member updated successfully.", type: "success" };
 }
 
@@ -317,6 +318,7 @@ export async function handleDeleteStaff(prevState: { message: string, type?: str
         return { message: "Database error during deletion.", type: 'error' };
     }
     
+    revalidatePath('/dashboard/staff');
     return { message: "Staff member deleted successfully.", type: 'success' };
 }
 

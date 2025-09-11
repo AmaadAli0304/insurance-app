@@ -194,8 +194,7 @@ export default function EditStaffPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="hospitalId">Assign Hospital</Label>
-                                    <input type="hidden" name="hospitalId" value={selectedHospitalId} />
-                                    <Select value={selectedHospitalId} onValueChange={setSelectedHospitalId}>
+                                <Select name="hospitalId" value={selectedHospitalId} onValueChange={setSelectedHospitalId}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select a hospital" />
                                     </SelectTrigger>
