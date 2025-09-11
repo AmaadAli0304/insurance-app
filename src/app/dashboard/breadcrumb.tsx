@@ -58,6 +58,7 @@ export function Breadcrumb() {
             // Check if there is a view/edit segment after ID
             if (segments[index + 1] === 'view' || segments[index + 1] === 'edit') {
                  label = `${singularParentLabel} Details`;
+                 isClickable = true; // Make the details breadcrumb clickable
             } else {
                 label = `${singularParentLabel} Details`;
             }
