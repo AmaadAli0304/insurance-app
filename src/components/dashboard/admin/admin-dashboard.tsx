@@ -17,6 +17,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export function AdminDashboard() {
   const { user } = useAuth();
+  const hospitalId = user?.hospitalId;
 
   const [patientBillingStats, setPatientBillingStats] = useState<PatientBilledStat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -31,18 +32,20 @@ export function AdminDashboard() {
     try {
       setIsLoading(true);
       setError(null);
-      const patientData = await getPatientBilledStatsForAdmin(date);
+      const patientData = await getPatientBilledStatsForAdmin(date, hospitalId);
       setPatientBillingStats(patientData);
     } catch (err: any) {
       setError(err.message);
     } finally {
       setIsLoading(false);
     }
-  }, [date]);
+  }, [date, hospitalId]);
 
   useEffect(() => {
-    fetchAllStats();
-  }, [fetchAllStats]);
+    if (user) { // Wait for user to be available
+      fetchAllStats();
+    }
+  }, [fetchAllStats, user]);
 
 
   if (error) {

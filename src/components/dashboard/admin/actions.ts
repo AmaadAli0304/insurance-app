@@ -14,18 +14,26 @@ export type PatientBilledStat = {
   sanctionedAmount: number;
 };
 
-export async function getPatientBilledStatsForAdmin(dateRange?: DateRange): Promise<PatientBilledStat[]> {
+export async function getPatientBilledStatsForAdmin(dateRange?: DateRange, hospitalId?: string | null): Promise<PatientBilledStat[]> {
     try {
         const pool = await getDbPool();
         const request = pool.request();
         
-        let dateFilter = '';
+        let whereClauses: string[] = [];
+        
         if (dateRange?.from) {
             const toDate = dateRange.to || new Date(); 
             request.input('dateFrom', sql.DateTime, dateRange.from);
             request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-            dateFilter = 'WHERE c.created_at BETWEEN @dateFrom AND @dateTo';
+            whereClauses.push('c.created_at BETWEEN @dateFrom AND @dateTo');
         }
+
+        if (hospitalId) {
+            request.input('hospitalId', sql.NVarChar, hospitalId);
+            whereClauses.push('c.hospital_id = @hospitalId');
+        }
+
+        const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
         const query = `
             SELECT
@@ -39,10 +47,10 @@ export async function getPatientBilledStatsForAdmin(dateRange?: DateRange): Prom
             FROM claims c
             JOIN patients p ON c.Patient_id = p.id
             JOIN hospitals h ON c.hospital_id = h.id
-            JOIN preauth_request pr ON c.admission_id = pr.admission_id
+            LEFT JOIN preauth_request pr ON c.admission_id = pr.admission_id
             LEFT JOIN companies co ON pr.company_id = co.id
             LEFT JOIN tpas t ON c.tpa_id = t.id
-            ${dateFilter}
+            ${whereClause}
             GROUP BY
                 p.id,
                 p.first_name,
