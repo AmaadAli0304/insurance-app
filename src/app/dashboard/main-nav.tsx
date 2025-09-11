@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Building, Factory, FileText, LayoutDashboard, Stethoscope, User, Users, HandCoins, Briefcase, ShieldCheck, Upload, Bell, FilePlus2, MessageSquare, Pill, Shield } from 'lucide-react';
+import { Building, Factory, FileText, LayoutDashboard, Stethoscope, User, Users, HandCoins, Briefcase, ShieldCheck, Upload, Bell, FilePlus2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/components/auth-provider';
 
@@ -14,12 +14,6 @@ export function MainNav() {
   const routes = {
     Admin: [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-      { href: '/dashboard/hospitals', label: 'Hospitals', icon: Building },
-      { href: '/dashboard/companies', label: 'Companies', icon: Factory },
-      { href: '/dashboard/tpas', label: 'TPAs', icon: Briefcase },
-      { href: '/dashboard/staff', label: 'Staff', icon: Users },
-      { href: '/dashboard/doctors', label: 'Doctors', icon: Stethoscope },
-      { href: '/dashboard/import', label: 'Import', icon: Upload },
     ],
     'Hospital Staff': [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -34,6 +28,7 @@ export function MainNav() {
       { href: '/dashboard/tpas', label: 'TPAs', icon: Briefcase },
       { href: '/dashboard/staff', label: 'Staff', icon: Users },
       { href: '/dashboard/doctors', label: 'Doctors', icon: Stethoscope },
+      { href: '/dashboard/import', label: 'Import', icon: Upload },
     ],
   };
 
