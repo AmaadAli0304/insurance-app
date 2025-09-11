@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import pool, { sql, poolConnect } from "@/lib/db";
 import { z } from 'zod';
 import { Staff, Hospital, UserRole } from "@/lib/types";
+import { redirect } from 'next/navigation';
 
 const staffSchema = z.object({
   name: z.string().min(1, "Full Name is required."),
@@ -27,6 +28,7 @@ const staffUpdateSchema = staffSchema.extend({
     id: z.coerce.string(),
     password: z.string().optional(),
 });
+
 
 const invoiceItemSchema = z.object({
   description: z.string().min(1, "Description is required."),
@@ -88,10 +90,8 @@ export async function getStaffById(id: string): Promise<Staff | null> {
     const staffResult = await db.request()
           .input('uid', sql.NVarChar, id)
           .query(`
-            SELECT u.*, u.uid as id, h.name as hospitalName
+            SELECT u.*, u.uid as id
             FROM users u
-            LEFT JOIN hospital_staff hs ON u.uid = hs.staff_id
-            LEFT JOIN hospitals h ON hs.hospital_id = h.id
             WHERE u.uid = @uid AND u.role IN ('Admin', 'Hospital Staff')
           `);
 
@@ -103,12 +103,19 @@ export async function getStaffById(id: string): Promise<Staff | null> {
     
     const hospitalAssignmentResult = await db.request()
         .input('staff_id', sql.NVarChar, id)
-        .query('SELECT hospital_id FROM hospital_staff WHERE staff_id = @staff_id');
+        .query(`
+            SELECT h.id as hospitalId, h.name as hospitalName 
+            FROM hospital_staff hs
+            JOIN hospitals h ON hs.hospital_id = h.id
+            WHERE hs.staff_id = @staff_id
+        `);
         
     if (hospitalAssignmentResult.recordset.length > 0) {
-        staff.hospitalId = hospitalAssignmentResult.recordset[0].hospital_id;
+        staff.hospitalId = hospitalAssignmentResult.recordset[0].hospitalId;
+        staff.hospitalName = hospitalAssignmentResult.recordset[0].hospitalName;
     } else {
         staff.hospitalId = null;
+        staff.hospitalName = null;
     }
 
     return staff;

@@ -52,13 +52,6 @@ export default function EditStaffPage() {
                     setStaff(fetchedStaff);
                      if (fetchedStaff.hospitalId && hospitalList.some(h => h.id === fetchedStaff.hospitalId)) {
                         setSelectedHospitalId(fetchedStaff.hospitalId);
-                    } else if (fetchedStaff.hospitalId) {
-                         toast({
-                            title: "Hospital Not Found",
-                            description: `The previously assigned hospital (ID: ${fetchedStaff.hospitalId}) could not be found. It has been unassigned.`,
-                            variant: "destructive"
-                        });
-                        setSelectedHospitalId('none');
                     } else {
                         setSelectedHospitalId('none');
                     }
