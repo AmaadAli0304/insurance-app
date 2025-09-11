@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -11,7 +12,7 @@ export function MainNav() {
   const { role } = useAuth();
 
   const routes = {
-    Admin: [
+    'Admin': [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     ],
     'Hospital Staff': [

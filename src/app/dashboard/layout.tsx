@@ -2,23 +2,20 @@
 "use client";
 
 import Link from "next/link";
-import { MainNav } from "@/components/dashboard/main-nav";
+import { MainNav } from "@/app/dashboard/main-nav";
 import { UserNav } from "@/components/dashboard/user-nav";
 import { Logo } from "@/components/logo";
 import { Breadcrumb } from "@/app/dashboard/breadcrumb";
-import { SidebarProvider, Sidebar, SidebarHeader, SidebarTrigger, SidebarContent, SidebarInset, useSidebar } from "@/components/ui/sidebar";
+import { SidebarProvider, Sidebar, SidebarHeader, SidebarTrigger, SidebarContent, SidebarInset } from "@/components/ui/sidebar";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-
-  const SidebarLayout = ({ children }: { children: React.ReactNode }) => {
-    const { isMobile, open } = useSidebar();
-    return (
-      <>
-        <Sidebar collapsible={isMobile ? 'offcanvas' : 'icon'}>
+  return (
+    <SidebarProvider>
+        <Sidebar>
           <SidebarHeader>
              <div className="flex h-14 items-center border-b border-sidebar-border px-4 lg:h-[60px] lg:px-6 group-data-[collapsible=icon]:justify-center">
                 <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-sidebar-foreground group-data-[state=collapsed]:hidden">
@@ -50,15 +47,6 @@ export default function DashboardLayout({
                 {children}
             </main>
         </SidebarInset>
-      </>
-    )
-  }
-
-  return (
-      <SidebarProvider>
-        <SidebarLayout>
-          {children}
-        </SidebarLayout>
       </SidebarProvider>
   );
 }
