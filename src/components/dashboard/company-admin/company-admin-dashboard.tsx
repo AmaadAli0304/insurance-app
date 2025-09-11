@@ -6,7 +6,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building, Users, Clock, AlertTriangle, Loader2, Calendar as CalendarIcon } from "lucide-react";
-import { getCompanyAdminDashboardStats, getHospitalBusinessStats, getPatientBillingStats, getSimpleHospitalBusinessStats, HospitalBusinessStats, PatientBilledStat, SimpleHospitalStat } from "./actions";
+import { getCompanyAdminDashboardStats, getHospitalBusinessStats, getSimpleHospitalBusinessStats, getStaffPerformanceStats, HospitalBusinessStats, PatientBilledStat, SimpleHospitalStat, StaffPerformanceStat } from "./actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { BusinessSummaryTable } from "./business-summary-table";
 import { DateRange } from "react-day-picker";
@@ -17,6 +17,7 @@ import { format, subDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { PatientBillingTable } from "./patient-billing-table";
 import { SimpleBusinessSummaryTable } from "./simple-business-summary-table";
+import { StaffPerformanceTable } from "./staff-performance-table";
 
 
 interface DashboardStats {
@@ -34,6 +35,7 @@ export function CompanyAdminDashboard() {
   const [businessStats, setBusinessStats] = useState<HospitalBusinessStats[]>([]);
   const [simpleBusinessStats, setSimpleBusinessStats] = useState<SimpleHospitalStat[]>([]);
   const [patientBillingStats, setPatientBillingStats] = useState<PatientBilledStat[]>([]);
+  const [staffPerformanceStats, setStaffPerformanceStats] = useState<StaffPerformanceStat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -52,16 +54,16 @@ export function CompanyAdminDashboard() {
     try {
       setIsLoading(true);
       setError(null);
-      const [dashboardData, businessData, patientBillingData, simpleBusinessData] = await Promise.all([
+      const [dashboardData, businessData, simpleBusinessData, staffPerformanceData] = await Promise.all([
           getCompanyAdminDashboardStats(companyId, date),
           getHospitalBusinessStats(date),
-          getPatientBillingStats(date),
           getSimpleHospitalBusinessStats(date),
+          getStaffPerformanceStats(date),
       ]);
       setStats(dashboardData);
       setBusinessStats(businessData);
-      setPatientBillingStats(patientBillingData);
       setSimpleBusinessStats(simpleBusinessData);
+      setStaffPerformanceStats(staffPerformanceData);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -175,7 +177,7 @@ export function CompanyAdminDashboard() {
 
           <SimpleBusinessSummaryTable stats={simpleBusinessStats} />
           
-          <PatientBillingTable stats={patientBillingStats} />
+          <StaffPerformanceTable stats={staffPerformanceStats} />
         </>
       )}
     </div>

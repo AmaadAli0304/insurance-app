@@ -129,7 +129,7 @@ export type PatientBilledStat = {
   billedAmount: number;
 };
 
-export async function getPatientBillingStats(dateRange?: DateRange): Promise<PatientBilledStat[]> {
+export async function getPatientBilledStats(dateRange?: DateRange): Promise<PatientBilledStat[]> {
     try {
         const pool = await getDbPool();
         const request = pool.request();
@@ -224,5 +224,51 @@ export async function getSimpleHospitalBusinessStats(dateRange?: DateRange): Pro
     } catch (error) {
         console.error('Error fetching simple hospital business stats:', error);
         throw new Error('Failed to fetch simplified hospital statistics.');
+    }
+}
+
+export type StaffPerformanceStat = {
+  staffId: string;
+  staffName: string;
+  hospitalName: string;
+  numOfCases: number;
+  totalCollection: number;
+};
+
+export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<StaffPerformanceStat[]> {
+    try {
+        const pool = await getDbPool();
+        const request = pool.request();
+        
+        let dateFilter = '';
+        if (dateRange?.from) {
+            const toDate = dateRange.to || new Date(); 
+            request.input('dateFrom', sql.DateTime, dateRange.from);
+            request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+            dateFilter = 'AND pr.created_at BETWEEN @dateFrom AND @dateTo';
+        }
+
+        const query = `
+            SELECT
+                u.uid AS staffId,
+                u.name AS staffName,
+                ISNULL(h.name, 'N/A') AS hospitalName,
+                COUNT(DISTINCT pr.id) AS numOfCases,
+                ISNULL(SUM(CASE WHEN c.status = 'Final Amount Sanctioned' THEN c.amount ELSE 0 END), 0) AS totalCollection
+            FROM users u
+            LEFT JOIN hospital_staff hs ON u.uid = hs.staff_id
+            LEFT JOIN hospitals h ON hs.hospital_id = h.id
+            LEFT JOIN preauth_request pr ON u.uid = pr.staff_id ${dateFilter}
+            LEFT JOIN claims c ON pr.admission_id = c.admission_id
+            WHERE u.role = 'Hospital Staff'
+            GROUP BY u.uid, u.name, h.name
+            ORDER BY totalCollection DESC;
+        `;
+        
+        const result = await request.query(query);
+        return result.recordset as StaffPerformanceStat[];
+    } catch (error) {
+        console.error('Error fetching staff performance stats:', error);
+        throw new Error('Failed to fetch staff performance statistics.');
     }
 }
