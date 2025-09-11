@@ -1,5 +1,5 @@
 
-'use server';
+"use server";
 
 import { getDbPool, sql } from '@/lib/db';
 import { DateRange } from 'react-day-picker';
@@ -14,14 +14,14 @@ export async function getAdminDashboardStats(dateRange?: DateRange) {
             const toDate = dateRange.to || new Date();
             request.input('dateFrom', sql.DateTime, dateRange.from);
             request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-            dateFilter = 'WHERE joiningDate BETWEEN @dateFrom AND @dateTo';
+            dateFilter = 'WHERE u.joiningDate BETWEEN @dateFrom AND @dateTo';
         }
 
         const statsQuery = `
             SELECT
                 (SELECT COUNT(*) FROM hospitals) as totalHospitals,
                 (SELECT COUNT(*) FROM companies) as totalCompanies,
-                (SELECT COUNT(*) FROM users WHERE role = 'Hospital Staff' ${dateFilter.replace('joiningDate', 'u.joiningDate')}) as totalStaff
+                (SELECT COUNT(*) FROM users u WHERE u.role = 'Hospital Staff' ${dateFilter}) as totalStaff
         `;
         
         const result = await request.query(statsQuery);
