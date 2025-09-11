@@ -10,7 +10,7 @@ export async function getAdminDashboardStats(dateRange?: DateRange) {
         const request = pool.request();
         
         const staffRequest = pool.request();
-        let staffWhereClauses = ["role = 'Hospital Staff'"];
+        let staffWhereClauses: string[] = ["role = 'Hospital Staff'"];
 
         if (dateRange?.from) {
             const toDate = dateRange.to || new Date();
@@ -70,12 +70,13 @@ export async function getActivePatients(dateRange?: DateRange): Promise<ActivePa
             SELECT 
                 p.first_name + ' ' + p.last_name as patientName,
                 a.admission_id as admissionId,
-                t.name as tpaName,
+                COALESCE(t.name, co.name, 'N/A') as tpaName,
                 a.totalExpectedCost as amountRequested,
                 a.amount_sanctioned as amountSanctioned,
                 a.status
             FROM preauth_request a
             JOIN patients p ON a.patient_id = p.id
+            LEFT JOIN companies co ON a.company_id = co.id
             LEFT JOIN tpas t ON a.tpa_id = t.id
             WHERE a.status NOT IN ('Settlement Done', 'Rejected', 'Final Amount Sanctioned')
             ${dateFilter}
