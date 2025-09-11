@@ -74,17 +74,21 @@ export default function ViewStaffPage() {
             <Card>
                 <CardHeader>
                     <div className="flex justify-between items-center">
-                        <CardTitle className="text-3xl">{staff.name}</CardTitle>
-                        {staff.status && <Badge variant={staff.status === 'Active' ? 'default' : 'destructive'} className={staff.status === 'Active' ? 'bg-accent text-accent-foreground' : ''}>{staff.status}</Badge>}
+                        <div>
+                            <CardTitle className="text-3xl">{staff.name}</CardTitle>
+                            <CardDescription>{staff.email}</CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Badge variant="outline">{staff.role}</Badge>
+                            {staff.status && <Badge variant={staff.status === 'Active' ? 'default' : 'destructive'} className={staff.status === 'Active' ? 'bg-accent text-accent-foreground' : ''}>{staff.status}</Badge>}
+                        </div>
                     </div>
-                    <CardDescription>Contact and professional details for {staff.name}.</CardDescription>
                 </CardHeader>
-                <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6">
-                    <DetailItem label="Email Address" value={staff.email} />
+                <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6 border-t">
                     <DetailItem label="Contact Number" value={staff.number} />
-                    <DetailItem label="Assigned Hospital" value={staff.hospitalName || "N/A"} />
                     <DetailItem label="Designation" value={staff.designation} />
                     <DetailItem label="Department" value={staff.department} />
+                    <DetailItem label="Assigned Hospital" value={staff.hospitalName || "N/A"} />
                     <DetailItem label="Shift Timing" value={staff.shiftTime} />
                     <DetailItem label="Joining Date" value={formatDate(staff.joiningDate)} />
                     <DetailItem label="End Date" value={formatDate(staff.endDate)} />

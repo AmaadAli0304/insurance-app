@@ -25,7 +25,7 @@ function SubmitButton() {
     );
 }
 
-const roles: UserRole[] = ['Admin', 'Hospital Staff'];
+const roles: UserRole[] = ['Admin', 'Hospital Staff', 'Company Admin'];
 
 export default function EditStaffPage() {
     const params = useParams();

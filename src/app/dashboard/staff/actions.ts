@@ -10,7 +10,7 @@ const staffSchema = z.object({
   name: z.string().min(1, "Full Name is required."),
   email: z.string().email("Invalid email address.").min(1, "Email is required."),
   password: z.string().min(6, "Password must be at least 6 characters."),
-  role: z.enum(['Admin', 'Hospital Staff']),
+  role: z.enum(['Admin', 'Hospital Staff', 'Company Admin']),
   hospitalId: z.string().optional().nullable(),
   designation: z.string().optional().nullable(),
   department: z.string().optional().nullable(),
@@ -61,7 +61,7 @@ export async function getStaff(): Promise<Staff[]> {
         FROM users u
         LEFT JOIN hospital_staff hs ON u.uid = hs.staff_id
         LEFT JOIN hospitals h ON hs.hospital_id = h.id
-        WHERE u.role IN ('Admin', 'Hospital Staff')
+        WHERE u.role IN ('Admin', 'Hospital Staff', 'Company Admin')
       `);
     return result.recordset as Staff[];
   } catch (error) {
@@ -92,7 +92,7 @@ export async function getStaffById(id: string): Promise<Staff | null> {
             FROM users u
             LEFT JOIN hospital_staff hs ON u.uid = hs.staff_id
             LEFT JOIN hospitals h ON hs.hospital_id = h.id
-            WHERE u.uid = @uid AND u.role = 'Hospital Staff'
+            WHERE u.uid = @uid AND u.role IN ('Admin', 'Hospital Staff', 'Company Admin')
           `);
 
     if (staffResult.recordset.length === 0) {
@@ -101,7 +101,6 @@ export async function getStaffById(id: string): Promise<Staff | null> {
     
     const staff = staffResult.recordset[0] as Staff;
     
-    // Fetch hospital assignment separately to get the ID for the edit form
     const hospitalAssignmentResult = await db.request()
         .input('staff_id', sql.NVarChar, id)
         .query('SELECT hospital_id FROM hospital_staff WHERE staff_id = @staff_id');
@@ -109,7 +108,7 @@ export async function getStaffById(id: string): Promise<Staff | null> {
     if (hospitalAssignmentResult.recordset.length > 0) {
         staff.hospitalId = hospitalAssignmentResult.recordset[0].hospital_id;
     } else {
-        staff.hospitalId = null; // Ensure hospitalId is null if not assigned
+        staff.hospitalId = null;
     }
 
     return staff;
@@ -201,6 +200,7 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
   const parsed = staffUpdateSchema.safeParse({
     id: formData.get("id"),
     name: formData.get("name"),
+    role: formData.get("role"),
     password: formData.get("password") || undefined,
     hospitalId: formData.get("hospitalId"),
     designation: formData.get("designation"),
@@ -230,6 +230,7 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
     let setClauses = [
         `name = @name`,
         `email = @email`,
+        `role = @role`,
         `number = @number`,
         `designation = @designation`,
         `department = @department`,
@@ -243,6 +244,7 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
       .input('uid', sql.NVarChar, staffId)
       .input('name', sql.NVarChar, data.name)
       .input('email', sql.NVarChar, data.email)
+      .input('role', sql.NVarChar, data.role)
       .input('number', sql.NVarChar, data.number)
       .input('designation', sql.NVarChar, data.designation)
       .input('department', sql.NVarChar, data.department)
@@ -262,7 +264,7 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
     const assignmentRequest = new sql.Request(transaction);
     await assignmentRequest.input('staff_id', sql.NVarChar, staffId).query('DELETE FROM hospital_staff WHERE staff_id = @staff_id');
     
-    if (hospitalId && hospitalId !== 'none') {
+    if (data.role === 'Hospital Staff' && hospitalId && hospitalId !== 'none') {
       const newAssignmentRequest = new sql.Request(transaction);
       await newAssignmentRequest
         .input('staff_id', sql.NVarChar, staffId)
