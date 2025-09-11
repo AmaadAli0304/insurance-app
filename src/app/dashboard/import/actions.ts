@@ -608,6 +608,10 @@ export async function handleCreatePreAuthTable(prevState: { message: string, typ
                 BEGIN
                     ALTER TABLE preauth_request ADD amount_sanctioned DECIMAL(18, 2);
                 END
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'staff_id' AND Object_ID = Object_ID(N'preauth_request'))
+                BEGIN
+                    ALTER TABLE preauth_request ADD staff_id NVARCHAR(255);
+                END
             END
         `;
         await request.query(query);

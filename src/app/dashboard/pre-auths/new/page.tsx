@@ -408,7 +408,7 @@ export default function NewRequestPage() {
             <form>
                  <input type="hidden" name="patientId" value={selectedPatientId || ''} />
                  <input type="hidden" name="hospitalId" value={user?.hospitalId || ''} />
-                 <input type="hidden" name="userId" value={user?.uid || ''} />
+                 <input type="hidden" name="staff_id" value={user?.uid || ''} />
                  <input type="hidden" name="doctor_id" value={patientDetails?.doctor_id || ''} />
                  <input type="hidden" name="from" value={hospitalDetails?.email || user?.email || ''} />
                  <input type="hidden" name="to" value={toEmail} />
