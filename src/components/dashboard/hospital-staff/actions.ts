@@ -84,19 +84,23 @@ export async function getDashboardData(hospitalId: string): Promise<DashboardDat
         const rejectedPreAuthsQuery = pool.request()
             .input('hospitalId', sql.NVarChar, hospitalId)
             .query(`
-                SELECT 
-                    c.id,
-                    c.Patient_id as patientId,
-                    c.Patient_name as patientName,
-                    COALESCE(t.name, co.name, 'N/A') as tpaOrInsurerName,
-                    c.amount as amountRequested,
-                    c.reason
-                FROM claims c
-                LEFT JOIN preauth_request pr ON c.admission_id = pr.admission_id
-                LEFT JOIN tpas t ON c.tpa_id = t.id
-                LEFT JOIN companies co ON pr.company_id = co.id
-                WHERE c.hospital_id = @hospitalId AND c.status = 'Rejected'
-                ORDER BY c.updated_at DESC
+                WITH RankedClaims AS (
+                    SELECT 
+                        c.id,
+                        c.Patient_id as patientId,
+                        c.Patient_name as patientName,
+                        COALESCE(t.name, co.name, 'N/A') as tpaOrInsurerName,
+                        c.amount as amountRequested,
+                        c.reason,
+                        ROW_NUMBER() OVER(PARTITION BY c.Patient_id ORDER BY c.updated_at DESC) as rn
+                    FROM claims c
+                    LEFT JOIN preauth_request pr ON c.admission_id = pr.admission_id
+                    LEFT JOIN tpas t ON c.tpa_id = t.id
+                    LEFT JOIN companies co ON pr.company_id = co.id
+                    WHERE c.hospital_id = @hospitalId AND c.status = 'Rejected'
+                )
+                SELECT * FROM RankedClaims WHERE rn = 1
+                ORDER BY patientName;
             `);
 
 
