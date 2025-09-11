@@ -45,48 +45,74 @@ export async function getAdminDashboardStats(dateRange?: DateRange) {
     }
 }
 
-export type ActivePatientStat = {
+export type PatientBilledStat = {
+  patientId: number;
   patientName: string;
-  admissionId: string;
+  patientPhoto: string | null;
+  hospitalName: string;
   tpaName: string;
-  amountRequested: number;
-  amountSanctioned: number;
-  status: string;
+  billedAmount: number;
 };
 
-export async function getActivePatients(dateRange?: DateRange): Promise<ActivePatientStat[]> {
+export async function getPatientBilledStatsForAdmin(companyId: string, dateRange?: DateRange): Promise<PatientBilledStat[]> {
     try {
         const pool = await getDbPool();
         const request = pool.request();
-
-        let whereClause = '';
+        request.input('companyId', sql.NVarChar, companyId);
+        
+        let dateFilter = '';
         if (dateRange?.from) {
-            const toDate = dateRange.to || new Date();
+            const toDate = dateRange.to || new Date(); 
             request.input('dateFrom', sql.DateTime, dateRange.from);
             request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-            whereClause = 'WHERE pr.created_at BETWEEN @dateFrom AND @dateTo';
+            dateFilter = 'AND c.created_at BETWEEN @dateFrom AND @dateTo';
         }
-        
+
         const query = `
-            SELECT 
-                pr.first_name + ' ' + pr.last_name as patientName,
-                pr.admission_id as admissionId,
+            SELECT
+                p.id AS patientId,
+                p.first_name + ' ' + p.last_name AS patientName,
+                p.photo AS patientPhoto,
+                h.name AS hospitalName,
                 COALESCE(t.name, co.name, 'N/A') as tpaName,
-                pr.totalExpectedCost as amountRequested,
-                pr.amount_sanctioned as amountSanctioned,
-                pr.status
-            FROM preauth_request pr
+                SUM(c.amount) as billedAmount
+            FROM claims c
+            JOIN patients p ON c.Patient_id = p.id
+            JOIN hospitals h ON c.hospital_id = h.id
+            JOIN preauth_request pr ON c.admission_id = pr.admission_id
             LEFT JOIN companies co ON pr.company_id = co.id
-            LEFT JOIN tpas t ON pr.tpa_id = t.id
-            ${whereClause}
-            ORDER BY pr.created_at DESC
+            LEFT JOIN tpas t ON c.tpa_id = t.id
+            WHERE h.id IN (SELECT hospital_id FROM hospital_companies WHERE company_id = @companyId)
+            AND c.status IN ('Pre auth Sent', 'Enhancement Request') ${dateFilter}
+            GROUP BY
+                p.id,
+                p.first_name,
+                p.last_name,
+                p.photo,
+                h.name,
+                co.name,
+                t.name
+            ORDER BY
+                billedAmount DESC;
         `;
 
         const result = await request.query(query);
-        return result.recordset as ActivePatientStat[];
+        
+        return result.recordset.map(row => {
+            let photoUrl = null;
+            if (row.patientPhoto) {
+                try {
+                    const parsed = JSON.parse(row.patientPhoto);
+                    photoUrl = parsed.url;
+                } catch {
+                    photoUrl = null;
+                }
+            }
+            return { ...row, patientPhoto: photoUrl };
+        });
 
     } catch (error) {
-        console.error('Error fetching active patients:', error);
-        throw new Error('Failed to fetch active patient statistics.');
+        console.error('Error fetching patient billing stats for admin:', error);
+        throw new Error('Failed to fetch patient billing statistics.');
     }
 }

@@ -1,23 +1,27 @@
+
 "use client"
 
 import { useEffect, useState, useCallback } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useAuth } from "@/components/auth-provider";
 import { Users, Building, Factory, Loader2, Calendar as CalendarIcon, AlertTriangle } from "lucide-react";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { DateRange } from "react-day-picker";
-import { getAdminDashboardStats, getActivePatients, ActivePatientStat } from "./actions";
+import { getAdminDashboardStats, getPatientBilledStatsForAdmin, PatientBilledStat } from "./actions";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { format, subDays } from "date-fns";
 import { cn } from "@/lib/utils";
-import { ActivePatientsTable } from "./active-patients-table";
+import { AdminPatientBillingTable } from "./active-patients-table";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 
 export function AdminDashboard() {
+  const { user } = useAuth();
+  const companyId = user?.companyId;
+
   const [stats, setStats] = useState<{ totalHospitals: number; totalCompanies: number; totalStaff: number; } | null>(null);
-  const [activePatients, setActivePatients] = useState<ActivePatientStat[]>([]);
+  const [patientBillingStats, setPatientBillingStats] = useState<PatientBilledStat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,21 +31,27 @@ export function AdminDashboard() {
   });
 
   const fetchAllStats = useCallback(async () => {
+    if (!companyId) {
+      setIsLoading(false);
+      setError("User is not associated with a company. Cannot fetch patient stats.");
+      return;
+    }
+    
     try {
       setIsLoading(true);
       setError(null);
-      const [dashboardData, activePatientsData] = await Promise.all([
+      const [dashboardData, patientData] = await Promise.all([
         getAdminDashboardStats(date),
-        getActivePatients(date),
+        getPatientBilledStatsForAdmin(companyId, date),
       ]);
       setStats(dashboardData);
-      setActivePatients(activePatientsData);
+      setPatientBillingStats(patientData);
     } catch (err: any) {
       setError(err.message);
     } finally {
       setIsLoading(false);
     }
-  }, [date]);
+  }, [date, companyId]);
 
   useEffect(() => {
     fetchAllStats();
@@ -108,7 +118,7 @@ export function AdminDashboard() {
                  <StatCard title="Total Staff" value={stats?.totalStaff ?? 0} icon={Users} color="bg-slate-800" />
             </div>
 
-            <ActivePatientsTable stats={activePatients} />
+            <AdminPatientBillingTable stats={patientBillingStats} />
         </>
        )}
       
