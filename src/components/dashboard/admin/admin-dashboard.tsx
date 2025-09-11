@@ -1,23 +1,117 @@
 "use client"
 
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Users, Building, Factory } from "lucide-react";
+import { Users, Building, Factory, Loader2, Calendar as CalendarIcon, AlertTriangle } from "lucide-react";
 import { StatCard } from "@/components/dashboard/stat-card";
+import { DateRange } from "react-day-picker";
+import { getAdminDashboardStats, getActivePatients, ActivePatientStat } from "./actions";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
+import { format, subDays } from "date-fns";
+import { cn } from "@/lib/utils";
+import { ActivePatientsTable } from "./active-patients-table";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 
 export function AdminDashboard() {
+  const [stats, setStats] = useState<{ totalHospitals: number; totalCompanies: number; totalStaff: number; } | null>(null);
+  const [activePatients, setActivePatients] = useState<ActivePatientStat[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: subDays(new Date(), 29),
+    to: new Date(),
+  });
+
+  const fetchAllStats = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const [dashboardData, activePatientsData] = await Promise.all([
+        getAdminDashboardStats(date),
+        getActivePatients(date),
+      ]);
+      setStats(dashboardData);
+      setActivePatients(activePatientsData);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [date]);
+
+  useEffect(() => {
+    fetchAllStats();
+  }, [fetchAllStats]);
+
+
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-       <Card>
-          <CardHeader>
-            <CardTitle>Welcome, Admin!</CardTitle>
-            <CardDescription>Manage hospitals, insurance companies, and system settings from this central hub.</CardDescription>
-          </CardHeader>
-           <CardContent>
-            <p>Use the sidebar navigation to access different sections of the application.</p>
-          </CardContent>
-        </Card>
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+         <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                id="date"
+                variant={"outline"}
+                className={cn(
+                  "w-[300px] justify-start text-left font-normal",
+                  !date && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date?.from ? (
+                  date.to ? (
+                    <>
+                      {format(date.from, "LLL dd, y")} -{" "}
+                      {format(date.to, "LLL dd, y")}
+                    </>
+                  ) : (
+                    format(date.from, "LLL dd, y")
+                  )
+                ) : (
+                  <span>Pick a date</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                initialFocus
+                mode="range"
+                defaultMonth={date?.from}
+                selected={date}
+                onSelect={setDate}
+                numberOfMonths={2}
+              />
+            </PopoverContent>
+          </Popover>
+      </div>
+
+       {isLoading ? (
+        <div className="flex items-center justify-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+       ) : error ? (
+        <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Error Loading Dashboard</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+        </Alert>
+       ) : (
+        <>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                 <StatCard title="Total Hospitals" value={stats?.totalHospitals ?? 0} icon={Building} color="bg-blue-500" />
+                 <StatCard title="Total Companies" value={stats?.totalCompanies ?? 0} icon={Factory} color="bg-teal-500" />
+                 <StatCard title="Total Staff" value={stats?.totalStaff ?? 0} icon={Users} color="bg-slate-800" />
+            </div>
+
+            <ActivePatientsTable stats={activePatients} />
+        </>
+       )}
+      
     </div>
   )
 }
