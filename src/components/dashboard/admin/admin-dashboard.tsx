@@ -18,7 +18,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export function AdminDashboard() {
   const { user } = useAuth();
-  const companyId = user?.companyId;
 
   const [stats, setStats] = useState<{ totalHospitals: number; totalCompanies: number; totalStaff: number; } | null>(null);
   const [patientBillingStats, setPatientBillingStats] = useState<PatientBilledStat[]>([]);
@@ -31,18 +30,12 @@ export function AdminDashboard() {
   });
 
   const fetchAllStats = useCallback(async () => {
-    if (!companyId) {
-      setIsLoading(false);
-      setError("User is not associated with a company. Cannot fetch patient stats.");
-      return;
-    }
-    
     try {
       setIsLoading(true);
       setError(null);
       const [dashboardData, patientData] = await Promise.all([
         getAdminDashboardStats(date),
-        getPatientBilledStatsForAdmin(companyId, date),
+        getPatientBilledStatsForAdmin(date),
       ]);
       setStats(dashboardData);
       setPatientBillingStats(patientData);
@@ -51,12 +44,22 @@ export function AdminDashboard() {
     } finally {
       setIsLoading(false);
     }
-  }, [date, companyId]);
+  }, [date]);
 
   useEffect(() => {
     fetchAllStats();
   }, [fetchAllStats]);
 
+
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertTitle>Error Loading Dashboard</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -104,12 +107,6 @@ export function AdminDashboard() {
         <div className="flex items-center justify-center h-64">
             <Loader2 className="h-8 w-8 animate-spin" />
         </div>
-       ) : error ? (
-        <Alert variant="destructive">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Error Loading Dashboard</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-        </Alert>
        ) : (
         <>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

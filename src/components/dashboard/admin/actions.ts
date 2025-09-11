@@ -18,7 +18,7 @@ export async function getAdminDashboardStats(dateRange?: DateRange) {
             staffWhereClauses.push('joiningDate BETWEEN @dateFrom AND @dateTo');
         }
 
-        const whereClause = `WHERE ${staffWhereClauses.join(' AND ')}`;
+        const whereClause = staffWhereClauses.length > 0 ? `WHERE ${staffWhereClauses.join(' AND ')}` : '';
 
         const totalHospitalsQuery = `SELECT COUNT(*) as totalHospitals FROM hospitals`;
         const totalCompaniesQuery = `SELECT COUNT(*) as totalCompanies FROM companies`;
@@ -54,11 +54,10 @@ export type PatientBilledStat = {
   billedAmount: number;
 };
 
-export async function getPatientBilledStatsForAdmin(companyId: string, dateRange?: DateRange): Promise<PatientBilledStat[]> {
+export async function getPatientBilledStatsForAdmin(dateRange?: DateRange): Promise<PatientBilledStat[]> {
     try {
         const pool = await getDbPool();
         const request = pool.request();
-        request.input('companyId', sql.NVarChar, companyId);
         
         let dateFilter = '';
         if (dateRange?.from) {
@@ -82,8 +81,7 @@ export async function getPatientBilledStatsForAdmin(companyId: string, dateRange
             JOIN preauth_request pr ON c.admission_id = pr.admission_id
             LEFT JOIN companies co ON pr.company_id = co.id
             LEFT JOIN tpas t ON c.tpa_id = t.id
-            WHERE h.id IN (SELECT hospital_id FROM hospital_companies WHERE company_id = @companyId)
-            AND c.status IN ('Pre auth Sent', 'Enhancement Request') ${dateFilter}
+            WHERE c.status IN ('Pre auth Sent', 'Enhancement Request') ${dateFilter}
             GROUP BY
                 p.id,
                 p.first_name,
