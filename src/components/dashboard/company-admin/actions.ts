@@ -253,69 +253,41 @@ export type StaffPerformanceStat = {
 export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<StaffPerformanceStat[]> {
     try {
         const pool = await getDbPool();
+        const request = pool.request();
+        let dateFilter = '';
 
-        // 1. Get all hospital staff
-        const staffResult = await pool.request().query(`
-            SELECT
-                u.uid AS staffId,
-                u.name AS staffName,
-                ISNULL(h.name, 'N/A') AS hospitalName
-            FROM users u
-            LEFT JOIN hospital_staff hs ON u.uid = hs.staff_id
-            LEFT JOIN hospitals h ON hs.hospital_id = h.id
-            WHERE u.role = 'Hospital Staff'
-        `);
-        const staffList: StaffPerformanceStat[] = staffResult.recordset.map(s => ({ ...s, numOfCases: 0, totalCollection: 0 }));
-
-        // 2. Get case counts
-        const casesRequest = pool.request();
-        let casesDateFilter = '';
         if (dateRange?.from) {
             const toDate = dateRange.to || new Date(); 
-            casesRequest.input('dateFrom', sql.DateTime, dateRange.from);
-            casesRequest.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-            casesDateFilter = 'AND created_at BETWEEN @dateFrom AND @dateTo';
+            request.input('dateFrom', sql.DateTime, dateRange.from);
+            request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+            dateFilter = 'AND c.created_at BETWEEN @dateFrom AND @dateTo';
         }
-        const casesResult = await casesRequest.query(`
-            SELECT
-                staff_id,
-                COUNT(id) as caseCount
-            FROM preauth_request
-            WHERE status = 'Final Amount Sanctioned' ${casesDateFilter}
-            GROUP BY staff_id
-        `);
-        const caseCounts = new Map(casesResult.recordset.map(item => [item.staff_id, item.caseCount]));
 
-        // 3. Get total collections
-        const collectionsRequest = pool.request();
-        let collectionsDateFilter = '';
-         if (dateRange?.from) {
-            const toDate = dateRange.to || new Date(); 
-            collectionsRequest.input('dateFrom', sql.DateTime, dateRange.from);
-            collectionsRequest.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-            collectionsDateFilter = 'AND c.created_at BETWEEN @dateFrom AND @dateTo';
-        }
-        const collectionsResult = await collectionsRequest.query(`
-            SELECT
-                pr.staff_id,
-                SUM(c.amount) as totalAmount
-            FROM claims c
-            JOIN preauth_request pr ON c.admission_id = pr.admission_id
-            WHERE c.status = 'Final Amount Sanctioned' ${collectionsDateFilter}
-            GROUP BY pr.staff_id
-        `);
-        const collectionAmounts = new Map(collectionsResult.recordset.map(item => [item.staff_id, item.totalAmount]));
-
-        // 4. Combine data
-        const finalStats = staffList.map(staff => {
-            return {
-                ...staff,
-                numOfCases: caseCounts.get(staff.staffId) || 0,
-                totalCollection: collectionAmounts.get(staff.staffId) || 0,
-            };
-        });
-
-        return finalStats;
+        const query = `
+            SELECT 
+                u.uid AS staffId,
+                u.name AS staffName,
+                ISNULL(h.name, 'N/A') AS hospitalName,
+                ISNULL(COUNT(c.id), 0) AS numOfCases,
+                ISNULL(SUM(c.paidAmount), 0) AS totalCollection
+            FROM 
+                users u
+            LEFT JOIN 
+                hospital_staff hs ON u.uid = hs.staff_id
+            LEFT JOIN 
+                hospitals h ON hs.hospital_id = h.id
+            LEFT JOIN 
+                claims c ON u.uid = c.created_by AND c.status = 'Final Amount Sanctioned' ${dateFilter}
+            WHERE 
+                u.role = 'Hospital Staff'
+            GROUP BY 
+                u.uid, u.name, h.name
+            ORDER BY
+                totalCollection DESC;
+        `;
+        
+        const result = await request.query(query);
+        return result.recordset as StaffPerformanceStat[];
 
     } catch (error) {
         console.error('Error fetching staff performance stats:', error);

@@ -1,15 +1,18 @@
 
+
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { StaffPerformanceStat } from "./actions";
+import { Loader2 } from "lucide-react";
 
 interface StaffPerformanceTableProps {
   stats: StaffPerformanceStat[];
+  isLoading: boolean;
 }
 
-export function StaffPerformanceTable({ stats }: StaffPerformanceTableProps) {
+export function StaffPerformanceTable({ stats, isLoading }: StaffPerformanceTableProps) {
     return (
         <Card>
             <CardHeader>
@@ -17,6 +20,11 @@ export function StaffPerformanceTable({ stats }: StaffPerformanceTableProps) {
                 <CardDescription>Performance metrics for each staff member.</CardDescription>
             </CardHeader>
             <CardContent>
+                 {isLoading ? (
+                    <div className="flex items-center justify-center h-64">
+                        <Loader2 className="h-8 w-8 animate-spin" />
+                    </div>
+                ) : (
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -45,6 +53,7 @@ export function StaffPerformanceTable({ stats }: StaffPerformanceTableProps) {
                         )}
                     </TableBody>
                 </Table>
+                )}
             </CardContent>
         </Card>
     );

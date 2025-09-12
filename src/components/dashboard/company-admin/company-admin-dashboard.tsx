@@ -36,6 +36,7 @@ export function CompanyAdminDashboard() {
   const [simpleBusinessStats, setSimpleBusinessStats] = useState<SimpleHospitalStat[]>([]);
   const [staffPerformanceStats, setStaffPerformanceStats] = useState<StaffPerformanceStat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingStaff, setIsLoadingStaff] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   const [date, setDate] = useState<DateRange | undefined>({
@@ -43,7 +44,7 @@ export function CompanyAdminDashboard() {
     to: new Date(),
   });
 
-  const fetchAllStats = useCallback(async () => {
+  const fetchDashboardStats = useCallback(async () => {
     if (!companyId) {
       setIsLoading(false);
       setError("User is not associated with a company.");
@@ -53,16 +54,14 @@ export function CompanyAdminDashboard() {
     try {
       setIsLoading(true);
       setError(null);
-      const [dashboardData, businessData, simpleBusinessData, staffPerformanceData] = await Promise.all([
+      const [dashboardData, businessData, simpleBusinessData] = await Promise.all([
           getCompanyAdminDashboardStats(companyId, date),
           getHospitalBusinessStats(date),
           getSimpleHospitalBusinessStats(date),
-          getStaffPerformanceStats(date),
       ]);
       setStats(dashboardData);
       setBusinessStats(businessData);
       setSimpleBusinessStats(simpleBusinessData);
-      setStaffPerformanceStats(staffPerformanceData);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -70,9 +69,24 @@ export function CompanyAdminDashboard() {
     }
   }, [companyId, date]);
 
+  const fetchStaffPerformance = useCallback(async () => {
+    try {
+      setIsLoadingStaff(true);
+      const staffData = await getStaffPerformanceStats(date);
+      setStaffPerformanceStats(staffData);
+    } catch (err: any) {
+       // Assuming main error state will catch major issues
+      console.error("Failed to load staff performance:", err);
+    } finally {
+      setIsLoadingStaff(false);
+    }
+  }, [date]);
+
+
   useEffect(() => {
-    fetchAllStats();
-  }, [fetchAllStats]);
+    fetchDashboardStats();
+    fetchStaffPerformance();
+  }, [fetchDashboardStats, fetchStaffPerformance]);
   
   if (error && !isLoading) {
      return (
@@ -178,7 +192,7 @@ export function CompanyAdminDashboard() {
 
           <PatientBillingTable dateRange={date} />
           
-          <StaffPerformanceTable stats={staffPerformanceStats} />
+          <StaffPerformanceTable stats={staffPerformanceStats} isLoading={isLoadingStaff} />
         </>
       )}
     </div>
