@@ -5,7 +5,16 @@ import { revalidatePath } from "next/cache";
 import pool, { sql, poolConnect } from "@/lib/db";
 import { z } from 'zod';
 import { Staff, Hospital, UserRole } from "@/lib/types";
-import { redirect } from 'next/navigation';
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+
+const s3 = new S3Client({
+  region: "ap-south-1", // change if needed
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+  },
+});
 
 const staffSchema = z.object({
   name: z.string().min(1, "Full Name is required."),
@@ -22,6 +31,8 @@ const staffSchema = z.object({
   endDate: z.string().optional().nullable(),
   shiftTime: z.string().optional().nullable(),
   status: z.enum(["Active", "Inactive"]).optional().nullable(),
+  photoUrl: z.string().optional().nullable(),
+  photoName: z.string().optional().nullable(),
 });
 
 const staffUpdateSchema = staffSchema.extend({
@@ -36,7 +47,7 @@ export async function getStaff(): Promise<Staff[]> {
     const db = await poolConnect;
     const result = await db.request()
       .query(`
-        SELECT u.uid as id, u.name, u.email, u.designation, u.department, u.status, u.role, h.name as hospitalName
+        SELECT u.uid as id, u.name, u.email, u.designation, u.department, u.status, u.role, u.photo, h.name as hospitalName
         FROM users u
         LEFT JOIN hospital_staff hs ON u.uid = hs.staff_id
         LEFT JOIN hospitals h ON hs.hospital_id = h.id
@@ -103,21 +114,20 @@ export async function getStaffById(id: string): Promise<Staff | null> {
   }
 }
 
+const createDocumentJson = (url: string | undefined | null, name: string | undefined | null): string | null => {
+    if (url && name) {
+        return JSON.stringify({ url, name });
+    }
+    if (url) {
+        return JSON.stringify({ url, name: 'file' });
+    }
+    return null;
+};
+
+
 export async function handleAddStaff(prevState: { message: string, type?: string }, formData: FormData) {
-  const validatedFields = staffSchema.safeParse({
-    name: formData.get("name"),
-    email: formData.get("email"),
-    password: formData.get("password"),
-    role: formData.get("role"),
-    hospitalId: formData.get("hospitalId"),
-    designation: formData.get("designation"),
-    department: formData.get("department"),
-    number: formData.get("number"),
-    joiningDate: formData.get("joiningDate") || null,
-    endDate: formData.get("endDate") || null,
-    shiftTime: formData.get("shiftTime"),
-    status: formData.get("status"),
-  });
+  const formObject = Object.fromEntries(formData.entries());
+  const validatedFields = staffSchema.safeParse(formObject);
   
   if (!validatedFields.success) {
       const errorMessages = validatedFields.error.errors.map(e => e.message).join(', ');
@@ -136,6 +146,8 @@ export async function handleAddStaff(prevState: { message: string, type?: string
     transaction = new sql.Transaction(db);
     await transaction.begin();
 
+    const photoJson = createDocumentJson(data.photoUrl, data.photoName);
+
     const userRequest = new sql.Request(transaction);
     await userRequest
       .input('uid', sql.NVarChar, uid)
@@ -150,9 +162,10 @@ export async function handleAddStaff(prevState: { message: string, type?: string
       .input('shiftTime', sql.NVarChar, data.shiftTime)
       .input('status', sql.NVarChar, data.status)
       .input('number', sql.NVarChar, data.number)
+      .input('photo', sql.NVarChar, photoJson)
       .query(`
-        INSERT INTO users (uid, name, email, role, password, designation, department, joiningDate, endDate, shiftTime, status, number) 
-        VALUES (@uid, @name, @email, @role, @password, @designation, @department, @joiningDate, @endDate, @shiftTime, @status, @number)
+        INSERT INTO users (uid, name, email, role, password, designation, department, joiningDate, endDate, shiftTime, status, number, photo) 
+        VALUES (@uid, @name, @email, @role, @password, @designation, @department, @joiningDate, @endDate, @shiftTime, @status, @number, @photo)
       `);
     
     if (data.hospitalId && data.hospitalId !== 'none') {
@@ -182,20 +195,8 @@ export async function handleAddStaff(prevState: { message: string, type?: string
 
 export async function handleUpdateStaff(prevState: { message: string, type?: string }, formData: FormData) {
   const password = formData.get("password") as string;
-  const validatedFields = staffUpdateSchema.safeParse({
-    id: formData.get("id"),
-    name: formData.get("name"),
-    email: formData.get("email"),
-    role: formData.get("role"),
-    hospitalId: formData.get("hospitalId"),
-    designation: formData.get("designation"),
-    department: formData.get("department"),
-    number: formData.get("number"),
-    joiningDate: formData.get("joiningDate") || null,
-    endDate: formData.get("endDate") || null,
-    shiftTime: formData.get("shiftTime"),
-    status: formData.get("status"),
-  });
+  const formObject = Object.fromEntries(formData.entries());
+  const validatedFields = staffUpdateSchema.safeParse(formObject);
 
   if (!validatedFields.success) {
       const errorMessages = validatedFields.error.errors.map(e => `${e.path.join('.')} - ${e.message}`).join(', ');
@@ -211,11 +212,13 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
     transaction = new sql.Transaction(db);
     await transaction.begin();
 
+    const photoJson = createDocumentJson(data.photoUrl, data.photoName);
+
     const request = new sql.Request(transaction);
     let setClauses = [
         `name = @name`, `email = @email`, `role = @role`, `number = @number`,
         `designation = @designation`, `department = @department`, `joiningDate = @joiningDate`,
-        `endDate = @endDate`, `shiftTime = @shiftTime`, `status = @status`
+        `endDate = @endDate`, `shiftTime = @shiftTime`, `status = @status`, `photo = @photo`
     ];
     
     request
@@ -229,7 +232,8 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
       .input('joiningDate', data.joiningDate ? sql.Date : sql.Date, data.joiningDate ? new Date(data.joiningDate) : null)
       .input('endDate', data.endDate ? sql.Date : sql.Date, data.endDate ? new Date(data.endDate) : null)
       .input('shiftTime', sql.NVarChar, data.shiftTime)
-      .input('status', sql.NVarChar, data.status);
+      .input('status', sql.NVarChar, data.status)
+      .input('photo', sql.NVarChar, photoJson);
 
     if (password && password.length >= 6) {
         setClauses.push('password = @password');
@@ -297,4 +301,25 @@ export async function handleDeleteStaff(prevState: { message: string, type?: str
     
     revalidatePath('/dashboard/staff');
     return { message: "Staff member deleted successfully.", type: 'success' };
+}
+
+export async function getPresignedUrl(
+    key: string,
+    contentType: string
+): Promise<{ url: string; publicUrl: string } | { error: string }> {
+    try {
+        const command = new PutObjectCommand({
+            Bucket: "inurance-app",
+            Key: key,
+            ContentType: contentType,
+            ACL: 'public-read',
+        });
+        const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+        const publicUrl = `https://inurance-app.s3.ap-south-1.amazonaws.com/${key}`;
+
+        return { url, publicUrl };
+    } catch (error: any) {
+        console.error("Error generating presigned URL:", error);
+        return { error: error.message };
+    }
 }

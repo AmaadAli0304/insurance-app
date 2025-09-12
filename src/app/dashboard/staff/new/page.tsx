@@ -1,19 +1,21 @@
 
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState, useRef } from "react";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleAddStaff, getHospitalsForForm } from "../actions";
+import { handleAddStaff, getHospitalsForForm, getPresignedUrl } from "../actions";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Upload, User as UserIcon, Loader2, XCircle } from "lucide-react";
 import type { Hospital, UserRole } from "@/lib/types";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -28,6 +30,31 @@ function SubmitButton() {
     );
 }
 
+async function uploadFile(file: File): Promise<{ publicUrl: string } | { error: string }> {
+    const key = `uploads/staff/${Date.now()}-${file.name.replace(/\s/g, "_")}`;
+    
+    const presignedUrlResult = await getPresignedUrl(key, file.type);
+    if ("error" in presignedUrlResult) {
+        return { error: presignedUrlResult.error };
+    }
+
+    const { url, publicUrl } = presignedUrlResult;
+
+    const res = await fetch(url, {
+        method: "PUT",
+        body: file,
+        headers: {
+            "Content-Type": file.type,
+        },
+    });
+
+    if (!res.ok) {
+        return { error: "Failed to upload file to S3." };
+    }
+    
+    return { publicUrl };
+}
+
 const roles: UserRole[] = ['Admin', 'Hospital Staff'];
 
 export default function NewStaffPage() {
@@ -36,6 +63,11 @@ export default function NewStaffPage() {
     const router = useRouter();
     const [hospitals, setHospitals] = useState<Pick<Hospital, 'id' | 'name'>[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+
+    const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+    const [photoName, setPhotoName] = useState<string | null>(null);
+    const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+    const photoInputRef = useRef<HTMLInputElement>(null);
 
      useEffect(() => {
         async function loadHospitals() {
@@ -71,6 +103,35 @@ export default function NewStaffPage() {
         }
     }, [state, toast, router]);
 
+    const handlePhotoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            setIsUploadingPhoto(true);
+            const result = await uploadFile(file);
+
+            if (photoInputRef.current) { 
+                if ("publicUrl" in result) {
+                    setPhotoUrl(result.publicUrl);
+                    setPhotoName(file.name);
+                    toast({ title: "Success", description: "Photo uploaded.", variant: "success" });
+                } else {
+                    toast({ title: "Error", description: result.error, variant: "destructive" });
+                }
+                setIsUploadingPhoto(false);
+            }
+        }
+    };
+
+    const handleCancelPhotoUpload = () => {
+        setIsUploadingPhoto(false);
+        if (photoInputRef.current) {
+            photoInputRef.current.value = "";
+        }
+        setPhotoUrl(null);
+        setPhotoName(null);
+        toast({ title: "Cancelled", description: "Photo upload has been cancelled.", variant: "default" });
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-4">
@@ -84,7 +145,46 @@ export default function NewStaffPage() {
             </div>
             
              <form action={formAction}>
+                <input type="hidden" name="photoUrl" value={photoUrl || ''} />
+                <input type="hidden" name="photoName" value={photoName || ''} />
                  <div className="space-y-6">
+                    <Card className="flex flex-col items-center p-6">
+                        <Avatar className="h-32 w-32 mb-4">
+                           {isUploadingPhoto ? (
+                                <div className="flex h-full w-full items-center justify-center rounded-full bg-muted">
+                                    <Loader2 className="h-10 w-10 animate-spin" />
+                                </div>
+                            ) : (
+                                <>
+                                    <AvatarImage src={photoUrl ?? undefined} alt="Staff Photo" />
+                                    <AvatarFallback>
+                                        <UserIcon className="h-16 w-16" />
+                                    </AvatarFallback>
+                                </>
+                            )}
+                        </Avatar>
+                         <div className="flex items-center gap-2">
+                            <Button type="button" variant="outline" onClick={() => photoInputRef.current?.click()} disabled={isUploadingPhoto}>
+                                <Upload className="mr-2 h-4 w-4" />
+                                {isUploadingPhoto ? 'Uploading...' : 'Upload Photo'}
+                            </Button>
+                            {isUploadingPhoto && (
+                                <Button type="button" variant="ghost" size="icon" onClick={handleCancelPhotoUpload}>
+                                    <XCircle className="h-6 w-6 text-destructive" />
+                                </Button>
+                            )}
+                        </div>
+                        <Input 
+                            ref={photoInputRef}
+                            id="photo-upload" 
+                            name="photo-upload-file" 
+                            type="file" 
+                            className="hidden" 
+                            accept="image/*"
+                            onChange={handlePhotoChange} 
+                        />
+                    </Card>
+
                     <Card>
                         <CardHeader>
                             <CardTitle>Personal & Contact Info</CardTitle>

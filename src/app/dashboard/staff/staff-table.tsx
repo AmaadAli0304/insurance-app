@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useActionState, useEffect, useRef } from 'react';
@@ -23,6 +24,7 @@ import type { Staff } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
 interface StaffTableProps {
@@ -70,6 +72,11 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
     router.push(`/dashboard/staff/${staffId}/view`);
   };
 
+  const getInitials = (name: string) => {
+    if (!name) return 'S';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  }
+
   return (
     <Table>
       <TableHeader>
@@ -84,9 +91,27 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
       </TableHeader>
       <TableBody>
         {staff.length > 0 ? (
-          staff.map(s => (
+          staff.map(s => {
+            let photoUrl: string | null = null;
+            if (s.photo) {
+                try {
+                    const photoData = JSON.parse(s.photo as string);
+                    photoUrl = photoData.url;
+                } catch {
+                    if (typeof s.photo === 'string' && s.photo.startsWith('http')) {
+                        photoUrl = s.photo;
+                    }
+                }
+            }
+            return (
             <TableRow key={s.id} onClick={() => handleRowClick(s.id)} className="cursor-pointer">
-              <TableCell className="font-medium">{s.name}</TableCell>
+              <TableCell className="font-medium flex items-center gap-3">
+                 <Avatar className="h-10 w-10">
+                    <AvatarImage src={photoUrl ?? undefined} alt={s.name} />
+                    <AvatarFallback>{getInitials(s.name)}</AvatarFallback>
+                </Avatar>
+                {s.name}
+              </TableCell>
               <TableCell>{s.hospitalName || 'N/A'}</TableCell>
               <TableCell>{s.email}</TableCell>
               <TableCell>{s.role || 'N/A'}</TableCell>
@@ -135,7 +160,7 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
                 </AlertDialog>
               </TableCell>
             </TableRow>
-          ))
+          )})
         ) : (
           <TableRow>
             <TableCell colSpan={6} className="h-24 text-center">
