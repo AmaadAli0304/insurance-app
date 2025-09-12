@@ -6,6 +6,7 @@ import { getDbPool, sql } from "@/lib/db";
 import { z } from 'zod';
 import { Invoice, InvoiceItem, Staff } from "@/lib/types";
 import { redirect } from 'next/navigation';
+import { DateRange } from "react-day-picker";
 
 const invoiceItemSchema = z.object({
   description: z.string(),
@@ -14,33 +15,31 @@ const invoiceItemSchema = z.object({
   amount: z.coerce.number(),
 });
 
-const getInvoicesFilterSchema = z.object({
-  month: z.number().int().min(1).max(12).optional(),
-  year: z.number().int().min(1900).max(2100).optional(),
+const DateRangeSchema = z.object({
+  from: z.date().optional(),
+  to: z.date().optional(),
 });
 
 
 // Fetch all invoices
-export async function getInvoices(filter?: { month?: number, year?: number }): Promise<Invoice[]> {
+export async function getInvoices(dateRange?: DateRange): Promise<Invoice[]> {
   try {
-    const parsedFilter = getInvoicesFilterSchema.safeParse(filter || {});
+    const parsedFilter = DateRangeSchema.safeParse(dateRange || {});
     if (!parsedFilter.success) {
       throw new Error(`Invalid filter: ${parsedFilter.error.message}`);
     }
     
-    const { month, year } = parsedFilter.data;
+    const { from, to } = parsedFilter.data;
     const pool = await getDbPool();
     const request = pool.request();
     
     let whereClauses: string[] = [];
 
-    if (month) {
-      request.input('month', sql.Int, month);
-      whereClauses.push('MONTH(i.created_at) = @month');
-    }
-    if (year) {
-      request.input('year', sql.Int, year);
-      whereClauses.push('YEAR(i.created_at) = @year');
+    if (from) {
+      const toDate = to || new Date();
+      request.input('dateFrom', sql.DateTime, from);
+      request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+      whereClauses.push('i.created_at BETWEEN @dateFrom AND @dateTo');
     }
     
     const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';

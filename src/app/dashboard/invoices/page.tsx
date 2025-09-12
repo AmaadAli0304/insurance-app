@@ -3,26 +3,18 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, AlertTriangle } from "lucide-react";
+import { PlusCircle, AlertTriangle, Calendar as CalendarIcon } from "lucide-react";
 import Link from "next/link";
 import { getInvoices } from "./actions";
 import { InvoicesTable } from "./invoices-table";
 import type { Invoice } from "@/lib/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth } from "@/components/auth-provider";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-const currentYear = new Date().getFullYear();
-const years = Array.from({ length: 10 }, (_, i) => String(currentYear - i));
-const months = [
-  { value: "1", label: "January" }, { value: "2", label: "February" },
-  { value: "3", label: "March" }, { value: "4", label: "April" },
-  { value: "5", label: "May" }, { value: "6", label: "June" },
-  { value: "7", label: "July" }, { value: "8", label: "August" },
-  { value: "9", label: "September" }, { value: "10", label: "October" },
-  { value: "11", label: "November" }, { value: "12", label: "December" },
-];
-
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { DateRange } from "react-day-picker";
+import { format, subDays } from "date-fns";
+import { cn } from "@/lib/utils";
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -30,22 +22,22 @@ export default function InvoicesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
   
-  const [selectedMonth, setSelectedMonth] = useState<string>(String(new Date().getMonth() + 1));
-  const [selectedYear, setSelectedYear] = useState<string>(String(currentYear));
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: subDays(new Date(), 29),
+    to: new Date(),
+  });
 
   const loadInvoices = useCallback(async () => {
     setIsLoading(true);
     try {
-      const month = selectedMonth ? parseInt(selectedMonth, 10) : undefined;
-      const year = selectedYear ? parseInt(selectedYear, 10) : undefined;
-      const invoiceData = await getInvoices({ month, year });
+      const invoiceData = await getInvoices(date);
       setInvoices(invoiceData);
     } catch (e: any) {
       setError(e.message);
     } finally {
       setIsLoading(false);
     }
-  }, [selectedMonth, selectedYear]);
+  }, [date]);
 
   useEffect(() => {
     loadInvoices();
@@ -61,24 +53,42 @@ export default function InvoicesPage() {
             <CardDescription>Manage all generated invoices.</CardDescription>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-               <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select Month" />
-                </SelectTrigger>
-                <SelectContent>
-                  {months.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-               <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue placeholder="Select Year" />
-                </SelectTrigger>
-                <SelectContent>
-                  {years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id="date"
+                  variant={"outline"}
+                  className={cn(
+                    "w-[300px] justify-start text-left font-normal",
+                    !date && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date?.from ? (
+                    date.to ? (
+                      <>
+                        {format(date.from, "LLL dd, y")} -{" "}
+                        {format(date.to, "LLL dd, y")}
+                      </>
+                    ) : (
+                      format(date.from, "LLL dd, y")
+                    )
+                  ) : (
+                    <span>Pick a date</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={date?.from}
+                  selected={date}
+                  onSelect={setDate}
+                  numberOfMonths={2}
+                />
+              </PopoverContent>
+            </Popover>
             <Button size="sm" className="gap-1" asChild>
                <Link href="/dashboard/invoices/new">
                   <PlusCircle className="h-4 w-4" />
