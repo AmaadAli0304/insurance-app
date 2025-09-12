@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 interface InvoiceItem {
   id: number;
   description: string;
-  quantity: number;
+  qty: number;
   rate: string;
 }
 
@@ -96,7 +96,7 @@ export default function NewInvoicePage() {
     const [hospitals, setHospitals] = useState<Pick<Hospital, 'id' | 'name' | 'address'>[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    const [items, setItems] = useState<InvoiceItem[]>([{ id: 1, description: 'Service Charges', quantity: 1, rate: '0.03' }]);
+    const [items, setItems] = useState<InvoiceItem[]>([{ id: 1, description: 'Service Charges', qty: 1, rate: '0.03' }]);
     const [taxRate] = useState(18);
 
     const [subtotal, setSubtotal] = useState(0);
@@ -120,8 +120,8 @@ export default function NewInvoicePage() {
     }, [toast]);
     
     const calculateAmount = React.useCallback((item: InvoiceItem) => {
-        const { quantity, rate } = item;
-        const numQuantity = Number(quantity);
+        const { qty, rate } = item;
+        const numQuantity = Number(qty);
         const numRate = Number(rate);
         if (isNaN(numQuantity) || isNaN(numRate)) return 0;
         return numQuantity * numRate;
@@ -147,26 +147,24 @@ export default function NewInvoicePage() {
     }, [state, toast, router]);
 
     const handleAddItem = () => {
-        setItems([...items, { id: Date.now(), description: '', quantity: 1, rate: '0' }]);
+        setItems([...items, { id: Date.now(), description: '', qty: 1, rate: '0' }]);
     };
     
     const handleRemoveItem = (id: number) => {
         setItems(items.filter(item => item.id !== id));
     };
 
-    const handleItemChange = (id: number, field: keyof Omit<InvoiceItem, 'id'>, value: string) => {
+    const handleItemChange = (id: number, field: keyof Omit<InvoiceItem, 'id'>, value: string | number) => {
         setItems(items.map(item => {
             if (item.id === id) {
-                if (field === 'rate') {
-                    // Allow empty, a single dot, or numbers.
-                    if (value === '' || value === '.' || !isNaN(Number(value))) {
-                        return { ...item, [field]: value };
+                 if (field === 'rate') {
+                    // Allow empty string or a valid number representation
+                    if (value === '' || !isNaN(Number(value))) {
+                        return { ...item, [field]: String(value) };
                     }
-                    return item; // Ignore invalid input for rate
+                    return item; // Ignore invalid input
                 }
-                 if (field === 'description' || field === 'quantity') {
-                    return { ...item, [field]: value };
-                }
+                return { ...item, [field]: value };
             }
             return item;
         }));
@@ -199,9 +197,9 @@ export default function NewInvoicePage() {
             <input type="hidden" name="hospitalId" value={selectedHospitalId} />
              <input type="hidden" name="items" value={JSON.stringify(items.map(({ id, ...rest }) => ({
                 ...rest,
+                qty: Number(rest.qty) || 0,
                 rate: Number(rest.rate) || 0,
-                total: (Number(rest.quantity) || 0) * (Number(rest.rate) || 0),
-                amount: (Number(rest.quantity) || 0) * (Number(rest.rate) || 0),
+                amount: (Number(rest.qty) || 0) * (Number(rest.rate) || 0),
             })))} />
              <input type="hidden" name="tax" value={taxRate} />
              <input type="hidden" name="period" value={billingPeriod ? format(billingPeriod, "MMMM yyyy") : ""} />
@@ -308,7 +306,7 @@ export default function NewInvoicePage() {
                                             <Input placeholder="Item name" value={item.description} onChange={(e) => handleItemChange(item.id, 'description', e.target.value)} />
                                         </TableCell>
                                         <TableCell>
-                                            <Input placeholder="1" type="number" value={item.quantity} onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)} />
+                                            <Input placeholder="1" type="number" value={item.qty} onChange={(e) => handleItemChange(item.id, 'qty', Number(e.target.value))} />
                                         </TableCell>
                                         <TableCell>
                                             <Input placeholder="0.00" type="text" value={item.rate} onChange={(e) => handleItemChange(item.id, 'rate', e.target.value)} onBlur={() => handleRateBlur(item.id)} />

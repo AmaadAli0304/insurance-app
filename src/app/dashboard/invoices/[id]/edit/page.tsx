@@ -24,9 +24,10 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
-interface EditInvoiceItem extends Omit<InvoiceItem, 'rate'> {
+interface EditInvoiceItem extends Omit<InvoiceItem, 'rate' | 'qty'> {
   _id: number; // For temporary client-side unique key
   rate: string;
+  qty: string;
 }
 
 function SubmitButton() {
@@ -120,7 +121,7 @@ export default function EditInvoicePage() {
 
                 setInvoice(invoiceData);
                 setHospitals(hospitalList);
-                setItems(invoiceData.items.map(item => ({ ...item, _id: Math.random(), rate: String(item.rate) })));
+                setItems(invoiceData.items.map(item => ({ ...item, _id: Math.random(), rate: String(item.rate), qty: String(item.qty) })));
                 setBillingPeriod(invoiceData.period ? new Date(invoiceData.period) : new Date());
             } catch (error) {
                 console.error(error);
@@ -151,7 +152,7 @@ export default function EditInvoicePage() {
     }, [state, toast, router]);
 
     const handleAddItem = () => {
-        setItems([...items, { id: 0, invoice_id: id, description: '', qty: 1, rate: '0', _id: Math.random() }]);
+        setItems([...items, { id: 0, invoice_id: id, description: '', qty: '1', rate: '0', _id: Math.random(), amount: 0 }]);
     };
     
     const handleRemoveItem = (_id: number) => {
@@ -161,13 +162,13 @@ export default function EditInvoicePage() {
     const handleItemChange = (_id: number, field: keyof Omit<EditInvoiceItem, '_id' | 'id' | 'invoice_id' | 'amount'>, value: string) => {
         setItems(items.map(item => {
             if (item._id === _id) {
-                if (field === 'rate') {
-                     if (value === '' || value === '.' || !isNaN(Number(value))) {
+                if (field === 'rate' || field === 'qty') {
+                     if (value === '' || !isNaN(Number(value))) {
                         return { ...item, [field]: value };
                     }
-                    return item; // Ignore invalid input for rate
+                    return item; 
                 }
-                 if (field === 'description' || field === 'qty') {
+                 if (field === 'description') {
                     return { ...item, [field]: value };
                 }
             }
@@ -197,8 +198,8 @@ export default function EditInvoicePage() {
             <input type="hidden" name="hospitalId" value={invoice.hospital} />
              <input type="hidden" name="items" value={JSON.stringify(items.map(({ _id, id, invoice_id, ...rest }) => ({
                 ...rest,
+                qty: Number(rest.qty) || 0,
                 rate: Number(rest.rate) || 0,
-                total: (Number(rest.qty) || 0) * (Number(rest.rate) || 0),
                 amount: (Number(rest.qty) || 0) * (Number(rest.rate) || 0),
             })))} />
              <input type="hidden" name="tax" value={taxRate} />
