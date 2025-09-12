@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { PatientBilledStat } from "./actions";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 
 interface PatientBillingTableProps {
   stats: PatientBilledStat[];
@@ -15,12 +17,45 @@ export function PatientBillingTable({ stats }: PatientBillingTableProps) {
         if (!name) return 'P';
         return name.split(' ').map(n => n[0]).join('').toUpperCase();
     }
+
+    const handleExport = () => {
+        const headers = ["Sr No", "Patient Name", "Hospital", "TPA / Insurance", "Amount"];
+        const csvRows = [headers.join(",")];
+
+        stats.forEach((stat, index) => {
+            const row = [
+                index + 1,
+                `"${stat.patientName}"`,
+                `"${stat.hospitalName}"`,
+                `"${stat.tpaName}"`,
+                stat.billedAmount,
+            ];
+            csvRows.push(row.join(","));
+        });
+
+        const csvContent = csvRows.join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "patient_billing_summary.csv");
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
     
     return (
         <Card>
-            <CardHeader>
-                <CardTitle>Patient Billing Summary</CardTitle>
-                <CardDescription>A summary of billed amounts per patient based on Pre-auth and Enhancement requests.</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle>Patient Billing Summary</CardTitle>
+                    <CardDescription>A summary of billed amounts per patient based on Pre-auth and Enhancement requests.</CardDescription>
+                </div>
+                <Button onClick={handleExport} variant="outline" size="sm" disabled={stats.length === 0}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Export
+                </Button>
             </CardHeader>
             <CardContent>
                 <Table>
