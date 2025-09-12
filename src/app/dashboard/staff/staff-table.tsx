@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useActionState, useEffect, useRef } from 'react';
@@ -108,11 +107,6 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
                       <DropdownMenuItem asChild>
                         <Link href={`/dashboard/staff/${s.id}/edit`} className="flex items-center gap-2 cursor-pointer">
                           <Edit className="h-4 w-4" /> Edit
-                        </Link>
-                      </DropdownMenuItem>
-                       <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/invoices/new?staffId=${s.id}`} className="flex items-center gap-2 cursor-pointer">
-                          <FileText className="h-4 w-4" /> Create Invoice
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
