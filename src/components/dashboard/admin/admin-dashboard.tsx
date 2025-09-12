@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { useEffect, useState, useCallback } from "react";
@@ -13,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { AdminPatientBillingTable } from "./active-patients-table";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { TpaCollectionTable } from "./tpa-collection-table";
+import { RejectedCasesTable } from "./rejected-cases-table";
 
 
 export function AdminDashboard() {
@@ -74,6 +76,7 @@ export function AdminDashboard() {
       </div>
       <AdminPatientBillingTable dateRange={date} />
       <TpaCollectionTable dateRange={date} />
+      <RejectedCasesTable dateRange={date} />
     </div>
   )
 }

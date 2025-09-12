@@ -1,4 +1,5 @@
 
+
 "use server";
 
 import { getDbPool, sql } from '@/lib/db';
@@ -167,3 +168,47 @@ export async function getHospitalList(): Promise<Pick<Hospital, 'id' | 'name'>[]
     throw new Error('Failed to fetch hospital list.');
   }
 }
+
+export type RejectedCase = {
+  patientName: string;
+  tpaName: string;
+  reason: string;
+  amount: number;
+};
+
+export async function getRejectedCases(dateRange?: DateRange): Promise<RejectedCase[]> {
+    try {
+        const pool = await getDbPool();
+        const request = pool.request();
+        
+        let dateFilter = '';
+        if (dateRange?.from) {
+            const toDate = dateRange.to || new Date(); 
+            request.input('dateFrom', sql.DateTime, dateRange.from);
+            request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+            dateFilter = 'WHERE c.created_at BETWEEN @dateFrom AND @dateTo';
+        }
+
+        const query = `
+            SELECT
+                p.first_name + ' ' + p.last_name AS patientName,
+                COALESCE(t.name, 'N/A') as tpaName,
+                c.reason,
+                c.amount
+            FROM claims c
+            JOIN patients p ON c.Patient_id = p.id
+            LEFT JOIN tpas t ON c.tpa_id = t.id
+            WHERE c.status = 'Rejected'
+            ${dateRange?.from ? 'AND c.created_at BETWEEN @dateFrom AND @dateTo' : ''}
+            ORDER BY c.created_at DESC;
+        `;
+        
+        const result = await request.query(query);
+        return result.recordset as RejectedCase[];
+
+    } catch (error) {
+        console.error('Error fetching rejected cases:', error);
+        throw new Error('Failed to fetch rejected cases.');
+    }
+}
+
