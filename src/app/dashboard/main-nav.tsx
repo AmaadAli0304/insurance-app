@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -29,6 +28,7 @@ export function MainNav() {
       { href: '/dashboard/staff', label: 'Staff', icon: Users },
       { href: '/dashboard/doctors', label: 'Doctors', icon: Stethoscope },
       { href: '/dashboard/import', label: 'Import', icon: Upload },
+      { href: '/dashboard/invoices', label: 'Invoices', icon: FileText },
     ],
   };
 
