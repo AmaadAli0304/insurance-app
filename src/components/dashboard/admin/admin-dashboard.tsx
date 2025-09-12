@@ -12,6 +12,7 @@ import { format, subDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { AdminPatientBillingTable } from "./active-patients-table";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { TpaCollectionTable } from "./tpa-collection-table";
 
 
 export function AdminDashboard() {
@@ -72,6 +73,7 @@ export function AdminDashboard() {
           </Popover>
       </div>
       <AdminPatientBillingTable dateRange={date} />
+      <TpaCollectionTable dateRange={date} />
     </div>
   )
 }

@@ -46,8 +46,8 @@ export async function getPatientBilledStatsForAdmin(dateRange?: DateRange, hospi
                 p.first_name + ' ' + p.last_name AS patientName,
                 p.photo AS patientPhoto,
                 COALESCE(t.name, co.name, 'N/A') as tpaName,
-                ISNULL(SUM(DISTINCT CASE WHEN c.status IN ('Pre auth Sent', 'Enhancement Request') THEN c.amount ELSE 0 END), 0) as billedAmount,
-                ISNULL(SUM(DISTINCT CASE WHEN c.status = 'Final Amount Sanctioned' THEN c.paidAmount ELSE 0 END), 0) as sanctionedAmount
+                ISNULL((SELECT SUM(c_inner.amount) FROM claims c_inner WHERE c_inner.Patient_id = p.id AND c_inner.status = 'Pre auth Sent' ${dateRange?.from ? 'AND c_inner.created_at BETWEEN @dateFrom AND @dateTo' : ''}), 0) as billedAmount,
+                ISNULL((SELECT SUM(c_inner.paidAmount) FROM claims c_inner WHERE c_inner.Patient_id = p.id AND c_inner.status = 'Final Amount Sanctioned' ${dateRange?.from ? 'AND c_inner.created_at BETWEEN @dateFrom AND @dateTo' : ''}), 0) as sanctionedAmount
             FROM patients p
             LEFT JOIN claims c ON p.id = c.Patient_id
             LEFT JOIN preauth_request pr ON c.admission_id = pr.admission_id
@@ -95,4 +95,52 @@ export async function getTpaList(): Promise<Pick<TPA, 'id' | 'name'>[]> {
     console.error('Error fetching TPAs:', error);
     throw new Error('Failed to fetch TPA list.');
   }
+}
+
+export type TpaCollectionStat = {
+  tpaId: number;
+  tpaName: string;
+  amount: number;
+  received: number;
+  deductions: number;
+};
+
+export async function getTpaCollectionStats(dateRange?: DateRange): Promise<TpaCollectionStat[]> {
+    try {
+        const pool = await getDbPool();
+        const request = pool.request();
+        
+        let dateFilter = '';
+        if (dateRange?.from) {
+            const toDate = dateRange.to || new Date(); 
+            request.input('dateFrom', sql.DateTime, dateRange.from);
+            request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+            dateFilter = 'WHERE c.created_at BETWEEN @dateFrom AND @dateTo';
+        }
+
+        const query = `
+            SELECT
+                t.id AS tpaId,
+                t.name AS tpaName,
+                ISNULL(SUM(CASE WHEN c.status = 'Pre auth Sent' THEN c.amount ELSE 0 END), 0) as amount,
+                ISNULL(SUM(CASE WHEN c.status = 'Final Amount Sanctioned' THEN c.paidAmount ELSE 0 END), 0) as received
+            FROM tpas t
+            LEFT JOIN claims c ON t.id = c.tpa_id ${dateFilter}
+            GROUP BY
+                t.id,
+                t.name
+            ORDER BY
+                t.name;
+        `;
+        
+        const result = await request.query(query);
+
+        return result.recordset.map(row => ({
+            ...row,
+            deductions: row.amount - row.received
+        }));
+    } catch (error) {
+        console.error('Error fetching TPA collection stats:', error);
+        throw new Error('Failed to fetch TPA collection statistics.');
+    }
 }
