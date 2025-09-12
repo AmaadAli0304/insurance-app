@@ -13,7 +13,6 @@ import { format, subDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { AdminPatientBillingTable } from "./active-patients-table";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 
 export function AdminDashboard() {
@@ -47,35 +46,6 @@ export function AdminDashboard() {
       fetchAllStats();
     }
   }, [fetchAllStats, user]);
-
-
-  const sqlQuery = `
-    SELECT
-        p.id AS patientId,
-        p.first_name + ' ' + p.last_name AS patientName,
-        p.photo AS patientPhoto,
-        COALESCE(t.name, co.name, 'N/A') as tpaName,
-        ISNULL(SUM(CASE WHEN c.status IN ('Pre auth Sent', 'Enhancement Request') THEN c.amount ELSE 0 END), 0) as billedAmount,
-        ISNULL(SUM(CASE WHEN c.status IN ('Amount Sanctioned', 'Final Amount Sanctioned', 'Amount Received', 'Settlement Done', 'Paid') THEN c.paidAmount ELSE 0 END), 0) as sanctionedAmount
-    FROM claims c
-    JOIN patients p ON c.Patient_id = p.id
-    LEFT JOIN preauth_request pr ON c.admission_id = pr.admission_id
-    LEFT JOIN companies co ON pr.company_id = co.id
-    LEFT JOIN tpas t ON c.tpa_id = t.id
-    WHERE 
-        (c.hospital_id = @hospitalId OR @hospitalId IS NULL)
-    AND (@dateFrom IS NULL OR c.created_at BETWEEN @dateFrom AND @dateTo)
-    GROUP BY
-        p.id,
-        p.first_name,
-        p.last_name,
-        p.photo,
-        co.name,
-        t.name
-    ORDER BY
-        billedAmount DESC;
-  `;
-
 
   if (error) {
     return (
@@ -136,18 +106,6 @@ export function AdminDashboard() {
        ) : (
         <>
             <AdminPatientBillingTable stats={patientBillingStats} />
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>SQL Query for Active Patients Table</CardTitle>
-                    <CardDescription>This is the query used to fetch the data above. The `@hospitalId` parameter is set if the admin is assigned to a hospital.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <pre className="p-4 bg-muted rounded-md text-sm overflow-x-auto">
-                        <code>{sqlQuery.trim()}</code>
-                    </pre>
-                </CardContent>
-            </Card>
         </>
        )}
       
