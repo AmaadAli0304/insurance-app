@@ -14,16 +14,44 @@ const invoiceItemSchema = z.object({
   amount: z.coerce.number(),
 });
 
+const getInvoicesFilterSchema = z.object({
+  month: z.number().int().min(1).max(12).optional(),
+  year: z.number().int().min(1900).max(2100).optional(),
+});
+
+
 // Fetch all invoices
-export async function getInvoices(): Promise<Invoice[]> {
+export async function getInvoices(filter?: { month?: number, year?: number }): Promise<Invoice[]> {
   try {
+    const parsedFilter = getInvoicesFilterSchema.safeParse(filter || {});
+    if (!parsedFilter.success) {
+      throw new Error(`Invalid filter: ${parsedFilter.error.message}`);
+    }
+    
+    const { month, year } = parsedFilter.data;
     const pool = await getDbPool();
-    const result = await pool.request().query(`
+    const request = pool.request();
+    
+    let whereClauses: string[] = [];
+
+    if (month) {
+      request.input('month', sql.Int, month);
+      whereClauses.push('MONTH(i.created_at) = @month');
+    }
+    if (year) {
+      request.input('year', sql.Int, year);
+      whereClauses.push('YEAR(i.created_at) = @year');
+    }
+    
+    const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
+    const result = await request.query(`
       SELECT 
         i.*, 
         s.name as staffName
       FROM Invoices i
       LEFT JOIN users s ON i.staff_id = s.uid
+      ${whereClause}
       ORDER BY i.created_at DESC
     `);
     return result.recordset as Invoice[];
