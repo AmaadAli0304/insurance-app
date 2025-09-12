@@ -20,6 +20,7 @@ export interface User {
   shiftTime?: string | null;
   status?: 'Active' | 'Inactive' | null;
   number?: string | null;
+  photo?: string | null;
 }
 
 export interface Hospital {

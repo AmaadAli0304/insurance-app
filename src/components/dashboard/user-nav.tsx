@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,12 +17,24 @@ export function UserNav() {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   }
 
+  let photoUrl: string | undefined = undefined;
+  if (user.photo) {
+    try {
+        const photoData = JSON.parse(user.photo);
+        photoUrl = photoData.url;
+    } catch {
+        if (typeof user.photo === 'string' && user.photo.startsWith('http')) {
+            photoUrl = user.photo;
+        }
+    }
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
             <Avatar className="h-8 w-8">
-                <AvatarImage src={`https://placehold.co/40x40.png`} alt={user.name} data-ai-hint="user avatar" />
+                <AvatarImage src={photoUrl} alt={user.name} />
                 <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
             </Avatar>
         </Button>
