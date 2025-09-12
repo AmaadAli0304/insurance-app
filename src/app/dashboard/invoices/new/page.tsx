@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 interface InvoiceItem {
   id: number;
   description: string;
-  qty: number;
+  qty: string;
   rate: string;
 }
 
@@ -96,7 +96,7 @@ export default function NewInvoicePage() {
     const [hospitals, setHospitals] = useState<Pick<Hospital, 'id' | 'name' | 'address'>[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    const [items, setItems] = useState<InvoiceItem[]>([{ id: 1, description: 'Service Charges', qty: 1, rate: '0.03' }]);
+    const [items, setItems] = useState<InvoiceItem[]>([{ id: 1, description: 'Service Charges', qty: "1", rate: '0.03' }]);
     const [taxRate] = useState(18);
 
     const [subtotal, setSubtotal] = useState(0);
@@ -147,24 +147,25 @@ export default function NewInvoicePage() {
     }, [state, toast, router]);
 
     const handleAddItem = () => {
-        setItems([...items, { id: Date.now(), description: '', qty: 1, rate: '0' }]);
+        setItems([...items, { id: Date.now(), description: '', qty: "1", rate: '0' }]);
     };
     
     const handleRemoveItem = (id: number) => {
         setItems(items.filter(item => item.id !== id));
     };
 
-    const handleItemChange = (id: number, field: keyof Omit<InvoiceItem, 'id'>, value: string | number) => {
+    const handleItemChange = (id: number, field: keyof Omit<InvoiceItem, 'id'>, value: string) => {
         setItems(items.map(item => {
             if (item.id === id) {
-                 if (field === 'rate') {
-                    // Allow empty string or a valid number representation
+                 if (field === 'rate' || field === 'qty') {
                     if (value === '' || !isNaN(Number(value))) {
-                        return { ...item, [field]: String(value) };
+                        return { ...item, [field]: value };
                     }
-                    return item; // Ignore invalid input
+                    return item; 
                 }
-                return { ...item, [field]: value };
+                if (field === 'description') {
+                    return { ...item, [field]: value };
+                }
             }
             return item;
         }));
@@ -174,7 +175,7 @@ export default function NewInvoicePage() {
         setItems(items.map(item => {
             if (item.id === id) {
                 const rateAsNumber = parseFloat(item.rate);
-                return { ...item, rate: isNaN(rateAsNumber) ? '0' : String(rateAsNumber) };
+                return { ...item, rate: isNaN(rateAsNumber) ? '0' : item.rate };
             }
             return item;
         }));
@@ -244,7 +245,7 @@ export default function NewInvoicePage() {
                                     </SelectContent>
                                 </Select>
                                 <input type="hidden" name="to" value={selectedHospital?.name ?? ''} />
-                                <Textarea name="address" placeholder="Client Address" className="md:ml-auto md:w-48 text-right" value={selectedHospital?.address ?? ''} readOnly />
+                                <Textarea name="address" placeholder="Client Address" className="md:ml-auto md:w-48 text-right" />
                             </div>
                             <div className="space-y-2">
                                 <Popover>
@@ -306,7 +307,7 @@ export default function NewInvoicePage() {
                                             <Input placeholder="Item name" value={item.description} onChange={(e) => handleItemChange(item.id, 'description', e.target.value)} />
                                         </TableCell>
                                         <TableCell>
-                                            <Input placeholder="1" type="number" value={item.qty} onChange={(e) => handleItemChange(item.id, 'qty', Number(e.target.value))} />
+                                            <Input placeholder="1" type="text" value={item.qty} onChange={(e) => handleItemChange(item.id, 'qty', e.target.value)} />
                                         </TableCell>
                                         <TableCell>
                                             <Input placeholder="0.00" type="text" value={item.rate} onChange={(e) => handleItemChange(item.id, 'rate', e.target.value)} onBlur={() => handleRateBlur(item.id)} />
