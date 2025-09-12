@@ -12,14 +12,17 @@ import { useFormStatus } from "react-dom";
 import { handleSaveInvoice } from "../actions";
 import { getHospitals } from "@/app/dashboard/company-hospitals/actions";
 import Link from "next/link";
-import { ArrowLeft, PlusCircle, Trash2, Send, Download, Save, Loader2 } from "lucide-react";
+import { ArrowLeft, PlusCircle, Trash2, Send, Download, Save, Loader2, CalendarIcon } from "lucide-react";
 import { notFound, useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import type { Hospital } from "@/lib/types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAuth } from "@/components/auth-provider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface InvoiceItem {
   id: number;
@@ -99,6 +102,7 @@ export default function NewInvoicePage() {
     const [subtotal, setSubtotal] = useState(0);
     const [taxAmount, setTaxAmount] = useState(0);
     const [grandTotal, setGrandTotal] = useState(0);
+    const [billingPeriod, setBillingPeriod] = useState<Date | undefined>(new Date());
     
     useEffect(() => {
         async function loadData() {
@@ -180,6 +184,7 @@ export default function NewInvoicePage() {
                 amount: rest.quantity * rest.rate,
             })))} />
              <input type="hidden" name="tax" value={taxRate} />
+             <input type="hidden" name="period" value={billingPeriod ? format(billingPeriod, "MMMM yyyy") : ""} />
 
             <div className="space-y-6">
                 <div className="flex items-center justify-between gap-4">
@@ -227,7 +232,28 @@ export default function NewInvoicePage() {
                                 <Textarea name="address" placeholder="Client Address" className="md:ml-auto md:w-48 text-right" value={selectedHospital?.address ?? ''} readOnly />
                             </div>
                             <div className="space-y-2">
-                                <Input name="period" placeholder="Billing Period" className="md:ml-auto md:w-48 text-right" />
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant={"outline"}
+                                            className={cn(
+                                                "md:ml-auto md:w-48 justify-start text-left font-normal",
+                                                !billingPeriod && "text-muted-foreground"
+                                            )}
+                                        >
+                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            {billingPeriod ? format(billingPeriod, "MMMM yyyy") : <span>Pick a month</span>}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0">
+                                        <Calendar
+                                            mode="single"
+                                            selected={billingPeriod}
+                                            onSelect={setBillingPeriod}
+                                            initialFocus
+                                        />
+                                    </PopoverContent>
+                                </Popover>
                                 <Select name="contract_type">
                                     <SelectTrigger className="md:ml-auto md:w-48 text-right">
                                         <SelectValue placeholder="Contract Type" />
@@ -328,3 +354,4 @@ export default function NewInvoicePage() {
 
     
 
+}
