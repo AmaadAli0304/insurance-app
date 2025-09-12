@@ -12,7 +12,7 @@ import { useFormStatus } from "react-dom";
 import { handleSaveInvoice } from "../actions";
 import { getHospitals } from "@/app/dashboard/company-hospitals/actions";
 import Link from "next/link";
-import { ArrowLeft, PlusCircle, Trash2, Send, Download, Save, Loader2, CalendarIcon } from "lucide-react";
+import { ArrowLeft, PlusCircle, Trash2, Send, Save, Loader2, CalendarIcon } from "lucide-react";
 import { notFound, useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import type { Hospital } from "@/lib/types";
@@ -198,7 +198,6 @@ export default function NewInvoicePage() {
                         <h1 className="text-lg font-semibold md:text-2xl">New Invoice</h1>
                     </div>
                     <div className="flex gap-2">
-                        <Button type="button" variant="outline"><Download className="mr-2 h-4 w-4" /> Download</Button>
                         <SubmitButton status="sent" />
                     </div>
                 </div>
