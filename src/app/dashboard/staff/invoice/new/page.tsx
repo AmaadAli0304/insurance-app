@@ -2,28 +2,30 @@
 "use client";
 
 import * as React from "react";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useFormStatus } from "react-dom";
-import { handleSaveInvoice, getStaffById } from "../../actions";
+import { handleSaveInvoice, getStaffById, getHospitalsForForm } from "../../actions";
 import Link from "next/link";
 import { ArrowLeft, PlusCircle, Trash2, Send, Download, Save, Loader2 } from "lucide-react";
-import { useParams, notFound, useRouter } from "next/navigation";
+import { useParams, notFound, useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import type { Staff } from "@/lib/types";
+import type { Staff, Hospital } from "@/lib/types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
 import { useAuth } from "@/components/auth-provider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 interface InvoiceItem {
   id: number;
   description: string;
-  quantity: number | string;
-  rate: number | string;
+  quantity: number;
+  rate: number;
 }
 
 function SubmitButton({ status }: { status: 'draft' | 'sent' }) {
@@ -82,53 +84,58 @@ function numberToWords(num: number): string {
 
 
 export default function NewInvoicePage() {
-    const params = useParams();
+    const searchParams = useSearchParams();
     const router = useRouter();
     const { toast } = useToast();
     const { user: fromUser } = useAuth();
-    const staffId = params.id as string;
+    const staffId = searchParams.get('staffId');
     
     const [state, formAction] = useActionState(handleSaveInvoice, { message: "", type: 'initial' });
     const [staff, setStaff] = useState<Staff | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    
-    const [items, setItems] = useState<InvoiceItem[]>([{ id: 1, description: 'Service Charges', quantity: 1, rate: '3%' }]);
-    const [baseAmount, setBaseAmount] = useState(2000000); // Defaulting to the example
-    const [taxRate] = useState(18); // GST at 18%
+    const [hospitals, setHospitals] = useState<Pick<Hospital, 'id' | 'name'>[]>([]);
+
+    const [items, setItems] = useState<InvoiceItem[]>([{ id: 1, description: 'Service Charges', quantity: 1, rate: 0.03 }]);
+    const [baseAmount] = useState(2000000); 
+    const [taxRate] = useState(18);
 
     const [subtotal, setSubtotal] = useState(0);
     const [taxAmount, setTaxAmount] = useState(0);
     const [grandTotal, setGrandTotal] = useState(0);
-
-    useEffect(() => {
-        if (!staffId) return;
-        getStaffById(staffId)
-            .then(data => {
-                if (!data) notFound();
-                setStaff(data);
-            })
-            .catch(console.error)
-            .finally(() => setIsLoading(false));
-    }, [staffId]);
     
-    const calculateAmount = (item: InvoiceItem) => {
-        const { quantity, rate } = item;
-        const numQuantity = typeof quantity === 'string' ? parseFloat(quantity) : quantity;
-        
-        if (typeof rate === 'string' && rate.includes('%')) {
-            const percentage = parseFloat(rate.replace('%', ''));
-            if (!isNaN(percentage) && !isNaN(baseAmount)) {
-                return (baseAmount * percentage / 100);
+    useEffect(() => {
+        if (!staffId) {
+            toast({ title: "Error", description: "No staff member selected.", variant: "destructive" });
+            router.push('/dashboard/staff');
+            return;
+        }
+
+        async function loadData() {
+            try {
+                const [staffData, hospitalList] = await Promise.all([
+                    getStaffById(staffId!),
+                    getHospitalsForForm()
+                ]);
+                if (!staffData) notFound();
+                setStaff(staffData);
+                setHospitals(hospitalList);
+            } catch (error) {
+                console.error(error);
+                toast({ title: "Error", description: "Failed to load necessary data.", variant: "destructive" });
+            } finally {
+                setIsLoading(false);
             }
         }
-        
-        const numRate = typeof rate === 'string' ? parseFloat(rate) : rate;
-        if (!isNaN(numQuantity) && !isNaN(numRate)) {
-            return numQuantity * numRate;
-        }
-        
-        return 0;
-    };
+        loadData();
+    }, [staffId, router, toast]);
+    
+    const calculateAmount = React.useCallback((item: InvoiceItem) => {
+        const { quantity, rate } = item;
+        const numQuantity = Number(quantity);
+        const numRate = Number(rate);
+        if (isNaN(numQuantity) || isNaN(numRate)) return 0;
+        return numQuantity * numRate;
+    }, []);
 
 
     useEffect(() => {
@@ -138,7 +145,7 @@ export default function NewInvoicePage() {
         setTaxAmount(newTaxAmount);
         const newGrandTotal = newSubtotal + newTaxAmount;
         setGrandTotal(newGrandTotal);
-    }, [items, baseAmount, taxRate]);
+    }, [items, baseAmount, taxRate, calculateAmount]);
 
     useEffect(() => {
         if (state.type === 'success') {
@@ -157,8 +164,14 @@ export default function NewInvoicePage() {
         setItems(items.filter(item => item.id !== id));
     };
 
-    const handleItemChange = (id: number, field: keyof InvoiceItem, value: string | number) => {
-        setItems(items.map(item => item.id === id ? { ...item, [field]: value } : item));
+    const handleItemChange = (id: number, field: keyof Omit<InvoiceItem, 'id'>, value: string) => {
+        setItems(items.map(item => {
+            if (item.id === id) {
+                const newValue = field === 'description' ? value : parseFloat(value) || 0;
+                return { ...item, [field]: newValue };
+            }
+            return item;
+        }));
     };
 
     if (isLoading) {
@@ -174,7 +187,8 @@ export default function NewInvoicePage() {
             <input type="hidden" name="staffId" value={staff.id} />
              <input type="hidden" name="items" value={JSON.stringify(items.map(({ id, ...rest }) => ({
                 ...rest,
-                amount: calculateAmount({ id, ...rest })
+                total: rest.quantity * rest.rate,
+                amount: rest.quantity * rest.rate,
             })))} />
              <input type="hidden" name="tax" value={taxRate} />
 
@@ -201,42 +215,48 @@ export default function NewInvoicePage() {
                         <div className="space-y-4">
                             <h2 className="text-xl font-bold">{fromUser.name}</h2>
                             <p className="text-muted-foreground">{fromUser.email}</p>
+                            <div className="grid grid-cols-2 gap-4">
+                                <Input name="bank_name" placeholder="Bank Name" />
+                                <Input name="account_name" placeholder="Account Name" />
+                                <Input name="account_number" placeholder="Account Number" />
+                                <Input name="ifsc_code" placeholder="IFSC Code" />
+                                <Input name="branch" placeholder="Branch" />
+                                <Input name="gst" placeholder="GST Number" />
+                            </div>
                         </div>
                         <div className="space-y-6 text-left md:text-right">
                              <div className="space-y-2">
-                                <Label htmlFor="invoiceNumber" className="text-lg font-semibold">Invoice #</Label>
-                                <Input id="invoiceNumber" name="invoiceNumber" defaultValue={`INV-${Date.now()}`} className="md:ml-auto md:w-48 text-right" />
+                                <h3 className="font-semibold text-muted-foreground">Bill To</h3>
+                                <Input name="to" defaultValue={staff.name} className="md:ml-auto md:w-48 text-right font-bold" />
+                                <Textarea name="address" placeholder="Client Address" className="md:ml-auto md:w-48 text-right" />
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="issueDate">Date</Label>
-                                    <Input id="issueDate" name="issueDate" type="date" defaultValue={format(new Date(), 'yyyy-MM-dd')} />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="dueDate">Due Date</Label>
-                                    <Input id="dueDate" name="dueDate" type="date" />
-                                </div>
+                            <div className="space-y-2">
+                                <Input name="period" placeholder="Billing Period" className="md:ml-auto md:w-48 text-right" />
+                                <Input name="contract_type" placeholder="Contract Type" className="md:ml-auto md:w-48 text-right" />
+                                <Select name="hospital">
+                                    <SelectTrigger className="md:ml-auto md:w-48 text-right">
+                                        <SelectValue placeholder="Select Hospital" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {hospitals.map(h => <SelectItem key={h.id} value={h.name}>{h.name}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
-                    </div>
-
-                     <div className="mt-8">
-                        <h3 className="font-semibold text-muted-foreground">Bill To</h3>
-                        <p className="font-bold">{staff.name}</p>
-                        <p>{staff.email}</p>
                     </div>
 
                     <div className="mt-8">
-                        <div className="mb-4 space-y-2 max-w-sm">
-                            <Label htmlFor="baseAmount">Base Amount for Percentage Calculation (₹)</Label>
-                            <Input id="baseAmount" type="number" value={baseAmount} onChange={(e) => setBaseAmount(parseFloat(e.target.value) || 0)} />
-                        </div>
+                        <Label htmlFor="service_provided">Service Provided</Label>
+                        <Textarea id="service_provided" name="service_provided" placeholder="Describe the service provided..." />
+                    </div>
+
+                    <div className="mt-8">
                         <Table>
                             <TableHeader>
                                 <TableRow>
                                     <TableHead className="w-1/2">Description</TableHead>
                                     <TableHead className="w-[100px]">Qty</TableHead>
-                                    <TableHead className="w-[150px]">Rate</TableHead>
+                                    <TableHead className="w-[150px]">Rate (₹)</TableHead>
                                     <TableHead className="text-right w-[150px]">Amount (₹)</TableHead>
                                     <TableHead className="w-[50px]"></TableHead>
                                 </TableRow>
@@ -248,10 +268,10 @@ export default function NewInvoicePage() {
                                             <Input placeholder="Item name" value={item.description} onChange={(e) => handleItemChange(item.id, 'description', e.target.value)} />
                                         </TableCell>
                                         <TableCell>
-                                            <Input placeholder="1" value={item.quantity} onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)} />
+                                            <Input placeholder="1" type="number" value={item.quantity} onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)} />
                                         </TableCell>
                                         <TableCell>
-                                            <Input placeholder="0 or 3%" value={item.rate} onChange={(e) => handleItemChange(item.id, 'rate', e.target.value)} />
+                                            <Input placeholder="0.00" type="number" step="0.01" value={item.rate} onChange={(e) => handleItemChange(item.id, 'rate', e.target.value)} />
                                         </TableCell>
                                         <TableCell className="text-right font-medium">
                                             {calculateAmount(item).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -295,17 +315,6 @@ export default function NewInvoicePage() {
                      {state.type === 'error' && <p className="text-sm text-destructive mt-4">{state.message}</p>}
 
                     <div className="mt-12 pt-8 border-t">
-                        <h4 className="font-semibold mb-2">Bank Details</h4>
-                        <p className="text-sm text-muted-foreground">
-                            <strong>Account Name:</strong> One Stop Solutions<br/>
-                            <strong>Bank Name:</strong> [Your Bank Name]<br/>
-                            <strong>Account Number:</strong> [XXXX-XXXX-XXXX]<br/>
-                            <strong>IFSC Code:</strong> [XXXXX]<br/>
-                            <strong>Branch:</strong> [Branch Name]
-                        </p>
-                    </div>
-
-                    <div className="mt-8 pt-8 border-t">
                         <h4 className="font-semibold mb-2">Declaration</h4>
                         <ol className="text-xs text-muted-foreground list-decimal list-inside space-y-1">
                             <li>We declare that the information given above is true and correct.</li>
