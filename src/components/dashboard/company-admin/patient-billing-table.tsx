@@ -6,12 +6,19 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { PatientBilledStat } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { TPA, Hospital } from "@/lib/types";
+
 
 interface PatientBillingTableProps {
   stats: PatientBilledStat[];
+  tpaList: Pick<TPA, 'id' | 'name'>[];
+  hospitalList: Pick<Hospital, 'id' | 'name'>[];
+  onTpaChange: (tpaId: string | null) => void;
+  onHospitalChange: (hospitalId: string | null) => void;
 }
 
-export function PatientBillingTable({ stats }: PatientBillingTableProps) {
+export function PatientBillingTable({ stats, tpaList, hospitalList, onTpaChange, onHospitalChange }: PatientBillingTableProps) {
     
     const getInitials = (name: string) => {
         if (!name) return 'P';
@@ -52,10 +59,30 @@ export function PatientBillingTable({ stats }: PatientBillingTableProps) {
                     <CardTitle>Patient Billing Summary</CardTitle>
                     <CardDescription>A summary of billed amounts per patient based on Pre-auth and Enhancement requests.</CardDescription>
                 </div>
-                <Button onClick={handleExport} variant="outline" size="sm" disabled={stats.length === 0}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Export
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Select onValueChange={(value) => onHospitalChange(value === 'all' ? null : value)}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Filter by Hospital" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Hospitals</SelectItem>
+                            {hospitalList.map(h => <SelectItem key={h.id} value={h.id}>{h.name}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <Select onValueChange={(value) => onTpaChange(value === 'all' ? null : value)}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Filter by TPA" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All TPAs</SelectItem>
+                            {tpaList.map(tpa => <SelectItem key={tpa.id} value={String(tpa.id)}>{tpa.name}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <Button onClick={handleExport} variant="outline" size="sm" disabled={stats.length === 0}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Export
+                    </Button>
+                </div>
             </CardHeader>
             <CardContent>
                 <Table>

@@ -5,6 +5,8 @@
 import { getDbPool, sql } from '@/lib/db';
 import { z } from 'zod';
 import { DateRange } from 'react-day-picker';
+import { TPA, Hospital } from '@/lib/types';
+
 
 const DateRangeSchema = z.object({
   from: z.date().optional(),
@@ -50,8 +52,8 @@ export async function getCompanyAdminDashboardStats(companyId: string, dateRange
     ] = await Promise.all([
       pool.request().query(totalHospitalsQuery),
       admissionsRequest.query(livePatientsQuery),
-      preAuthRequest.query(pendingRequestsQuery),
-      preAuthRequest.query(rejectedRequestsQuery), // Corrected to use preAuthRequest
+      preAuthRequest.query(pendingRequestsQuery), // Corrected to use preAuthRequest
+      preAuthRequest.query(rejectedRequestsQuery),
     ]);
 
     return {
@@ -129,18 +131,31 @@ export type PatientBilledStat = {
   billedAmount: number;
 };
 
-export async function getPatientBilledStats(dateRange?: DateRange): Promise<PatientBilledStat[]> {
+export async function getPatientBilledStats(dateRange?: DateRange, hospitalId?: string | null, tpaId?: string | null): Promise<PatientBilledStat[]> {
     try {
         const pool = await getDbPool();
         const request = pool.request();
 
-        let dateFilter = '';
+        let whereClauses: string[] = [`c.status IN ('Pre auth Sent', 'Enhancement Request')`];
+
         if (dateRange?.from) {
-            const toDate = dateRange.to || new Date(); 
+            const toDate = dateRange.to || new Date();
             request.input('dateFrom', sql.DateTime, dateRange.from);
             request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-            dateFilter = 'AND c.created_at BETWEEN @dateFrom AND @dateTo';
+            whereClauses.push('c.created_at BETWEEN @dateFrom AND @dateTo');
         }
+
+        if (hospitalId) {
+            request.input('hospitalId', sql.NVarChar, hospitalId);
+            whereClauses.push('c.hospital_id = @hospitalId');
+        }
+
+        if (tpaId) {
+            request.input('tpaId', sql.Int, Number(tpaId));
+            whereClauses.push('c.tpa_id = @tpaId');
+        }
+        
+        const whereClause = `WHERE ${whereClauses.join(' AND ')}`;
 
         const query = `
             SELECT
@@ -154,7 +169,7 @@ export async function getPatientBilledStats(dateRange?: DateRange): Promise<Pati
             JOIN patients p ON c.Patient_id = p.id
             JOIN hospitals h ON c.hospital_id = h.id
             JOIN tpas t ON c.tpa_id = t.id
-            WHERE c.status IN ('Pre auth Sent', 'Enhancement Request') ${dateFilter}
+            ${whereClause}
             GROUP BY
                 p.id,
                 p.first_name,
@@ -283,4 +298,26 @@ export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<S
         console.error('Error fetching staff performance stats:', error);
         throw new Error('Failed to fetch staff performance statistics.');
     }
+}
+
+export async function getTpaList(): Promise<Pick<TPA, 'id' | 'name'>[]> {
+  try {
+    const pool = await getDbPool();
+    const result = await pool.request().query('SELECT id, name FROM tpas');
+    return result.recordset as Pick<TPA, 'id' | 'name'>[];
+  } catch (error) {
+    console.error('Error fetching TPAs:', error);
+    throw new Error('Failed to fetch TPA list.');
+  }
+}
+
+export async function getHospitalList(): Promise<Pick<Hospital, 'id' | 'name'>[]> {
+  try {
+    const pool = await getDbPool();
+    const result = await pool.request().query('SELECT id, name FROM hospitals');
+    return result.recordset as Pick<Hospital, 'id' | 'name'>[];
+  } catch (error) {
+    console.error('Error fetching Hospitals:', error);
+    throw new Error('Failed to fetch hospital list.');
+  }
 }

@@ -6,7 +6,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building, Users, Clock, AlertTriangle, Loader2, Calendar as CalendarIcon } from "lucide-react";
-import { getCompanyAdminDashboardStats, getHospitalBusinessStats, getPatientBilledStats, getSimpleHospitalBusinessStats, getStaffPerformanceStats, HospitalBusinessStats, PatientBilledStat, SimpleHospitalStat, StaffPerformanceStat } from "./actions";
+import { getCompanyAdminDashboardStats, getHospitalBusinessStats, getPatientBilledStats, getSimpleHospitalBusinessStats, getStaffPerformanceStats, getTpaList, getHospitalList, HospitalBusinessStats, PatientBilledStat, SimpleHospitalStat, StaffPerformanceStat } from "./actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { BusinessSummaryTable } from "./business-summary-table";
 import { DateRange } from "react-day-picker";
@@ -18,6 +18,8 @@ import { cn } from "@/lib/utils";
 import { PatientBillingTable } from "./patient-billing-table";
 import { SimpleBusinessSummaryTable } from "./simple-business-summary-table";
 import { StaffPerformanceTable } from "./staff-performance-table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { TPA, Hospital } from "@/lib/types";
 
 
 interface DashboardStats {
@@ -36,6 +38,8 @@ export function CompanyAdminDashboard() {
   const [simpleBusinessStats, setSimpleBusinessStats] = useState<SimpleHospitalStat[]>([]);
   const [patientBillingStats, setPatientBillingStats] = useState<PatientBilledStat[]>([]);
   const [staffPerformanceStats, setStaffPerformanceStats] = useState<StaffPerformanceStat[]>([]);
+  const [tpaList, setTpaList] = useState<Pick<TPA, 'id' | 'name'>[]>([]);
+  const [hospitalList, setHospitalList] = useState<Pick<Hospital, 'id' | 'name'>[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -43,6 +47,8 @@ export function CompanyAdminDashboard() {
     from: subDays(new Date(), 29),
     to: new Date(),
   });
+  const [selectedHospitalId, setSelectedHospitalId] = useState<string | null>(null);
+  const [selectedTpaId, setSelectedTpaId] = useState<string | null>(null);
 
   const fetchAllStats = useCallback(async () => {
     if (!companyId) {
@@ -54,24 +60,28 @@ export function CompanyAdminDashboard() {
     try {
       setIsLoading(true);
       setError(null);
-      const [dashboardData, businessData, simpleBusinessData, patientData, staffPerformanceData] = await Promise.all([
+      const [dashboardData, businessData, simpleBusinessData, patientData, staffPerformanceData, tpas, hospitals] = await Promise.all([
           getCompanyAdminDashboardStats(companyId, date),
           getHospitalBusinessStats(date),
           getSimpleHospitalBusinessStats(date),
-          getPatientBilledStats(date),
+          getPatientBilledStats(date, selectedHospitalId, selectedTpaId),
           getStaffPerformanceStats(date),
+          getTpaList(),
+          getHospitalList(),
       ]);
       setStats(dashboardData);
       setBusinessStats(businessData);
       setSimpleBusinessStats(simpleBusinessData);
       setPatientBillingStats(patientData);
       setStaffPerformanceStats(staffPerformanceData);
+      setTpaList(tpas);
+      setHospitalList(hospitals);
     } catch (err: any) {
       setError(err.message);
     } finally {
       setIsLoading(false);
     }
-  }, [companyId, date]);
+  }, [companyId, date, selectedHospitalId, selectedTpaId]);
 
   useEffect(() => {
     fetchAllStats();
@@ -179,7 +189,13 @@ export function CompanyAdminDashboard() {
 
           <SimpleBusinessSummaryTable stats={simpleBusinessStats} />
 
-          <PatientBillingTable stats={patientBillingStats} />
+          <PatientBillingTable 
+            stats={patientBillingStats}
+            tpaList={tpaList}
+            hospitalList={hospitalList}
+            onTpaChange={setSelectedTpaId}
+            onHospitalChange={setSelectedHospitalId}
+          />
           
           <StaffPerformanceTable stats={staffPerformanceStats} />
         </>
