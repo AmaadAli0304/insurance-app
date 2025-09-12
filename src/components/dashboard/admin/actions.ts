@@ -29,37 +29,36 @@ export async function getPatientBilledStatsForAdmin(dateRange?: DateRange, hospi
 
         if (hospitalId) {
             request.input('hospitalId', sql.NVarChar, hospitalId);
+            // Ensure both the claim and the patient are associated with the hospital
             whereClauses.push('c.hospital_id = @hospitalId');
+            whereClauses.push('p.hospital_id = @hospitalId');
         }
 
         const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
         const query = `
-            WITH PatientClaimSums AS (
-                SELECT
-                    c.Patient_id,
-                    SUM(ISNULL(c.amount, 0)) as totalBilledAmount,
-                    SUM(ISNULL(c.paidAmount, 0)) as totalSanctionedAmount,
-                    MAX(c.admission_id) as admission_id,
-                    MAX(c.tpa_id) as tpa_id
-                FROM claims c
-                ${whereClause}
-                GROUP BY c.Patient_id
-            )
             SELECT
                 p.id AS patientId,
                 p.first_name + ' ' + p.last_name AS patientName,
                 p.photo AS patientPhoto,
                 COALESCE(t.name, co.name, 'N/A') as tpaName,
-                pcs.totalBilledAmount as billedAmount,
-                pcs.totalSanctionedAmount as sanctionedAmount
-            FROM PatientClaimSums pcs
-            JOIN patients p ON pcs.Patient_id = p.id
-            LEFT JOIN preauth_request pr ON pcs.admission_id = pr.admission_id
+                ISNULL(SUM(CASE WHEN c.status IN ('Pre auth Sent', 'Enhancement Request') THEN c.amount ELSE 0 END), 0) as billedAmount,
+                ISNULL(SUM(c.paidAmount), 0) as sanctionedAmount
+            FROM patients p
+            LEFT JOIN claims c ON p.id = c.Patient_id
+            LEFT JOIN preauth_request pr ON c.admission_id = pr.admission_id
             LEFT JOIN companies co ON pr.company_id = co.id
-            LEFT JOIN tpas t ON pcs.tpa_id = t.id
+            LEFT JOIN tpas t ON c.tpa_id = t.id
+            ${whereClause}
+            GROUP BY 
+                p.id,
+                p.first_name,
+                p.last_name,
+                p.photo,
+                t.name,
+                co.name
             ORDER BY
-                billedAmount DESC;
+                p.first_name;
         `;
 
         const result = await request.query(query);

@@ -20,8 +20,8 @@ export function AdminPatientBillingTable({ stats }: AdminPatientBillingTableProp
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Active Patients</CardTitle>
-                <CardDescription>A summary of billed amounts per patient based on Pre-auth and Enhancement requests.</CardDescription>
+                <CardTitle>Patient Billing Summary</CardTitle>
+                <CardDescription>A summary of billed and sanctioned amounts per patient.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Table>
@@ -29,8 +29,8 @@ export function AdminPatientBillingTable({ stats }: AdminPatientBillingTableProp
                         <TableRow>
                             <TableHead>Patient Name</TableHead>
                             <TableHead>TPA / Insurance</TableHead>
-                            <TableHead className="text-right">Amount</TableHead>
-                            <TableHead className="text-right">Amount Sanctioned</TableHead>
+                            <TableHead className="text-right">Billed Amount</TableHead>
+                            <TableHead className="text-right">Sanctioned Amount</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -45,8 +45,8 @@ export function AdminPatientBillingTable({ stats }: AdminPatientBillingTableProp
                                       {stat.patientName}
                                     </TableCell>
                                     <TableCell>{stat.tpaName}</TableCell>
-                                    <TableCell className="text-right font-mono">${stat.billedAmount.toLocaleString()}</TableCell>
-                                    <TableCell className="text-right font-mono">${stat.sanctionedAmount.toLocaleString()}</TableCell>
+                                    <TableCell className="text-right font-mono">₹{stat.billedAmount.toLocaleString('en-IN')}</TableCell>
+                                    <TableCell className="text-right font-mono">₹{stat.sanctionedAmount.toLocaleString('en-IN')}</TableCell>
                                 </TableRow>
                             ))
                         ) : (
