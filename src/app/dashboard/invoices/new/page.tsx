@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useFormStatus } from "react-dom";
 import { handleSaveInvoice } from "../actions";
 import { getStaff } from "@/app/dashboard/staff/actions";
-import { getHospitalsForForm } from "@/app/dashboard/company-hospitals/actions";
+import { getHospitals } from "@/app/dashboard/company-hospitals/actions";
 import Link from "next/link";
 import { ArrowLeft, PlusCircle, Trash2, Send, Download, Save, Loader2 } from "lucide-react";
 import { notFound, useRouter } from "next/navigation";
@@ -107,7 +107,7 @@ export default function NewInvoicePage() {
             try {
                 const [staffData, hospitalList] = await Promise.all([
                     getStaff(),
-                    getHospitalsForForm()
+                    getHospitals()
                 ]);
                 setAllStaff(staffData);
                 setHospitals(hospitalList);
@@ -338,4 +338,5 @@ export default function NewInvoicePage() {
             </div>
         </form>
     );
-}
+
+    
