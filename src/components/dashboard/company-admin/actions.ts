@@ -40,7 +40,7 @@ export async function getCompanyAdminDashboardStats(companyId: string, dateRange
     }
 
     const totalHospitalsQuery = `SELECT COUNT(*) as totalHospitals FROM hospitals`;
-    const livePatientsQuery = `SELECT COUNT(*) as livePatients FROM admissions a WHERE a.status = 'Active' ${admissionsDateFilter}`;
+    const livePatientsQuery = `SELECT COUNT(*) as livePatients FROM admissions a WHERE a.status = 'Active'`;
     const pendingRequestsQuery = `SELECT COUNT(*) as pendingRequests FROM preauth_request pr WHERE pr.status = 'Pre auth Sent' ${preAuthDateFilter}`;
     const rejectedRequestsQuery = `SELECT COUNT(*) as rejectedRequests FROM preauth_request pr WHERE pr.status = 'Rejected' ${preAuthDateFilter}`;
 
@@ -52,7 +52,7 @@ export async function getCompanyAdminDashboardStats(companyId: string, dateRange
     ] = await Promise.all([
       pool.request().query(totalHospitalsQuery),
       admissionsRequest.query(livePatientsQuery),
-      preAuthRequest.query(pendingRequestsQuery), // Corrected to use preAuthRequest
+      preAuthRequest.query(pendingRequestsQuery),
       preAuthRequest.query(rejectedRequestsQuery),
     ]);
 
@@ -103,7 +103,7 @@ export async function getHospitalBusinessStats(dateRange?: DateRange): Promise<H
       SELECT
         h.id AS hospitalId,
         h.name AS hospitalName,
-        (SELECT COUNT(*) FROM admissions a WHERE a.hospital_id = h.id AND a.status = 'Active' ${getDateFilter('a')}) as activePatients,
+        (SELECT COUNT(*) FROM admissions a WHERE a.hospital_id = h.id AND a.status = 'Active') as activePatients,
         (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Final Discharge sent' ${getDateFilter('pr')}) as preAuthApproved,
         (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Pre auth Sent' ${getDateFilter('pr')}) as preAuthPending,
         (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Final Amount Sanctioned' ${getDateFilter('pr')}) as finalAuthSanctioned,
