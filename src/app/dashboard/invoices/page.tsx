@@ -42,7 +42,7 @@ export default function InvoicesPage() {
             <CardDescription>Manage all generated invoices.</CardDescription>
           </div>
           <Button size="sm" className="gap-1" asChild>
-             <Link href="/dashboard/staff">
+             <Link href="/dashboard/invoices/new">
                 <PlusCircle className="h-4 w-4" />
                 Add Invoice
              </Link>

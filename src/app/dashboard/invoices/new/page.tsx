@@ -9,14 +9,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useFormStatus } from "react-dom";
-import { handleSaveInvoice, getStaffById, getHospitalsForForm } from "../../actions";
+import { handleSaveInvoice } from "../actions";
+import { getStaff } from "@/app/dashboard/staff/actions";
+import { getHospitalsForForm } from "@/app/dashboard/company-hospitals/actions";
 import Link from "next/link";
 import { ArrowLeft, PlusCircle, Trash2, Send, Download, Save, Loader2 } from "lucide-react";
-import { useParams, notFound, useRouter, useSearchParams } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import type { Staff, Hospital } from "@/lib/types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { format } from "date-fns";
 import { useAuth } from "@/components/auth-provider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -84,19 +85,17 @@ function numberToWords(num: number): string {
 
 
 export default function NewInvoicePage() {
-    const searchParams = useSearchParams();
     const router = useRouter();
     const { toast } = useToast();
     const { user: fromUser } = useAuth();
-    const staffId = searchParams.get('staffId');
     
     const [state, formAction] = useActionState(handleSaveInvoice, { message: "", type: 'initial' });
-    const [staff, setStaff] = useState<Staff | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [allStaff, setAllStaff] = useState<Staff[]>([]);
+    const [selectedStaffId, setSelectedStaffId] = useState<string>("");
     const [hospitals, setHospitals] = useState<Pick<Hospital, 'id' | 'name'>[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     const [items, setItems] = useState<InvoiceItem[]>([{ id: 1, description: 'Service Charges', quantity: 1, rate: 0.03 }]);
-    const [baseAmount] = useState(2000000); 
     const [taxRate] = useState(18);
 
     const [subtotal, setSubtotal] = useState(0);
@@ -104,20 +103,13 @@ export default function NewInvoicePage() {
     const [grandTotal, setGrandTotal] = useState(0);
     
     useEffect(() => {
-        if (!staffId) {
-            toast({ title: "Error", description: "No staff member selected.", variant: "destructive" });
-            router.push('/dashboard/staff');
-            return;
-        }
-
         async function loadData() {
             try {
                 const [staffData, hospitalList] = await Promise.all([
-                    getStaffById(staffId!),
+                    getStaff(),
                     getHospitalsForForm()
                 ]);
-                if (!staffData) notFound();
-                setStaff(staffData);
+                setAllStaff(staffData);
                 setHospitals(hospitalList);
             } catch (error) {
                 console.error(error);
@@ -127,7 +119,7 @@ export default function NewInvoicePage() {
             }
         }
         loadData();
-    }, [staffId, router, toast]);
+    }, [toast]);
     
     const calculateAmount = React.useCallback((item: InvoiceItem) => {
         const { quantity, rate } = item;
@@ -145,12 +137,12 @@ export default function NewInvoicePage() {
         setTaxAmount(newTaxAmount);
         const newGrandTotal = newSubtotal + newTaxAmount;
         setGrandTotal(newGrandTotal);
-    }, [items, baseAmount, taxRate, calculateAmount]);
+    }, [items, taxRate, calculateAmount]);
 
     useEffect(() => {
         if (state.type === 'success') {
             toast({ title: "Invoice", description: state.message, variant: "success" });
-            router.push('/dashboard/staff');
+            router.push('/dashboard/invoices');
         } else if (state.type === 'error') {
             toast({ title: "Error", description: state.message, variant: "destructive" });
         }
@@ -174,17 +166,19 @@ export default function NewInvoicePage() {
         }));
     };
 
+    const selectedStaff = allStaff.find(s => s.id === selectedStaffId);
+
     if (isLoading) {
         return <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin" /></div>;
     }
 
-    if (!staff || !fromUser) {
+    if (!fromUser) {
         notFound();
     }
     
     return (
         <form action={formAction}>
-            <input type="hidden" name="staffId" value={staff.id} />
+            <input type="hidden" name="staffId" value={selectedStaffId} />
              <input type="hidden" name="items" value={JSON.stringify(items.map(({ id, ...rest }) => ({
                 ...rest,
                 total: rest.quantity * rest.rate,
@@ -196,7 +190,7 @@ export default function NewInvoicePage() {
                 <div className="flex items-center justify-between gap-4">
                      <div className="flex items-center gap-4">
                         <Button variant="outline" size="icon" asChild>
-                            <Link href="/dashboard/staff">
+                            <Link href="/dashboard/invoices">
                                 <ArrowLeft className="h-4 w-4" />
                                 <span className="sr-only">Back</span>
                             </Link>
@@ -226,7 +220,15 @@ export default function NewInvoicePage() {
                         <div className="space-y-6 text-left md:text-right">
                              <div className="space-y-2">
                                 <h3 className="font-semibold text-muted-foreground">Bill To</h3>
-                                <Input name="to" defaultValue={staff.name} className="md:ml-auto md:w-48 text-right font-bold" />
+                                <Select onValueChange={setSelectedStaffId} required>
+                                    <SelectTrigger className="md:ml-auto md:w-48 text-right">
+                                        <SelectValue placeholder="Select Staff" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {allStaff.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                                <input type="hidden" name="to" value={selectedStaff?.name ?? ''} />
                                 <Textarea name="address" placeholder="Client Address" className="md:ml-auto md:w-48 text-right" />
                             </div>
                             <div className="space-y-2">
