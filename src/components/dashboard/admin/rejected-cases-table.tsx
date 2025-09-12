@@ -35,7 +35,7 @@ export function RejectedCasesTable({ dateRange }: RejectedCasesTableProps) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Rejected cases in this year</CardTitle>
+                <CardTitle>Rejected cases</CardTitle>
                 <CardDescription>A list of claims that have been rejected.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -77,4 +77,3 @@ export function RejectedCasesTable({ dateRange }: RejectedCasesTableProps) {
         </Card>
     );
 }
-
