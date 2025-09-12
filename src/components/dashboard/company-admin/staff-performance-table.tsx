@@ -33,7 +33,7 @@ export function StaffPerformanceTable({ stats }: StaffPerformanceTableProps) {
                                     <TableCell className="font-medium">{stat.staffName}</TableCell>
                                     <TableCell>{stat.hospitalName}</TableCell>
                                     <TableCell className="text-right">{stat.numOfCases}</TableCell>
-                                    <TableCell className="text-right font-mono">${stat.totalCollection.toLocaleString()}</TableCell>
+                                    <TableCell className="text-right font-mono">Rs {stat.totalCollection.toLocaleString()}</TableCell>
                                 </TableRow>
                             ))
                         ) : (

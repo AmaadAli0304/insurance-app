@@ -63,8 +63,8 @@ export function BusinessSummaryTable({ stats, children }: BusinessSummaryTablePr
                                 <TableCell className="text-right">{stat.preAuthApproved}</TableCell>
                                 <TableCell className="text-right">{stat.preAuthPending}</TableCell>
                                 <TableCell className="text-right">{stat.finalAuthSanctioned}</TableCell>
-                                <TableCell className="text-right">${stat.billedAmount.toLocaleString()}</TableCell>
-                                <TableCell className="text-right">${stat.collection.toLocaleString()}</TableCell>
+                                <TableCell className="text-right">Rs {stat.billedAmount.toLocaleString()}</TableCell>
+                                <TableCell className="text-right">Rs {stat.collection.toLocaleString()}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -75,8 +75,8 @@ export function BusinessSummaryTable({ stats, children }: BusinessSummaryTablePr
                             <TableHead className="text-right">{totals.preAuthApproved}</TableHead>
                             <TableHead className="text-right">{totals.preAuthPending}</TableHead>
                             <TableHead className="text-right">{totals.finalAuthSanctioned}</TableHead>
-                            <TableHead className="text-right">${totals.billedAmount.toLocaleString()}</TableHead>
-                            <TableHead className="text-right">${totals.collection.toLocaleString()}</TableHead>
+                            <TableHead className="text-right">Rs {totals.billedAmount.toLocaleString()}</TableHead>
+                            <TableHead className="text-right">Rs {totals.collection.toLocaleString()}</TableHead>
                         </TableRow>
                     </TableFooter>
                 </Table>

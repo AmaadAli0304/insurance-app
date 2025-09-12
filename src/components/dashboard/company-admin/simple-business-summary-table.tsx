@@ -43,7 +43,7 @@ export function SimpleBusinessSummaryTable({ stats }: SimpleBusinessSummaryTable
                             <TableRow key={stat.hospitalId}>
                                 <TableCell className="font-medium">{stat.hospitalName}</TableCell>
                                 <TableCell className="text-right">{stat.numOfPatients}</TableCell>
-                                <TableCell className="text-right">${stat.amount.toLocaleString()}</TableCell>
+                                <TableCell className="text-right">Rs {stat.amount.toLocaleString()}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -51,7 +51,7 @@ export function SimpleBusinessSummaryTable({ stats }: SimpleBusinessSummaryTable
                         <TableRow>
                             <TableHead>TOTAL</TableHead>
                             <TableHead className="text-right">{totals.numOfPatients}</TableHead>
-                            <TableHead className="text-right">${totals.amount.toLocaleString()}</TableHead>
+                            <TableHead className="text-right">Rs {totals.amount.toLocaleString()}</TableHead>
                         </TableRow>
                     </TableFooter>
                 </Table>
