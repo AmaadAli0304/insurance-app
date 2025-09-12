@@ -280,7 +280,7 @@ export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<S
                 (
                     SELECT COUNT(DISTINCT pr_inner.id) 
                     FROM preauth_request pr_inner 
-                    WHERE pr_inner.staff_id = u.uid 
+                    WHERE pr_inner.staff_id = u.uid AND pr_inner.status = 'Final Amount Sanctioned'
                     ${dateFilter.replace('pr.created_at', 'pr_inner.created_at')}
                 ) AS numOfCases,
                 ISNULL(scc.totalCollection, 0) AS totalCollection
