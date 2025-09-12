@@ -28,7 +28,7 @@ interface InvoiceItem {
   id: number;
   description: string;
   quantity: number;
-  rate: number | string;
+  rate: string;
 }
 
 function SubmitButton({ status }: { status: 'draft' | 'sent' }) {
@@ -96,7 +96,7 @@ export default function NewInvoicePage() {
     const [hospitals, setHospitals] = useState<Pick<Hospital, 'id' | 'name' | 'address'>[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    const [items, setItems] = useState<InvoiceItem[]>([{ id: 1, description: 'Service Charges', quantity: 1, rate: 0.03 }]);
+    const [items, setItems] = useState<InvoiceItem[]>([{ id: 1, description: 'Service Charges', quantity: 1, rate: '0.03' }]);
     const [taxRate] = useState(18);
 
     const [subtotal, setSubtotal] = useState(0);
@@ -147,7 +147,7 @@ export default function NewInvoicePage() {
     }, [state, toast, router]);
 
     const handleAddItem = () => {
-        setItems([...items, { id: Date.now(), description: '', quantity: 1, rate: 0 }]);
+        setItems([...items, { id: Date.now(), description: '', quantity: 1, rate: '0' }]);
     };
     
     const handleRemoveItem = (id: number) => {
@@ -157,14 +157,31 @@ export default function NewInvoicePage() {
     const handleItemChange = (id: number, field: keyof Omit<InvoiceItem, 'id'>, value: string) => {
         setItems(items.map(item => {
             if (item.id === id) {
-                if (field === 'description') {
+                if (field === 'rate') {
+                    // Allow empty, a single dot, or numbers.
+                    if (value === '' || value === '.' || !isNaN(Number(value))) {
+                        return { ...item, [field]: value };
+                    }
+                    return item; // Ignore invalid input for rate
+                }
+                 if (field === 'description' || field === 'quantity') {
                     return { ...item, [field]: value };
                 }
-                return { ...item, [field]: value };
             }
             return item;
         }));
     };
+    
+    const handleRateBlur = (id: number) => {
+        setItems(items.map(item => {
+            if (item.id === id) {
+                const rateAsNumber = parseFloat(item.rate);
+                return { ...item, rate: isNaN(rateAsNumber) ? '0' : String(rateAsNumber) };
+            }
+            return item;
+        }));
+    };
+
 
     const selectedHospital = hospitals.find(s => s.id === selectedHospitalId);
 
@@ -182,6 +199,7 @@ export default function NewInvoicePage() {
             <input type="hidden" name="hospitalId" value={selectedHospitalId} />
              <input type="hidden" name="items" value={JSON.stringify(items.map(({ id, ...rest }) => ({
                 ...rest,
+                rate: Number(rest.rate) || 0,
                 total: (Number(rest.quantity) || 0) * (Number(rest.rate) || 0),
                 amount: (Number(rest.quantity) || 0) * (Number(rest.rate) || 0),
             })))} />
@@ -293,7 +311,7 @@ export default function NewInvoicePage() {
                                             <Input placeholder="1" type="number" value={item.quantity} onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)} />
                                         </TableCell>
                                         <TableCell>
-                                            <Input placeholder="0.00" type="number" step="0.01" value={item.rate} onChange={(e) => handleItemChange(item.id, 'rate', e.target.value)} />
+                                            <Input placeholder="0.00" type="text" value={item.rate} onChange={(e) => handleItemChange(item.id, 'rate', e.target.value)} onBlur={() => handleRateBlur(item.id)} />
                                         </TableCell>
                                         <TableCell className="text-right font-medium">
                                             Rs {calculateAmount(item).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}

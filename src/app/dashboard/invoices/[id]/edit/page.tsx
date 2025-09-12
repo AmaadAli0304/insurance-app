@@ -26,7 +26,7 @@ import { cn } from "@/lib/utils";
 
 interface EditInvoiceItem extends Omit<InvoiceItem, 'rate'> {
   _id: number; // For temporary client-side unique key
-  rate: number | string;
+  rate: string;
 }
 
 function SubmitButton() {
@@ -120,7 +120,7 @@ export default function EditInvoicePage() {
 
                 setInvoice(invoiceData);
                 setHospitals(hospitalList);
-                setItems(invoiceData.items.map(item => ({ ...item, _id: Math.random() })));
+                setItems(invoiceData.items.map(item => ({ ...item, _id: Math.random(), rate: String(item.rate) })));
                 setBillingPeriod(invoiceData.period ? new Date(invoiceData.period) : new Date());
             } catch (error) {
                 console.error(error);
@@ -151,7 +151,7 @@ export default function EditInvoicePage() {
     }, [state, toast, router]);
 
     const handleAddItem = () => {
-        setItems([...items, { id: 0, invoice_id: id, description: '', qty: 1, rate: 0, amount: 0, _id: Math.random() }]);
+        setItems([...items, { id: 0, invoice_id: id, description: '', qty: 1, rate: '0', _id: Math.random() }]);
     };
     
     const handleRemoveItem = (_id: number) => {
@@ -161,14 +161,30 @@ export default function EditInvoicePage() {
     const handleItemChange = (_id: number, field: keyof Omit<EditInvoiceItem, '_id' | 'id' | 'invoice_id' | 'amount'>, value: string) => {
         setItems(items.map(item => {
             if (item._id === _id) {
-                 if (field === 'description') {
+                if (field === 'rate') {
+                     if (value === '' || value === '.' || !isNaN(Number(value))) {
+                        return { ...item, [field]: value };
+                    }
+                    return item; // Ignore invalid input for rate
+                }
+                 if (field === 'description' || field === 'qty') {
                     return { ...item, [field]: value };
                 }
-                return { ...item, [field]: value };
             }
             return item;
         }));
     };
+    
+    const handleRateBlur = (id: number) => {
+        setItems(items.map(item => {
+            if (item._id === id) {
+                const rateAsNumber = parseFloat(item.rate);
+                return { ...item, rate: isNaN(rateAsNumber) ? '0' : String(rateAsNumber) };
+            }
+            return item;
+        }));
+    };
+
 
     if (isLoading || !invoice) {
         return <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin" /></div>;
@@ -285,7 +301,7 @@ export default function EditInvoicePage() {
                                             <Input placeholder="1" type="number" value={item.qty} onChange={(e) => handleItemChange(item._id, 'qty', e.target.value)} />
                                         </TableCell>
                                         <TableCell>
-                                            <Input placeholder="0.00" type="number" step="0.01" value={item.rate} onChange={(e) => handleItemChange(item._id, 'rate', e.target.value)} />
+                                            <Input placeholder="0.00" type="text" value={item.rate} onChange={(e) => handleItemChange(item._id, 'rate', e.target.value)} onBlur={() => handleRateBlur(item._id)} />
                                         </TableCell>
                                         <TableCell className="text-right font-medium">
                                             Rs {calculateAmount(item).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
