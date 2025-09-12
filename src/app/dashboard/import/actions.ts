@@ -878,22 +878,23 @@ export async function handleCreateInvoicesTable(prevState: { message: string, ty
     const pool = await getDbPool();
     const request = pool.request();
     const createInvoicesTableQuery = `
-      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='invoices' and xtype='U')
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Invoices' and xtype='U')
       BEGIN
-        CREATE TABLE invoices (
+        CREATE TABLE Invoices (
           id INT IDENTITY(1,1) PRIMARY KEY,
-          invoice_number NVARCHAR(255) NOT NULL UNIQUE,
-          staff_id NVARCHAR(255) NOT NULL,
-          issue_date DATE NOT NULL,
-          due_date DATE NOT NULL,
-          subtotal DECIMAL(18, 2) NOT NULL,
-          tax DECIMAL(18, 2) NOT NULL,
-          total DECIMAL(18, 2) NOT NULL,
-          notes NVARCHAR(MAX),
-          terms NVARCHAR(MAX),
-          status NVARCHAR(50) NOT NULL,
-          created_at DATETIME DEFAULT GETDATE(),
-          updated_at DATETIME DEFAULT GETDATE()
+          "to" NVARCHAR(255),
+          hospital NVARCHAR(255),
+          address NVARCHAR(MAX),
+          period NVARCHAR(255),
+          contract_type NVARCHAR(255),
+          service_provided NVARCHAR(MAX),
+          gst NVARCHAR(50),
+          bank_name NVARCHAR(255),
+          account_name NVARCHAR(255),
+          account_number NVARCHAR(50),
+          ifsc_code NVARCHAR(50),
+          branch NVARCHAR(255),
+          staff_id NVARCHAR(255)
         );
       END
     `;
@@ -905,28 +906,29 @@ export async function handleCreateInvoicesTable(prevState: { message: string, ty
   }
 }
 
-export async function handleCreateInvoiceItemsTable(prevState: { message: string, type?: string }, formData: FormData) {
+export async function handleCreateInvoiceStaffTable(prevState: { message: string, type?: string }, formData: FormData) {
   try {
     const pool = await getDbPool();
     const request = pool.request();
-    const createInvoiceItemsTableQuery = `
-      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='invoice_items' and xtype='U')
+    const createInvoiceStaffTableQuery = `
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='invoice_staff' and xtype='U')
       BEGIN
-        CREATE TABLE invoice_items (
+        CREATE TABLE invoice_staff (
           id INT IDENTITY(1,1) PRIMARY KEY,
-          invoice_id INT NOT NULL,
-          description NVARCHAR(MAX) NOT NULL,
-          quantity INT NOT NULL,
-          rate DECIMAL(18, 2) NOT NULL,
-          amount DECIMAL(18, 2) NOT NULL,
-          CONSTRAINT FK_invoice_items_invoice FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
+          description NVARCHAR(MAX),
+          qty INT,
+          rate DECIMAL(18, 2),
+          total DECIMAL(18, 2),
+          amount DECIMAL(18, 2),
+          invoice_id INT,
+          staff_id NVARCHAR(255)
         );
       END
     `;
-    await request.query(createInvoiceItemsTableQuery);
-    return { message: "Invoice Items table created successfully or already exists.", type: "success" };
+    await request.query(createInvoiceStaffTableQuery);
+    return { message: "Invoice Staff table created successfully or already exists.", type: "success" };
   } catch (error) {
     const dbError = error as { message?: string };
-    return { message: `Error creating Invoice Items table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+    return { message: `Error creating Invoice Staff table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
