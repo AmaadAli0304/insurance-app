@@ -5,7 +5,7 @@ import { useActionState, useEffect, useRef } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Trash, Edit, Eye } from "lucide-react";
+import { MoreHorizontal, Trash, Edit, Eye, Download } from "lucide-react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { handleDeleteInvoice } from "./actions";
@@ -108,6 +108,11 @@ export function InvoicesTable({ invoices, onInvoiceDeleted }: InvoicesTableProps
                       <DropdownMenuItem asChild>
                         <Link href={`/dashboard/invoices/${invoice.id}/view`} className="flex items-center gap-2 cursor-pointer">
                           <Eye className="h-4 w-4" /> View
+                        </Link>
+                      </DropdownMenuItem>
+                       <DropdownMenuItem asChild>
+                        <Link href={`/dashboard/invoices/${invoice.id}/view`} className="flex items-center gap-2 cursor-pointer">
+                          <Download className="h-4 w-4" /> Download
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
