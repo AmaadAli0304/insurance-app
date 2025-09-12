@@ -31,7 +31,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Invalid password.' }, { status: 401 });
         }
 
-        if (user.role === 'Hospital Staff') {
+        if (user.role === 'Hospital Staff' || user.role === 'Admin') {
             const hospitalResult = await pool.request()
                 .input('staff_id', sql.NVarChar, user.uid)
                 .query(`
