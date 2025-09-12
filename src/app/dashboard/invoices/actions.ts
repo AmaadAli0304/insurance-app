@@ -119,7 +119,6 @@ export async function handleSaveInvoice(prevState: { message: string, type?: str
   const ifsc_code = formData.get('ifsc_code') as string;
   const branch = formData.get('branch') as string;
   const itemsJson = formData.get('items') as string;
-  const status = formData.get('status') as string;
 
   if (!staffId || !itemsJson || !hospitalId) {
       return { message: 'Missing required invoice data.', type: 'error' };
@@ -145,22 +144,22 @@ export async function handleSaveInvoice(prevState: { message: string, type?: str
           .input('period', sql.NVarChar, period)
           .input('contract_type', sql.NVarChar, contract_type)
           .input('service_provided', sql.NVarChar, service_provided)
+          .input('gst', sql.NVarChar, '') // Default empty string for gst
           .input('bank_name', sql.NVarChar, bank_name)
           .input('account_name', sql.NVarChar, account_name)
           .input('account_number', sql.NVarChar, account_number)
           .input('ifsc_code', sql.NVarChar, ifsc_code)
           .input('branch', sql.NVarChar, branch)
           .input('staff_id', sql.NVarChar, staffId)
-          .input('status', sql.NVarChar, status)
           .query(`
               INSERT INTO Invoices (
-                  "to", hospital, address, period, contract_type, service_provided, 
-                  bank_name, account_name, account_number, ifsc_code, branch, staff_id, created_at, status
+                  "to", hospital, address, period, contract_type, service_provided, gst,
+                  bank_name, account_name, account_number, ifsc_code, branch, staff_id, created_at
               )
               OUTPUT INSERTED.id
               VALUES (
-                  @to, @hospital, @address, @period, @contract_type, @service_provided,
-                  @bank_name, @account_name, @account_number, @ifsc_code, @branch, @staff_id, GETDATE(), @status
+                  @to, @hospital, @address, @period, @contract_type, @service_provided, @gst,
+                  @bank_name, @account_name, @account_number, @ifsc_code, @branch, @staff_id, GETDATE()
               )
           `);
       
@@ -191,8 +190,7 @@ export async function handleSaveInvoice(prevState: { message: string, type?: str
   }
 
   revalidatePath('/dashboard/invoices');
-  const message = status === 'draft' ? "Invoice saved as draft." : "Invoice created successfully.";
-  return { message: message, type: "success" };
+  return { message: "Invoice created successfully.", type: "success" };
 }
 
 
@@ -210,7 +208,6 @@ export async function handleUpdateInvoice(prevState: { message: string, type?: s
   const ifsc_code = formData.get('ifsc_code') as string;
   const branch = formData.get('branch') as string;
   const itemsJson = formData.get('items') as string;
-  const status = formData.get('status') as string;
 
 
   if (!id || !staffId || !itemsJson) {
@@ -238,13 +235,13 @@ export async function handleUpdateInvoice(prevState: { message: string, type?: s
           .input('period', sql.NVarChar, period)
           .input('contract_type', sql.NVarChar, contract_type)
           .input('service_provided', sql.NVarChar, service_provided)
+          .input('gst', sql.NVarChar, '') // Default empty string for gst
           .input('bank_name', sql.NVarChar, bank_name)
           .input('account_name', sql.NVarChar, account_name)
           .input('account_number', sql.NVarChar, account_number)
           .input('ifsc_code', sql.NVarChar, ifsc_code)
           .input('branch', sql.NVarChar, branch)
           .input('staff_id', sql.NVarChar, staffId)
-          .input('status', sql.NVarChar, status)
           .query(`
               UPDATE Invoices SET
                   "to" = @to,
@@ -252,13 +249,13 @@ export async function handleUpdateInvoice(prevState: { message: string, type?: s
                   period = @period,
                   contract_type = @contract_type,
                   service_provided = @service_provided,
+                  gst = @gst,
                   bank_name = @bank_name,
                   account_name = @account_name,
                   account_number = @account_number,
                   ifsc_code = @ifsc_code,
                   branch = @branch,
-                  staff_id = @staff_id,
-                  status = @status
+                  staff_id = @staff_id
               WHERE id = @id
           `);
       
