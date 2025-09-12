@@ -5,7 +5,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from '@/components/auth-provider';
-import { LogOut } from "lucide-react";
+import { LogOut, User } from "lucide-react";
+import Link from "next/link";
 
 export function UserNav() {
   const { user, logout } = useAuth();
@@ -47,6 +48,12 @@ export function UserNav() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+            <Link href="/dashboard/profile">
+                <User className="mr-2 h-4 w-4" />
+                <span>Profile</span>
+            </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={logout}>
           <LogOut className="mr-2 h-4 w-4" />
           Log out
