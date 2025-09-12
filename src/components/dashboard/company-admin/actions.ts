@@ -1,5 +1,3 @@
-
-
 'use server';
 
 import { getDbPool, sql } from '@/lib/db';
@@ -274,14 +272,14 @@ export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<S
                 ISNULL(SUM(c.paidAmount), 0) AS totalCollection
             FROM 
                 users u
-            INNER JOIN 
-                claims c ON u.uid = c.created_by
+            LEFT JOIN 
+                claims c ON u.uid = c.created_by AND c.status = 'Final Amount Sanctioned' ${dateFilter}
             LEFT JOIN 
                 hospital_staff hs ON u.uid = hs.staff_id
             LEFT JOIN 
                 hospitals h ON hs.hospital_id = h.id
             WHERE 
-                u.role = 'Hospital Staff' AND c.status = 'Final Amount Sanctioned' ${dateFilter}
+                u.role = 'Hospital Staff'
             GROUP BY 
                 u.uid, u.name, u.photo, h.name
             ORDER BY
@@ -332,3 +330,4 @@ export async function getHospitalList(): Promise<Pick<Hospital, 'id' | 'name'>[]
     throw new Error('Failed to fetch hospital list.');
   }
 }
+
