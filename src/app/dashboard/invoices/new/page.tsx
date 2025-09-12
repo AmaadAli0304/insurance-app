@@ -34,8 +34,8 @@ interface InvoiceItem {
 function SubmitButton({ status }: { status: 'draft' | 'sent' }) {
     const { pending } = useFormStatus();
     const Icon = status === 'draft' ? Save : Send;
-    const text = status === 'draft' ? "Save as Draft" : "Send Invoice";
-    const pendingText = status === 'draft' ? "Saving..." : "Sending...";
+    const text = status === 'draft' ? "Save as Draft" : "Create Invoice";
+    const pendingText = status === 'draft' ? "Saving..." : "Creating...";
     
     return (
         <Button type="submit" name="status" value={status} disabled={pending}>
