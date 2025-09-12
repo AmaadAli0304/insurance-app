@@ -43,7 +43,7 @@ export async function getPatientBilledStatsForAdmin(dateRange?: DateRange, hospi
                 p.photo AS patientPhoto,
                 COALESCE(t.name, co.name, 'N/A') as tpaName,
                 ISNULL(SUM(DISTINCT CASE WHEN c.status IN ('Pre auth Sent', 'Enhancement Request') THEN c.amount ELSE 0 END), 0) as billedAmount,
-                ISNULL(SUM(DISTINCT c.paidAmount), 0) as sanctionedAmount
+                ISNULL(SUM(DISTINCT CASE WHEN c.status IN ('Final Amount Sanctioned', 'Amount Received') THEN c.paidAmount ELSE 0 END), 0) as sanctionedAmount
             FROM patients p
             LEFT JOIN claims c ON p.id = c.Patient_id
             LEFT JOIN preauth_request pr ON c.admission_id = pr.admission_id
