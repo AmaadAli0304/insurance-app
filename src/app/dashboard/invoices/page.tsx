@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -10,11 +9,13 @@ import { getInvoices } from "./actions";
 import { InvoicesTable } from "./invoices-table";
 import type { Invoice } from "@/lib/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useAuth } from "@/components/auth-provider";
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
 
   const loadInvoices = useCallback(async () => {
     setIsLoading(true);

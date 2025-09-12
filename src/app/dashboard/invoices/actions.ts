@@ -119,6 +119,7 @@ export async function handleSaveInvoice(prevState: { message: string, type?: str
   const ifsc_code = formData.get('ifsc_code') as string;
   const branch = formData.get('branch') as string;
   const itemsJson = formData.get('items') as string;
+  const status = formData.get('status') as string;
 
   if (!staffId || !itemsJson || !hospitalId) {
       return { message: 'Missing required invoice data.', type: 'error' };
@@ -150,15 +151,16 @@ export async function handleSaveInvoice(prevState: { message: string, type?: str
           .input('ifsc_code', sql.NVarChar, ifsc_code)
           .input('branch', sql.NVarChar, branch)
           .input('staff_id', sql.NVarChar, staffId)
+          .input('status', sql.NVarChar, status)
           .query(`
               INSERT INTO Invoices (
                   "to", hospital, address, period, contract_type, service_provided, 
-                  bank_name, account_name, account_number, ifsc_code, branch, staff_id, created_at
+                  bank_name, account_name, account_number, ifsc_code, branch, staff_id, created_at, status
               )
               OUTPUT INSERTED.id
               VALUES (
                   @to, @hospital, @address, @period, @contract_type, @service_provided,
-                  @bank_name, @account_name, @account_number, @ifsc_code, @branch, @staff_id, GETDATE()
+                  @bank_name, @account_name, @account_number, @ifsc_code, @branch, @staff_id, GETDATE(), @status
               )
           `);
       
@@ -189,5 +191,110 @@ export async function handleSaveInvoice(prevState: { message: string, type?: str
   }
 
   revalidatePath('/dashboard/invoices');
-  redirect('/dashboard/invoices');
+  const message = status === 'draft' ? "Invoice saved as draft." : "Invoice created successfully.";
+  return { message: message, type: "success" };
+}
+
+
+export async function handleUpdateInvoice(prevState: { message: string, type?: string }, formData: FormData) {
+  const id = formData.get('id') as string;
+  const staffId = formData.get('staffId') as string;
+  const to = formData.get('to') as string;
+  const address = formData.get('address') as string;
+  const period = formData.get('period') as string;
+  const contract_type = formData.get('contract_type') as string;
+  const service_provided = formData.get('service_provided') as string;
+  const bank_name = formData.get('bank_name') as string;
+  const account_name = formData.get('account_name') as string;
+  const account_number = formData.get('account_number') as string;
+  const ifsc_code = formData.get('ifsc_code') as string;
+  const branch = formData.get('branch') as string;
+  const itemsJson = formData.get('items') as string;
+  const status = formData.get('status') as string;
+
+
+  if (!id || !staffId || !itemsJson) {
+      return { message: 'Missing required invoice data.', type: 'error' };
+  }
+
+  let transaction;
+  try {
+      const items = JSON.parse(itemsJson);
+      const parsedItems = z.array(invoiceItemSchema).safeParse(items);
+      if (!parsedItems.success) {
+          return { message: 'Invalid invoice items format.', type: 'error' };
+      }
+
+      const db = await getDbPool();
+      transaction = new sql.Transaction(db);
+      await transaction.begin();
+
+      // Update the main invoice record
+      const invoiceRequest = new sql.Request(transaction);
+      await invoiceRequest
+          .input('id', sql.Int, Number(id))
+          .input('to', sql.NVarChar, to)
+          .input('address', sql.NVarChar, address)
+          .input('period', sql.NVarChar, period)
+          .input('contract_type', sql.NVarChar, contract_type)
+          .input('service_provided', sql.NVarChar, service_provided)
+          .input('bank_name', sql.NVarChar, bank_name)
+          .input('account_name', sql.NVarChar, account_name)
+          .input('account_number', sql.NVarChar, account_number)
+          .input('ifsc_code', sql.NVarChar, ifsc_code)
+          .input('branch', sql.NVarChar, branch)
+          .input('staff_id', sql.NVarChar, staffId)
+          .input('status', sql.NVarChar, status)
+          .query(`
+              UPDATE Invoices SET
+                  "to" = @to,
+                  address = @address,
+                  period = @period,
+                  contract_type = @contract_type,
+                  service_provided = @service_provided,
+                  bank_name = @bank_name,
+                  account_name = @account_name,
+                  account_number = @account_number,
+                  ifsc_code = @ifsc_code,
+                  branch = @branch,
+                  staff_id = @staff_id,
+                  status = @status
+              WHERE id = @id
+          `);
+      
+      // Delete old items
+      const deleteItemsRequest = new sql.Request(transaction);
+      await deleteItemsRequest
+          .input('invoice_id', sql.Int, Number(id))
+          .query('DELETE FROM invoice_staff WHERE invoice_id = @invoice_id');
+
+      // Insert new items
+      for (const item of parsedItems.data) {
+          const itemRequest = new sql.Request(transaction);
+          await itemRequest
+              .input('description', sql.NVarChar, item.description)
+              .input('qty', sql.Int, item.quantity)
+              .input('rate', sql.Decimal(18, 2), item.rate)
+              .input('total', sql.Decimal(18, 2), item.quantity * item.rate)
+              .input('amount', sql.Decimal(18, 2), item.amount)
+              .input('invoice_id', sql.Int, Number(id))
+              .input('staff_id', sql.NVarChar, staffId)
+              .query(`
+                  INSERT INTO invoice_staff (description, qty, rate, total, amount, invoice_id, staff_id)
+                  VALUES (@description, @qty, @rate, @total, @amount, @invoice_id, @staff_id)
+              `);
+      }
+
+      await transaction.commit();
+  } catch (error) {
+      if (transaction) await transaction.rollback();
+      console.error('Error updating invoice:', error);
+      const dbError = error as Error;
+      return { message: `Database Error: ${dbError.message}`, type: 'error' };
+  }
+
+  revalidatePath('/dashboard/invoices');
+  revalidatePath(`/dashboard/invoices/${id}/edit`);
+  revalidatePath(`/dashboard/invoices/${id}/view`);
+  return { message: "Invoice updated successfully.", type: "success" };
 }
