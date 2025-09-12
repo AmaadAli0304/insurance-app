@@ -3,6 +3,7 @@
 
 import { getDbPool, sql } from '@/lib/db';
 import { DateRange } from 'react-day-picker';
+import type { TPA } from '@/lib/types';
 
 export type PatientBilledStat = {
   patientId: number;
@@ -13,7 +14,7 @@ export type PatientBilledStat = {
   sanctionedAmount: number;
 };
 
-export async function getPatientBilledStatsForAdmin(dateRange?: DateRange, hospitalId?: string | null): Promise<PatientBilledStat[]> {
+export async function getPatientBilledStatsForAdmin(dateRange?: DateRange, hospitalId?: string | null, tpaId?: string | null): Promise<PatientBilledStat[]> {
     try {
         const pool = await getDbPool();
         const request = pool.request();
@@ -29,9 +30,12 @@ export async function getPatientBilledStatsForAdmin(dateRange?: DateRange, hospi
 
         if (hospitalId) {
             request.input('hospitalId', sql.NVarChar, hospitalId);
-            // Ensure both the claim and the patient are associated with the hospital
-            whereClauses.push('c.hospital_id = @hospitalId');
-            whereClauses.push('p.hospital_id = @hospitalId');
+            whereClauses.push('c.hospital_id = @hospitalId AND p.hospital_id = @hospitalId');
+        }
+        
+        if (tpaId) {
+            request.input('tpaId', sql.Int, Number(tpaId));
+            whereClauses.push('c.tpa_id = @tpaId');
         }
 
         const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
@@ -80,4 +84,15 @@ export async function getPatientBilledStatsForAdmin(dateRange?: DateRange, hospi
         console.error('Error fetching patient billing stats for admin:', error);
         throw new Error('Failed to fetch patient billing statistics.');
     }
+}
+
+export async function getTpaList(): Promise<Pick<TPA, 'id' | 'name'>[]> {
+  try {
+    const pool = await getDbPool();
+    const result = await pool.request().query('SELECT id, name FROM tpas');
+    return result.recordset as Pick<TPA, 'id' | 'name'>[];
+  } catch (error) {
+    console.error('Error fetching TPAs:', error);
+    throw new Error('Failed to fetch TPA list.');
+  }
 }

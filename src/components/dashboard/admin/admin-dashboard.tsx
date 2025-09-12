@@ -5,7 +5,6 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { Loader2, Calendar as CalendarIcon, AlertTriangle } from "lucide-react";
 import { DateRange } from "react-day-picker";
-import { getPatientBilledStatsForAdmin, PatientBilledStat } from "./actions";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -17,43 +16,17 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export function AdminDashboard() {
   const { user } = useAuth();
-  const hospitalId = user?.hospitalId;
-
-  const [patientBillingStats, setPatientBillingStats] = useState<PatientBilledStat[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
+  
   const [date, setDate] = useState<DateRange | undefined>({
     from: subDays(new Date(), 29),
     to: new Date(),
   });
 
-  const fetchAllStats = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const patientData = await getPatientBilledStatsForAdmin(date, hospitalId);
-      setPatientBillingStats(patientData);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [date, hospitalId]);
-
-  useEffect(() => {
-    if (user) { // Wait for user to be available
-      fetchAllStats();
-    }
-  }, [fetchAllStats, user]);
-
-  if (error) {
+  if (!user) {
     return (
-      <Alert variant="destructive">
-        <AlertTriangle className="h-4 w-4" />
-        <AlertTitle>Error Loading Dashboard</AlertTitle>
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
+        <div className="flex items-center justify-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
     );
   }
 
@@ -98,17 +71,7 @@ export function AdminDashboard() {
             </PopoverContent>
           </Popover>
       </div>
-
-       {isLoading ? (
-        <div className="flex items-center justify-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-       ) : (
-        <>
-            <AdminPatientBillingTable stats={patientBillingStats} />
-        </>
-       )}
-      
+      <AdminPatientBillingTable dateRange={date} />
     </div>
   )
 }
