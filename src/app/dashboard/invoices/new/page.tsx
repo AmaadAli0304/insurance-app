@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -197,7 +198,6 @@ export default function NewInvoicePage() {
                         <h1 className="text-lg font-semibold md:text-2xl">New Invoice</h1>
                     </div>
                     <div className="flex gap-2">
-                        <SubmitButton status="draft" />
                         <SubmitButton status="sent" />
                     </div>
                 </div>
