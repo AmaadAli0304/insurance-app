@@ -29,12 +29,24 @@ export default function ProfilePage() {
         return name.split(' ').map(n => n[0]).join('').toUpperCase();
     }
 
+    let photoUrl: string | undefined = undefined;
+    if (user.photo) {
+        try {
+            const photoData = JSON.parse(user.photo);
+            photoUrl = photoData.url;
+        } catch {
+            if (typeof user.photo === 'string' && user.photo.startsWith('http')) {
+                photoUrl = user.photo;
+            }
+        }
+    }
+
     return (
         <div className="space-y-6">
             <Card>
                 <CardHeader className="items-center text-center">
                     <Avatar className="h-24 w-24 mb-4">
-                        <AvatarImage src={`https://placehold.co/96x96.png`} alt={user.name} data-ai-hint="user avatar" />
+                        <AvatarImage src={photoUrl} alt={user.name} />
                         <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col items-center gap-2">
