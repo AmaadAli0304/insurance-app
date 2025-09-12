@@ -3,7 +3,7 @@
 
 import { getDbPool, sql } from '@/lib/db';
 import { DateRange } from 'react-day-picker';
-import type { TPA } from '@/lib/types';
+import type { TPA, Hospital } from '@/lib/types';
 
 export type PatientBilledStat = {
   patientId: number;
@@ -46,8 +46,18 @@ export async function getPatientBilledStatsForAdmin(dateRange?: DateRange, hospi
                 p.first_name + ' ' + p.last_name AS patientName,
                 p.photo AS patientPhoto,
                 COALESCE(t.name, co.name, 'N/A') as tpaName,
-                ISNULL((SELECT SUM(c_inner.amount) FROM claims c_inner WHERE c_inner.Patient_id = p.id AND c_inner.status = 'Pre auth Sent' ${dateRange?.from ? 'AND c_inner.created_at BETWEEN @dateFrom AND @dateTo' : ''}), 0) as billedAmount,
-                ISNULL((SELECT SUM(c_inner.paidAmount) FROM claims c_inner WHERE c_inner.Patient_id = p.id AND c_inner.status = 'Final Amount Sanctioned' ${dateRange?.from ? 'AND c_inner.created_at BETWEEN @dateFrom AND @dateTo' : ''}), 0) as sanctionedAmount
+                (
+                    SELECT ISNULL(SUM(c_inner.amount), 0)
+                    FROM claims c_inner
+                    WHERE c_inner.Patient_id = p.id AND c_inner.status = 'Pre auth Sent'
+                    ${dateRange?.from ? 'AND c_inner.created_at BETWEEN @dateFrom AND @dateTo' : ''}
+                ) as billedAmount,
+                (
+                    SELECT ISNULL(SUM(c_inner.paidAmount), 0)
+                    FROM claims c_inner
+                    WHERE c_inner.Patient_id = p.id AND c_inner.status = 'Final Amount Sanctioned'
+                    ${dateRange?.from ? 'AND c_inner.created_at BETWEEN @dateFrom AND @dateTo' : ''}
+                ) as sanctionedAmount
             FROM patients p
             LEFT JOIN claims c ON p.id = c.Patient_id
             LEFT JOIN preauth_request pr ON c.admission_id = pr.admission_id
@@ -86,6 +96,7 @@ export async function getPatientBilledStatsForAdmin(dateRange?: DateRange, hospi
     }
 }
 
+
 export async function getTpaList(): Promise<Pick<TPA, 'id' | 'name'>[]> {
   try {
     const pool = await getDbPool();
@@ -123,7 +134,8 @@ export async function getTpaCollectionStats(dateRange?: DateRange): Promise<TpaC
                 t.id AS tpaId,
                 t.name AS tpaName,
                 ISNULL(SUM(CASE WHEN c.status = 'Pre auth Sent' THEN c.amount ELSE 0 END), 0) as amount,
-                ISNULL(SUM(CASE WHEN c.status = 'Final Amount Sanctioned' THEN c.paidAmount ELSE 0 END), 0) as received
+                ISNULL(SUM(CASE WHEN c.status = 'Final Amount Sanctioned' THEN c.paidAmount ELSE 0 END), 0) as received,
+                (ISNULL(SUM(CASE WHEN c.status = 'Pre auth Sent' THEN c.amount ELSE 0 END), 0) - ISNULL(SUM(CASE WHEN c.status = 'Final Amount Sanctioned' THEN c.paidAmount ELSE 0 END), 0)) as deductions
             FROM tpas t
             LEFT JOIN claims c ON t.id = c.tpa_id ${dateFilter}
             GROUP BY
@@ -137,10 +149,21 @@ export async function getTpaCollectionStats(dateRange?: DateRange): Promise<TpaC
 
         return result.recordset.map(row => ({
             ...row,
-            deductions: row.amount - row.received
         }));
     } catch (error) {
         console.error('Error fetching TPA collection stats:', error);
         throw new Error('Failed to fetch TPA collection statistics.');
     }
+}
+
+
+export async function getHospitalList(): Promise<Pick<Hospital, 'id' | 'name'>[]> {
+  try {
+    const pool = await getDbPool();
+    const result = await pool.request().query('SELECT id, name FROM hospitals');
+    return result.recordset as Pick<Hospital, 'id' | 'name'>[];
+  } catch (error) {
+    console.error('Error fetching Hospitals:', error);
+    throw new Error('Failed to fetch hospital list.');
+  }
 }
