@@ -205,7 +205,6 @@ export default function NewInvoicePage() {
                     </div>
                     <div className="flex gap-2">
                         <Button type="button" variant="outline"><Download className="mr-2 h-4 w-4" /> Download</Button>
-                        <SubmitButton status="draft" />
                         <SubmitButton status="sent" />
                     </div>
                 </div>

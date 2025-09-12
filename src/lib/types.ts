@@ -428,25 +428,28 @@ export interface Staff extends Omit<User, 'uid' | 'role' | 'companyId'> {
 
 export interface Invoice {
     id: number;
-    invoice_number: string;
+    to: string;
+    hospital: string;
+    address: string;
+    period: string;
+    contract_type: string;
+    service_provided: string;
+    gst: string;
+    bank_name: string;
+    account_name: string;
+    account_number: string;
+    ifsc_code: string;
+    branch: string;
     staff_id: string;
-    issue_date: string;
-    due_date: string;
-    subtotal: number;
-    tax: number;
-    total: number;
-    notes?: string;
-    terms?: string;
-    status: 'draft' | 'sent' | 'paid';
-    staff?: Staff;
-    items?: InvoiceItem[];
+    staffName?: string; // from join
+    created_at: string;
 }
 
 export interface InvoiceItem {
     id: number;
     invoice_id: number;
     description: string;
-    quantity: number;
+    qty: number;
     rate: number;
     amount: number;
 }

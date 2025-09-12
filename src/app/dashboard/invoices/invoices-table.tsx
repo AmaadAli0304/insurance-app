@@ -3,12 +3,12 @@
 
 import { useActionState, useEffect, useRef } from 'react';
 import { useFormStatus } from 'react-dom';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { MoreHorizontal, Trash, Edit, Eye, FileText } from "lucide-react"
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
-import Link from "next/link"
-import { handleDeleteStaff } from "./actions"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { MoreHorizontal, Trash, Edit, Eye } from "lucide-react";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import Link from "next/link";
+import { handleDeleteInvoice } from "./actions";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,16 +19,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import type { Staff } from "@/lib/types"
+} from "@/components/ui/alert-dialog";
+import type { Invoice } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
-import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
+import { format } from 'date-fns';
 
-
-interface StaffTableProps {
-  staff: Staff[];
-  onStaffDeleted: () => void;
+interface InvoicesTableProps {
+  invoices: Invoice[];
+  onInvoiceDeleted: () => void;
 }
 
 function DeleteButton() {
@@ -44,20 +43,19 @@ function DeleteButton() {
     );
 }
 
-export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
+export function InvoicesTable({ invoices, onInvoiceDeleted }: InvoicesTableProps) {
   const { toast } = useToast();
-  const [state, formAction] = useActionState(handleDeleteStaff, { message: "", type: "initial" });
-  const formRef = useRef<HTMLFormElement>(null);
+  const [state, formAction] = useActionState(handleDeleteInvoice, { message: "", type: "initial" });
   const router = useRouter();
   
   useEffect(() => {
     if (state.type === 'success') {
       toast({
-        title: "Staff Management",
+        title: "Invoice Management",
         description: state.message,
         variant: "success",
       });
-      onStaffDeleted();
+      onInvoiceDeleted();
     } else if (state.type === 'error') {
       toast({
         title: "Error",
@@ -65,35 +63,42 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
         variant: "destructive"
       });
     }
-  }, [state, toast, onStaffDeleted]);
+  }, [state, toast, onInvoiceDeleted]);
 
-  const handleRowClick = (staffId: string) => {
-    router.push(`/dashboard/staff/${staffId}/view`);
+  const handleRowClick = (invoiceId: number) => {
+    router.push(`/dashboard/invoices/${invoiceId}/view`);
+  };
+
+  const formatDate = (dateString?: string | null) => {
+    if (!dateString) return "N/A";
+    try {
+        return format(new Date(dateString), 'MMMM dd, yyyy');
+    } catch {
+        return "Invalid Date";
+    }
   };
 
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Full Name</TableHead>
-          <TableHead>Assigned Hospital</TableHead>
-          <TableHead>Email</TableHead>
-          <TableHead>Role</TableHead>
-          <TableHead>Status</TableHead>
+          <TableHead>Invoice ID</TableHead>
+          <TableHead>Billed To</TableHead>
+          <TableHead>Date Created</TableHead>
+          <TableHead>Contract Type</TableHead>
+          <TableHead>Service Period</TableHead>
           <TableHead><span className="sr-only">Actions</span></TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {staff.length > 0 ? (
-          staff.map(s => (
-            <TableRow key={s.id} onClick={() => handleRowClick(s.id)} className="cursor-pointer">
-              <TableCell className="font-medium">{s.name}</TableCell>
-              <TableCell>{s.hospitalName || 'N/A'}</TableCell>
-              <TableCell>{s.email}</TableCell>
-              <TableCell>{s.role || 'N/A'}</TableCell>
-              <TableCell>
-                <Badge variant={s.status === 'Active' ? 'default' : 'destructive'} className={s.status === 'Active' ? 'bg-accent text-accent-foreground' : ''}>{s.status}</Badge>
-              </TableCell>
+        {invoices.length > 0 ? (
+          invoices.map(invoice => (
+            <TableRow key={invoice.id} onClick={() => handleRowClick(invoice.id!)} className="cursor-pointer">
+              <TableCell className="font-mono">INV-{String(invoice.id).padStart(4, '0')}</TableCell>
+              <TableCell className="font-medium">{invoice.to}</TableCell>
+              <TableCell>{formatDate(invoice.created_at)}</TableCell>
+              <TableCell>{invoice.contract_type}</TableCell>
+              <TableCell>{invoice.period}</TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
                 <AlertDialog>
                   <DropdownMenu>
@@ -101,18 +106,13 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/staff/${s.id}/view`} className="flex items-center gap-2 cursor-pointer">
-                          <Eye className="h-4 w-4" /> View Details
+                        <Link href={`/dashboard/invoices/${invoice.id}/view`} className="flex items-center gap-2 cursor-pointer">
+                          <Eye className="h-4 w-4" /> View
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/staff/${s.id}/edit`} className="flex items-center gap-2 cursor-pointer">
+                        <Link href={`/dashboard/invoices/${invoice.id}/edit`} className="flex items-center gap-2 cursor-pointer">
                           <Edit className="h-4 w-4" /> Edit
-                        </Link>
-                      </DropdownMenuItem>
-                       <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/invoices/new?staffId=${s.id}`} className="flex items-center gap-2 cursor-pointer">
-                          <FileText className="h-4 w-4" /> Create Invoice
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
@@ -127,13 +127,13 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete this staff record.
+                        This action cannot be undone. This will permanently delete this invoice record.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
-                       <form action={formAction} ref={formRef}>
-                          <input type="hidden" name="id" value={s.id} />
+                       <form action={formAction}>
+                          <input type="hidden" name="id" value={invoice.id} />
                           <DeleteButton />
                        </form>
                     </AlertDialogFooter>
@@ -145,7 +145,7 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
         ) : (
           <TableRow>
             <TableCell colSpan={6} className="h-24 text-center">
-              No data found
+              No invoices found.
             </TableCell>
           </TableRow>
         )}
