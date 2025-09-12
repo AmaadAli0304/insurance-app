@@ -42,7 +42,7 @@ export function TpaCollectionTable({ dateRange }: TpaCollectionTableProps) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Collection this month TPA wise</CardTitle>
+                <CardTitle>Collection TPA wise</CardTitle>
                 <CardDescription>A summary of billed, received, and deducted amounts per TPA.</CardDescription>
             </CardHeader>
             <CardContent>
