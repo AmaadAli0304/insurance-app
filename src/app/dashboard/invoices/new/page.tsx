@@ -206,8 +206,7 @@ export default function NewInvoicePage() {
                 <Card className="p-6">
                     <div className="grid md:grid-cols-2 gap-12">
                         <div className="space-y-4">
-                            <h2 className="text-xl font-bold">{fromUser.name}</h2>
-                            <p className="text-muted-foreground">{fromUser.email}</p>
+                            <h2 className="text-xl font-bold">Bank Details</h2>
                             <div className="grid grid-cols-2 gap-4">
                                 <Input name="bank_name" placeholder="Bank Name" />
                                 <Input name="account_name" placeholder="Account Name" />
