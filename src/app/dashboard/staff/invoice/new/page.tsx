@@ -232,7 +232,16 @@ export default function NewInvoicePage() {
                             </div>
                             <div className="space-y-2">
                                 <Input name="period" placeholder="Billing Period" className="md:ml-auto md:w-48 text-right" />
-                                <Input name="contract_type" placeholder="Contract Type" className="md:ml-auto md:w-48 text-right" />
+                                <Select name="contract_type">
+                                    <SelectTrigger className="md:ml-auto md:w-48 text-right">
+                                        <SelectValue placeholder="Contract Type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Fixed">Fixed</SelectItem>
+                                        <SelectItem value="Percentage">Percentage</SelectItem>
+                                        <SelectItem value="Hybrid">Hybrid</SelectItem>
+                                    </SelectContent>
+                                </Select>
                                 <Select name="hospital">
                                     <SelectTrigger className="md:ml-auto md:w-48 text-right">
                                         <SelectValue placeholder="Select Hospital" />
