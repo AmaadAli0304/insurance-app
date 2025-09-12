@@ -255,40 +255,28 @@ export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<S
         const pool = await getDbPool();
         const request = pool.request();
         
-        let dateFilter = '';
+        let dateFilterClause = '';
         if (dateRange?.from) {
             const toDate = dateRange.to || new Date(); 
             request.input('dateFrom', sql.DateTime, dateRange.from);
             request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-            dateFilter = 'AND pr.created_at BETWEEN @dateFrom AND @dateTo';
+            dateFilterClause = 'AND pr.created_at BETWEEN @dateFrom AND @dateTo';
         }
 
         const query = `
-            WITH StaffCollections AS (
-              SELECT
-                pr.staff_id,
-                SUM(ISNULL(c.amount, 0)) AS totalCollection
-              FROM claims c
-              JOIN preauth_request pr ON c.admission_id = pr.admission_id
-              WHERE c.status = 'Final Amount Sanctioned' ${dateFilter}
-              GROUP BY pr.staff_id
-            )
             SELECT
                 u.uid AS staffId,
                 u.name AS staffName,
                 ISNULL(h.name, 'N/A') AS hospitalName,
-                (
-                    SELECT COUNT(DISTINCT pr_inner.id) 
-                    FROM preauth_request pr_inner 
-                    WHERE pr_inner.staff_id = u.uid AND pr_inner.status = 'Final Amount Sanctioned'
-                    ${dateFilter.replace('pr.created_at', 'pr_inner.created_at')}
-                ) AS numOfCases,
-                ISNULL(scc.totalCollection, 0) AS totalCollection
+                ISNULL(SUM(CASE WHEN pr.status = 'Final Amount Sanctioned' THEN 1 ELSE 0 END), 0) as numOfCases,
+                ISNULL(SUM(CASE WHEN c.status = 'Final Amount Sanctioned' THEN c.amount ELSE 0 END), 0) as totalCollection
             FROM users u
+            LEFT JOIN preauth_request pr ON u.uid = pr.staff_id ${dateFilterClause}
+            LEFT JOIN claims c ON pr.admission_id = c.admission_id AND c.status = 'Final Amount Sanctioned'
             LEFT JOIN hospital_staff hs ON u.uid = hs.staff_id
             LEFT JOIN hospitals h ON hs.hospital_id = h.id
-            LEFT JOIN StaffCollections scc ON u.uid = scc.staff_id
             WHERE u.role = 'Hospital Staff'
+            GROUP BY u.uid, u.name, h.name
             ORDER BY u.name;
         `;
         
