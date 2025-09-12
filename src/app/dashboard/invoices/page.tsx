@@ -10,13 +10,11 @@ import { getInvoices } from "./actions";
 import { InvoicesTable } from "./invoices-table";
 import type { Invoice } from "@/lib/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useToast } from "@/hooks/use-toast";
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
 
   const loadInvoices = useCallback(async () => {
     setIsLoading(true);
@@ -34,13 +32,6 @@ export default function InvoicesPage() {
     loadInvoices();
   }, [loadInvoices]);
   
-  const handleAddInvoiceClick = () => {
-      toast({
-          title: "Create Invoice",
-          description: "Please navigate to the Staff page to create an invoice for a specific staff member.",
-          variant: "default",
-      });
-  };
 
   return (
     <div className="space-y-6">
@@ -50,7 +41,7 @@ export default function InvoicesPage() {
             <CardTitle>Invoices</CardTitle>
             <CardDescription>Manage all generated invoices.</CardDescription>
           </div>
-          <Button size="sm" className="gap-1" onClick={handleAddInvoiceClick} asChild>
+          <Button size="sm" className="gap-1" asChild>
              <Link href="/dashboard/staff">
                 <PlusCircle className="h-4 w-4" />
                 Add Invoice
