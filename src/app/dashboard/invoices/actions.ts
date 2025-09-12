@@ -107,8 +107,8 @@ export async function handleDeleteInvoice(prevState: { message: string, type?: s
 
 export async function handleSaveInvoice(prevState: { message: string, type?: string }, formData: FormData) {
   const staffId = formData.get('staffId') as string;
+  const hospitalId = formData.get('hospitalId') as string;
   const to = formData.get('to') as string;
-  const hospital = formData.get('hospital') as string;
   const address = formData.get('address') as string;
   const period = formData.get('period') as string;
   const contract_type = formData.get('contract_type') as string;
@@ -121,7 +121,7 @@ export async function handleSaveInvoice(prevState: { message: string, type?: str
   const branch = formData.get('branch') as string;
   const itemsJson = formData.get('items') as string;
 
-  if (!staffId || !itemsJson) {
+  if (!staffId || !itemsJson || !hospitalId) {
       return { message: 'Missing required invoice data.', type: 'error' };
   }
 
@@ -140,7 +140,7 @@ export async function handleSaveInvoice(prevState: { message: string, type?: str
       const invoiceRequest = new sql.Request(transaction);
       const invoiceResult = await invoiceRequest
           .input('to', sql.NVarChar, to)
-          .input('hospital', sql.NVarChar, hospital)
+          .input('hospital', sql.NVarChar, hospitalId) // Save hospital ID
           .input('address', sql.NVarChar, address)
           .input('period', sql.NVarChar, period)
           .input('contract_type', sql.NVarChar, contract_type)
@@ -155,12 +155,12 @@ export async function handleSaveInvoice(prevState: { message: string, type?: str
           .query(`
               INSERT INTO Invoices (
                   "to", hospital, address, period, contract_type, service_provided, gst, 
-                  bank_name, account_name, account_number, ifsc_code, branch, staff_id
+                  bank_name, account_name, account_number, ifsc_code, branch, staff_id, created_at
               )
               OUTPUT INSERTED.id
               VALUES (
                   @to, @hospital, @address, @period, @contract_type, @service_provided, @gst,
-                  @bank_name, @account_name, @account_number, @ifsc_code, @branch, @staff_id
+                  @bank_name, @account_name, @account_number, @ifsc_code, @branch, @staff_id, GETDATE()
               )
           `);
       

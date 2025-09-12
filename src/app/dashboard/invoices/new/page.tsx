@@ -10,13 +10,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useFormStatus } from "react-dom";
 import { handleSaveInvoice } from "../actions";
-import { getStaff } from "@/app/dashboard/staff/actions";
 import { getHospitals } from "@/app/dashboard/company-hospitals/actions";
 import Link from "next/link";
 import { ArrowLeft, PlusCircle, Trash2, Send, Download, Save, Loader2 } from "lucide-react";
 import { notFound, useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import type { Staff, Hospital } from "@/lib/types";
+import type { Hospital } from "@/lib/types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAuth } from "@/components/auth-provider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -90,9 +89,8 @@ export default function NewInvoicePage() {
     const { user: fromUser } = useAuth();
     
     const [state, formAction] = useActionState(handleSaveInvoice, { message: "", type: 'initial' });
-    const [allStaff, setAllStaff] = useState<Staff[]>([]);
-    const [selectedStaffId, setSelectedStaffId] = useState<string>("");
-    const [hospitals, setHospitals] = useState<Pick<Hospital, 'id' | 'name'>[]>([]);
+    const [selectedHospitalId, setSelectedHospitalId] = useState<string>("");
+    const [hospitals, setHospitals] = useState<Pick<Hospital, 'id' | 'name' | 'address'>[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     const [items, setItems] = useState<InvoiceItem[]>([{ id: 1, description: 'Service Charges', quantity: 1, rate: 0.03 }]);
@@ -105,11 +103,7 @@ export default function NewInvoicePage() {
     useEffect(() => {
         async function loadData() {
             try {
-                const [staffData, hospitalList] = await Promise.all([
-                    getStaff(),
-                    getHospitals()
-                ]);
-                setAllStaff(staffData);
+                const hospitalList = await getHospitals();
                 setHospitals(hospitalList);
             } catch (error) {
                 console.error(error);
@@ -166,7 +160,7 @@ export default function NewInvoicePage() {
         }));
     };
 
-    const selectedStaff = allStaff.find(s => s.id === selectedStaffId);
+    const selectedHospital = hospitals.find(s => s.id === selectedHospitalId);
 
     if (isLoading) {
         return <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin" /></div>;
@@ -178,7 +172,8 @@ export default function NewInvoicePage() {
     
     return (
         <form action={formAction}>
-            <input type="hidden" name="staffId" value={selectedStaffId} />
+            <input type="hidden" name="staffId" value={fromUser.uid} />
+            <input type="hidden" name="hospitalId" value={selectedHospitalId} />
              <input type="hidden" name="items" value={JSON.stringify(items.map(({ id, ...rest }) => ({
                 ...rest,
                 total: rest.quantity * rest.rate,
@@ -220,16 +215,16 @@ export default function NewInvoicePage() {
                         <div className="space-y-6 text-left md:text-right">
                              <div className="space-y-2">
                                 <h3 className="font-semibold text-muted-foreground">Bill To</h3>
-                                <Select onValueChange={setSelectedStaffId} required>
+                                <Select onValueChange={setSelectedHospitalId} required>
                                     <SelectTrigger className="md:ml-auto md:w-48 text-right">
-                                        <SelectValue placeholder="Select Staff" />
+                                        <SelectValue placeholder="Select Hospital" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {allStaff.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                                        {hospitals.map(h => <SelectItem key={h.id} value={h.id}>{h.name}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
-                                <input type="hidden" name="to" value={selectedStaff?.name ?? ''} />
-                                <Textarea name="address" placeholder="Client Address" className="md:ml-auto md:w-48 text-right" />
+                                <input type="hidden" name="to" value={selectedHospital?.name ?? ''} />
+                                <Textarea name="address" placeholder="Client Address" className="md:ml-auto md:w-48 text-right" value={selectedHospital?.address ?? ''} readOnly />
                             </div>
                             <div className="space-y-2">
                                 <Input name="period" placeholder="Billing Period" className="md:ml-auto md:w-48 text-right" />
@@ -241,14 +236,6 @@ export default function NewInvoicePage() {
                                         <SelectItem value="Fixed">Fixed</SelectItem>
                                         <SelectItem value="Percentage">Percentage</SelectItem>
                                         <SelectItem value="Hybrid">Hybrid</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <Select name="hospital">
-                                    <SelectTrigger className="md:ml-auto md:w-48 text-right">
-                                        <SelectValue placeholder="Select Hospital" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {hospitals.map(h => <SelectItem key={h.id} value={h.name}>{h.name}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -340,3 +327,4 @@ export default function NewInvoicePage() {
     );
 
     
+
