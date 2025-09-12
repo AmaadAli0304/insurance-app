@@ -888,7 +888,6 @@ export async function handleCreateInvoicesTable(prevState: { message: string, ty
           period NVARCHAR(255),
           contract_type NVARCHAR(255),
           service_provided NVARCHAR(MAX),
-          gst NVARCHAR(50),
           bank_name NVARCHAR(255),
           account_name NVARCHAR(255),
           account_number NVARCHAR(50),
@@ -933,4 +932,3 @@ export async function handleCreateInvoiceStaffTable(prevState: { message: string
     return { message: `Error creating Invoice Staff table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
-

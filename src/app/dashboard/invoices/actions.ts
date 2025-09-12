@@ -113,7 +113,6 @@ export async function handleSaveInvoice(prevState: { message: string, type?: str
   const period = formData.get('period') as string;
   const contract_type = formData.get('contract_type') as string;
   const service_provided = formData.get('service_provided') as string;
-  const gst = formData.get('gst') as string;
   const bank_name = formData.get('bank_name') as string;
   const account_name = formData.get('account_name') as string;
   const account_number = formData.get('account_number') as string;
@@ -145,7 +144,6 @@ export async function handleSaveInvoice(prevState: { message: string, type?: str
           .input('period', sql.NVarChar, period)
           .input('contract_type', sql.NVarChar, contract_type)
           .input('service_provided', sql.NVarChar, service_provided)
-          .input('gst', sql.NVarChar, gst)
           .input('bank_name', sql.NVarChar, bank_name)
           .input('account_name', sql.NVarChar, account_name)
           .input('account_number', sql.NVarChar, account_number)
@@ -154,12 +152,12 @@ export async function handleSaveInvoice(prevState: { message: string, type?: str
           .input('staff_id', sql.NVarChar, staffId)
           .query(`
               INSERT INTO Invoices (
-                  "to", hospital, address, period, contract_type, service_provided, gst, 
+                  "to", hospital, address, period, contract_type, service_provided, 
                   bank_name, account_name, account_number, ifsc_code, branch, staff_id, created_at
               )
               OUTPUT INSERTED.id
               VALUES (
-                  @to, @hospital, @address, @period, @contract_type, @service_provided, @gst,
+                  @to, @hospital, @address, @period, @contract_type, @service_provided,
                   @bank_name, @account_name, @account_number, @ifsc_code, @branch, @staff_id, GETDATE()
               )
           `);

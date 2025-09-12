@@ -96,7 +96,6 @@ export default function ViewInvoicePage() {
                             <span className="font-semibold">Account No:</span><span>{invoice.account_number}</span>
                             <span className="font-semibold">IFSC:</span><span>{invoice.ifsc_code}</span>
                             <span className="font-semibold">Branch:</span><span>{invoice.branch}</span>
-                            <span className="font-semibold">GST:</span><span>{invoice.gst}</span>
                         </div>
                     </div>
                     <div className="space-y-6 text-left md:text-right">

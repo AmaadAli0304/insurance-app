@@ -434,7 +434,6 @@ export interface Invoice {
     period: string;
     contract_type: string;
     service_provided: string;
-    gst: string;
     bank_name: string;
     account_name: string;
     account_number: string;

@@ -213,7 +213,6 @@ export default function NewInvoicePage() {
                                 <Input name="account_number" placeholder="Account Number" />
                                 <Input name="ifsc_code" placeholder="IFSC Code" />
                                 <Input name="branch" placeholder="Branch" />
-                                <Input name="gst" placeholder="GST Number" />
                             </div>
                         </div>
                         <div className="space-y-6 text-left md:text-right">
