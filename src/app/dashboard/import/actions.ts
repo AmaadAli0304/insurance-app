@@ -894,7 +894,8 @@ export async function handleCreateInvoicesTable(prevState: { message: string, ty
           account_number NVARCHAR(50),
           ifsc_code NVARCHAR(50),
           branch NVARCHAR(255),
-          staff_id NVARCHAR(255)
+          staff_id NVARCHAR(255),
+          created_at DATETIME DEFAULT GETDATE()
         );
       END
     `;
@@ -932,3 +933,4 @@ export async function handleCreateInvoiceStaffTable(prevState: { message: string
     return { message: `Error creating Invoice Staff table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
+
