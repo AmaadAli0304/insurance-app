@@ -28,7 +28,7 @@ interface InvoiceItem {
   id: number;
   description: string;
   quantity: number;
-  rate: number;
+  rate: number | string;
 }
 
 function SubmitButton({ status }: { status: 'draft' | 'sent' }) {
@@ -157,8 +157,10 @@ export default function NewInvoicePage() {
     const handleItemChange = (id: number, field: keyof Omit<InvoiceItem, 'id'>, value: string) => {
         setItems(items.map(item => {
             if (item.id === id) {
-                const newValue = field === 'description' ? value : parseFloat(value) || 0;
-                return { ...item, [field]: newValue };
+                if (field === 'description') {
+                    return { ...item, [field]: value };
+                }
+                return { ...item, [field]: value };
             }
             return item;
         }));
@@ -180,8 +182,8 @@ export default function NewInvoicePage() {
             <input type="hidden" name="hospitalId" value={selectedHospitalId} />
              <input type="hidden" name="items" value={JSON.stringify(items.map(({ id, ...rest }) => ({
                 ...rest,
-                total: rest.quantity * rest.rate,
-                amount: rest.quantity * rest.rate,
+                total: (Number(rest.quantity) || 0) * (Number(rest.rate) || 0),
+                amount: (Number(rest.quantity) || 0) * (Number(rest.rate) || 0),
             })))} />
              <input type="hidden" name="tax" value={taxRate} />
              <input type="hidden" name="period" value={billingPeriod ? format(billingPeriod, "MMMM yyyy") : ""} />

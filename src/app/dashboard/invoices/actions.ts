@@ -9,7 +9,7 @@ import { redirect } from 'next/navigation';
 
 const invoiceItemSchema = z.object({
   description: z.string(),
-  quantity: z.coerce.number(),
+  qty: z.coerce.number(),
   rate: z.coerce.number(),
   amount: z.coerce.number(),
 });
@@ -170,9 +170,9 @@ export async function handleSaveInvoice(prevState: { message: string, type?: str
           const itemRequest = new sql.Request(transaction);
           await itemRequest
               .input('description', sql.NVarChar, item.description)
-              .input('qty', sql.Int, item.quantity)
+              .input('qty', sql.Int, item.qty)
               .input('rate', sql.Decimal(18, 2), item.rate)
-              .input('total', sql.Decimal(18, 2), item.quantity * item.rate)
+              .input('total', sql.Decimal(18, 2), item.qty * item.rate)
               .input('amount', sql.Decimal(18, 2), item.amount)
               .input('invoice_id', sql.Int, invoiceId)
               .input('staff_id', sql.NVarChar, staffId)
@@ -273,9 +273,9 @@ export async function handleUpdateInvoice(prevState: { message: string, type?: s
           const itemRequest = new sql.Request(transaction);
           await itemRequest
               .input('description', sql.NVarChar, item.description)
-              .input('qty', sql.Int, item.quantity)
+              .input('qty', sql.Int, item.qty)
               .input('rate', sql.Decimal(18, 2), item.rate)
-              .input('total', sql.Decimal(18, 2), item.quantity * item.rate)
+              .input('total', sql.Decimal(18, 2), item.qty * item.rate)
               .input('amount', sql.Decimal(18, 2), item.amount)
               .input('invoice_id', sql.Int, Number(id))
               .input('staff_id', sql.NVarChar, staffId)

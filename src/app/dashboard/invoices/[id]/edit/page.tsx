@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -23,8 +24,9 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
-interface EditInvoiceItem extends InvoiceItem {
+interface EditInvoiceItem extends Omit<InvoiceItem, 'rate'> {
   _id: number; // For temporary client-side unique key
+  rate: number | string;
 }
 
 function SubmitButton() {
@@ -159,8 +161,10 @@ export default function EditInvoicePage() {
     const handleItemChange = (_id: number, field: keyof Omit<EditInvoiceItem, '_id' | 'id' | 'invoice_id' | 'amount'>, value: string) => {
         setItems(items.map(item => {
             if (item._id === _id) {
-                const newValue = field === 'description' ? value : parseFloat(value) || 0;
-                return { ...item, [field]: newValue };
+                 if (field === 'description') {
+                    return { ...item, [field]: value };
+                }
+                return { ...item, [field]: value };
             }
             return item;
         }));
@@ -177,8 +181,9 @@ export default function EditInvoicePage() {
             <input type="hidden" name="hospitalId" value={invoice.hospital} />
              <input type="hidden" name="items" value={JSON.stringify(items.map(({ _id, id, invoice_id, ...rest }) => ({
                 ...rest,
-                total: rest.qty * rest.rate,
-                amount: rest.qty * rest.rate,
+                rate: Number(rest.rate) || 0,
+                total: (Number(rest.qty) || 0) * (Number(rest.rate) || 0),
+                amount: (Number(rest.qty) || 0) * (Number(rest.rate) || 0),
             })))} />
              <input type="hidden" name="tax" value={taxRate} />
              <input type="hidden" name="period" value={billingPeriod ? format(billingPeriod, "MMMM yyyy") : ""} />
