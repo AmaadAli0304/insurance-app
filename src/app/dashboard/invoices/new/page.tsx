@@ -309,7 +309,7 @@ export default function NewInvoicePage() {
                             </TableBody>
                         </Table>
                          <Button type="button" variant="outline" size="sm" onClick={handleAddItem} className="mt-4">
-                            <PlusCircle className="mr-2 h-4 w-4" /> Add Line Item
+                            <PlusCircle className="mr-2 h-4 w-4" /> Add New Charges
                         </Button>
                     </div>
 
