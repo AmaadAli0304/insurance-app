@@ -1,24 +1,50 @@
+
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import type { PatientBilledStat } from "./actions";
+import { getPatientBilledStats, PatientBilledStat, getTpaList, getHospitalList } from "./actions";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { TPA, Hospital } from "@/lib/types";
-
+import { useState, useEffect, useCallback } from "react";
+import { DateRange } from "react-day-picker";
 
 interface PatientBillingTableProps {
-  stats: PatientBilledStat[];
-  tpaList: Pick<TPA, 'id' | 'name'>[];
-  hospitalList: Pick<Hospital, 'id' | 'name'>[];
-  onTpaChange: (tpaId: string | null) => void;
-  onHospitalChange: (hospitalId: string | null) => void;
+  dateRange?: DateRange;
 }
 
-export function PatientBillingTable({ stats, tpaList, hospitalList, onTpaChange, onHospitalChange }: PatientBillingTableProps) {
+export function PatientBillingTable({ dateRange }: PatientBillingTableProps) {
+    const [stats, setStats] = useState<PatientBilledStat[]>([]);
+    const [tpaList, setTpaList] = useState<Pick<TPA, 'id' | 'name'>[]>([]);
+    const [hospitalList, setHospitalList] = useState<Pick<Hospital, 'id' | 'name'>[]>([]);
+    const [selectedHospitalId, setSelectedHospitalId] = useState<string | null>(null);
+    const [selectedTpaId, setSelectedTpaId] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const loadPatientStats = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const [patientData, tpas, hospitals] = await Promise.all([
+                getPatientBilledStats(dateRange, selectedHospitalId, selectedTpaId),
+                getTpaList(),
+                getHospitalList(),
+            ]);
+            setStats(patientData);
+            setTpaList(tpas);
+            setHospitalList(hospitals);
+        } catch (error) {
+            console.error("Failed to load patient billing stats:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [dateRange, selectedHospitalId, selectedTpaId]);
+
+    useEffect(() => {
+        loadPatientStats();
+    }, [loadPatientStats]);
     
     const getInitials = (name: string) => {
         if (!name) return 'P';
@@ -60,7 +86,7 @@ export function PatientBillingTable({ stats, tpaList, hospitalList, onTpaChange,
                     <CardDescription>A summary of billed amounts per patient based on Pre-auth and Enhancement requests.</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Select onValueChange={(value) => onHospitalChange(value === 'all' ? null : value)}>
+                    <Select onValueChange={(value) => setSelectedHospitalId(value === 'all' ? null : value)}>
                         <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder="Filter by Hospital" />
                         </SelectTrigger>
@@ -69,7 +95,7 @@ export function PatientBillingTable({ stats, tpaList, hospitalList, onTpaChange,
                             {hospitalList.map(h => <SelectItem key={h.id} value={h.id}>{h.name}</SelectItem>)}
                         </SelectContent>
                     </Select>
-                    <Select onValueChange={(value) => onTpaChange(value === 'all' ? null : value)}>
+                    <Select onValueChange={(value) => setSelectedTpaId(value === 'all' ? null : value)}>
                         <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder="Filter by TPA" />
                         </SelectTrigger>
@@ -85,42 +111,48 @@ export function PatientBillingTable({ stats, tpaList, hospitalList, onTpaChange,
                 </div>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Sr No</TableHead>
-                            <TableHead>Patient Name</TableHead>
-                            <TableHead>Hospital</TableHead>
-                            <TableHead>TPA / Insurance</TableHead>
-                            <TableHead className="text-right">Amount</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {stats && stats.length > 0 ? (
-                            stats.map((stat, index) => (
-                                <TableRow key={stat.patientId}>
-                                    <TableCell>{index + 1}</TableCell>
-                                    <TableCell className="font-medium flex items-center gap-3">
-                                      <Avatar className="h-10 w-10">
-                                          <AvatarImage src={stat.patientPhoto ?? undefined} alt={stat.patientName} />
-                                          <AvatarFallback>{getInitials(stat.patientName)}</AvatarFallback>
-                                      </Avatar>
-                                      {stat.patientName}
-                                    </TableCell>
-                                    <TableCell>{stat.hospitalName}</TableCell>
-                                    <TableCell>{stat.tpaName}</TableCell>
-                                    <TableCell className="text-right font-mono">${stat.billedAmount.toLocaleString()}</TableCell>
-                                </TableRow>
-                            ))
-                        ) : (
+                 {isLoading ? (
+                    <div className="flex items-center justify-center h-64">
+                        <Loader2 className="h-8 w-8 animate-spin" />
+                    </div>
+                ) : (
+                    <Table>
+                        <TableHeader>
                             <TableRow>
-                                <TableCell colSpan={5} className="h-24 text-center">
-                                    No patient billing data available.
-                                </TableCell>
+                                <TableHead>Sr No</TableHead>
+                                <TableHead>Patient Name</TableHead>
+                                <TableHead>Hospital</TableHead>
+                                <TableHead>TPA / Insurance</TableHead>
+                                <TableHead className="text-right">Amount</TableHead>
                             </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                        </TableHeader>
+                        <TableBody>
+                            {stats && stats.length > 0 ? (
+                                stats.map((stat, index) => (
+                                    <TableRow key={stat.patientId}>
+                                        <TableCell>{index + 1}</TableCell>
+                                        <TableCell className="font-medium flex items-center gap-3">
+                                        <Avatar className="h-10 w-10">
+                                            <AvatarImage src={stat.patientPhoto ?? undefined} alt={stat.patientName} />
+                                            <AvatarFallback>{getInitials(stat.patientName)}</AvatarFallback>
+                                        </Avatar>
+                                        {stat.patientName}
+                                        </TableCell>
+                                        <TableCell>{stat.hospitalName}</TableCell>
+                                        <TableCell>{stat.tpaName}</TableCell>
+                                        <TableCell className="text-right font-mono">${stat.billedAmount.toLocaleString()}</TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="h-24 text-center">
+                                        No patient billing data available.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                )}
             </CardContent>
         </Card>
     );
