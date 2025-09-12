@@ -140,7 +140,7 @@ export function PatientBillingTable({ dateRange }: PatientBillingTableProps) {
                                         </TableCell>
                                         <TableCell>{stat.hospitalName}</TableCell>
                                         <TableCell>{stat.tpaName}</TableCell>
-                                        <TableCell className="text-right font-mono">Rs {stat.billedAmount.toLocaleString()}</TableCell>
+                                        <TableCell className="text-right font-mono">{stat.billedAmount.toLocaleString()}</TableCell>
                                     </TableRow>
                                 ))
                             ) : (
