@@ -45,8 +45,8 @@ export function AdminPatientBillingTable({ stats }: AdminPatientBillingTableProp
                                       {stat.patientName}
                                     </TableCell>
                                     <TableCell>{stat.tpaName}</TableCell>
-                                    <TableCell className="text-right font-mono">Rs {stat.billedAmount.toLocaleString('en-IN')}</TableCell>
-                                    <TableCell className="text-right font-mono">Rs {stat.sanctionedAmount.toLocaleString('en-IN')}</TableCell>
+                                    <TableCell className="text-right font-mono">{stat.billedAmount.toLocaleString('en-IN')}</TableCell>
+                                    <TableCell className="text-right font-mono">{stat.sanctionedAmount.toLocaleString('en-IN')}</TableCell>
                                 </TableRow>
                             ))
                         ) : (
