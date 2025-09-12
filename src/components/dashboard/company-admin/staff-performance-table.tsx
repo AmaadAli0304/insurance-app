@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { StaffPerformanceStat } from "./actions";
 import { Loader2 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface StaffPerformanceTableProps {
   stats: StaffPerformanceStat[];
@@ -13,6 +14,12 @@ interface StaffPerformanceTableProps {
 }
 
 export function StaffPerformanceTable({ stats, isLoading }: StaffPerformanceTableProps) {
+    
+    const getInitials = (name: string) => {
+        if (!name) return 'S';
+        return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    }
+    
     return (
         <Card>
             <CardHeader>
@@ -38,7 +45,13 @@ export function StaffPerformanceTable({ stats, isLoading }: StaffPerformanceTabl
                         {stats && stats.length > 0 ? (
                             stats.map((stat) => (
                                 <TableRow key={stat.staffId}>
-                                    <TableCell className="font-medium">{stat.staffName}</TableCell>
+                                    <TableCell className="font-medium flex items-center gap-3">
+                                        <Avatar className="h-10 w-10">
+                                            <AvatarImage src={stat.staffPhoto ?? undefined} alt={stat.staffName} />
+                                            <AvatarFallback>{getInitials(stat.staffName)}</AvatarFallback>
+                                        </Avatar>
+                                        {stat.staffName}
+                                    </TableCell>
                                     <TableCell>{stat.hospitalName}</TableCell>
                                     <TableCell className="text-right">{stat.numOfCases}</TableCell>
                                     <TableCell className="text-right font-mono">{stat.totalCollection.toLocaleString()}</TableCell>

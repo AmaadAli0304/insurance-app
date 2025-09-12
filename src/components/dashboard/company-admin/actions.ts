@@ -245,6 +245,7 @@ export async function getSimpleHospitalBusinessStats(dateRange?: DateRange): Pro
 export type StaffPerformanceStat = {
   staffId: string;
   staffName: string;
+  staffPhoto: string | null;
   hospitalName: string;
   numOfCases: number;
   totalCollection: number;
@@ -260,34 +261,48 @@ export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<S
             const toDate = dateRange.to || new Date(); 
             request.input('dateFrom', sql.DateTime, dateRange.from);
             request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-            dateFilter = 'AND c.created_at BETWEEN @dateFrom AND @dateTo';
+            dateFilter = `AND c.created_at BETWEEN @dateFrom AND @dateTo`;
         }
 
         const query = `
             SELECT 
                 u.uid AS staffId,
                 u.name AS staffName,
+                u.photo as staffPhoto,
                 ISNULL(h.name, 'N/A') AS hospitalName,
-                ISNULL(COUNT(c.id), 0) AS numOfCases,
+                COUNT(c.id) AS numOfCases,
                 ISNULL(SUM(c.paidAmount), 0) AS totalCollection
             FROM 
                 users u
+            INNER JOIN 
+                claims c ON u.uid = c.created_by
             LEFT JOIN 
                 hospital_staff hs ON u.uid = hs.staff_id
             LEFT JOIN 
                 hospitals h ON hs.hospital_id = h.id
-            LEFT JOIN 
-                claims c ON u.uid = c.created_by AND c.status = 'Final Amount Sanctioned' ${dateFilter}
             WHERE 
-                u.role = 'Hospital Staff'
+                u.role = 'Hospital Staff' AND c.status = 'Final Amount Sanctioned' ${dateFilter}
             GROUP BY 
-                u.uid, u.name, h.name
+                u.uid, u.name, u.photo, h.name
             ORDER BY
                 totalCollection DESC;
         `;
         
         const result = await request.query(query);
-        return result.recordset as StaffPerformanceStat[];
+        return result.recordset.map(row => {
+            let photoUrl = null;
+            if (row.staffPhoto) {
+                try {
+                    const parsed = JSON.parse(row.staffPhoto);
+                    photoUrl = parsed.url;
+                } catch {
+                     if (typeof row.staffPhoto === 'string' && row.staffPhoto.startsWith('http')) {
+                        photoUrl = row.staffPhoto;
+                    }
+                }
+            }
+            return { ...row, staffPhoto: photoUrl };
+        });
 
     } catch (error) {
         console.error('Error fetching staff performance stats:', error);
