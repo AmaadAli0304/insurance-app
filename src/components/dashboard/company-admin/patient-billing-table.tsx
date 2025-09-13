@@ -82,8 +82,8 @@ export function PatientBillingTable({ dateRange }: PatientBillingTableProps) {
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                    <CardTitle>Patient Billing Summary</CardTitle>
-                    <CardDescription>A summary of billed amounts per patient based on Pre-auth and Enhancement requests.</CardDescription>
+                    <CardTitle>Short Payments</CardTitle>
+                    <CardDescription>A summary of short payments per patient.</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
                     <Select onValueChange={(value) => setSelectedHospitalId(value === 'all' ? null : value)}>
