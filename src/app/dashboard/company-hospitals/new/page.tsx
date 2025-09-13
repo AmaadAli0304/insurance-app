@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import type { Staff, Company, TPA } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { PhoneInput } from "@/components/phone-input";
 
 
 function SubmitButton() {
@@ -130,7 +131,7 @@ export default function NewCompanyHospitalPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="phone">Phone</Label>
-                                <Input id="phone" name="phone" placeholder="e.g. 916-453-4444" />
+                                <PhoneInput name="phone" placeholder="e.g. 916-453-4444" />
                             </div>
                         </div>
                         
@@ -271,3 +272,5 @@ export default function NewCompanyHospitalPage() {
         </div>
     );
 }
+
+    

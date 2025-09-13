@@ -21,6 +21,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import type { Staff, Company, TPA, Hospital } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
+import { PhoneInput } from "@/components/phone-input";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -156,7 +157,7 @@ export default function EditCompanyHospitalPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="phone">Phone</Label>
-                                <Input id="phone" name="phone" defaultValue={hospital.phone ?? ""} />
+                                <PhoneInput name="phone" defaultValue={hospital.phone ?? ""} />
                             </div>
                         </div>
 
@@ -297,3 +298,5 @@ export default function EditCompanyHospitalPage() {
         </div>
     );
 }
+
+    
