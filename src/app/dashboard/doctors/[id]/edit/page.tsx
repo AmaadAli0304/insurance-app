@@ -13,6 +13,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { notFound, useRouter, useParams } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { PhoneInput } from "@/components/phone-input";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -120,7 +121,7 @@ export default function EditDoctorPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="phone">Phone</Label>
-                                <Input id="phone" name="phone" defaultValue={doctor.phone ?? ""} />
+                                <PhoneInput name="phone" defaultValue={doctor.phone ?? ""} />
                             </div>
                         </div>
                         <div className="space-y-2">
