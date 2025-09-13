@@ -84,16 +84,20 @@
 }
 
 @media print {
-  body * {
+  body {
     visibility: hidden;
   }
-  #printable-invoice, #printable-invoice * {
-    visibility: visible;
-  }
   #printable-invoice {
+    visibility: visible;
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 0;
+  }
+  .no-print {
+    display: none;
   }
 }
