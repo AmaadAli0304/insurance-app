@@ -7,7 +7,7 @@ import { notFound, useParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Loader2, Download } from "lucide-react";
+import { ArrowLeft, Loader2, Download, Printer } from "lucide-react";
 import type { Invoice, InvoiceItem } from "@/lib/types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
@@ -58,6 +58,10 @@ export default function ViewInvoicePage() {
             setIsLoading(false);
         });
     }, [id]);
+
+    const handlePrint = () => {
+        window.print();
+    };
 
     const handleDownloadPdf = async () => {
         const formToCapture = pdfFormRef.current;
@@ -113,7 +117,7 @@ export default function ViewInvoicePage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between no-print">
                 <div className="flex items-center gap-4">
                     <Button variant="outline" size="icon" asChild>
                         <Link href="/dashboard/invoices">
@@ -127,13 +131,14 @@ export default function ViewInvoicePage() {
                     </div>
                 </div>
                  <div className="flex gap-2">
+                    <Button onClick={handlePrint} variant="outline"><Printer className="mr-2 h-4 w-4" /> Print</Button>
                     <Button onClick={handleDownloadPdf} variant="outline"><Download className="mr-2 h-4 w-4" /> Download as PDF</Button>
                     <Button asChild>
                         <Link href={`/dashboard/invoices/${invoice.id}/edit`}>Edit Invoice</Link>
                     </Button>
                 </div>
             </div>
-            <div ref={pdfFormRef}>
+            <div id="printable-invoice" ref={pdfFormRef}>
                 <Card className="p-6">
                     <div className="grid md:grid-cols-2 gap-12">
                         <div className="space-y-4">
