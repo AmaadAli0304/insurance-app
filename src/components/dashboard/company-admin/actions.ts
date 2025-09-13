@@ -1,3 +1,4 @@
+
 'use server';
 
 import { getDbPool, sql } from '@/lib/db';
@@ -263,25 +264,34 @@ export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<S
         }
 
         const query = `
+            WITH HospitalAssignments AS (
+                SELECT 
+                    staff_id,
+                    STRING_AGG(h.name, ', ') AS hospitalName
+                FROM 
+                    hospital_staff hs
+                JOIN 
+                    hospitals h ON hs.hospital_id = h.id
+                GROUP BY 
+                    staff_id
+            )
             SELECT 
                 u.uid AS staffId,
                 u.name AS staffName,
                 u.photo as staffPhoto,
-                ISNULL(h.name, 'N/A') AS hospitalName,
-                COUNT(c.id) AS numOfCases,
+                ISNULL(ha.hospitalName, 'N/A') AS hospitalName,
+                ISNULL(COUNT(DISTINCT c.id), 0) AS numOfCases,
                 ISNULL(SUM(c.paidAmount), 0) AS totalCollection
             FROM 
                 users u
             LEFT JOIN 
                 claims c ON u.uid = c.created_by AND c.status = 'Final Amount Sanctioned' ${dateFilter}
             LEFT JOIN 
-                hospital_staff hs ON u.uid = hs.staff_id
-            LEFT JOIN 
-                hospitals h ON hs.hospital_id = h.id
+                HospitalAssignments ha ON u.uid = ha.staff_id
             WHERE 
                 u.role = 'Hospital Staff'
             GROUP BY 
-                u.uid, u.name, u.photo, h.name
+                u.uid, u.name, u.photo, ha.hospitalName
             ORDER BY
                 totalCollection DESC;
         `;
@@ -331,3 +341,5 @@ export async function getHospitalList(): Promise<Pick<Hospital, 'id' | 'name'>[]
   }
 }
 
+
+    
