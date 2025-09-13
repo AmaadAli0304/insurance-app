@@ -100,4 +100,8 @@
   .no-print {
     display: none;
   }
+  @page {
+    size: auto;
+    margin: 0;
+  }
 }
