@@ -92,6 +92,7 @@ export interface Patient {
   voter_id_path?: { url: string; name: string; } | string | null;
   driving_licence_path?: { url: string; name: string; } | string | null;
   other_path?: { url: string; name: string; } | string | null;
+  policy_path?: { url: string; name: string; } | string | null;
   discharge_summary_path?: { url: string; name: string; } | string | null;
   final_bill_path?: { url: string; name: string; } | string | null;
   pharmacy_bill_path?: { url: string; name: string; } | string | null;

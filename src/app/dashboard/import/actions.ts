@@ -188,6 +188,7 @@ export async function handleCreatePatientsTable(prevState: { message: string, ty
           voter_id_path NVARCHAR(MAX),
           driving_licence_path NVARCHAR(MAX),
           other_path NVARCHAR(MAX),
+          policy_path NVARCHAR(MAX),
           employee_id NVARCHAR(255),
           abha_id NVARCHAR(255),
           health_id NVARCHAR(255),
@@ -203,6 +204,10 @@ export async function handleCreatePatientsTable(prevState: { message: string, ty
         IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'staff_id' AND Object_ID = Object_ID(N'patients'))
         BEGIN
             ALTER TABLE patients ADD staff_id NVARCHAR(255);
+        END
+        IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'policy_path' AND Object_ID = Object_ID(N'patients'))
+        BEGIN
+            ALTER TABLE patients ADD policy_path NVARCHAR(MAX);
         END
       END
     `;

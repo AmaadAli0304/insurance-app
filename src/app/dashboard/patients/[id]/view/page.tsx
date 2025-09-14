@@ -212,6 +212,7 @@ export default function ViewPatientPage() {
                        <DocumentLink doc={patient.passport_path} label="Passport" />
                        <DocumentLink doc={patient.voter_id_path} label="Voter ID" />
                        <DocumentLink doc={patient.driving_licence_path} label="Driving License" />
+                       <DocumentLink doc={patient.policy_path} label="Policy File" />
                        <DocumentLink doc={patient.other_path} label="Other Document" />
                        <DocumentLink doc={patient.discharge_summary_path} label="Discharge Summary" />
                        <DocumentLink doc={patient.final_bill_path} label="Final Bill" />

@@ -62,6 +62,8 @@ const basePatientObjectSchema = z.object({
   lab_bill_path_name: z.string().optional().nullable(),
   ot_anesthesia_notes_path_url: z.string().optional().nullable(),
   ot_anesthesia_notes_path_name: z.string().optional().nullable(),
+  policy_path_url: z.string().optional().nullable(),
+  policy_path_name: z.string().optional().nullable(),
 
   // Admission Details
   admission_id: z.string().optional().nullable(),
@@ -273,6 +275,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
           p.voter_id_path,
           p.driving_licence_path,
           p.other_path,
+          p.policy_path,
           p.discharge_summary,
           p.final_bill,
           p.pharmacy_bill,
@@ -333,6 +336,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
         voter_id_path: getDocumentData(record.voter_id_path),
         driving_licence_path: getDocumentData(record.driving_licence_path),
         other_path: getDocumentData(record.other_path),
+        policy_path: getDocumentData(record.policy_path),
         discharge_summary_path: getDocumentData(record.discharge_summary),
         final_bill_path: getDocumentData(record.final_bill),
         pharmacy_bill_path: getDocumentData(record.pharmacy_bill),
@@ -604,6 +608,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
     const implantBillJson = createDocumentJson(data.implant_bill_stickers_path_url, data.implant_bill_stickers_path_name);
     const labBillJson = createDocumentJson(data.lab_bill_path_url, data.lab_bill_path_name);
     const otNotesJson = createDocumentJson(data.ot_anesthesia_notes_path_url, data.ot_anesthesia_notes_path_name);
+    const policyJson = createDocumentJson(data.policy_path_url, data.policy_path_name);
     
     // Insert into patients table
     const patientRequest = new sql.Request(transaction);
@@ -635,17 +640,18 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('implant_bill', sql.NVarChar, implantBillJson)
       .input('lab_bill', sql.NVarChar, labBillJson)
       .input('ot_notes', sql.NVarChar, otNotesJson)
+      .input('policy_path', sql.NVarChar, policyJson)
       .query(`
         INSERT INTO patients (
           first_name, last_name, email_address, phone_number, alternative_number, gender, birth_date, address, occupation, 
           employee_id, abha_id, health_id, hospital_id, staff_id, photo, adhaar_path, pan_path, passport_path, voter_id_path, 
-          driving_licence_path, other_path, discharge_summary, final_bill, pharmacy_bill, implant_bill, lab_bill, ot_notes
+          driving_licence_path, other_path, discharge_summary, final_bill, pharmacy_bill, implant_bill, lab_bill, ot_notes, policy_path
         )
         OUTPUT INSERTED.id
         VALUES (
           @first_name, @last_name, @email_address, @phone_number, @alternative_number, @gender, @birth_date, @address, @occupation,
           @employee_id, @abha_id, @health_id, @hospital_id, @staff_id, @photo, @adhaar_path, @pan_path, @passport_path, @voter_id_path, 
-          @driving_licence_path, @other_path, @discharge_summary, @final_bill, @pharmacy_bill, @implant_bill, @lab_bill, @ot_notes
+          @driving_licence_path, @other_path, @discharge_summary, @final_bill, @pharmacy_bill, @implant_bill, @lab_bill, @ot_notes, @policy_path
         )
       `);
     
@@ -794,6 +800,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
         const implantBillJson = createDocumentJson(data.implant_bill_stickers_path_url, data.implant_bill_stickers_path_name);
         const labBillJson = createDocumentJson(data.lab_bill_path_url, data.lab_bill_path_name);
         const otNotesJson = createDocumentJson(data.ot_anesthesia_notes_path_url, data.ot_anesthesia_notes_path_name);
+        const policyJson = createDocumentJson(data.policy_path_url, data.policy_path_name);
 
         const patientRequest = new sql.Request(transaction);
         await patientRequest
@@ -824,6 +831,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
             .input('implant_bill', sql.NVarChar, implantBillJson)
             .input('lab_bill', sql.NVarChar, labBillJson)
             .input('ot_notes', sql.NVarChar, otNotesJson)
+            .input('policy_path', sql.NVarChar, policyJson)
             .query(`
                 UPDATE patients 
                 SET 
@@ -833,7 +841,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
                 photo = @photo, adhaar_path = @adhaar_path, pan_path = @pan_path, passport_path = @passport_path, 
                 voter_id_path = @voter_id_path, driving_licence_path = @driving_licence_path, other_path = @other_path,
                 discharge_summary = @discharge_summary, final_bill = @final_bill, pharmacy_bill = @pharmacy_bill,
-                implant_bill = @implant_bill, lab_bill = @lab_bill, ot_notes = @ot_notes,
+                implant_bill = @implant_bill, lab_bill = @lab_bill, ot_notes = @ot_notes, policy_path = @policy_path,
                 updated_at = GETDATE()
                 WHERE id = @id
             `);
@@ -1050,3 +1058,4 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
     
 
     
+
