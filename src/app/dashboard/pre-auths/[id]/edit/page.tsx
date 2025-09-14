@@ -177,10 +177,11 @@ export default function EditPreAuthPage() {
                         <input type="hidden" name="userId" value={user?.uid ?? ''} />
                         <input type="hidden" name="details" value={emailBody} />
                         
-                        <div className="grid md:grid-cols-2 gap-x-8 gap-y-4 p-4 border rounded-lg bg-muted/50">
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4 p-4 border rounded-lg bg-muted/50">
                             <div><span className="font-semibold">Patient:</span> {request.fullName}</div>
                             <div><span className="font-semibold">Policy Number:</span> {request.policyNumber}</div>
-                            <div><span className="font-semibold">Amount:</span> ${request.totalExpectedCost?.toLocaleString()}</div>
+                            <div><span className="font-semibold">Claim ID:</span> {request.claim_id || 'N/A'}</div>
+                            <div className="lg:col-span-3"><span className="font-semibold">Amount:</span> ${request.totalExpectedCost?.toLocaleString()}</div>
                         </div>
 
                         <div className="space-y-2">
