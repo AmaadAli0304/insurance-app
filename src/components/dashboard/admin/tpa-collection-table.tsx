@@ -5,7 +5,8 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
 import { getTpaCollectionStats, TpaCollectionStat } from "./actions";
-import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Download, Loader2 } from "lucide-react";
 import { DateRange } from "react-day-picker";
 
 interface TpaCollectionTableProps {
@@ -39,11 +40,43 @@ export function TpaCollectionTable({ dateRange }: TpaCollectionTableProps) {
         return acc;
     }, { amount: 0, received: 0, deductions: 0 });
 
+    const handleExport = () => {
+        const headers = ["TPA", "Amount", "Received", "Deductions"];
+        const csvRows = [headers.join(",")];
+
+        stats.forEach((stat) => {
+            const row = [
+                `"${stat.tpaName}"`,
+                stat.amount,
+                stat.received,
+                stat.deductions,
+            ];
+            csvRows.push(row.join(","));
+        });
+
+        const csvContent = csvRows.join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "tpa_collection_summary.csv");
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
         <Card>
-            <CardHeader>
-                <CardTitle>Collection TPA wise</CardTitle>
-                <CardDescription>A summary of billed, received, and deducted amounts per TPA.</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle>Collection TPA wise</CardTitle>
+                    <CardDescription>A summary of billed, received, and deducted amounts per TPA.</CardDescription>
+                </div>
+                <Button onClick={handleExport} variant="outline" size="sm" disabled={stats.length === 0}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Export
+                </Button>
             </CardHeader>
             <CardContent>
                 {isLoading ? (
