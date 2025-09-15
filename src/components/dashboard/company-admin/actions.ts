@@ -383,7 +383,7 @@ export async function getStaffOnDutyStats(): Promise<StaffOnDutyStat[]> {
                 SELECT
                     created_by,
                     SUM(CASE WHEN status = 'Final Amount Sanctioned' THEN 1 ELSE 0 END) as finalApprovalCount,
-                    SUM(CASE WHEN status = 'Settlement Done' THEN 1 ELSE 0 END) as dischargeCount,
+                    SUM(CASE WHEN status = 'Final Discharge sent' THEN 1 ELSE 0 END) as dischargeCount,
                     SUM(CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END) as rejectionCount
                 FROM claims
                 WHERE created_at >= @today AND created_at < @tomorrow
@@ -415,5 +415,6 @@ export async function getStaffOnDutyStats(): Promise<StaffOnDutyStat[]> {
     }
 }
     
+
 
 
