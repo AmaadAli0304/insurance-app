@@ -1,5 +1,3 @@
-
-
 "use server";
 
 import { getDbPool, sql } from "@/lib/db";
@@ -250,54 +248,33 @@ const getDocumentData = (jsonString: string | null | undefined): { url: string; 
 export async function getPatientById(id: string): Promise<Patient | null> {
   try {
     const pool = await getDbPool();
-    const result = await pool.request()
+    const patientResult = await pool.request()
       .input('id', sql.Int, Number(id))
-       .query(`
-        SELECT 
-          p.id as patient_db_id,
-          p.first_name,
-          p.last_name,
-          p.email_address,
-          p.phone_number,
-          p.alternative_number,
-          p.gender,
-          p.age,
-          p.birth_date,
-          p.address,
-          p.occupation,
-          p.employee_id,
-          p.abha_id,
-          p.health_id,
-          p.photo,
-          p.adhaar_path,
-          p.pan_path,
-          p.passport_path,
-          p.voter_id_path,
-          p.driving_licence_path,
-          p.other_path,
-          p.policy_path,
-          p.discharge_summary,
-          p.final_bill,
-          p.pharmacy_bill,
-          p.implant_bill,
-          p.lab_bill,
-          p.ot_notes,
+      .query(`SELECT * FROM patients WHERE id = @id`);
+
+    if (patientResult.recordset.length === 0) {
+      return null;
+    }
+    const patientRecord = patientResult.recordset[0];
+
+    const admissionResult = await pool.request()
+      .input('id', sql.Int, Number(id))
+      .query(`
+        SELECT TOP 1
           a.*,
           a.id as admission_db_id,
           c.name as companyName,
           t.name as tpaName,
           t.email as tpaEmail
-        FROM patients p
-        LEFT JOIN admissions a ON p.id = a.patient_id
+        FROM admissions a
         LEFT JOIN companies c ON a.insurance_company = c.id
         LEFT JOIN tpas t ON a.tpa_id = t.id
-        WHERE p.id = @id
+        WHERE a.patient_id = @id
+        ORDER BY a.created_at DESC
       `);
-      
-    if (result.recordset.length === 0) {
-      return null;
-    }
-    const record = result.recordset[0];
+
+    const record = { ...patientRecord, ...(admissionResult.recordset[0] || {}) };
+    record.patient_db_id = patientRecord.id;
     
     // Get chief complaints
     const complaintsResult = await pool.request()
@@ -415,6 +392,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
         tpaName: record.tpaName,
         tpaEmail: record.tpaEmail,
         complaints: complaints,
+        hospitalId: record.hospital_id,
     };
 
     const dateFields: (keyof Patient)[] = ['dateOfBirth', 'policyStartDate', 'policyEndDate', 'firstConsultationDate', 'injuryDate', 'expectedDeliveryDate', 'admissionDate'];
@@ -488,10 +466,10 @@ export async function getPatientEditPageData(patientId: string) {
         const hospitalId = patientData.hospitalId;
         
         const [companiesResult, tpasResult, doctorsResult, complaintsResult] = await Promise.all([
-            pool.request().query('SELECT id, name FROM companies'),
+            getDbPool().then(pool => pool.request().query('SELECT id, name FROM companies')),
             hospitalId ? getTPAsByHospital(hospitalId) : Promise.resolve([]),
-            pool.request().query('SELECT * FROM doctors'),
-            pool.request().input('patient_id', sql.Int, Number(patientId)).query('SELECT * FROM chief_complaints WHERE patient_id = @patient_id')
+            getDbPool().then(pool => pool.request().query('SELECT * FROM doctors')),
+            getDbPool().then(pool => pool.request().input('patient_id', sql.Int, Number(patientId)).query('SELECT * FROM chief_complaints WHERE patient_id = @patient_id'))
         ]);
 
         const complaints = complaintsResult.recordset.map(c => ({
@@ -499,7 +477,7 @@ export async function getPatientEditPageData(patientId: string) {
             name: c.complaint_name,
             selected: true,
             durationValue: c.duration_value,
-            durationUnit: c.duration_unit
+            durationUnit: c.durationUnit
         }));
 
         type CompaniesType = Pick<Company, 'id' | 'name'>[];
@@ -1080,6 +1058,7 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
     
 
     
+
 
 
 
