@@ -80,6 +80,7 @@ export default function NewRequestPage() {
     const [requestType, setRequestType] = useState("pre-auth");
     const [toEmail, setToEmail] = useState("");
     const [selectedAttachments, setSelectedAttachments] = useState<string[]>([]);
+    const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
     useEffect(() => {
         setEmailBody(draftToHtml(convertToRaw(editorState.getCurrentContent())));
@@ -122,14 +123,18 @@ export default function NewRequestPage() {
             return;
         }
 
+        setIsDownloadingPdf(true);
         toast({
             title: "Generating PDF",
             description: "Please wait while the PDF is being created...",
         });
 
         const canvas = await html2canvas(formToCapture, {
-            scale: 2, // Increase scale for better resolution
+            scale: 2,
             useCORS: true,
+            scrollY: -window.scrollY,
+            windowWidth: document.documentElement.offsetWidth,
+            windowHeight: document.documentElement.offsetHeight,
         });
 
         const imgData = canvas.toDataURL('image/png');
@@ -138,16 +143,29 @@ export default function NewRequestPage() {
             unit: 'mm',
             format: 'a4',
         });
-        
+
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
         const canvasWidth = canvas.width;
         const canvasHeight = canvas.height;
         const ratio = canvasWidth / canvasHeight;
-        const height = pdfWidth / ratio;
 
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, height);
+        const imgHeight = pdfWidth / ratio;
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight);
+        heightLeft -= pdfHeight;
+
+        while (heightLeft > 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+            heightLeft -= pdfHeight;
+        }
+
         pdf.save(`pre-auth-request-${patientDetails.fullName.replace(/ /g, '_')}.pdf`);
+        setIsDownloadingPdf(false);
     };
     
     useEffect(() => {
@@ -1026,8 +1044,8 @@ export default function NewRequestPage() {
 
                      <div className="flex justify-end gap-4">
                         {(addState.type === 'error' || draftState.type === 'error') && <p className="text-sm text-destructive self-center">{addState.message || draftState.message}</p>}
-                        <Button type="button" variant="outline" onClick={handleDownloadPdf}>
-                           <Download className="mr-2 h-4 w-4" />
+                        <Button type="button" variant="outline" onClick={handleDownloadPdf} disabled={isDownloadingPdf}>
+                           {isDownloadingPdf ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
                            Download as PDF
                         </Button>
                         <SubmitButton formAction={addAction} />
