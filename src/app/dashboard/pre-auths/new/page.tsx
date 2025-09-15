@@ -29,6 +29,7 @@ import html2canvas from "html2canvas";
 import dynamic from 'next/dynamic';
 import { EditorState, convertToRaw, ContentState } from 'draft-js';
 import draftToHtml from 'draftjs-to-html';
+import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import { Complaint } from "@/components/chief-complaint-form";
 import { PreAuthMedicalHistory } from "@/components/pre-auths/preauth-medical-history";
 
@@ -470,467 +471,473 @@ export default function NewRequestPage() {
                     <div ref={pdfFormRef}>
                     {patientDetails && (
                         <>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>A. Patient Details</CardTitle>
-                            </CardHeader>
-                            <CardContent className="grid md:grid-cols-3 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="firstName">First Name <span className="text-destructive">*</span></Label>
-                                    <Input id="firstName" name="first_name" defaultValue={patientDetails.firstName} required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="lastName">Last Name <span className="text-destructive">*</span></Label>
-                                    <Input id="lastName" name="last_name" defaultValue={patientDetails.lastName} required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="email_address">Email Address <span className="text-destructive">*</span></Label>
-                                    <Input id="email_address" name="email_address" type="email" defaultValue={patientDetails.email_address ?? ''} required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="phone_number">Registered mobile number <span className="text-destructive">*</span></Label>
-                                    <PhoneInput name="phone_number" defaultValue={patientDetails.phoneNumber ?? ''} required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="alternative_number">Alternate contact number</Label>
-                                    <PhoneInput name="alternative_number" defaultValue={patientDetails.alternative_number ?? ''} />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="gender">Gender <span className="text-destructive">*</span></Label>
-                                    <Select name="gender" defaultValue={patientDetails.gender ?? undefined} required>
-                                        <SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="Male">Male</SelectItem>
-                                            <SelectItem value="Female">Female</SelectItem>
-                                            <SelectItem value="Other">Other</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="age">Age</Label>
-                                    <Input id="age" name="age" type="number" defaultValue={patientDetails.age ?? ''} />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="birth_date">Date of birth</Label>
-                                    <Input id="birth_date" name="birth_date" type="date" defaultValue={formatDateForInput(patientDetails.dateOfBirth)} max={new Date().toISOString().split('T')[0]}/>
-                                </div>
-                                <div className="md:col-span-2 space-y-2">
-                                    <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
-                                    <Input id="address" name="address" defaultValue={patientDetails.address ?? ''} required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="occupation">Occupation</Label>
-                                    <Input id="occupation" name="occupation" defaultValue={patientDetails.occupation ?? ''} />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="employee_id">Employee ID</Label>
-                                    <Input id="employee_id" name="employee_id" defaultValue={patientDetails.employee_id ?? ''} />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="abha_id">ABHA ID</Label>
-                                    <Input id="abha_id" name="abha_id" defaultValue={patientDetails.abha_id ?? ''} />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="health_id">Health ID / UHID <span className="text-destructive">*</span></Label>
-                                    <Input id="health_id" name="health_id" defaultValue={patientDetails.health_id ?? ''} required/>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>B. Insurance & Admission Details</CardTitle>
-                            </CardHeader>
-                            <CardContent className="grid md:grid-cols-3 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="admission_id">Admission ID <span className="text-destructive">*</span></Label>
-                                    <Input id="admission_id" name="admission_id" defaultValue={patientDetails.admission_id ?? ''} required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="claim_id">Claim ID</Label>
-                                    <Input id="claim_id" name="claim_id" />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="relationship_policyholder">Relationship to policyholder <span className="text-destructive">*</span></Label>
-                                    <Input id="relationship_policyholder" name="relationship_policyholder" defaultValue={patientDetails.relationship_policyholder ?? ''} required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="policy_number">Policy number <span className="text-destructive">*</span></Label>
-                                    <Input id="policy_number" name="policy_number" defaultValue={patientDetails.policyNumber ?? ''} required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="insured_card_number">Insured member / card ID number <span className="text-destructive">*</span></Label>
-                                    <Input id="insured_card_number" name="insured_card_number" defaultValue={patientDetails.memberId ?? ''} required />
-                                </div>
-                                 <div className="space-y-2">
-                                    <Label htmlFor="hospitalName">Hospital Name</Label>
-                                    <Input id="hospitalName" name="hospitalName" defaultValue={hospitalDetails?.name ?? ''} readOnly />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="companyName">Insurance Company</Label>
-                                    <Input id="companyName" name="companyName" defaultValue={patientDetails.companyName ?? ''} readOnly />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="policy_start_date">Policy Start Date <span className="text-destructive">*</span></Label>
-                                    <Input id="policy_start_date" name="policy_start_date" type="date" defaultValue={formatDateForInput(patientDetails.policyStartDate)} required max={new Date().toISOString().split('T')[0]} />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="policy_end_date">Policy End Date <span className="text-destructive">*</span></Label>
-                                    <Input id="policy_end_date" name="policy_end_date" type="date" defaultValue={formatDateForInput(patientDetails.policyEndDate)} required min={new Date().toISOString().split('T')[0]} />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="sumInsured">Sum Insured</Label>
-                                    <Input id="sumInsured" name="sumInsured" type="number" defaultValue={patientDetails.sumInsured ?? ''} readOnly />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="sumUtilized">Sum Utilized</Label>
-                                    <Input id="sumUtilized" name="sumUtilized" type="number" defaultValue={patientDetails.sumUtilized ?? ''} readOnly />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="totalSum">Total Sum</Label>
-                                    <Input id="totalSum" name="totalSum" type="number" defaultValue={patientDetails.totalSum ?? ''} readOnly />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="corporate_policy_number">Corporate policy name/number</Label>
-                                    <Input id="corporate_policy_number" name="corporate_policy_number" defaultValue={patientDetails.corporate_policy_number ?? ''} />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="other_policy_name">Other active health insurance</Label>
-                                    <Input id="other_policy_name" name="other_policy_name" defaultValue={patientDetails.other_policy_name ?? ''} placeholder="Name of other insurer" />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="family_doctor_name">Family physician name</Label>
-                                    <Input id="family_doctor_name" name="family_doctor_name" defaultValue={patientDetails.family_doctor_name ?? ''} />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="family_doctor_phone">Family physician contact</Label>
-                                    <PhoneInput name="family_doctor_phone" defaultValue={patientDetails.family_doctor_phone ?? ''} />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="payer_email">Proposer/Payer email ID <span className="text-destructive">*</span></Label>
-                                    <Input id="payer_email" name="payer_email" type="email" defaultValue={patientDetails.payer_email ?? ''} required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="payer_phone">Proposer/Payer phone number <span className="text-destructive">*</span></Label>
-                                    <PhoneInput name="payer_phone" defaultValue={patientDetails.payer_phone ?? ''} required />
-                                </div>
-                                 <div className="space-y-2">
-                                    <Label htmlFor="tpaName">TPA</Label>
-                                    <Input id="tpaName" name="tpaName" defaultValue={patientDetails.tpaName ?? ''} readOnly />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="treat_doc_name">Treating doctor’s name <span className="text-destructive">*</span></Label>
-                                    <Input id="treat_doc_name" name="treat_doc_name" defaultValue={patientDetails.treat_doc_name ?? ''} required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="treat_doc_number">Treating doctor’s contact <span className="text-destructive">*</span></Label>
-                                    <PhoneInput name="treat_doc_number" defaultValue={patientDetails.treat_doc_number ?? ''} required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="treat_doc_qualification">Doctor’s qualification <span className="text-destructive">*</span></Label>
-                                    <Input id="treat_doc_qualification" name="treat_doc_qualification" defaultValue={patientDetails.treat_doc_qualification ?? ''} required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="treat_doc_reg_no">Doctor’s registration no. <span className="text-destructive">*</span></Label>
-                                    <Input id="treat_doc_reg_no" name="treat_doc_reg_no" defaultValue={patientDetails.treat_doc_reg_no ?? ''} required />
-                                </div>
-                            </CardContent>
-                        </Card>
-                        
-                        <Accordion type="multiple" className="w-full space-y-6" defaultValue={["clinical-info", "accident-info", "maternity-info", "cost-info", "medical-history", "declarations-info"]}>
+                        <Accordion type="multiple" className="w-full space-y-6" defaultValue={["patient-details", "insurance-details", "clinical-info", "accident-info", "maternity-info", "cost-info", "medical-history", "declarations-info"]}>
                             <Card>
-                            <AccordionItem value="clinical-info">
-                                <CardHeader>
-                                    <AccordionTrigger>
-                                        <CardTitle>C. Clinical Information</CardTitle>
-                                    </AccordionTrigger>
-                                </CardHeader>
-                                <AccordionContent>
-                                    <CardContent className="grid md:grid-cols-2 gap-4">
-                                         <div className="space-y-2 md:col-span-2">
-                                            <Label htmlFor="natureOfIllness">Nature of illness / presenting complaints</Label>
-                                            <Input id="natureOfIllness" name="natureOfIllness" defaultValue={patientDetails.natureOfIllness ?? ''} />
-                                        </div>
-                                         <div className="space-y-2 md:col-span-2">
-                                            <Label htmlFor="clinicalFindings">Relevant clinical findings</Label>
-                                            <Input id="clinicalFindings" name="clinicalFindings" defaultValue={patientDetails.clinicalFindings ?? ''} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="ailmentDuration">Duration of present ailment (days)</Label>
-                                            <Input id="ailmentDuration" name="ailmentDuration" type="number" defaultValue={patientDetails.ailmentDuration ?? ''} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="firstConsultationDate">Date of first consultation</Label>
-                                            <Input id="firstConsultationDate" name="firstConsultationDate" type="date" defaultValue={formatDateForInput(patientDetails.firstConsultationDate)} />
-                                        </div>
-                                         <div className="space-y-2 md:col-span-2">
-                                            <Label htmlFor="pastHistory">Past history of present ailment</Label>
-                                            <Input id="pastHistory" name="pastHistory" defaultValue={patientDetails.pastHistory ?? ''} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="provisionalDiagnosis">Provisional diagnosis</Label>
-                                            <Input id="provisionalDiagnosis" name="provisionalDiagnosis" defaultValue={patientDetails.provisionalDiagnosis ?? ''} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="icd10Codes">ICD-10 diagnosis code(s)</Label>
-                                            <Input id="icd10Codes" name="icd10Codes" defaultValue={patientDetails.icd10Codes ?? ''} />
-                                        </div>
-                                         <div className="space-y-2 md:col-span-2">
-                                            <Label>Proposed line of treatment</Label>
-                                            <div className="grid md:grid-cols-2 gap-4">
-                                               <Input name="treatmentMedical" placeholder="Medical management" defaultValue={patientDetails.treatmentMedical ?? ''} />
-                                               <Input name="treatmentSurgical" placeholder="Surgical management" defaultValue={patientDetails.treatmentSurgical ?? ''} />
-                                               <Input name="treatmentIntensiveCare" placeholder="Intensive care" defaultValue={patientDetails.treatmentIntensiveCare ?? ''} />
-                                               <Input name="treatmentInvestigation" placeholder="Investigation only" defaultValue={patientDetails.treatmentInvestigation ?? ''} />
-                                               <Input name="treatmentNonAllopathic" placeholder="Non-allopathic" defaultValue={patientDetails.treatmentNonAllopathic ?? ''} />
+                                <AccordionItem value="patient-details">
+                                    <CardHeader>
+                                        <AccordionTrigger>
+                                            <CardTitle>A. Patient Details</CardTitle>
+                                        </AccordionTrigger>
+                                    </CardHeader>
+                                    <AccordionContent>
+                                        <CardContent className="grid md:grid-cols-3 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="firstName">First Name <span className="text-destructive">*</span></Label>
+                                                <Input id="firstName" name="first_name" defaultValue={patientDetails.firstName} required />
                                             </div>
-                                        </div>
-                                         <div className="space-y-2">
-                                            <Label htmlFor="investigationDetails">Investigation / medical management details</Label>
-                                            <Input id="investigationDetails" name="investigationDetails" defaultValue={patientDetails.investigationDetails ?? ''} />
-                                        </div>
-                                         <div className="space-y-2">
-                                            <Label htmlFor="drugRoute">Route of drug administration</Label>
-                                            <Input id="drugRoute" name="drugRoute" defaultValue={patientDetails.drugRoute ?? ''} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="procedureName">Planned procedure / surgery name</Label>
-                                            <Input id="procedureName" name="procedureName" defaultValue={patientDetails.procedureName ?? ''} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="icd10PcsCodes">ICD-10-PCS / procedure code(s)</Label>
-                                            <Input id="icd10PcsCodes" name="icd10PcsCodes" defaultValue={patientDetails.icd10PcsCodes ?? ''} />
-                                        </div>
-                                         <div className="space-y-2 md:col-span-2">
-                                            <Label htmlFor="otherTreatments">Any other treatments (details)</Label>
-                                            <Input id="otherTreatments" name="otherTreatments" defaultValue={patientDetails.otherTreatments ?? ''} />
-                                        </div>
-                                    </CardContent>
-                                </AccordionContent>
-                            </AccordionItem>
-                            </Card>
-
-                            <Card>
-                            <AccordionItem value="accident-info">
-                                 <CardHeader>
-                                    <AccordionTrigger>
-                                        <CardTitle>D. Accident / Medico-Legal</CardTitle>
-                                    </AccordionTrigger>
-                                </CardHeader>
-                                <AccordionContent>
-                                    <CardContent className="grid md:grid-cols-3 gap-4">
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox id="isInjury" name="isInjury" defaultChecked={patientDetails.isInjury}/>
-                                            <Label htmlFor="isInjury">Due to injury/accident?</Label>
-                                        </div>
-                                         <div className="space-y-2 md:col-span-2">
-                                            <Label htmlFor="injuryCause">How did injury occur?</Label>
-                                            <Input id="injuryCause" name="injuryCause" defaultValue={patientDetails.injuryCause ?? ''} />
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox id="isRta" name="isRta" defaultChecked={patientDetails.isRta} />
-                                            <Label htmlFor="isRta">Road Traffic Accident?</Label>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="injuryDate">Date of injury</Label>
-                                            <Input id="injuryDate" name="injuryDate" type="date" defaultValue={formatDateForInput(patientDetails.injuryDate)} />
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox id="isReportedToPolice" name="isReportedToPolice" defaultChecked={patientDetails.isReportedToPolice} />
-                                            <Label htmlFor="isReportedToPolice">Reported to police?</Label>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="firNumber">FIR number</Label>
-                                            <Input id="firNumber" name="firNumber" defaultValue={patientDetails.firNumber ?? ''} />
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox id="isAlcoholSuspected" name="isAlcoholSuspected" defaultChecked={patientDetails.isAlcoholSuspected} />
-                                            <Label htmlFor="isAlcoholSuspected">Alcohol/substance use?</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox id="isToxicologyConducted" name="isToxicologyConducted" defaultChecked={patientDetails.isToxicologyConducted} />
-                                            <Label htmlFor="isToxicologyConducted">Toxicology test done?</Label>
-                                        </div>
-                                    </CardContent>
-                                </AccordionContent>
-                            </AccordionItem>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="lastName">Last Name <span className="text-destructive">*</span></Label>
+                                                <Input id="lastName" name="last_name" defaultValue={patientDetails.lastName} required />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="email_address">Email Address <span className="text-destructive">*</span></Label>
+                                                <Input id="email_address" name="email_address" type="email" defaultValue={patientDetails.email_address ?? ''} required />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="phone_number">Registered mobile number <span className="text-destructive">*</span></Label>
+                                                <PhoneInput name="phone_number" defaultValue={patientDetails.phoneNumber ?? ''} required />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="alternative_number">Alternate contact number</Label>
+                                                <PhoneInput name="alternative_number" defaultValue={patientDetails.alternative_number ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="gender">Gender <span className="text-destructive">*</span></Label>
+                                                <Select name="gender" defaultValue={patientDetails.gender ?? undefined} required>
+                                                    <SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="Male">Male</SelectItem>
+                                                        <SelectItem value="Female">Female</SelectItem>
+                                                        <SelectItem value="Other">Other</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="age">Age</Label>
+                                                <Input id="age" name="age" type="number" defaultValue={patientDetails.age ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="birth_date">Date of birth</Label>
+                                                <Input id="birth_date" name="birth_date" type="date" defaultValue={formatDateForInput(patientDetails.dateOfBirth)} max={new Date().toISOString().split('T')[0]}/>
+                                            </div>
+                                            <div className="md:col-span-2 space-y-2">
+                                                <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
+                                                <Input id="address" name="address" defaultValue={patientDetails.address ?? ''} required />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="occupation">Occupation</Label>
+                                                <Input id="occupation" name="occupation" defaultValue={patientDetails.occupation ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="employee_id">Employee ID</Label>
+                                                <Input id="employee_id" name="employee_id" defaultValue={patientDetails.employee_id ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="abha_id">ABHA ID</Label>
+                                                <Input id="abha_id" name="abha_id" defaultValue={patientDetails.abha_id ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="health_id">Health ID / UHID <span className="text-destructive">*</span></Label>
+                                                <Input id="health_id" name="health_id" defaultValue={patientDetails.health_id ?? ''} required/>
+                                            </div>
+                                        </CardContent>
+                                    </AccordionContent>
+                                </AccordionItem>
                             </Card>
                             
                             <Card>
-                             <AccordionItem value="maternity-info">
-                                 <CardHeader>
-                                    <AccordionTrigger>
-                                        <CardTitle>E. Maternity</CardTitle>
-                                    </AccordionTrigger>
-                                </CardHeader>
-                                <AccordionContent>
-                                    <CardContent className="grid md:grid-cols-3 gap-4">
-                                         <div className="flex items-center space-x-2">
-                                            <Checkbox id="isMaternity" name="isMaternity" defaultChecked={patientDetails.isMaternity} />
-                                            <Label htmlFor="isMaternity">Is this a maternity case?</Label>
-                                        </div>
-                                        <div className="grid grid-cols-4 gap-2 md:col-span-2">
-                                            <Input name="g" type="number" min="0" placeholder="G" defaultValue={patientDetails.g ?? ''} />
-                                            <Input name="p" type="number" min="0" placeholder="P" defaultValue={patientDetails.p ?? ''} />
-                                            <Input name="l" type="number" min="0" placeholder="L" defaultValue={patientDetails.l ?? ''} />
-                                            <Input name="a" type="number" min="0" placeholder="A" defaultValue={patientDetails.a ?? ''} />
-                                        </div>
-                                         <div className="space-y-2">
-                                            <Label htmlFor="expectedDeliveryDate">Expected date of delivery</Label>
-                                            <Input id="expectedDeliveryDate" name="expectedDeliveryDate" type="date" defaultValue={formatDateForInput(patientDetails.expectedDeliveryDate)} />
-                                        </div>
-                                    </CardContent>
-                                </AccordionContent>
-                            </AccordionItem>
-                             </Card>
-
-                             <Card>
-                            <AccordionItem value="cost-info">
-                                <CardHeader>
-                                    <AccordionTrigger>
-                                        <CardTitle>F. Admission & Cost Estimate</CardTitle>
-                                    </AccordionTrigger>
-                                </CardHeader>
-                                <AccordionContent>
-                                     <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={calculateTotalCost}>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="admissionDate">Admission date</Label>
-                                            <Input id="admissionDate" name="admissionDate" type="date" defaultValue={formatDateForInput(patientDetails.admissionDate)} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="admissionTime">Admission time</Label>
-                                            <Input id="admissionTime" name="admissionTime" type="time" defaultValue={patientDetails.admissionTime ?? ''} />
-                                        </div>
-                                         <div className="space-y-2">
-                                            <Label htmlFor="admissionType">Type of admission</Label>
-                                            <Input id="admissionType" name="admissionType" placeholder="e.g. Emergency, Planned" defaultValue={patientDetails.admissionType ?? ''} />
-                                        </div>
-                                         <div className="space-y-2">
-                                            <Label htmlFor="expectedStay">Expected days of stay</Label>
-                                            <Input id="expectedStay" name="expectedStay" type="number" min="0" defaultValue={patientDetails.expectedStay ?? ''} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="expectedIcuStay">Expected days in ICU</Label>
-                                            <Input id="expectedIcuStay" name="expectedIcuStay" type="number" min="0" defaultValue={patientDetails.expectedIcuStay ?? ''} />
-                                        </div>
-                                         <div className="space-y-2">
-                                            <Label htmlFor="roomCategory">Requested room category</Label>
-                                             <Select name="roomCategory" defaultValue={patientDetails.roomCategory ?? undefined}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select a room category" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {roomCategories.map(category => (
-                                                        <SelectItem key={category} value={category}>{category}</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                         <div className="space-y-2">
-                                            <Label htmlFor="roomNursingDietCost">Room + Nursing + Diet (₹)</Label>
-                                            <Input id="roomNursingDietCost" name="roomNursingDietCost" type="number" min="0" defaultValue={patientDetails.roomNursingDietCost ?? ''} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="investigationCost">Diagnostics/investigations cost (₹)</Label>
-                                            <Input id="investigationCost" name="investigationCost" type="number" min="0" defaultValue={patientDetails.investigationCost ?? ''} />
-                                        </div>
-                                         <div className="space-y-2">
-                                            <Label htmlFor="icuCost">ICU charges (₹)</Label>
-                                            <Input id="icuCost" name="icuCost" type="number" min="0" defaultValue={patientDetails.icuCost ?? ''} />
-                                        </div>
-                                         <div className="space-y-2">
-                                            <Label htmlFor="otCost">OT charges (₹)</Label>
-                                            <Input id="otCost" name="otCost" type="number" min="0" defaultValue={patientDetails.otCost ?? ''} />
-                                        </div>
-                                         <div className="space-y-2">
-                                            <Label htmlFor="professionalFees">Professional fees (₹)</Label>
-                                            <Input id="professionalFees" name="professionalFees" type="number" min="0" defaultValue={patientDetails.professionalFees ?? ''} />
-                                        </div>
-                                         <div className="space-y-2">
-                                            <Label htmlFor="medicineCost">Medicines + consumables (₹)</Label>
-                                            <Input id="medicineCost" name="medicineCost" type="number" min="0" defaultValue={patientDetails.medicineCost ?? ''} />
-                                        </div>
-                                         <div className="space-y-2">
-                                            <Label htmlFor="otherHospitalExpenses">Other hospital expenses (₹)</Label>
-                                            <Input id="otherHospitalExpenses" name="otherHospitalExpenses" type="number" min="0" defaultValue={patientDetails.otherHospitalExpenses ?? ''} />
-                                        </div>
-                                         <div className="space-y-2">
-                                            <Label htmlFor="packageCharges">All-inclusive package charges (₹)</Label>
-                                            <Input id="packageCharges" name="packageCharges" type="number" min="0" defaultValue={patientDetails.packageCharges ?? ''} />
-                                        </div>
-                                         <div className="space-y-2 md:col-span-3">
-                                            <Label htmlFor="totalExpectedCost-display">Total expected cost (₹)</Label>
-                                            <Input id="totalExpectedCost-display" name="totalExpectedCost-display" type="number" min="0" value={totalCost} readOnly className="font-bold text-lg" />
-                                        </div>
-                                    </CardContent>
-                                </AccordionContent>
-                            </AccordionItem>
-                             </Card>
-                             
+                                <AccordionItem value="insurance-details">
+                                    <CardHeader>
+                                        <AccordionTrigger>
+                                            <CardTitle>B. Insurance & Admission Details</CardTitle>
+                                        </AccordionTrigger>
+                                    </CardHeader>
+                                    <AccordionContent>
+                                        <CardContent className="grid md:grid-cols-3 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="admission_id">Admission ID <span className="text-destructive">*</span></Label>
+                                                <Input id="admission_id" name="admission_id" defaultValue={patientDetails.admission_id ?? ''} required />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="claim_id">Claim ID</Label>
+                                                <Input id="claim_id" name="claim_id" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="relationship_policyholder">Relationship to policyholder <span className="text-destructive">*</span></Label>
+                                                <Input id="relationship_policyholder" name="relationship_policyholder" defaultValue={patientDetails.relationship_policyholder ?? ''} required />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="policy_number">Policy number <span className="text-destructive">*</span></Label>
+                                                <Input id="policy_number" name="policy_number" defaultValue={patientDetails.policyNumber ?? ''} required />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="insured_card_number">Insured member / card ID number <span className="text-destructive">*</span></Label>
+                                                <Input id="insured_card_number" name="insured_card_number" defaultValue={patientDetails.memberId ?? ''} required />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="hospitalName">Hospital Name</Label>
+                                                <Input id="hospitalName" name="hospitalName" defaultValue={hospitalDetails?.name ?? ''} readOnly />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="companyName">Insurance Company</Label>
+                                                <Input id="companyName" name="companyName" defaultValue={patientDetails.companyName ?? ''} readOnly />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="policy_start_date">Policy Start Date <span className="text-destructive">*</span></Label>
+                                                <Input id="policy_start_date" name="policy_start_date" type="date" defaultValue={formatDateForInput(patientDetails.policyStartDate)} required max={new Date().toISOString().split('T')[0]} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="policy_end_date">Policy End Date <span className="text-destructive">*</span></Label>
+                                                <Input id="policy_end_date" name="policy_end_date" type="date" defaultValue={formatDateForInput(patientDetails.policyEndDate)} required min={new Date().toISOString().split('T')[0]} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="sumInsured">Sum Insured</Label>
+                                                <Input id="sumInsured" name="sumInsured" type="number" defaultValue={patientDetails.sumInsured ?? ''} readOnly />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="sumUtilized">Sum Utilized</Label>
+                                                <Input id="sumUtilized" name="sumUtilized" type="number" defaultValue={patientDetails.sumUtilized ?? ''} readOnly />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="totalSum">Total Sum</Label>
+                                                <Input id="totalSum" name="totalSum" type="number" defaultValue={patientDetails.totalSum ?? ''} readOnly />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="corporate_policy_number">Corporate policy name/number</Label>
+                                                <Input id="corporate_policy_number" name="corporate_policy_number" defaultValue={patientDetails.corporate_policy_number ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="other_policy_name">Other active health insurance</Label>
+                                                <Input id="other_policy_name" name="other_policy_name" defaultValue={patientDetails.other_policy_name ?? ''} placeholder="Name of other insurer" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="family_doctor_name">Family physician name</Label>
+                                                <Input id="family_doctor_name" name="family_doctor_name" defaultValue={patientDetails.family_doctor_name ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="family_doctor_phone">Family physician contact</Label>
+                                                <PhoneInput name="family_doctor_phone" defaultValue={patientDetails.family_doctor_phone ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="payer_email">Proposer/Payer email ID <span className="text-destructive">*</span></Label>
+                                                <Input id="payer_email" name="payer_email" type="email" defaultValue={patientDetails.payer_email ?? ''} required />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="payer_phone">Proposer/Payer phone number <span className="text-destructive">*</span></Label>
+                                                <PhoneInput name="payer_phone" defaultValue={patientDetails.payer_phone ?? ''} required />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="tpaName">TPA</Label>
+                                                <Input id="tpaName" name="tpaName" defaultValue={patientDetails.tpaName ?? ''} readOnly />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="treat_doc_name">Treating doctor’s name <span className="text-destructive">*</span></Label>
+                                                <Input id="treat_doc_name" name="treat_doc_name" defaultValue={patientDetails.treat_doc_name ?? ''} required />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="treat_doc_number">Treating doctor’s contact <span className="text-destructive">*</span></Label>
+                                                <PhoneInput name="treat_doc_number" defaultValue={patientDetails.treat_doc_number ?? ''} required />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="treat_doc_qualification">Doctor’s qualification <span className="text-destructive">*</span></Label>
+                                                <Input id="treat_doc_qualification" name="treat_doc_qualification" defaultValue={patientDetails.treat_doc_qualification ?? ''} required />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="treat_doc_reg_no">Doctor’s registration no. <span className="text-destructive">*</span></Label>
+                                                <Input id="treat_doc_reg_no" name="treat_doc_reg_no" defaultValue={patientDetails.treat_doc_reg_no ?? ''} required />
+                                            </div>
+                                        </CardContent>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            </Card>
+                            
+                            <Card>
+                                <AccordionItem value="clinical-info">
+                                    <CardHeader>
+                                        <AccordionTrigger>
+                                            <CardTitle>C. Clinical Information</CardTitle>
+                                        </AccordionTrigger>
+                                    </CardHeader>
+                                    <AccordionContent>
+                                        <CardContent className="grid md:grid-cols-2 gap-4">
+                                            <div className="space-y-2 md:col-span-2">
+                                                <Label htmlFor="natureOfIllness">Nature of illness / presenting complaints</Label>
+                                                <Input id="natureOfIllness" name="natureOfIllness" defaultValue={patientDetails.natureOfIllness ?? ''} />
+                                            </div>
+                                            <div className="space-y-2 md:col-span-2">
+                                                <Label htmlFor="clinicalFindings">Relevant clinical findings</Label>
+                                                <Input id="clinicalFindings" name="clinicalFindings" defaultValue={patientDetails.clinicalFindings ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="ailmentDuration">Duration of present ailment (days)</Label>
+                                                <Input id="ailmentDuration" name="ailmentDuration" type="number" defaultValue={patientDetails.ailmentDuration ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="firstConsultationDate">Date of first consultation</Label>
+                                                <Input id="firstConsultationDate" name="firstConsultationDate" type="date" defaultValue={formatDateForInput(patientDetails.firstConsultationDate)} />
+                                            </div>
+                                            <div className="space-y-2 md:col-span-2">
+                                                <Label htmlFor="pastHistory">Past history of present ailment</Label>
+                                                <Input id="pastHistory" name="pastHistory" defaultValue={patientDetails.pastHistory ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="provisionalDiagnosis">Provisional diagnosis</Label>
+                                                <Input id="provisionalDiagnosis" name="provisionalDiagnosis" defaultValue={patientDetails.provisionalDiagnosis ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="icd10Codes">ICD-10 diagnosis code(s)</Label>
+                                                <Input id="icd10Codes" name="icd10Codes" defaultValue={patientDetails.icd10Codes ?? ''} />
+                                            </div>
+                                            <div className="space-y-2 md:col-span-2">
+                                                <Label>Proposed line of treatment</Label>
+                                                <div className="grid md:grid-cols-2 gap-4">
+                                                <Input name="treatmentMedical" placeholder="Medical management" defaultValue={patientDetails.treatmentMedical ?? ''} />
+                                                <Input name="treatmentSurgical" placeholder="Surgical management" defaultValue={patientDetails.treatmentSurgical ?? ''} />
+                                                <Input name="treatmentIntensiveCare" placeholder="Intensive care" defaultValue={patientDetails.treatmentIntensiveCare ?? ''} />
+                                                <Input name="treatmentInvestigation" placeholder="Investigation only" defaultValue={patientDetails.treatmentInvestigation ?? ''} />
+                                                <Input name="treatmentNonAllopathic" placeholder="Non-allopathic" defaultValue={patientDetails.treatmentNonAllopathic ?? ''} />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="investigationDetails">Investigation / medical management details</Label>
+                                                <Input id="investigationDetails" name="investigationDetails" defaultValue={patientDetails.investigationDetails ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="drugRoute">Route of drug administration</Label>
+                                                <Input id="drugRoute" name="drugRoute" defaultValue={patientDetails.drugRoute ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="procedureName">Planned procedure / surgery name</Label>
+                                                <Input id="procedureName" name="procedureName" defaultValue={patientDetails.procedureName ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="icd10PcsCodes">ICD-10-PCS / procedure code(s)</Label>
+                                                <Input id="icd10PcsCodes" name="icd10PcsCodes" defaultValue={patientDetails.icd10PcsCodes ?? ''} />
+                                            </div>
+                                            <div className="space-y-2 md:col-span-2">
+                                                <Label htmlFor="otherTreatments">Any other treatments (details)</Label>
+                                                <Input id="otherTreatments" name="otherTreatments" defaultValue={patientDetails.otherTreatments ?? ''} />
+                                            </div>
+                                        </CardContent>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            </Card>
+                            <Card>
+                                <AccordionItem value="accident-info">
+                                    <CardHeader>
+                                        <AccordionTrigger>
+                                            <CardTitle>D. Accident / Medico-Legal</CardTitle>
+                                        </AccordionTrigger>
+                                    </CardHeader>
+                                    <AccordionContent>
+                                        <CardContent className="grid md:grid-cols-3 gap-4">
+                                            <div className="flex items-center space-x-2">
+                                                <Checkbox id="isInjury" name="isInjury" defaultChecked={patientDetails.isInjury}/>
+                                                <Label htmlFor="isInjury">Due to injury/accident?</Label>
+                                            </div>
+                                            <div className="space-y-2 md:col-span-2">
+                                                <Label htmlFor="injuryCause">How did injury occur?</Label>
+                                                <Input id="injuryCause" name="injuryCause" defaultValue={patientDetails.injuryCause ?? ''} />
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <Checkbox id="isRta" name="isRta" defaultChecked={patientDetails.isRta} />
+                                                <Label htmlFor="isRta">Road Traffic Accident?</Label>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="injuryDate">Date of injury</Label>
+                                                <Input id="injuryDate" name="injuryDate" type="date" defaultValue={formatDateForInput(patientDetails.injuryDate)} />
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <Checkbox id="isReportedToPolice" name="isReportedToPolice" defaultChecked={patientDetails.isReportedToPolice} />
+                                                <Label htmlFor="isReportedToPolice">Reported to police?</Label>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="firNumber">FIR number</Label>
+                                                <Input id="firNumber" name="firNumber" defaultValue={patientDetails.firNumber ?? ''} />
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <Checkbox id="isAlcoholSuspected" name="isAlcoholSuspected" defaultChecked={patientDetails.isAlcoholSuspected} />
+                                                <Label htmlFor="isAlcoholSuspected">Alcohol/substance use?</Label>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <Checkbox id="isToxicologyConducted" name="isToxicologyConducted" defaultChecked={patientDetails.isToxicologyConducted} />
+                                                <Label htmlFor="isToxicologyConducted">Toxicology test done?</Label>
+                                            </div>
+                                        </CardContent>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            </Card>
+                            <Card>
+                                <AccordionItem value="maternity-info">
+                                    <CardHeader>
+                                        <AccordionTrigger>
+                                            <CardTitle>E. Maternity</CardTitle>
+                                        </AccordionTrigger>
+                                    </CardHeader>
+                                    <AccordionContent>
+                                        <CardContent className="grid md:grid-cols-3 gap-4">
+                                            <div className="flex items-center space-x-2">
+                                                <Checkbox id="isMaternity" name="isMaternity" defaultChecked={patientDetails.isMaternity} />
+                                                <Label htmlFor="isMaternity">Is this a maternity case?</Label>
+                                            </div>
+                                            <div className="grid grid-cols-4 gap-2 md:col-span-2">
+                                                <Input name="g" type="number" min="0" placeholder="G" defaultValue={patientDetails.g ?? ''} />
+                                                <Input name="p" type="number" min="0" placeholder="P" defaultValue={patientDetails.p ?? ''} />
+                                                <Input name="l" type="number" min="0" placeholder="L" defaultValue={patientDetails.l ?? ''} />
+                                                <Input name="a" type="number" min="0" placeholder="A" defaultValue={patientDetails.a ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="expectedDeliveryDate">Expected date of delivery</Label>
+                                                <Input id="expectedDeliveryDate" name="expectedDeliveryDate" type="date" defaultValue={formatDateForInput(patientDetails.expectedDeliveryDate)} />
+                                            </div>
+                                        </CardContent>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            </Card>
+                            <Card>
+                                <AccordionItem value="cost-info">
+                                    <CardHeader>
+                                        <AccordionTrigger>
+                                            <CardTitle>F. Admission & Cost Estimate</CardTitle>
+                                        </AccordionTrigger>
+                                    </CardHeader>
+                                    <AccordionContent>
+                                        <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={calculateTotalCost}>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="admissionDate">Admission date</Label>
+                                                <Input id="admissionDate" name="admissionDate" type="date" defaultValue={formatDateForInput(patientDetails.admissionDate)} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="admissionTime">Admission time</Label>
+                                                <Input id="admissionTime" name="admissionTime" type="time" defaultValue={patientDetails.admissionTime ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="admissionType">Type of admission</Label>
+                                                <Input id="admissionType" name="admissionType" placeholder="e.g. Emergency, Planned" defaultValue={patientDetails.admissionType ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="expectedStay">Expected days of stay</Label>
+                                                <Input id="expectedStay" name="expectedStay" type="number" min="0" defaultValue={patientDetails.expectedStay ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="expectedIcuStay">Expected days in ICU</Label>
+                                                <Input id="expectedIcuStay" name="expectedIcuStay" type="number" min="0" defaultValue={patientDetails.expectedIcuStay ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="roomCategory">Requested room category</Label>
+                                                <Select name="roomCategory" defaultValue={patientDetails.roomCategory ?? undefined}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select a room category" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {roomCategories.map(category => (
+                                                            <SelectItem key={category} value={category}>{category}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="roomNursingDietCost">Room + Nursing + Diet (₹)</Label>
+                                                <Input id="roomNursingDietCost" name="roomNursingDietCost" type="number" min="0" defaultValue={patientDetails.roomNursingDietCost ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="investigationCost">Diagnostics/investigations cost (₹)</Label>
+                                                <Input id="investigationCost" name="investigationCost" type="number" min="0" defaultValue={patientDetails.investigationCost ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="icuCost">ICU charges (₹)</Label>
+                                                <Input id="icuCost" name="icuCost" type="number" min="0" defaultValue={patientDetails.icuCost ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="otCost">OT charges (₹)</Label>
+                                                <Input id="otCost" name="otCost" type="number" min="0" defaultValue={patientDetails.otCost ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="professionalFees">Professional fees (₹)</Label>
+                                                <Input id="professionalFees" name="professionalFees" type="number" min="0" defaultValue={patientDetails.professionalFees ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="medicineCost">Medicines + consumables (₹)</Label>
+                                                <Input id="medicineCost" name="medicineCost" type="number" min="0" defaultValue={patientDetails.medicineCost ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="otherHospitalExpenses">Other hospital expenses (₹)</Label>
+                                                <Input id="otherHospitalExpenses" name="otherHospitalExpenses" type="number" min="0" defaultValue={patientDetails.otherHospitalExpenses ?? ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="packageCharges">All-inclusive package charges (₹)</Label>
+                                                <Input id="packageCharges" name="packageCharges" type="number" min="0" defaultValue={patientDetails.packageCharges ?? ''} />
+                                            </div>
+                                            <div className="space-y-2 md:col-span-3">
+                                                <Label htmlFor="totalExpectedCost-display">Total expected cost (₹)</Label>
+                                                <Input id="totalExpectedCost-display" name="totalExpectedCost-display" type="number" min="0" value={totalCost} readOnly className="font-bold text-lg" />
+                                            </div>
+                                        </CardContent>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            </Card>
                             <PreAuthMedicalHistory initialData={patientDetails.complaints || []} />
-                             
-                              <Card>
-                             <AccordionItem value="declarations-info">
-                                <CardHeader>
-                                    <AccordionTrigger>
-                                        <CardTitle>H. Declarations &amp; Attachments</CardTitle>
-                                    </AccordionTrigger>
-                                </CardHeader>
-                                <AccordionContent>
-                                     <CardContent className="space-y-4">
-                                        <div className="grid md:grid-cols-3 gap-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="patientDeclarationName">Patient/insured name</Label>
-                                                <Input id="patientDeclarationName" name="patientDeclarationName" defaultValue={patientDetails.patientDeclarationName ?? patientDetails.fullName}/>
+                            <Card>
+                                <AccordionItem value="declarations-info">
+                                    <CardHeader>
+                                        <AccordionTrigger>
+                                            <CardTitle>H. Declarations &amp; Attachments</CardTitle>
+                                        </AccordionTrigger>
+                                    </CardHeader>
+                                    <AccordionContent>
+                                        <CardContent className="space-y-4">
+                                            <div className="grid md:grid-cols-3 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="patientDeclarationName">Patient/insured name</Label>
+                                                    <Input id="patientDeclarationName" name="patientDeclarationName" defaultValue={patientDetails.patientDeclarationName ?? patientDetails.fullName}/>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="patientDeclarationContact">Contact number</Label>
+                                                    <PhoneInput name="patientDeclarationContact" defaultValue={patientDetails.patientDeclarationContact ?? patientDetails.phoneNumber ?? ''} />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="patientDeclarationEmail">Email ID</Label>
+                                                    <Input id="patientDeclarationEmail" name="patientDeclarationEmail" type="email" defaultValue={patientDetails.patientDeclarationEmail ?? patientDetails.email_address ?? ''} />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="patientDeclarationDate">Declaration date</Label>
+                                                    <Input id="patientDeclarationDate" name="patientDeclarationDate" type="date" defaultValue={formatDateForInput(patientDetails.patientDeclarationDate)} />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="patientDeclarationTime">Declaration time</Label>
+                                                    <Input id="patientDeclarationTime" name="patientDeclarationTime" type="time" defaultValue={patientDetails.patientDeclarationTime ?? ''} />
+                                                </div>
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="patientDeclarationContact">Contact number</Label>
-                                                <PhoneInput name="patientDeclarationContact" defaultValue={patientDetails.patientDeclarationContact ?? patientDetails.phoneNumber ?? ''} />
+                                            <div className="grid md:grid-cols-3 gap-4 border-t pt-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="hospitalDeclarationDoctorName">Hospital declaration – doctor name</Label>
+                                                    <Input id="hospitalDeclarationDoctorName" name="hospitalDeclarationDoctorName" defaultValue={patientDetails.hospitalDeclarationDoctorName ?? patientDetails.treat_doc_name} />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="hospitalDeclarationDate">Declaration date</Label>
+                                                    <Input id="hospitalDeclarationDate" name="hospitalDeclarationDate" type="date" defaultValue={formatDateForInput(patientDetails.hospitalDeclarationDate)} />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="hospitalDeclarationTime">Declaration time</Label>
+                                                    <Input id="hospitalDeclarationTime" name="hospitalDeclarationTime" type="time" defaultValue={patientDetails.hospitalDeclarationTime ?? ''} />
+                                                </div>
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="patientDeclarationEmail">Email ID</Label>
-                                                <Input id="patientDeclarationEmail" name="patientDeclarationEmail" type="email" defaultValue={patientDetails.patientDeclarationEmail ?? patientDetails.email_address ?? ''} />
+                                            <div className="space-y-2 pt-4 border-t">
+                                                <Label>Attachments to enclose</Label>
+                                                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                                    {['Aadhar Card', 'Pan Card', 'Insurance Policy / E Card', 'ICP Paper / OPD Paper', 'Lab Report'].map(item => (
+                                                        <div key={item} className="flex items-center space-x-2">
+                                                            <Checkbox id={`att-${item}`} name="attachments" value={item} defaultChecked={patientDetails.attachments?.includes(item)} />
+                                                            <Label htmlFor={`att-${item}`} className="font-normal">{item}</Label>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="patientDeclarationDate">Declaration date</Label>
-                                                <Input id="patientDeclarationDate" name="patientDeclarationDate" type="date" defaultValue={formatDateForInput(patientDetails.patientDeclarationDate)} />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="patientDeclarationTime">Declaration time</Label>
-                                                <Input id="patientDeclarationTime" name="patientDeclarationTime" type="time" defaultValue={patientDetails.patientDeclarationTime ?? ''} />
-                                            </div>
-                                        </div>
-                                         <div className="grid md:grid-cols-3 gap-4 border-t pt-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="hospitalDeclarationDoctorName">Hospital declaration – doctor name</Label>
-                                                <Input id="hospitalDeclarationDoctorName" name="hospitalDeclarationDoctorName" defaultValue={patientDetails.hospitalDeclarationDoctorName ?? patientDetails.treat_doc_name} />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="hospitalDeclarationDate">Declaration date</Label>
-                                                <Input id="hospitalDeclarationDate" name="hospitalDeclarationDate" type="date" defaultValue={formatDateForInput(patientDetails.hospitalDeclarationDate)} />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="hospitalDeclarationTime">Declaration time</Label>
-                                                <Input id="hospitalDeclarationTime" name="hospitalDeclarationTime" type="time" defaultValue={patientDetails.hospitalDeclarationTime ?? ''} />
-                                            </div>
-                                        </div>
-                                         <div className="space-y-2 pt-4 border-t">
-                                            <Label>Attachments to enclose</Label>
-                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                                {['Aadhar Card', 'Pan Card', 'Insurance Policy / E Card', 'ICP Paper / OPD Paper', 'Lab Report'].map(item => (
-                                                     <div key={item} className="flex items-center space-x-2">
-                                                        <Checkbox id={`att-${item}`} name="attachments" value={item} defaultChecked={patientDetails.attachments?.includes(item)} />
-                                                        <Label htmlFor={`att-${item}`} className="font-normal">{item}</Label>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </AccordionContent>
-                            </AccordionItem>
-                             </Card>
+                                        </CardContent>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            </Card>
                         </Accordion>
-
                         </>
                     )}
                     </div>
