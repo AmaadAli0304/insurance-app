@@ -373,18 +373,18 @@ export async function getStaffOnDutyStats(): Promise<StaffOnDutyStat[]> {
             ),
             StaffActionStats AS (
                 SELECT
-                    staff_id,
+                    user_id,
                     SUM(CASE WHEN status = 'Pre auth Sent' THEN 1 ELSE 0 END) as preAuthCount,
                     SUM(CASE WHEN status IN ('Final Amount Sanctioned', 'Final Discharge sent') THEN 1 ELSE 0 END) as finalApprovalCount,
                     SUM(CASE WHEN status = 'Settlement Done' THEN 1 ELSE 0 END) as dischargeCount,
                     SUM(CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END) as rejectionCount
                 FROM (
-                    SELECT staff_id, status, created_at FROM preauth_request
+                    SELECT staff_id as user_id, status, created_at FROM preauth_request
                     UNION ALL
-                    SELECT created_by, status, created_at FROM claims
+                    SELECT created_by as user_id, status, created_at FROM claims
                 ) as actions
                 WHERE created_at >= @today AND created_at < @tomorrow
-                GROUP BY staff_id
+                GROUP BY user_id
             )
             SELECT
                 u.uid as staffId,
@@ -398,7 +398,7 @@ export async function getStaffOnDutyStats(): Promise<StaffOnDutyStat[]> {
             JOIN users u ON ps.staff_id = u.uid
             LEFT JOIN hospital_staff hs ON u.uid = hs.staff_id
             LEFT JOIN hospitals h ON hs.hospital_id = h.id
-            LEFT JOIN StaffActionStats sas ON u.uid = sas.staff_id
+            LEFT JOIN StaffActionStats sas ON u.uid = sas.user_id
             ORDER BY u.name;
         `;
         
