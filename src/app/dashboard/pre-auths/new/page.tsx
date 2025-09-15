@@ -68,7 +68,7 @@ const PdfPreAuthForm = ({
     if (!patient) return null;
 
     const Field = ({ label, value }: { label: string; value?: string | number | null }) => (
-        <div className="flex border-b py-1">
+        <div className="flex border-b py-1 text-xs">
             <div className="w-1/3 text-gray-600">{label}</div>
             <div className="w-2/3 font-medium text-black">{value || ''}</div>
         </div>
@@ -77,8 +77,11 @@ const PdfPreAuthForm = ({
     return (
         <div 
             ref={formRef} 
-            className="absolute left-[-9999px] top-0 w-[800px] bg-white p-10 text-base"
+            className="absolute left-[-9999px] top-0 w-[800px] bg-white p-10 text-sm"
         >
+            <style>{`
+                .pdf-section { page-break-before: always; break-before: page; }
+            `}</style>
             <div className="text-center mb-8">
                 <h1 className="text-3xl font-bold text-blue-700">Pre-Authorization Request Form</h1>
                 <p className="text-gray-500 mt-2">{hospital?.name}</p>
@@ -103,7 +106,7 @@ const PdfPreAuthForm = ({
                 </div>
             </div>
 
-            <div className="mb-6">
+            <div className="mb-6 pdf-section">
                 <h2 className="text-xl font-semibold bg-blue-700 text-white p-2 rounded-t-md">B. Insurance & Admission Details</h2>
                 <div className="border p-4 rounded-b-md space-y-2">
                     <Field label="Admission ID" value={patient.admission_id} />
@@ -130,7 +133,7 @@ const PdfPreAuthForm = ({
                 </div>
             </div>
             
-             <div className="mb-6" style={{ pageBreakInside: 'avoid' }}>
+             <div className="mb-6 pdf-section">
                 <h2 className="text-xl font-semibold bg-blue-700 text-white p-2 rounded-t-md">F. Admission & Cost Estimate</h2>
                 <div className="border p-4 rounded-b-md space-y-2">
                     <Field label="Admission Date" value={patient.admissionDate ? format(new Date(patient.admissionDate), 'MMMM dd, yyyy') : ''} />
@@ -1158,4 +1161,5 @@ export default function NewRequestPage() {
         </div>
     );
 }
+
 
