@@ -145,6 +145,7 @@ export default function EditPreAuthPage() {
         { key: 'passport_path', label: 'Passport' },
         { key: 'voter_id_path', label: 'Voter ID' },
         { key: 'driving_licence_path', label: 'Driving License' },
+        { key: 'policy_path', label: 'Policy File' },
         { key: 'other_path', label: 'Other Document' },
         { key: 'discharge_summary_path', label: 'Discharge Summary' },
         { key: 'final_bill_path', label: 'Final Bill' },
