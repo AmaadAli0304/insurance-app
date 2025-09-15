@@ -178,7 +178,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
     const detailsRequest = await pool.request()
       .input('hospitalId', sql.NVarChar, hospitalId)
       .input('patientId', sql.Int, patientId)
-      .query(\`
+      .query(`
         SELECT 
           h.name as hospitalName, 
           h.email as hospitalEmail,
@@ -189,7 +189,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
         CROSS JOIN (SELECT TOP 1 tpa_id, insurance_company FROM admissions WHERE patient_id = @patientId ORDER BY id DESC) a
         LEFT JOIN tpas t ON a.tpa_id = t.id
         WHERE h.id = @hospitalId
-      \`);
+      `);
       
     if (detailsRequest.recordset.length === 0) {
         throw new Error("Could not find hospital or patient admission details.");
@@ -211,7 +211,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
                 try {
                     const response = await fetch(att.url);
                     if (!response.ok) {
-                        throw new Error(\`Failed to fetch attachment from \${att.url}\`);
+                        throw new Error(\`Failed to fetch attachment from ${att.url}\`);
                     }
                     const buffer = await response.arrayBuffer();
                     const contentType = response.headers.get('content-type') || 'application/octet-stream';
@@ -221,7 +221,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
                         contentType: contentType
                     };
                 } catch (fetchError) {
-                    console.error(\`Error fetching attachment \${att.name}:\`, fetchError);
+                    console.error(\`Error fetching attachment ${att.name}:\`, fetchError);
                     return null; // Return null for failed downloads
                 }
             })
@@ -549,6 +549,7 @@ export async function getPreAuthRequestById(id: string): Promise<StaffingRequest
         request.implant_bill_stickers_path = getDocumentData(request.implant_bill_stickers_path);
         request.lab_bill_path = getDocumentData(request.lab_bill_path);
         request.ot_anesthesia_notes_path = getDocumentData(request.ot_anesthesia_notes_path);
+        request.claim_id = requestResult.recordset[0].claim_id;
 
 
         const [chatResult, claimsResult] = await Promise.all([
