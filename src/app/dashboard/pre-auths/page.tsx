@@ -104,7 +104,7 @@ export default function PreAuthsPage() {
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="Inactive">Inactive</SelectItem>
+                    <SelectItem value="Inactive">Completed</SelectItem>
                     <SelectItem value="All">All</SelectItem>
                 </SelectContent>
             </Select>
