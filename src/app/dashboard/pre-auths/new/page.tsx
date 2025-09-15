@@ -29,7 +29,6 @@ import html2canvas from "html2canvas";
 import dynamic from 'next/dynamic';
 import { EditorState, convertToRaw, ContentState } from 'draft-js';
 import draftToHtml from 'draftjs-to-html';
-import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import { Complaint } from "@/components/chief-complaint-form";
 import { PreAuthMedicalHistory } from "@/components/pre-auths/preauth-medical-history";
 
@@ -638,7 +637,7 @@ export default function NewRequestPage() {
                             </CardContent>
                         </Card>
                         
-                        <Accordion type="multiple" className="w-full space-y-6">
+                        <Accordion type="multiple" className="w-full space-y-6" defaultValue={["clinical-info", "accident-info", "maternity-info", "cost-info", "medical-history", "declarations-info"]}>
                             <Card>
                             <AccordionItem value="clinical-info">
                                 <CardHeader>
