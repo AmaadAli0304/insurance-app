@@ -432,6 +432,26 @@ export async function getPatientById(id: string): Promise<Patient | null> {
   }
 }
 
+export async function getTPAsByHospital(hospitalId: string): Promise<Pick<TPA, 'id' | 'name'>[]> {
+  try {
+    const pool = await getDbPool();
+    const result = await pool.request()
+      .input('hospitalId', sql.NVarChar, hospitalId)
+      .query(`
+        SELECT t.id, t.name 
+        FROM tpas t
+        JOIN hospital_tpas ht ON t.id = ht.tpa_id
+        WHERE ht.hospital_id = @hospitalId
+      `);
+    return result.recordset.map(r => ({ ...r, id: r.id.toString() }));
+  } catch (error) {
+    const dbError = error as Error;
+    console.error(`Error fetching TPAs for hospital ${hospitalId}:`, dbError.message);
+    return []; // Return empty array on error to prevent crashing the form
+  }
+}
+
+
 export async function getNewPatientPageData(hospitalId: string) {
     if (!hospitalId) {
         throw new Error("Hospital ID is required.");
@@ -440,24 +460,16 @@ export async function getNewPatientPageData(hospitalId: string) {
         const pool = await getDbPool();
         const [companiesResult, tpasResult, doctorsResult] = await Promise.all([
             pool.request().query('SELECT id, name FROM companies'),
-            pool.request()
-                .input('hospitalId', sql.NVarChar, hospitalId)
-                .query(`
-                    SELECT t.id, t.name 
-                    FROM tpas t
-                    JOIN hospital_tpas ht ON t.id = ht.tpa_id
-                    WHERE ht.hospital_id = @hospitalId
-                `),
+            getTPAsByHospital(hospitalId),
             pool.request().query('SELECT * FROM doctors'),
         ]);
 
         type CompaniesType = Pick<Company, 'id' | 'name'>[];
-        type TpasType = Pick<TPA, 'id' | 'name'>[];
         type DoctorsType = Doctor[];
 
         return {
             companies: companiesResult.recordset as CompaniesType,
-            tpas: tpasResult.recordset.map(r => ({ ...r, id: r.id.toString() })) as TpasType,
+            tpas: tpasResult,
             doctors: doctorsResult.recordset as DoctorsType,
         };
     } catch (error) {
@@ -469,22 +481,15 @@ export async function getNewPatientPageData(hospitalId: string) {
 export async function getPatientEditPageData(patientId: string) {
     try {
         const patientData = await getPatientById(patientId);
-
-        if (!patientData || !patientData.hospitalId) {
+        if (!patientData) {
             return null;
         }
+
+        const hospitalId = patientData.hospitalId;
         
-        const pool = await getDbPool();
         const [companiesResult, tpasResult, doctorsResult, complaintsResult] = await Promise.all([
             pool.request().query('SELECT id, name FROM companies'),
-             pool.request()
-                .input('hospitalId', sql.NVarChar, patientData.hospitalId)
-                .query(`
-                    SELECT t.id, t.name 
-                    FROM tpas t
-                    JOIN hospital_tpas ht ON t.id = ht.tpa_id
-                    WHERE ht.hospital_id = @hospitalId
-                `),
+            hospitalId ? getTPAsByHospital(hospitalId) : Promise.resolve([]),
             pool.request().query('SELECT * FROM doctors'),
             pool.request().input('patient_id', sql.Int, Number(patientId)).query('SELECT * FROM chief_complaints WHERE patient_id = @patient_id')
         ]);
@@ -498,13 +503,12 @@ export async function getPatientEditPageData(patientId: string) {
         }));
 
         type CompaniesType = Pick<Company, 'id' | 'name'>[];
-        type TpasType = Pick<TPA, 'id' | 'name'>[];
         type DoctorsType = Doctor[];
 
         return {
             patient: patientData,
             companies: companiesResult.recordset as CompaniesType,
-            tpas: tpasResult.recordset.map(r => ({ ...r, id: r.id.toString() })) as TpasType,
+            tpas: tpasResult,
             doctors: doctorsResult.recordset as DoctorsType,
             complaints
         };
@@ -1076,5 +1080,6 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
     
 
     
+
 
 
