@@ -113,16 +113,14 @@ export default function AttendancePage() {
                         <CardTitle>Staff Attendance</CardTitle>
                         <CardDescription>Mark attendance for each staff member for the selected month.</CardDescription>
                     </div>
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                            <Button type="button" variant="outline" size="icon" onClick={() => changeMonth(-1)}>
-                                <ChevronLeft className="h-4 w-4" />
-                            </Button>
-                            <span className="text-lg font-medium w-32 text-center">{monthName} {year}</span>
-                            <Button type="button" variant="outline" size="icon" onClick={() => changeMonth(1)}>
-                                <ChevronRight className="h-4 w-4" />
-                            </Button>
-                        </div>
+                    <div className="flex items-center gap-2">
+                        <Button type="button" variant="outline" size="icon" onClick={() => changeMonth(-1)}>
+                            <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <span className="text-lg font-medium w-32 text-center">{monthName} {year}</span>
+                        <Button type="button" variant="outline" size="icon" onClick={() => changeMonth(1)}>
+                            <ChevronRight className="h-4 w-4" />
+                        </Button>
                     </div>
                 </div>
             </CardHeader>
