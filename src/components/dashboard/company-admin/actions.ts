@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { getDbPool, sql } from '@/lib/db';
@@ -370,30 +371,34 @@ export async function getStaffOnDutyStats(): Promise<StaffOnDutyStat[]> {
                 FROM attendance
                 WHERE date >= @today AND date < @tomorrow AND status = 'present'
             ),
-            StaffClaimStats AS (
+            StaffActionStats AS (
                 SELECT
-                    c.created_by as staff_id,
-                    SUM(CASE WHEN c.status = 'Pre auth Sent' THEN 1 ELSE 0 END) as preAuthCount,
-                    SUM(CASE WHEN c.status = 'Final Amount Sanctioned' THEN 1 ELSE 0 END) as finalApprovalCount,
-                    SUM(CASE WHEN c.status = 'Settlement Done' THEN 1 ELSE 0 END) as dischargeCount,
-                    SUM(CASE WHEN c.status = 'Rejected' THEN 1 ELSE 0 END) as rejectionCount
-                FROM claims c
-                WHERE c.created_at >= @today AND c.created_at < @tomorrow
-                GROUP BY c.created_by
+                    staff_id,
+                    SUM(CASE WHEN status = 'Pre auth Sent' THEN 1 ELSE 0 END) as preAuthCount,
+                    SUM(CASE WHEN status = 'Final Amount Sanctioned' THEN 1 ELSE 0 END) as finalApprovalCount,
+                    SUM(CASE WHEN status = 'Settlement Done' THEN 1 ELSE 0 END) as dischargeCount,
+                    SUM(CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END) as rejectionCount
+                FROM (
+                    SELECT staff_id, status, created_at FROM preauth_request
+                    UNION ALL
+                    SELECT created_by, status, created_at FROM claims
+                ) as actions
+                WHERE created_at >= @today AND created_at < @tomorrow
+                GROUP BY staff_id
             )
             SELECT
                 u.uid as staffId,
                 u.name as staffName,
                 h.name as hospitalName,
-                ISNULL(scs.preAuthCount, 0) as preAuthCount,
-                ISNULL(scs.finalApprovalCount, 0) as finalApprovalCount,
-                ISNULL(scs.dischargeCount, 0) as dischargeCount,
-                ISNULL(scs.rejectionCount, 0) as rejectionCount
+                ISNULL(sas.preAuthCount, 0) as preAuthCount,
+                ISNULL(sas.finalApprovalCount, 0) as finalApprovalCount,
+                ISNULL(sas.dischargeCount, 0) as dischargeCount,
+                ISNULL(sas.rejectionCount, 0) as rejectionCount
             FROM PresentStaff ps
             JOIN users u ON ps.staff_id = u.uid
             LEFT JOIN hospital_staff hs ON u.uid = hs.staff_id
             LEFT JOIN hospitals h ON hs.hospital_id = h.id
-            LEFT JOIN StaffClaimStats scs ON u.uid = scs.staff_id
+            LEFT JOIN StaffActionStats sas ON u.uid = sas.staff_id
             ORDER BY u.name;
         `;
         
