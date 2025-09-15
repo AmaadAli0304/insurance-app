@@ -14,6 +14,12 @@ export function MainNav() {
   const routes = {
     'Admin': [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { href: '/dashboard/hospitals', label: 'Hospitals', icon: Building },
+      { href: '/dashboard/companies', label: 'Companies', icon: Factory },
+      { href: '/dashboard/tpas', label: 'TPAs', icon: Briefcase },
+      { href: '/dashboard/staff', label: 'Staff', icon: Users },
+      { href: '/dashboard/doctors', label: 'Doctors', icon: Stethoscope },
+      { href: '/dashboard/import', label: 'Import', icon: Upload },
     ],
     'Hospital Staff': [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -29,6 +35,7 @@ export function MainNav() {
       { href: '/dashboard/staff', label: 'Staff', icon: Users },
       { href: '/dashboard/doctors', label: 'Doctors', icon: Stethoscope },
       { href: '/dashboard/invoices', label: 'Invoices', icon: FileText },
+      { href: '/dashboard/import', label: 'Import', icon: Upload },
     ],
   };
 
