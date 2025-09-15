@@ -44,7 +44,7 @@ export default function DashboardLayout({
                 <div className="w-full flex-1">
                     <Breadcrumb />
                 </div>
-                 {role === 'Hospital Staff' && user && (
+                 {(role === 'Hospital Staff' || role === 'Admin') && user && (
                     <div className="hidden md:flex items-center gap-4 text-sm font-medium">
                         <div className="flex items-center gap-2 text-muted-foreground">
                             <Building className="h-4 w-4" />
