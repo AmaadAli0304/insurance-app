@@ -7,194 +7,39 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useFormStatus } from "react-dom";
-import { handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable, handleCreateDoctorsTable, handleCreateChiefComplaintsTable, handleCreatePreAuthTable, handleCreateMedicalTable, handleCreateChatTable, handleAlterPreAuthTable, handleCreateClaimsTable, handleDeleteClaimsTable, handleDeletePreAuthRequestTable, handleUpdatePatientsTable, handleSendEmail, handleCreateChatFilesTable, handleCreateInvoicesTable, handleCreateInvoiceStaffTable } from "./actions";
+import { handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable, handleCreateDoctorsTable, handleCreateChiefComplaintsTable, handleCreatePreAuthTable, handleCreateMedicalTable, handleCreateChatTable, handleAlterPreAuthTable, handleCreateClaimsTable, handleDeleteClaimsTable, handleDeletePreAuthRequestTable, handleUpdatePatientsTable, handleSendEmail, handleCreateChatFilesTable, handleCreateInvoicesTable, handleCreateInvoiceStaffTable, handleCreateAttendanceTable } from "./actions";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble, Info, Stethoscope, FileHeart, Shield, MessageSquare, Pill, AlertTriangle, HandCoins, Trash2, RefreshCcw, Send, FileCode, FileSpreadsheet } from "lucide-react";
+import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble, Info, Stethoscope, FileHeart, Shield, MessageSquare, Pill, AlertTriangle, HandCoins, Trash2, RefreshCcw, Send, FileCode, FileSpreadsheet, CalendarCheck } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 
-function SubmitTableButton() {
+function SubmitTableButton({ action, children, icon: Icon }: { action: any, children: React.ReactNode, icon: React.ElementType }) {
     const { pending } = useFormStatus();
     return (
-        <Button type="submit" disabled={pending} variant="secondary">
-             <Database className="mr-2 h-4 w-4" />
-            {pending ? "Creating..." : "Create TPA Table"}
-        </Button>
+        <form action={action}>
+            <Button type="submit" disabled={pending} variant="secondary">
+                <Icon className="mr-2 h-4 w-4" />
+                {pending ? "Processing..." : children}
+            </Button>
+        </form>
     );
 }
 
-function SubmitRelationshipTableButton() {
+function SubmitActionButton({ action, children, icon: Icon, variant = 'secondary' }: { action: any, children: React.ReactNode, icon: React.ElementType, variant?: 'secondary' | 'destructive' }) {
     const { pending } = useFormStatus();
     return (
-        <Button type="submit" disabled={pending} variant="secondary">
-             <GitMerge className="mr-2 h-4 w-4" />
-            {pending ? "Creating..." : "Create Relationship Tables"}
-        </Button>
+        <form action={action}>
+            <Button type="submit" disabled={pending} variant={variant}>
+                <Icon className="mr-2 h-4 w-4" />
+                {pending ? "Processing..." : children}
+            </Button>
+        </form>
     );
 }
 
-function SubmitHospitalTableButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" disabled={pending} variant="secondary">
-             <Building className="mr-2 h-4 w-4" />
-            {pending ? "Creating..." : "Create Hospital Table"}
-        </Button>
-    );
-}
-
-function SubmitPatientTableButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" disabled={pending} variant="secondary">
-             <Users className="mr-2 h-4 w-4" />
-            {pending ? "Creating..." : "Create Patient & Admission Tables"}
-        </Button>
-    );
-}
-
-function SubmitUpdatePatientTableButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" disabled={pending} variant="secondary">
-             <RefreshCcw className="mr-2 h-4 w-4" />
-            {pending ? "Updating..." : "Update Patients Table"}
-        </Button>
-    );
-}
-
-function SubmitFieldsTableButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" disabled={pending} variant="secondary">
-             <FilePlus2 className="mr-2 h-4 w-4" />
-            {pending ? "Creating..." : "Create Fields Table"}
-        </Button>
-    );
-}
-
-function SubmitFieldOptionsTableButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" disabled={pending} variant="secondary">
-             <ListPlus className="mr-2 h-4 w-4" />
-            {pending ? "Creating..." : "Create Field Options Table"}
-        </Button>
-    );
-}
-
-function SubmitAdmissionsTableButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" disabled={pending} variant="secondary">
-             <BedDouble className="mr-2 h-4 w-4" />
-            {pending ? "Creating..." : "Create Admissions Table"}
-        </Button>
-    );
-}
-
-function SubmitIctCodeTableButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" disabled={pending} variant="secondary">
-             <FilePlus2 className="mr-2 h-4 w-4" />
-            {pending ? "Creating..." : "Create ICT Code Table"}
-        </Button>
-    );
-}
-
-function SubmitDoctorsTableButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" disabled={pending} variant="secondary">
-             <Stethoscope className="mr-2 h-4 w-4" />
-            {pending ? "Creating..." : "Create Doctors Table"}
-        </Button>
-    );
-}
-
-function SubmitChiefComplaintsTableButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" disabled={pending} variant="secondary">
-             <FileHeart className="mr-2 h-4 w-4" />
-            {pending ? "Creating..." : "Create Chief Complaints Table"}
-        </Button>
-    );
-}
-
-function SubmitPreAuthTableButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" disabled={pending} variant="secondary">
-             <Shield className="mr-2 h-4 w-4" />
-            {pending ? "Creating..." : "Create Pre-Auth Request Table"}
-        </Button>
-    );
-}
-
-function SubmitAlterPreAuthTableButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" disabled={pending} variant="destructive">
-             <AlertTriangle className="mr-2 h-4 w-4" />
-            {pending ? "Altering..." : "Alter Pre-Auth Table"}
-        </Button>
-    );
-}
-
-function SubmitMedicalTableButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" disabled={pending} variant="secondary">
-             <Pill className="mr-2 h-4 w-4" />
-            {pending ? "Creating..." : "Create Medical Table"}
-        </Button>
-    );
-}
-
-function SubmitChatTableButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" disabled={pending} variant="secondary">
-             <MessageSquare className="mr-2 h-4 w-4" />
-            {pending ? "Creating..." : "Create Chat Table"}
-        </Button>
-    );
-}
-
-function SubmitClaimsTableButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" disabled={pending} variant="secondary">
-             <HandCoins className="mr-2 h-4 w-4" />
-            {pending ? "Creating..." : "Create Claims Table"}
-        </Button>
-    );
-}
-
-function SubmitDeleteClaimsTableButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" disabled={pending} variant="destructive">
-             <Trash2 className="mr-2 h-4 w-4" />
-            {pending ? "Deleting..." : "Delete Claims Table"}
-        </Button>
-    );
-}
-
-function SubmitDeletePreAuthRequestTableButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" disabled={pending} variant="destructive">
-             <Trash2 className="mr-2 h-4 w-4" />
-            {pending ? "Deleting..." : "Delete Pre-Auth Table"}
-        </Button>
-    );
-}
 
 function SubmitEmailButton() {
     const { pending } = useFormStatus();
@@ -206,31 +51,11 @@ function SubmitEmailButton() {
     );
 }
 
-function SubmitChatFilesTableButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" disabled={pending} variant="secondary">
-             <FileCode className="mr-2 h-4 w-4" />
-            {pending ? "Creating..." : "Create Chat Files Table"}
-        </Button>
-    );
-}
-
-function SubmitInvoicesTableButton({ action, children }: { action: any, children: React.ReactNode }) {
-    const { pending } = useFormStatus();
-    return (
-        <form action={action}>
-            <Button type="submit" disabled={pending} variant="secondary">
-                <FileSpreadsheet className="mr-2 h-4 w-4" />
-                {pending ? "Creating..." : children}
-            </Button>
-        </form>
-    );
-}
-
 
 export default function ImportPage() {
     const { user, role } = useAuth();
+    const { toast } = useToast();
+
     const [createTableState, createTableAction] = useActionState(handleCreateTable, { message: "", type: undefined });
     const [createRelationshipTableState, createRelationshipTableAction] = useActionState(handleCreateRelationshipTables, { message: "", type: undefined });
     const [createHospitalTableState, createHospitalTableAction] = useActionState(handleCreateHospitalTable, { message: "", type: undefined });
@@ -253,9 +78,8 @@ export default function ImportPage() {
     const [sendEmailState, sendEmailAction] = useActionState(handleSendEmail, { message: "", type: undefined });
     const [createInvoicesTableState, createInvoicesTableAction] = useActionState(handleCreateInvoicesTable, { message: "", type: undefined });
     const [createInvoiceStaffTableState, createInvoiceStaffTableAction] = useActionState(handleCreateInvoiceStaffTable, { message: "", type: undefined });
-
-    const { toast } = useToast();
-
+    const [createAttendanceTableState, createAttendanceTableAction] = useActionState(handleCreateAttendanceTable, { message: "", type: undefined });
+    
     const useToastEffect = (state: { type?: string; message: string; }, title: string) => {
         useEffect(() => {
             if (state.type === 'success') {
@@ -288,7 +112,7 @@ export default function ImportPage() {
     useToastEffect(sendEmailState, "Email Service");
     useToastEffect(createInvoicesTableState, "Database Action");
     useToastEffect(createInvoiceStaffTableState, "Database Action");
-
+    useToastEffect(createAttendanceTableState, "Database Action");
     
 
     return (
@@ -301,57 +125,24 @@ export default function ImportPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-wrap gap-4">
-                    <form action={createTableAction}>
-                        <SubmitTableButton />
-                    </form>
-                    <form action={createRelationshipTableAction}>
-                        <SubmitRelationshipTableButton />
-                    </form>
-                     <form action={createHospitalTableAction}>
-                        <SubmitHospitalTableButton />
-                    </form>
-                     <form action={createPatientsTableAction}>
-                        <SubmitPatientTableButton />
-                    </form>
-                    <form action={createFieldsTableAction}>
-                        <SubmitFieldsTableButton />
-                    </form>
-                     <form action={createFieldOptionsTableAction}>
-                        <SubmitFieldOptionsTableButton />
-                    </form>
-                    <form action={createAdmissionsTableAction}>
-                        <SubmitAdmissionsTableButton />
-                    </form>
-                    <form action={createIctCodeTableAction}>
-                        <SubmitIctCodeTableButton />
-                    </form>
-                    <form action={createDoctorsTableAction}>
-                        <SubmitDoctorsTableButton />
-                    </form>
-                    <form action={createChiefComplaintsTableAction}>
-                        <SubmitChiefComplaintsTableButton />
-                    </form>
-                     <form action={createPreAuthTableAction}>
-                        <SubmitPreAuthTableButton />
-                    </form>
-                     <form action={createMedicalTableAction}>
-                        <SubmitMedicalTableButton />
-                    </form>
-                     <form action={createChatTableAction}>
-                        <SubmitChatTableButton />
-                    </form>
-                    <form action={createChatFilesTableAction}>
-                        <SubmitChatFilesTableButton />
-                    </form>
-                     <form action={createClaimsTableAction}>
-                        <SubmitClaimsTableButton />
-                    </form>
-                    <SubmitInvoicesTableButton action={createInvoicesTableAction}>
-                        Create Invoices Table
-                    </SubmitInvoicesTableButton>
-                    <SubmitInvoicesTableButton action={createInvoiceStaffTableAction}>
-                        Create Invoice Staff Table
-                    </SubmitInvoicesTableButton>
+                    <SubmitActionButton action={createTableAction} icon={Database}>Create TPA Table</SubmitActionButton>
+                    <SubmitActionButton action={createRelationshipTableAction} icon={GitMerge}>Create Relationship Tables</SubmitActionButton>
+                    <SubmitActionButton action={createHospitalTableAction} icon={Building}>Create Hospital Table</SubmitActionButton>
+                    <SubmitActionButton action={createPatientsTableAction} icon={Users}>Create Patient & Admission Tables</SubmitActionButton>
+                    <SubmitActionButton action={createFieldsTableAction} icon={FilePlus2}>Create Fields Table</SubmitActionButton>
+                    <SubmitActionButton action={createFieldOptionsTableAction} icon={ListPlus}>Create Field Options Table</SubmitActionButton>
+                    <SubmitActionButton action={createAdmissionsTableAction} icon={BedDouble}>Create Admissions Table</SubmitActionButton>
+                    <SubmitActionButton action={createIctCodeTableAction} icon={FilePlus2}>Create ICT Code Table</SubmitActionButton>
+                    <SubmitActionButton action={createDoctorsTableAction} icon={Stethoscope}>Create Doctors Table</SubmitActionButton>
+                    <SubmitActionButton action={createChiefComplaintsTableAction} icon={FileHeart}>Create Chief Complaints Table</SubmitActionButton>
+                    <SubmitActionButton action={createPreAuthTableAction} icon={Shield}>Create Pre-Auth Request Table</SubmitActionButton>
+                    <SubmitActionButton action={createMedicalTableAction} icon={Pill}>Create Medical Table</SubmitActionButton>
+                    <SubmitActionButton action={createChatTableAction} icon={MessageSquare}>Create Chat Table</SubmitActionButton>
+                    <SubmitActionButton action={createChatFilesTableAction} icon={FileCode}>Create Chat Files Table</SubmitActionButton>
+                    <SubmitActionButton action={createClaimsTableAction} icon={HandCoins}>Create Claims Table</SubmitActionButton>
+                    <SubmitActionButton action={createInvoicesTableAction} icon={FileSpreadsheet}>Create Invoices Table</SubmitActionButton>
+                    <SubmitActionButton action={createInvoiceStaffTableAction} icon={FileSpreadsheet}>Create Invoice Staff Table</SubmitActionButton>
+                    <SubmitActionButton action={createAttendanceTableAction} icon={CalendarCheck}>Create Attendance Table</SubmitActionButton>
                 </CardContent>
             </Card>
 
@@ -363,18 +154,10 @@ export default function ImportPage() {
                     </CardDescription>
                 </CardHeader>
                  <CardContent className="flex flex-wrap gap-4">
-                    <form action={alterPreAuthTableAction}>
-                        <SubmitAlterPreAuthTableButton />
-                    </form>
-                    <form action={updatePatientsTableAction}>
-                        <SubmitUpdatePatientTableButton />
-                    </form>
-                    <form action={deleteClaimsTableAction}>
-                        <SubmitDeleteClaimsTableButton />
-                    </form>
-                    <form action={deletePreAuthTableAction}>
-                        <SubmitDeletePreAuthRequestTableButton />
-                    </form>
+                    <SubmitActionButton action={alterPreAuthTableAction} icon={AlertTriangle} variant="destructive">Alter Pre-Auth Table</SubmitActionButton>
+                    <SubmitActionButton action={updatePatientsTableAction} icon={RefreshCcw}>Update Patients Table</SubmitActionButton>
+                    <SubmitActionButton action={deleteClaimsTableAction} icon={Trash2} variant="destructive">Delete Claims Table</SubmitActionButton>
+                    <SubmitActionButton action={deletePreAuthTableAction} icon={Trash2} variant="destructive">Delete Pre-Auth Table</SubmitActionButton>
                  </CardContent>
             </Card>
 

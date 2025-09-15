@@ -937,3 +937,28 @@ export async function handleCreateInvoiceStaffTable(prevState: { message: string
     return { message: `Error creating Invoice Staff table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
+
+export async function handleCreateAttendanceTable(prevState: { message: string, type?: string }, formData: FormData) {
+  try {
+    const pool = await getDbPool();
+    const request = pool.request();
+    const createAttendanceTableQuery = `
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='attendance' and xtype='U')
+      BEGIN
+        CREATE TABLE attendance (
+          id INT IDENTITY(1,1) PRIMARY KEY,
+          staff_id NVARCHAR(255) NOT NULL,
+          date DATE NOT NULL,
+          status NVARCHAR(50) NOT NULL,
+          CONSTRAINT UQ_staff_date UNIQUE (staff_id, date)
+        );
+      END
+    `;
+    await request.query(createAttendanceTableQuery);
+    return { message: "Attendance table created successfully or already exists.", type: "success" };
+  } catch (error) {
+    const dbError = error as { message?: string };
+    console.error('Error creating Attendance table:', dbError);
+    return { message: `Error creating Attendance table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+  }
+}
