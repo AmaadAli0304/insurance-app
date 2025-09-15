@@ -75,12 +75,12 @@ export default function AttendancePage() {
 
   const handleAttendanceChange = (staffId: string, day: number) => {
     setAttendance(prev => {
-      const newAttendance = { ...prev };
-      if (!newAttendance[staffId]) {
-        newAttendance[staffId] = {};
-      }
-      newAttendance[staffId][day] = !newAttendance[staffId][day];
-      return newAttendance;
+        const newAttendance = { ...prev };
+        // Deep copy the specific staff member's attendance to ensure React detects the change
+        newAttendance[staffId] = { ...prev[staffId] };
+        
+        newAttendance[staffId][day] = !newAttendance[staffId][day];
+        return newAttendance;
     });
   };
 
