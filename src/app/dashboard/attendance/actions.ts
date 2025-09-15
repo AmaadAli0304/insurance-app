@@ -9,6 +9,7 @@ export type AttendanceRecord = {
   staff_id: string;
   date: Date;
   status: 'present' | 'absent';
+  hospital_id: string;
 };
 
 export async function getStaffForAttendance(): Promise<Pick<Staff, 'id' | 'name'>[]> {
@@ -57,8 +58,9 @@ export async function saveAttendance(prevState: { message: string, type?: string
   const month = formData.get('month') as string;
   const year = formData.get('year') as string;
   const rawAttendanceData = formData.get('attendanceData') as string;
+  const hospitalId = formData.get('hospitalId') as string;
 
-  if (!month || !year || !rawAttendanceData) {
+  if (!month || !year || !rawAttendanceData || !hospitalId) {
     return { message: "Missing required data to save attendance.", type: "error" };
   }
   
@@ -74,7 +76,8 @@ export async function saveAttendance(prevState: { message: string, type?: string
     await new sql.Request(transaction)
       .input('month', sql.Int, parseInt(month, 10))
       .input('year', sql.Int, parseInt(year, 10))
-      .query('DELETE FROM attendance WHERE MONTH(date) = @month AND YEAR(date) = @year');
+      .input('hospital_id', sql.NVarChar, hospitalId)
+      .query('DELETE FROM attendance WHERE MONTH(date) = @month AND YEAR(date) = @year AND hospital_id = @hospital_id');
 
     for (const staffId in attendanceData) {
       for (const day in attendanceData[staffId]) {
@@ -84,7 +87,8 @@ export async function saveAttendance(prevState: { message: string, type?: string
             .input('staff_id', sql.NVarChar, staffId)
             .input('date', sql.Date, date)
             .input('status', sql.NVarChar, 'present')
-            .query('INSERT INTO attendance (staff_id, date, status) VALUES (@staff_id, @date, @status)');
+            .input('hospital_id', sql.NVarChar, hospitalId)
+            .query('INSERT INTO attendance (staff_id, date, status, hospital_id) VALUES (@staff_id, @date, @status, @hospital_id)');
         }
       }
     }

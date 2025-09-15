@@ -12,6 +12,7 @@ import { AlertTriangle, Loader2, ChevronLeft, ChevronRight, Save } from "lucide-
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useFormStatus } from "react-dom";
+import { useAuth } from "@/components/auth-provider";
 
 function SaveButton() {
     const { pending } = useFormStatus();
@@ -34,6 +35,7 @@ function SaveButton() {
 
 
 export default function AttendancePage() {
+  const { user } = useAuth();
   const [staffList, setStaffList] = useState<Pick<Staff, 'id' | 'name'>[]>([]);
   const [attendance, setAttendance] = useState<Record<string, Record<number, boolean>>>({});
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -145,6 +147,7 @@ export default function AttendancePage() {
                                 <input type="hidden" name="month" value={month + 1} />
                                 <input type="hidden" name="year" value={year} />
                                 <input type="hidden" name="attendanceData" value={JSON.stringify(attendance)} />
+                                <input type="hidden" name="hospitalId" value={user?.hospitalId ?? ''} />
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
