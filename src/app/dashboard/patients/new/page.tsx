@@ -317,6 +317,8 @@ export default function NewPatientPage() {
         if (photoInputRef.current) {
             photoInputRef.current.value = "";
         }
+        setPhotoUrl(null);
+        setPhotoName(null);
         toast({ title: "Cancelled", description: "Photo upload has been cancelled.", variant: "default" });
     };
 
@@ -521,7 +523,7 @@ export default function NewPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="company_id">Insurance Company <span className="text-destructive">*</span></Label>
-                                            <Select name="company_id" required disabled={isLoading}>
+                                            <Select name="company_id" required disabled={isLoading || companies.length === 0}>
                                                 <SelectTrigger><SelectValue placeholder="Select a company" /></SelectTrigger>
                                                 <SelectContent>
                                                     {companies.map(c => (
@@ -854,4 +856,5 @@ export default function NewPatientPage() {
         </div>
     );
 }
+
 

@@ -1,3 +1,4 @@
+
 "use server";
 
 import { getDbPool, sql } from "@/lib/db";
@@ -246,168 +247,167 @@ const getDocumentData = (jsonString: string | null | undefined): { url: string; 
 
 
 export async function getPatientById(id: string): Promise<Patient | null> {
-  try {
-    const pool = await getDbPool();
-    const patientResult = await pool.request()
-      .input('id', sql.Int, Number(id))
-      .query(`SELECT * FROM patients WHERE id = @id`);
+    try {
+        const pool = await getDbPool();
+        const patientResult = await pool.request()
+            .input('id', sql.Int, Number(id))
+            .query(`SELECT * FROM patients WHERE id = @id`);
 
-    if (patientResult.recordset.length === 0) {
-      return null;
-    }
-    const patientRecord = patientResult.recordset[0];
-
-    const admissionResult = await pool.request()
-      .input('id', sql.Int, Number(id))
-      .query(`
-        SELECT TOP 1
-          a.*,
-          a.id as admission_db_id,
-          c.name as companyName,
-          t.name as tpaName,
-          t.email as tpaEmail
-        FROM admissions a
-        LEFT JOIN companies c ON a.insurance_company = c.id
-        LEFT JOIN tpas t ON a.tpa_id = t.id
-        WHERE a.patient_id = @id
-        ORDER BY a.created_at DESC
-      `);
-
-    const record = { ...patientRecord, ...(admissionResult.recordset[0] || {}) };
-    record.patient_db_id = patientRecord.id;
-    
-    // Get chief complaints
-    const complaintsResult = await pool.request()
-        .input('patient_id', sql.Int, Number(id))
-        .query('SELECT * FROM chief_complaints WHERE patient_id = @patient_id');
-
-    const complaints = complaintsResult.recordset.map(c => ({
-        id: c.id,
-        name: c.complaint_name,
-        selected: true,
-        durationValue: c.duration_value,
-        durationUnit: c.duration_unit
-    }));
-    
-    const patientData: Patient = {
-        id: record.patient_db_id.toString(),
-        admission_db_id: record.admission_db_id,
-        fullName: `${record.first_name || ''} ${record.last_name || ''}`.trim(),
-        firstName: record.first_name,
-        lastName: record.last_name,
-        email_address: record.email_address,
-        phoneNumber: record.phone_number,
-        alternative_number: record.alternative_number,
-        gender: record.gender,
-        age: record.age,
-        dateOfBirth: record.birth_date,
-        address: record.address,
-        occupation: record.occupation,
-        employee_id: record.employee_id,
-        abha_id: record.abha_id,
-        health_id: record.health_id,
-        photo: getDocumentData(record.photo),
-        adhaar_path: getDocumentData(record.adhaar_path),
-        pan_path: getDocumentData(record.pan_path),
-        passport_path: getDocumentData(record.passport_path),
-        voter_id_path: getDocumentData(record.voter_id_path),
-        driving_licence_path: getDocumentData(record.driving_licence_path),
-        other_path: getDocumentData(record.other_path),
-        policy_path: getDocumentData(record.policy_path),
-        discharge_summary_path: getDocumentData(record.discharge_summary),
-        final_bill_path: getDocumentData(record.final_bill),
-        pharmacy_bill_path: getDocumentData(record.pharmacy_bill),
-        implant_bill_stickers_path: getDocumentData(record.implant_bill),
-        lab_bill_path: getDocumentData(record.lab_bill),
-        ot_anesthesia_notes_path: getDocumentData(record.ot_notes),
-        admission_id: record.admission_id,
-        relationship_policyholder: record.relationship_policyholder,
-        policyNumber: record.policy_number,
-        memberId: record.insured_card_number,
-        companyId: record.insurance_company,
-        policyStartDate: record.policy_start_date,
-        policyEndDate: record.policy_end_date,
-        sumInsured: record.sum_insured,
-        sumUtilized: record.sum_utilized,
-        totalSum: record.total_sum,
-        corporate_policy_number: record.corporate_policy_number,
-        other_policy_name: record.other_policy_name,
-        family_doctor_name: record.family_doctor_name,
-        family_doctor_phone: record.family_doctor_phone,
-        payer_email: record.payer_email,
-        payer_phone: record.payer_phone,
-        tpa_id: record.tpa_id,
-        doctor_id: record.doctor_id,
-        treat_doc_name: record.treat_doc_name,
-        treat_doc_number: record.treat_doc_number,
-        treat_doc_qualification: record.treat_doc_qualification,
-        treat_doc_reg_no: record.treat_doc_reg_no,
-        natureOfIllness: record.natureOfIllness,
-        clinicalFindings: record.clinicalFindings,
-        ailmentDuration: record.ailmentDuration,
-        firstConsultationDate: record.firstConsultationDate,
-        pastHistory: record.pastHistory,
-        provisionalDiagnosis: record.provisionalDiagnosis,
-        icd10Codes: record.icd10Codes,
-        treatmentMedical: record.treatmentMedical,
-        treatmentSurgical: record.treatmentSurgical,
-        treatmentIntensiveCare: record.treatmentIntensiveCare,
-        treatmentInvestigation: record.treatmentInvestigation,
-        treatmentNonAllopathic: record.treatmentNonAllopathic,
-        investigationDetails: record.investigationDetails,
-        drugRoute: record.drugRoute,
-        procedureName: record.procedureName,
-        icd10PcsCodes: record.icd10PcsCodes,
-        otherTreatments: record.otherTreatments,
-        isInjury: record.isInjury,
-        injuryCause: record.injuryCause,
-        isRta: record.isRta,
-        injuryDate: record.injuryDate,
-        isReportedToPolice: record.isReportedToPolice,
-        firNumber: record.firNumber,
-        isAlcoholSuspected: record.isAlcoholSuspected,
-        isToxicologyConducted: record.isToxicologyConducted,
-        isMaternity: record.isMaternity,
-        g: record.g,
-        p: record.p,
-        l: record.l,
-        a: record.a,
-        expectedDeliveryDate: record.expectedDeliveryDate,
-        admissionDate: record.admissionDate,
-        admissionTime: record.admissionTime,
-        admissionType: record.admissionType,
-        expectedStay: record.expectedStay,
-        expectedIcuStay: record.expectedIcuStay,
-        roomCategory: record.roomCategory,
-        roomNursingDietCost: record.roomNursingDietCost,
-        investigationCost: record.investigationCost,
-        icuCost: record.icuCost,
-        otCost: record.otCost,
-        professionalFees: record.professionalFees,
-        medicineCost: record.medicineCost,
-        otherHospitalExpenses: record.otherHospitalExpenses,
-        packageCharges: record.packageCharges,
-        totalExpectedCost: record.totalExpectedCost,
-        companyName: record.companyName,
-        tpaName: record.tpaName,
-        tpaEmail: record.tpaEmail,
-        complaints: complaints,
-        hospitalId: record.hospital_id,
-    };
-
-    const dateFields: (keyof Patient)[] = ['dateOfBirth', 'policyStartDate', 'policyEndDate', 'firstConsultationDate', 'injuryDate', 'expectedDeliveryDate', 'admissionDate'];
-    for (const field of dateFields) {
-        if (patientData[field]) {
-            // @ts-ignore
-            patientData[field] = new Date(patientData[field]).toISOString().split('T')[0];
+        if (patientResult.recordset.length === 0) {
+            return null;
         }
+        const patientRecord = patientResult.recordset[0];
+        const patientDbId = patientRecord.id;
+
+        const admissionResult = await pool.request()
+            .input('id', sql.Int, patientDbId)
+            .query(`
+                SELECT TOP 1
+                    a.*,
+                    a.id as admission_db_id,
+                    c.name as companyName,
+                    t.name as tpaName,
+                    t.email as tpaEmail
+                FROM admissions a
+                LEFT JOIN companies c ON a.insurance_company = c.id
+                LEFT JOIN tpas t ON a.tpa_id = t.id
+                WHERE a.patient_id = @id
+                ORDER BY a.created_at DESC
+            `);
+
+        const record = { ...patientRecord, ...(admissionResult.recordset[0] || {}) };
+        
+        const complaintsResult = await pool.request()
+            .input('patient_id', sql.Int, patientDbId)
+            .query('SELECT * FROM chief_complaints WHERE patient_id = @patient_id');
+
+        const complaints = complaintsResult.recordset.map(c => ({
+            id: c.id,
+            name: c.complaint_name,
+            selected: true,
+            durationValue: c.duration_value,
+            durationUnit: c.duration_unit
+        }));
+        
+        const patientData: Patient = {
+            id: patientDbId.toString(),
+            admission_db_id: record.admission_db_id,
+            fullName: `${record.first_name || ''} ${record.last_name || ''}`.trim(),
+            firstName: record.first_name,
+            lastName: record.last_name,
+            email_address: record.email_address,
+            phoneNumber: record.phone_number,
+            alternative_number: record.alternative_number,
+            gender: record.gender,
+            age: record.age,
+            dateOfBirth: record.birth_date,
+            address: record.address,
+            occupation: record.occupation,
+            employee_id: record.employee_id,
+            abha_id: record.abha_id,
+            health_id: record.health_id,
+            photo: getDocumentData(record.photo),
+            adhaar_path: getDocumentData(record.adhaar_path),
+            pan_path: getDocumentData(record.pan_path),
+            passport_path: getDocumentData(record.passport_path),
+            voter_id_path: getDocumentData(record.voter_id_path),
+            driving_licence_path: getDocumentData(record.driving_licence_path),
+            other_path: getDocumentData(record.other_path),
+            policy_path: getDocumentData(record.policy_path),
+            discharge_summary_path: getDocumentData(record.discharge_summary),
+            final_bill_path: getDocumentData(record.final_bill),
+            pharmacy_bill_path: getDocumentData(record.pharmacy_bill),
+            implant_bill_stickers_path: getDocumentData(record.implant_bill),
+            lab_bill_path: getDocumentData(record.lab_bill),
+            ot_anesthesia_notes_path: getDocumentData(record.ot_notes),
+            admission_id: record.admission_id,
+            relationship_policyholder: record.relationship_policyholder,
+            policyNumber: record.policy_number,
+            memberId: record.insured_card_number,
+            companyId: record.insurance_company,
+            policyStartDate: record.policy_start_date,
+            policyEndDate: record.policy_end_date,
+            sumInsured: record.sum_insured,
+            sumUtilized: record.sum_utilized,
+            totalSum: record.total_sum,
+            corporate_policy_number: record.corporate_policy_number,
+            other_policy_name: record.other_policy_name,
+            family_doctor_name: record.family_doctor_name,
+            family_doctor_phone: record.family_doctor_phone,
+            payer_email: record.payer_email,
+            payer_phone: record.payer_phone,
+            tpa_id: record.tpa_id,
+            doctor_id: record.doctor_id,
+            treat_doc_name: record.treat_doc_name,
+            treat_doc_number: record.treat_doc_number,
+            treat_doc_qualification: record.treat_doc_qualification,
+            treat_doc_reg_no: record.treat_doc_reg_no,
+            natureOfIllness: record.natureOfIllness,
+            clinicalFindings: record.clinicalFindings,
+            ailmentDuration: record.ailmentDuration,
+            firstConsultationDate: record.firstConsultationDate,
+            pastHistory: record.pastHistory,
+            provisionalDiagnosis: record.provisionalDiagnosis,
+            icd10Codes: record.icd10Codes,
+            treatmentMedical: record.treatmentMedical,
+            treatmentSurgical: record.treatmentSurgical,
+            treatmentIntensiveCare: record.treatmentIntensiveCare,
+            treatmentInvestigation: record.treatmentInvestigation,
+            treatmentNonAllopathic: record.treatmentNonAllopathic,
+            investigationDetails: record.investigationDetails,
+            drugRoute: record.drugRoute,
+            procedureName: record.procedureName,
+            icd10PcsCodes: record.icd10PcsCodes,
+            otherTreatments: record.otherTreatments,
+            isInjury: record.isInjury,
+            injuryCause: record.injuryCause,
+            isRta: record.isRta,
+            injuryDate: record.injuryDate,
+            isReportedToPolice: record.isReportedToPolice,
+            firNumber: record.firNumber,
+            isAlcoholSuspected: record.isAlcoholSuspected,
+            isToxicologyConducted: record.isToxicologyConducted,
+            isMaternity: record.isMaternity,
+            g: record.g,
+            p: record.p,
+            l: record.l,
+            a: record.a,
+            expectedDeliveryDate: record.expectedDeliveryDate,
+            admissionDate: record.admissionDate,
+            admissionTime: record.admissionTime,
+            admissionType: record.admissionType,
+            expectedStay: record.expectedStay,
+            expectedIcuStay: record.expectedIcuStay,
+            roomCategory: record.roomCategory,
+            roomNursingDietCost: record.roomNursingDietCost,
+            investigationCost: record.investigationCost,
+            icuCost: record.icuCost,
+            otCost: record.otCost,
+            professionalFees: record.professionalFees,
+            medicineCost: record.medicineCost,
+            otherHospitalExpenses: record.otherHospitalExpenses,
+            packageCharges: record.packageCharges,
+            totalExpectedCost: record.totalExpectedCost,
+            companyName: record.companyName,
+            tpaName: record.tpaName,
+            tpaEmail: record.tpaEmail,
+            complaints: complaints,
+            hospitalId: record.hospital_id,
+        };
+
+        const dateFields: (keyof Patient)[] = ['dateOfBirth', 'policyStartDate', 'policyEndDate', 'firstConsultationDate', 'injuryDate', 'expectedDeliveryDate', 'admissionDate'];
+        for (const field of dateFields) {
+            if (patientData[field]) {
+                // @ts-ignore
+                patientData[field] = new Date(patientData[field]).toISOString().split('T')[0];
+            }
+        }
+        
+        return patientData;
+    } catch (error) {
+        console.error(`Error fetching patient with id ${id}:`, error);
+        throw new Error("Failed to fetch patient from database.");
     }
-    
-    return patientData;
-  } catch (error) {
-    console.error(`Error fetching patient with id ${id}:`, error);
-    throw new Error("Failed to fetch patient from database.");
-  }
 }
 
 export async function getTPAsByHospital(hospitalId: string): Promise<Pick<TPA, 'id' | 'name'>[]> {
@@ -429,26 +429,44 @@ export async function getTPAsByHospital(hospitalId: string): Promise<Pick<TPA, '
   }
 }
 
+export async function getCompaniesByHospital(hospitalId: string): Promise<Pick<Company, 'id' | 'name'>[]> {
+  try {
+    const pool = await getDbPool();
+    const result = await pool.request()
+      .input('hospitalId', sql.NVarChar, hospitalId)
+      .query(`
+        SELECT co.id, co.name 
+        FROM companies co
+        JOIN hospital_companies hc ON co.id = hc.company_id
+        WHERE hc.hospital_id = @hospitalId
+      `);
+    return result.recordset;
+  } catch (error) {
+    const dbError = error as Error;
+    console.error(`Error fetching Companies for hospital ${hospitalId}:`, dbError.message);
+    return []; // Return empty array on error
+  }
+}
+
 
 export async function getNewPatientPageData(hospitalId: string) {
     if (!hospitalId) {
         throw new Error("Hospital ID is required.");
     }
     try {
-        const pool = await getDbPool();
-        const [companiesResult, tpasResult, doctorsResult] = await Promise.all([
-            pool.request().query('SELECT id, name FROM companies'),
+        const [companies, tpas, doctors] = await Promise.all([
+            getCompaniesByHospital(hospitalId),
             getTPAsByHospital(hospitalId),
-            pool.request().query('SELECT * FROM doctors'),
+            getDoctors(),
         ]);
 
         type CompaniesType = Pick<Company, 'id' | 'name'>[];
         type DoctorsType = Doctor[];
 
         return {
-            companies: companiesResult.recordset as CompaniesType,
-            tpas: tpasResult,
-            doctors: doctorsResult.recordset as DoctorsType,
+            companies: companies,
+            tpas: tpas,
+            doctors: doctors,
         };
     } catch (error) {
         console.error("Error fetching data for new patient page:", error);
@@ -465,30 +483,22 @@ export async function getPatientEditPageData(patientId: string) {
 
         const hospitalId = patientData.hospitalId;
         
-        const [companiesResult, tpasResult, doctorsResult, complaintsResult] = await Promise.all([
-            getDbPool().then(pool => pool.request().query('SELECT id, name FROM companies')),
+        const [companies, tpas, doctors, complaints] = await Promise.all([
+            hospitalId ? getCompaniesByHospital(hospitalId) : Promise.resolve([]),
             hospitalId ? getTPAsByHospital(hospitalId) : Promise.resolve([]),
-            getDbPool().then(pool => pool.request().query('SELECT * FROM doctors')),
-            getDbPool().then(pool => pool.request().input('patient_id', sql.Int, Number(patientId)).query('SELECT * FROM chief_complaints WHERE patient_id = @patient_id'))
+            getDoctors(),
+            getChiefComplaints(Number(patientId))
         ]);
-
-        const complaints = complaintsResult.recordset.map(c => ({
-            id: c.id,
-            name: c.complaint_name,
-            selected: true,
-            durationValue: c.duration_value,
-            durationUnit: c.durationUnit
-        }));
 
         type CompaniesType = Pick<Company, 'id' | 'name'>[];
         type DoctorsType = Doctor[];
 
         return {
             patient: patientData,
-            companies: companiesResult.recordset as CompaniesType,
-            tpas: tpasResult,
-            doctors: doctorsResult.recordset as DoctorsType,
-            complaints
+            companies: companies,
+            tpas: tpas,
+            doctors: doctors,
+            complaints: complaints
         };
     } catch (error) {
         console.error("Error fetching data for patient edit page:", error);
@@ -1058,6 +1068,7 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
     
 
     
+
 
 
 

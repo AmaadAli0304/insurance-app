@@ -587,7 +587,7 @@ export default function EditPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="company_id">Insurance Company <span className="text-destructive">*</span></Label>
-                                            <Select name="company_id" required defaultValue={patient.companyId} disabled={isLoading}>
+                                            <Select name="company_id" required defaultValue={patient.companyId} disabled={isLoading || companies.length === 0}>
                                                 <SelectTrigger><SelectValue placeholder="Select a company" /></SelectTrigger>
                                                 <SelectContent>
                                                     {companies.map(c => (
