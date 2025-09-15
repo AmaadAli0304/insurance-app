@@ -57,7 +57,7 @@ export default function PatientsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="Inactive">Inactive</SelectItem>
+                    <SelectItem value="Inactive">Completed</SelectItem>
                   </SelectContent>
                 </Select>
             </div>
