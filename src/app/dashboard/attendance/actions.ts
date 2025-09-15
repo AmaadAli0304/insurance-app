@@ -12,10 +12,18 @@ export type AttendanceRecord = {
   hospital_id: string;
 };
 
-export async function getStaffForAttendance(): Promise<Pick<Staff, 'id' | 'name'>[]> {
+export async function getStaffForAttendance(hospitalId: string | null): Promise<Pick<Staff, 'id' | 'name'>[]> {
+  if (!hospitalId) return [];
   try {
     const pool = await getDbPool();
-    const result = await pool.request().query("SELECT uid as id, name FROM users WHERE role = 'Hospital Staff'");
+    const result = await pool.request()
+      .input('hospitalId', sql.NVarChar, hospitalId)
+      .query(`
+        SELECT u.uid as id, u.name 
+        FROM users u
+        JOIN hospital_staff hs ON u.uid = hs.staff_id
+        WHERE hs.hospital_id = @hospitalId AND u.role = 'Hospital Staff'
+      `);
     return result.recordset;
   } catch (error) {
     console.error("Error fetching staff for attendance:", error);
@@ -23,16 +31,18 @@ export async function getStaffForAttendance(): Promise<Pick<Staff, 'id' | 'name'
   }
 }
 
-export async function getAttendanceForMonth(month: number, year: number): Promise<Record<string, Record<number, boolean>>> {
+export async function getAttendanceForMonth(month: number, year: number, hospitalId: string | null): Promise<Record<string, Record<number, boolean>>> {
+  if (!hospitalId) return {};
   try {
     const pool = await getDbPool();
     const result = await pool.request()
       .input('month', sql.Int, month)
       .input('year', sql.Int, year)
+      .input('hospitalId', sql.NVarChar, hospitalId)
       .query(`
         SELECT staff_id, date 
         FROM attendance 
-        WHERE MONTH(date) = @month AND YEAR(date) = @year AND status = 'present'
+        WHERE MONTH(date) = @month AND YEAR(date) = @year AND status = 'present' AND hospital_id = @hospitalId
       `);
     
     const attendanceByStaff: Record<string, Record<number, boolean>> = {};
@@ -61,7 +71,7 @@ export async function saveAttendance(prevState: { message: string, type?: string
   const hospitalId = formData.get('hospitalId') as string;
 
   if (!month || !year || !rawAttendanceData || !hospitalId) {
-    return { message: "Missing required data to save attendance.", type: "error" };
+    return { message: "Missing required data to save attendance. Please select a hospital.", type: "error" };
   }
   
   const attendanceData = JSON.parse(rawAttendanceData);

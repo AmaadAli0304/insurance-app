@@ -7,12 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getStaffForAttendance, getAttendanceForMonth, saveAttendance } from "./actions";
-import type { Staff } from "@/lib/types";
+import { getHospitalsForForm } from "@/app/dashboard/staff/actions";
+import type { Staff, Hospital } from "@/lib/types";
 import { AlertTriangle, Loader2, ChevronLeft, ChevronRight, Save } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useFormStatus } from "react-dom";
 import { useAuth } from "@/components/auth-provider";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 function SaveButton() {
     const { pending } = useFormStatus();
@@ -33,9 +35,10 @@ function SaveButton() {
     );
 }
 
-
 export default function AttendancePage() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
+  const [hospitals, setHospitals] = useState<Pick<Hospital, "id" | "name">[]>([]);
+  const [selectedHospitalId, setSelectedHospitalId] = useState<string | null>(null);
   const [staffList, setStaffList] = useState<Pick<Staff, 'id' | 'name'>[]>([]);
   const [attendance, setAttendance] = useState<Record<string, Record<number, boolean>>>({});
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -45,15 +48,40 @@ export default function AttendancePage() {
   const [state, formAction] = useActionState(saveAttendance, { message: "", type: "initial" });
   const { toast } = useToast();
 
+  useEffect(() => {
+    async function loadHospitals() {
+        if(role === 'Company Admin') {
+            try {
+                const hospitalList = await getHospitalsForForm();
+                setHospitals(hospitalList);
+                if(hospitalList.length > 0) {
+                    setSelectedHospitalId(hospitalList[0].id);
+                }
+            } catch (e) {
+                setError("Failed to load hospitals.");
+            }
+        } else if (role === 'Hospital Staff') {
+            setSelectedHospitalId(user?.hospitalId ?? null);
+        }
+    }
+    loadHospitals();
+  }, [role, user?.hospitalId]);
+
   const loadAttendanceData = useCallback(async () => {
+    if (!selectedHospitalId) {
+        setIsLoading(false);
+        setStaffList([]);
+        setAttendance({});
+        return;
+    }
     setIsLoading(true);
     setError(null);
     try {
       const month = currentDate.getMonth() + 1;
       const year = currentDate.getFullYear();
       const [staff, attendanceData] = await Promise.all([
-        getStaffForAttendance(),
-        getAttendanceForMonth(month, year)
+        getStaffForAttendance(selectedHospitalId),
+        getAttendanceForMonth(month, year, selectedHospitalId)
       ]);
       setStaffList(staff);
       setAttendance(attendanceData);
@@ -62,7 +90,7 @@ export default function AttendancePage() {
     } finally {
       setIsLoading(false);
     }
-  }, [currentDate]);
+  }, [currentDate, selectedHospitalId]);
 
   useEffect(() => {
     if (state.type === 'success') {
@@ -72,7 +100,6 @@ export default function AttendancePage() {
       toast({ title: "Error", description: state.message, variant: "destructive" });
     }
   }, [state, toast, loadAttendanceData]);
-
 
   useEffect(() => {
     loadAttendanceData();
@@ -115,14 +142,26 @@ export default function AttendancePage() {
                         <CardTitle>Staff Attendance</CardTitle>
                         <CardDescription>Mark attendance for each staff member for the selected month.</CardDescription>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Button type="button" variant="outline" size="icon" onClick={() => changeMonth(-1)}>
-                            <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        <span className="text-lg font-medium w-32 text-center">{monthName} {year}</span>
-                        <Button type="button" variant="outline" size="icon" onClick={() => changeMonth(1)}>
-                            <ChevronRight className="h-4 w-4" />
-                        </Button>
+                     <div className="flex items-center gap-4">
+                        {role === 'Company Admin' && (
+                             <Select value={selectedHospitalId ?? ''} onValueChange={setSelectedHospitalId}>
+                                <SelectTrigger className="w-[200px]">
+                                    <SelectValue placeholder="Select Hospital" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {hospitals.map(h => <SelectItem key={h.id} value={h.id}>{h.name}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        )}
+                        <div className="flex items-center gap-2">
+                            <Button type="button" variant="outline" size="icon" onClick={() => changeMonth(-1)}>
+                                <ChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <span className="text-lg font-medium w-32 text-center">{monthName} {year}</span>
+                            <Button type="button" variant="outline" size="icon" onClick={() => changeMonth(1)}>
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </CardHeader>
@@ -138,6 +177,16 @@ export default function AttendancePage() {
                     <AlertDescription>{error}</AlertDescription>
                 </Alert>
             </div>
+        ) : !selectedHospitalId ? (
+            <Card>
+                <CardContent className="p-6">
+                    <Alert>
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle>No Hospital Selected</AlertTitle>
+                        <AlertDescription>Please select a hospital to view and manage attendance.</AlertDescription>
+                    </Alert>
+                </CardContent>
+            </Card>
         ) : (
             <Card>
                 <form action={formAction}>
@@ -147,7 +196,7 @@ export default function AttendancePage() {
                                 <input type="hidden" name="month" value={month + 1} />
                                 <input type="hidden" name="year" value={year} />
                                 <input type="hidden" name="attendanceData" value={JSON.stringify(attendance)} />
-                                <input type="hidden" name="hospitalId" value={user?.hospitalId ?? ''} />
+                                <input type="hidden" name="hospitalId" value={selectedHospitalId ?? ''} />
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
