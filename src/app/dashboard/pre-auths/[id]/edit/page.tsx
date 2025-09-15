@@ -193,7 +193,7 @@ export default function EditPreAuthPage() {
                             <div><span className="font-semibold">Patient:</span> {request.fullName}</div>
                             <div><span className="font-semibold">Policy Number:</span> {request.policyNumber}</div>
                             <div><span className="font-semibold">Claim ID:</span> {request.claim_id || 'N/A'}</div>
-                            <div className="lg:col-span-3"><span className="font-semibold">Amount:</span> ${request.totalExpectedCost?.toLocaleString()}</div>
+                            <div className="lg:col-span-3"><span className="font-semibold">Amount:</span> {request.totalExpectedCost?.toLocaleString()}</div>
                         </div>
 
                         <div className="space-y-2">
