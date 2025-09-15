@@ -341,5 +341,68 @@ export async function getHospitalList(): Promise<Pick<Hospital, 'id' | 'name'>[]
   }
 }
 
+export type StaffOnDutyStat = {
+    staffId: string;
+    staffName: string;
+    hospitalName: string;
+    preAuthCount: number;
+    finalApprovalCount: number;
+    dischargeCount: number;
+    rejectionCount: number;
+};
 
+export async function getStaffOnDutyStats(): Promise<StaffOnDutyStat[]> {
+    try {
+        const pool = await getDbPool();
+        const request = pool.request();
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        request.input('today', sql.Date, today);
+        request.input('tomorrow', sql.Date, tomorrow);
+
+        const query = `
+            WITH PresentStaff AS (
+                SELECT staff_id
+                FROM attendance
+                WHERE date >= @today AND date < @tomorrow AND status = 'present'
+            ),
+            StaffClaimStats AS (
+                SELECT
+                    c.created_by as staff_id,
+                    SUM(CASE WHEN c.status = 'Pre auth Sent' THEN 1 ELSE 0 END) as preAuthCount,
+                    SUM(CASE WHEN c.status = 'Final Amount Sanctioned' THEN 1 ELSE 0 END) as finalApprovalCount,
+                    SUM(CASE WHEN c.status = 'Settlement Done' THEN 1 ELSE 0 END) as dischargeCount,
+                    SUM(CASE WHEN c.status = 'Rejected' THEN 1 ELSE 0 END) as rejectionCount
+                FROM claims c
+                WHERE c.created_at >= @today AND c.created_at < @tomorrow
+                GROUP BY c.created_by
+            )
+            SELECT
+                u.uid as staffId,
+                u.name as staffName,
+                h.name as hospitalName,
+                ISNULL(scs.preAuthCount, 0) as preAuthCount,
+                ISNULL(scs.finalApprovalCount, 0) as finalApprovalCount,
+                ISNULL(scs.dischargeCount, 0) as dischargeCount,
+                ISNULL(scs.rejectionCount, 0) as rejectionCount
+            FROM PresentStaff ps
+            JOIN users u ON ps.staff_id = u.uid
+            LEFT JOIN hospital_staff hs ON u.uid = hs.staff_id
+            LEFT JOIN hospitals h ON hs.hospital_id = h.id
+            LEFT JOIN StaffClaimStats scs ON u.uid = scs.staff_id
+            ORDER BY u.name;
+        `;
+        
+        const result = await request.query(query);
+        return result.recordset as StaffOnDutyStat[];
+
+    } catch (error) {
+        console.error('Error fetching staff on duty stats:', error);
+        throw new Error('Failed to fetch staff on duty statistics.');
+    }
+}
     

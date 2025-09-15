@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { PatientBillingTable } from "./patient-billing-table";
 import { SimpleBusinessSummaryTable } from "./simple-business-summary-table";
 import { StaffPerformanceTable } from "./staff-performance-table";
+import { StaffOnDutyTable } from "./staff-on-duty-table";
 
 
 interface DashboardStats {
@@ -149,6 +150,8 @@ export function CompanyAdminDashboard() {
             </Card>
           </div>
     
+          <StaffOnDutyTable />
+
           <BusinessSummaryTable stats={businessStats}>
              <Popover>
                 <PopoverTrigger asChild>
