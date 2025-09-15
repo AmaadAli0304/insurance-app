@@ -504,6 +504,7 @@ export async function getPreAuthRequestById(id: string): Promise<StaffingRequest
                     pr.*, 
                     pr.patient_id as patientId,
                     pr.first_name + ' ' + pr.last_name as fullName,
+                    pr.claim_id,
                     h.name as hospitalName,
                     h.email as fromEmail,
                     comp.name as companyName,
