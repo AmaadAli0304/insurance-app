@@ -102,33 +102,27 @@ export default function AttendancePage() {
   today.setHours(0, 0, 0, 0);
 
   return (
-    <form action={formAction}>
-        <input type="hidden" name="month" value={month + 1} />
-        <input type="hidden" name="year" value={year} />
-        <input type="hidden" name="attendanceData" value={JSON.stringify(attendance)} />
-
-        <Card>
-            <CardHeader>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                <CardTitle>Staff Attendance</CardTitle>
-                <CardDescription>Mark attendance for each staff member for the selected month.</CardDescription>
-                </div>
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                        <Button variant="outline" size="icon" onClick={() => changeMonth(-1)}>
-                            <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        <span className="text-lg font-medium w-32 text-center">{monthName} {year}</span>
-                        <Button variant="outline" size="icon" onClick={() => changeMonth(1)}>
-                            <ChevronRight className="h-4 w-4" />
-                        </Button>
-                    </div>
-                    <SaveButton />
+    <Card>
+        <CardHeader>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+            <CardTitle>Staff Attendance</CardTitle>
+            <CardDescription>Mark attendance for each staff member for the selected month.</CardDescription>
+            </div>
+            <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                    <Button type="button" variant="outline" size="icon" onClick={() => changeMonth(-1)}>
+                        <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="text-lg font-medium w-32 text-center">{monthName} {year}</span>
+                    <Button type="button" variant="outline" size="icon" onClick={() => changeMonth(1)}>
+                        <ChevronRight className="h-4 w-4" />
+                    </Button>
                 </div>
             </div>
-            </CardHeader>
-            <CardContent>
+        </div>
+        </CardHeader>
+        <CardContent>
             {isLoading ? (
                 <div className="flex justify-center items-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>
             ) : error ? (
@@ -138,39 +132,46 @@ export default function AttendancePage() {
                     <AlertDescription>{error}</AlertDescription>
                 </Alert>
             ) : (
-                <div className="overflow-x-auto">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="sticky left-0 bg-background z-10 w-[200px]">Staff Name</TableHead>
-                                {days.map(day => <TableHead key={day} className="text-center">{day}</TableHead>)}
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {staffList.map(staff => (
-                                <TableRow key={staff.id}>
-                                    <TableCell className="sticky left-0 bg-background z-10 font-medium">{staff.name}</TableCell>
-                                    {days.map(day => {
-                                        const dayDate = new Date(year, month, day);
-                                        const isFutureDate = dayDate > today;
-                                        return (
-                                            <TableCell key={day} className="text-center">
-                                                <Checkbox
-                                                    checked={!!attendance[staff.id]?.[day]}
-                                                    onCheckedChange={() => handleAttendanceChange(staff.id, day)}
-                                                    disabled={isFutureDate}
-                                                />
-                                            </TableCell>
-                                        );
-                                    })}
+                 <form action={formAction} className="space-y-4">
+                    <input type="hidden" name="month" value={month + 1} />
+                    <input type="hidden" name="year" value={year} />
+                    <input type="hidden" name="attendanceData" value={JSON.stringify(attendance)} />
+                    <div className="overflow-x-auto border rounded-lg">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="sticky left-0 bg-background z-10 w-[200px] min-w-[200px]">Staff Name</TableHead>
+                                    {days.map(day => <TableHead key={day} className="text-center min-w-[50px]">{day}</TableHead>)}
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </div>
+                            </TableHeader>
+                            <TableBody>
+                                {staffList.map(staff => (
+                                    <TableRow key={staff.id}>
+                                        <TableCell className="sticky left-0 bg-background z-10 font-medium">{staff.name}</TableCell>
+                                        {days.map(day => {
+                                            const dayDate = new Date(year, month, day);
+                                            const isFutureDate = dayDate > today;
+                                            return (
+                                                <TableCell key={day} className="text-center">
+                                                    <Checkbox
+                                                        checked={!!attendance[staff.id]?.[day]}
+                                                        onCheckedChange={() => handleAttendanceChange(staff.id, day)}
+                                                        disabled={isFutureDate}
+                                                    />
+                                                </TableCell>
+                                            );
+                                        })}
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                     <div className="flex justify-end">
+                        <SaveButton />
+                    </div>
+                </form>
             )}
-            </CardContent>
-        </Card>
-    </form>
+        </CardContent>
+    </Card>
   );
 }
