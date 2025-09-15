@@ -54,6 +54,108 @@ function SubmitButton({ formAction }: { formAction: (payload: FormData) => void 
     );
 }
 
+const PdfPreAuthForm = ({
+  patient,
+  hospital,
+  totalCost,
+  formRef
+}: {
+  patient: Patient | null;
+  hospital: Hospital | null;
+  totalCost: number;
+  formRef: React.RefObject<HTMLDivElement>
+}) => {
+    if (!patient) return null;
+
+    const Field = ({ label, value }: { label: string; value?: string | number | null }) => (
+        <div className="flex border-b py-1">
+            <div className="w-1/3 text-gray-600">{label}</div>
+            <div className="w-2/3 font-medium text-black">{value || ''}</div>
+        </div>
+    );
+    
+    return (
+        <div 
+            ref={formRef} 
+            className="absolute left-[-9999px] top-0 w-[800px] bg-white p-10 text-base"
+        >
+            <div className="text-center mb-8">
+                <h1 className="text-3xl font-bold text-blue-700">Pre-Authorization Request Form</h1>
+                <p className="text-gray-500 mt-2">{hospital?.name}</p>
+            </div>
+
+            <div className="mb-6">
+                <h2 className="text-xl font-semibold bg-blue-700 text-white p-2 rounded-t-md">A. Patient Details</h2>
+                <div className="border p-4 rounded-b-md space-y-2">
+                    <Field label="First Name" value={patient.firstName} />
+                    <Field label="Last Name" value={patient.lastName} />
+                    <Field label="Email Address" value={patient.email_address} />
+                    <Field label="Phone Number" value={patient.phoneNumber} />
+                    <Field label="Alternate Number" value={patient.alternative_number} />
+                    <Field label="Gender" value={patient.gender} />
+                    <Field label="Date of Birth" value={patient.dateOfBirth ? format(new Date(patient.dateOfBirth), 'MMMM dd, yyyy') : ''} />
+                    <Field label="Age" value={patient.age} />
+                    <Field label="Address" value={patient.address} />
+                    <Field label="Occupation" value={patient.occupation} />
+                    <Field label="Employee ID" value={patient.employee_id} />
+                    <Field label="ABHA ID" value={patient.abha_id} />
+                    <Field label="Health ID / UHID" value={patient.health_id} />
+                </div>
+            </div>
+
+            <div className="mb-6">
+                <h2 className="text-xl font-semibold bg-blue-700 text-white p-2 rounded-t-md">B. Insurance & Admission Details</h2>
+                <div className="border p-4 rounded-b-md space-y-2">
+                    <Field label="Admission ID" value={patient.admission_id} />
+                    <Field label="Relationship to Policyholder" value={patient.relationship_policyholder} />
+                    <Field label="Policy Number" value={patient.policyNumber} />
+                    <Field label="Insured Member ID" value={patient.memberId} />
+                    <Field label="Insurance Company" value={patient.companyName} />
+                    <Field label="TPA" value={patient.tpaName} />
+                    <Field label="Policy Start Date" value={patient.policyStartDate ? format(new Date(patient.policyStartDate), 'MMMM dd, yyyy') : ''} />
+                    <Field label="Policy End Date" value={patient.policyEndDate ? format(new Date(patient.policyEndDate), 'MMMM dd, yyyy') : ''} />
+                    <Field label="Sum Insured" value={patient.sumInsured?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} />
+                    <Field label="Sum Utilized" value={patient.sumUtilized?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} />
+                    <Field label="Total Available Sum" value={patient.totalSum?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} />
+                    <Field label="Corporate Policy" value={patient.corporate_policy_number} />
+                    <Field label="Other Insurance" value={patient.other_policy_name} />
+                    <Field label="Family Physician" value={patient.family_doctor_name} />
+                    <Field label="Physician Contact" value={patient.family_doctor_phone} />
+                    <Field label="Payer Email" value={patient.payer_email} />
+                    <Field label="Payer Phone" value={patient.payer_phone} />
+                    <Field label="Treating Doctor" value={patient.treat_doc_name} />
+                    <Field label="Doctor's Contact" value={patient.treat_doc_number} />
+                    <Field label="Doctor's Qualification" value={patient.treat_doc_qualification} />
+                    <Field label="Doctor's Registration No." value={patient.treat_doc_reg_no} />
+                </div>
+            </div>
+            
+             <div className="mb-6" style={{ pageBreakInside: 'avoid' }}>
+                <h2 className="text-xl font-semibold bg-blue-700 text-white p-2 rounded-t-md">F. Admission & Cost Estimate</h2>
+                <div className="border p-4 rounded-b-md space-y-2">
+                    <Field label="Admission Date" value={patient.admissionDate ? format(new Date(patient.admissionDate), 'MMMM dd, yyyy') : ''} />
+                    <Field label="Admission Time" value={patient.admissionTime} />
+                    <Field label="Admission Type" value={patient.admissionType} />
+                    <Field label="Expected Stay" value={patient.expectedStay ? `${patient.expectedStay} days` : ''} />
+                    <Field label="Expected ICU Stay" value={patient.expectedIcuStay ? `${patient.expectedIcuStay} days` : ''} />
+                    <Field label="Requested Room Category" value={patient.roomCategory} />
+                    <Field label="Room + Nursing + Diet" value={patient.roomNursingDietCost?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} />
+                    <Field label="Investigations Cost" value={patient.investigationCost?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} />
+                    <Field label="ICU Charges" value={patient.icuCost?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} />
+                    <Field label="OT Charges" value={patient.otCost?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} />
+                    <Field label="Professional Fees" value={patient.professionalFees?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} />
+                    <Field label="Medicines Cost" value={patient.medicineCost?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} />
+                    <Field label="Other Expenses" value={patient.otherHospitalExpenses?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} />
+                    <Field label="Package Charges" value={patient.packageCharges?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} />
+                    <Field label="Total Expected Cost" value={totalCost.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} />
+                </div>
+            </div>
+
+        </div>
+    );
+};
+
+
 export default function NewRequestPage() {
     const { user } = useAuth();
     const [addState, addAction] = useActionState(handleAddRequest, { message: "", type: "initial" });
@@ -130,11 +232,10 @@ export default function NewRequestPage() {
         });
 
         const canvas = await html2canvas(formToCapture, {
-            scale: 2,
+            scale: 2, 
             useCORS: true,
-            scrollY: -window.scrollY,
-            windowWidth: document.documentElement.offsetWidth,
-            windowHeight: document.documentElement.offsetHeight,
+            windowWidth: formToCapture.scrollWidth,
+            windowHeight: formToCapture.scrollHeight
         });
 
         const imgData = canvas.toDataURL('image/png');
@@ -143,27 +244,28 @@ export default function NewRequestPage() {
             unit: 'mm',
             format: 'a4',
         });
-
+        
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
         const canvasWidth = canvas.width;
         const canvasHeight = canvas.height;
+        
         const ratio = canvasWidth / canvasHeight;
-
         const imgHeight = pdfWidth / ratio;
+        
         let heightLeft = imgHeight;
         let position = 0;
 
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight);
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
         heightLeft -= pdfHeight;
 
         while (heightLeft > 0) {
-            position = heightLeft - imgHeight;
+            position = position - pdfHeight;
             pdf.addPage();
             pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
             heightLeft -= pdfHeight;
         }
-
+        
         pdf.save(`pre-auth-request-${patientDetails.fullName.replace(/ /g, '_')}.pdf`);
         setIsDownloadingPdf(false);
     };
@@ -486,7 +588,7 @@ export default function NewRequestPage() {
                         </div>
                     )}
                     
-                    <div ref={pdfFormRef}>
+                    <div id="form-container-for-pdf">
                     {patientDetails && (
                         <>
                         <Accordion type="multiple" className="w-full space-y-6" defaultValue={["patient-details", "insurance-details", "clinical-info", "accident-info", "maternity-info", "cost-info", "medical-history", "declarations-info"]}>
@@ -1052,6 +1154,8 @@ export default function NewRequestPage() {
                      </div>
                 </div>
             </form>
+            <PdfPreAuthForm formRef={pdfFormRef} patient={patientDetails} hospital={hospitalDetails} totalCost={totalCost} />
         </div>
     );
 }
+
