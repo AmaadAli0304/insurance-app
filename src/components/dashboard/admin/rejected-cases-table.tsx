@@ -1,11 +1,11 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getRejectedCases, RejectedCase } from "./actions";
-import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Download, Loader2 } from "lucide-react";
 import { DateRange } from "react-day-picker";
 
 interface RejectedCasesTableProps {
@@ -31,12 +31,44 @@ export function RejectedCasesTable({ dateRange }: RejectedCasesTableProps) {
     useEffect(() => {
         loadData();
     }, [loadData]);
+    
+    const handleExport = () => {
+        const headers = ["Patient Name", "TPA", "Reason", "Amount"];
+        const csvRows = [headers.join(",")];
+
+        cases.forEach((c) => {
+            const row = [
+                `"${c.patientName}"`,
+                `"${c.tpaName}"`,
+                `"${c.reason || 'N/A'}"`,
+                c.amount,
+            ];
+            csvRows.push(row.join(","));
+        });
+
+        const csvContent = csvRows.join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "rejected_cases.csv");
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     return (
         <Card>
-            <CardHeader>
-                <CardTitle>Rejected cases</CardTitle>
-                <CardDescription>A list of claims that have been rejected.</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle>Rejected cases</CardTitle>
+                    <CardDescription>A list of claims that have been rejected.</CardDescription>
+                </div>
+                 <Button onClick={handleExport} variant="outline" size="sm" disabled={cases.length === 0}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Export
+                </Button>
             </CardHeader>
             <CardContent>
                 {isLoading ? (
