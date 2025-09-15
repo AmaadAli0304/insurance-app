@@ -59,7 +59,7 @@ export default function ProfilePage() {
                     <DetailItem label="Designation" value={user.designation} />
                     <DetailItem label="Department" value={user.department} />
                     <DetailItem label="Contact Number" value={user.number} />
-                    {user.role === 'Hospital Staff' && <DetailItem label="Assigned Hospital" value={user.hospitalName} />}
+                    {(user.role === 'Hospital Staff' || user.role === 'Admin') && <DetailItem label="Assigned Hospital" value={user.hospitalName} />}
                     <DetailItem label="Shift Timing" value={user.shiftTime} />
                     <DetailItem label="Status" value={user.status} />
                     <DetailItem label="Joining Date" value={user.joiningDate ? new Date(user.joiningDate).toLocaleDateString() : 'N/A'} />
