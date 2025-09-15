@@ -88,35 +88,10 @@ export function HospitalStaffDashboard() {
         />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Pending Pre-Auths</CardTitle>
-          <CardDescription>These pre-authorization requests are awaiting action from the TPA/Insurer.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <PendingPreAuthsTable requests={data?.pendingPreAuths ?? []} />
-        </CardContent>
-      </Card>
+      <PendingPreAuthsTable requests={data?.pendingPreAuths ?? []} title="Pending Pre-Auths" description="These pre-authorization requests are awaiting action from the TPA/Insurer." filename="pending_pre_auths.csv" />
+      <PendingPreAuthsTable requests={data?.queryRaisedPreAuths ?? []} title="Query Raised Pre-Auths" description="These requests have queries raised by the TPA/Insurer and require your action." filename="query_raised_pre_auths.csv" />
+      <RejectedPreAuthsTable requests={data?.rejectedPreAuths ?? []} />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Query Raised Pre-Auths</CardTitle>
-          <CardDescription>These requests have queries raised by the TPA/Insurer and require your action.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <PendingPreAuthsTable requests={data?.queryRaisedPreAuths ?? []} />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Rejected Pre-Auths</CardTitle>
-          <CardDescription>These requests have been rejected by the TPA/Insurer.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <RejectedPreAuthsTable requests={data?.rejectedPreAuths ?? []} />
-        </CardContent>
-      </Card>
     </div>
   )
 }
