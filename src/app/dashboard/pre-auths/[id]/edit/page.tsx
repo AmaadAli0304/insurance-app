@@ -201,7 +201,7 @@ export default function EditPreAuthPage() {
                             <Select 
                                 name="status" 
                                 required 
-                                defaultValue={request.status}
+                                value={selectedStatus ?? undefined}
                                 onValueChange={(value: PreAuthStatus) => setSelectedStatus(value)}
                             >
                                 <SelectTrigger>
