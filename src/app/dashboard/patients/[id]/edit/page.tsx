@@ -642,7 +642,7 @@ export default function EditPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="tpa_id">Select TPA <span className="text-destructive">*</span></Label>
-                                            <Select name="tpa_id" disabled={isLoading} required defaultValue={patient.tpa_id?.toString() ?? undefined}>
+                                            <Select name="tpa_id" disabled={isLoading || tpas.length === 0} required defaultValue={patient.tpa_id?.toString() ?? undefined}>
                                                 <SelectTrigger><SelectValue placeholder="Select a TPA" /></SelectTrigger>
                                                 <SelectContent>
                                                     {tpas.map(t => (

@@ -226,9 +226,15 @@ export default function NewPatientPage() {
 
 
     useEffect(() => {
+        if (!user?.hospitalId) {
+            setIsLoading(false);
+            toast({ title: "Error", description: "You are not assigned to a hospital.", variant: "destructive" });
+            return;
+        }
+
         async function loadData() {
             try {
-                const data = await getNewPatientPageData();
+                const data = await getNewPatientPageData(user!.hospitalId!);
                 setCompanies(data.companies);
                 setTpas(data.tpas);
                 setDoctors(data.doctors);
@@ -239,7 +245,7 @@ export default function NewPatientPage() {
             }
         }
         loadData();
-    }, [toast]);
+    }, [toast, user]);
     
      useEffect(() => {
         if (state.type === 'success') {
@@ -570,7 +576,7 @@ export default function NewPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="tpa_id">Select TPA <span className="text-destructive">*</span></Label>
-                                            <Select name="tpa_id" disabled={isLoading} required>
+                                            <Select name="tpa_id" disabled={isLoading || tpas.length === 0} required>
                                                 <SelectTrigger><SelectValue placeholder="Select a TPA" /></SelectTrigger>
                                                 <SelectContent>
                                                     {tpas.map(t => (
@@ -848,3 +854,4 @@ export default function NewPatientPage() {
         </div>
     );
 }
+
