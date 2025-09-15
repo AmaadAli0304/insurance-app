@@ -375,7 +375,7 @@ export async function getStaffOnDutyStats(): Promise<StaffOnDutyStat[]> {
                 SELECT
                     staff_id,
                     SUM(CASE WHEN status = 'Pre auth Sent' THEN 1 ELSE 0 END) as preAuthCount,
-                    SUM(CASE WHEN status = 'Final Amount Sanctioned' THEN 1 ELSE 0 END) as finalApprovalCount,
+                    SUM(CASE WHEN status IN ('Final Amount Sanctioned', 'Final Discharge sent') THEN 1 ELSE 0 END) as finalApprovalCount,
                     SUM(CASE WHEN status = 'Settlement Done' THEN 1 ELSE 0 END) as dischargeCount,
                     SUM(CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END) as rejectionCount
                 FROM (
