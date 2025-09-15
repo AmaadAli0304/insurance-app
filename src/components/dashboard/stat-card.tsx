@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Card, CardContent } from "@/components/ui/card"
@@ -11,12 +12,10 @@ interface StatCardProps {
   isCurrency?: boolean;
 }
 
-export function StatCard({ title, value, icon: Icon, color, isCurrency = false }: StatCardProps) {
+export function StatCard({ title, value, icon: Icon, color, isCurrency = true }: StatCardProps) {
   const formatValue = () => {
     if (isCurrency) {
       return new Intl.NumberFormat('en-IN', {
-        style: 'currency',
-        currency: 'INR',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
       }).format(value);

@@ -235,9 +235,9 @@ export default function ViewPatientPage() {
                         <DetailItem label="Relationship to Policyholder" value={patient.relationship_policyholder} icon={Users} />
                         <DetailItem label="Policy Start Date" value={formatDate(patient.policyStartDate)} icon={Calendar} />
                         <DetailItem label="Policy End Date" value={formatDate(patient.policyEndDate)} icon={Calendar} />
-                        <DetailItem label="Sum Insured" value={patient.sumInsured ? `₹${patient.sumInsured.toLocaleString()}` : null} icon={CircleDollarSign} />
-                        <DetailItem label="Sum Utilized" value={patient.sumUtilized ? `₹${patient.sumUtilized.toLocaleString()}` : null} icon={CircleDollarSign} />
-                        <DetailItem label="Total Available Sum" value={patient.totalSum ? `₹${patient.totalSum.toLocaleString()}` : null} icon={CircleDollarSign} />
+                        <DetailItem label="Sum Insured" value={patient.sumInsured ? patient.sumInsured.toLocaleString() : null} icon={CircleDollarSign} />
+                        <DetailItem label="Sum Utilized" value={patient.sumUtilized ? patient.sumUtilized.toLocaleString() : null} icon={CircleDollarSign} />
+                        <DetailItem label="Total Available Sum" value={patient.totalSum ? patient.totalSum.toLocaleString() : null} icon={CircleDollarSign} />
                         <DetailItem label="Corporate Policy" value={patient.corporate_policy_number} icon={FileText} />
                         <DetailItem label="Other Insurance" value={patient.other_policy_name} icon={FileText} />
                         <DetailItem label="Family Physician" value={patient.family_doctor_name} icon={Stethoscope} />
@@ -312,15 +312,15 @@ export default function ViewPatientPage() {
                         <DetailItem label="Expected Stay" value={patient.expectedStay ? `${patient.expectedStay} days` : 'N/A'} icon={Calendar} />
                         <DetailItem label="Expected ICU Stay" value={patient.expectedIcuStay ? `${patient.expectedIcuStay} days` : 'N/A'} icon={Calendar} />
                         <DetailItem label="Room Category" value={patient.roomCategory} icon={Building} />
-                        <DetailItem label="Room/Nursing Cost" value={patient.roomNursingDietCost ? `₹${patient.roomNursingDietCost.toLocaleString()}` : null} icon={CircleDollarSign} />
-                        <DetailItem label="Investigation Cost" value={patient.investigationCost ? `₹${patient.investigationCost.toLocaleString()}` : null} icon={CircleDollarSign} />
-                        <DetailItem label="ICU Cost" value={patient.icuCost ? `₹${patient.icuCost.toLocaleString()}` : null} icon={CircleDollarSign} />
-                        <DetailItem label="OT Cost" value={patient.otCost ? `₹${patient.otCost.toLocaleString()}` : null} icon={CircleDollarSign} />
-                        <DetailItem label="Professional Fees" value={patient.professionalFees ? `₹${patient.professionalFees.toLocaleString()}` : null} icon={CircleDollarSign} />
-                        <DetailItem label="Medicine Cost" value={patient.medicineCost ? `₹${patient.medicineCost.toLocaleString()}` : null} icon={CircleDollarSign} />
-                        <DetailItem label="Other Expenses" value={patient.otherHospitalExpenses ? `₹${patient.otherHospitalExpenses.toLocaleString()}` : null} icon={CircleDollarSign} />
-                        <DetailItem label="Package Charges" value={patient.packageCharges ? `₹${patient.packageCharges.toLocaleString()}` : null} icon={CircleDollarSign} />
-                        <DetailItem label="Total Estimated Cost" value={patient.totalExpectedCost ? `₹${patient.totalExpectedCost.toLocaleString()}` : null} className="font-bold text-lg" icon={CircleDollarSign} />
+                        <DetailItem label="Room/Nursing Cost" value={patient.roomNursingDietCost ? patient.roomNursingDietCost.toLocaleString() : null} icon={CircleDollarSign} />
+                        <DetailItem label="Investigation Cost" value={patient.investigationCost ? patient.investigationCost.toLocaleString() : null} icon={CircleDollarSign} />
+                        <DetailItem label="ICU Cost" value={patient.icuCost ? patient.icuCost.toLocaleString() : null} icon={CircleDollarSign} />
+                        <DetailItem label="OT Cost" value={patient.otCost ? patient.otCost.toLocaleString() : null} icon={CircleDollarSign} />
+                        <DetailItem label="Professional Fees" value={patient.professionalFees ? patient.professionalFees.toLocaleString() : null} icon={CircleDollarSign} />
+                        <DetailItem label="Medicine Cost" value={patient.medicineCost ? patient.medicineCost.toLocaleString() : null} icon={CircleDollarSign} />
+                        <DetailItem label="Other Expenses" value={patient.otherHospitalExpenses ? patient.otherHospitalExpenses.toLocaleString() : null} icon={CircleDollarSign} />
+                        <DetailItem label="Package Charges" value={patient.packageCharges ? patient.packageCharges.toLocaleString() : null} icon={CircleDollarSign} />
+                        <DetailItem label="Total Estimated Cost" value={patient.totalExpectedCost ? patient.totalExpectedCost.toLocaleString() : null} className="font-bold text-lg" icon={CircleDollarSign} />
                     </CardContent>
                 </Card>
                 

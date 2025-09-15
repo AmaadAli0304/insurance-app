@@ -89,7 +89,7 @@ export default function EditClaimPage() {
                         <div className="grid md:grid-cols-2 gap-x-8 gap-y-4 p-4 border rounded-lg bg-muted/50">
                              <div><span className="font-semibold">Patient:</span> {claim.Patient_name}</div>
                              <div><span className="font-semibold">Policy Number:</span> {claim.policyNumber}</div>
-                             <div><span className="font-semibold">Claim Amount:</span> ${claim.claimAmount?.toLocaleString()}</div>
+                             <div><span className="font-semibold">Claim Amount:</span> {claim.claimAmount?.toLocaleString()}</div>
                              <div><span className="font-semibold">Admission ID:</span> {claim.admission_id}</div>
                         </div>
 
@@ -113,7 +113,7 @@ export default function EditClaimPage() {
                         </div>
                         
                          <div className="space-y-2">
-                            <Label htmlFor="paidAmount">Paid Amount ($)</Label>
+                            <Label htmlFor="paidAmount">Paid Amount</Label>
                             <Input id="paidAmount" name="paidAmount" type="number" step="0.01" defaultValue={claim.paidAmount ?? undefined} placeholder="Enter amount if status is 'Paid'" />
                         </div>
                         

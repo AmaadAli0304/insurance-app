@@ -204,8 +204,8 @@ export default function ViewPreAuthPage() {
                             <Card>
                                 <CardHeader><CardTitle>Cost Estimate</CardTitle></CardHeader>
                                 <CardContent className="space-y-3">
-                                    <DetailItem label="Estimated Total Cost" value={request.totalExpectedCost ? `₹${request.totalExpectedCost.toLocaleString()}` : 'N/A'} icon={CircleDollarSign} />
-                                    <DetailItem label="Latest Sanctioned Amount" value={request.latestSanctionedAmount ? `₹${request.latestSanctionedAmount.toLocaleString()}` : 'N/A'} icon={DollarSign} />
+                                    <DetailItem label="Estimated Total Cost" value={request.totalExpectedCost ? request.totalExpectedCost.toLocaleString() : 'N/A'} icon={CircleDollarSign} />
+                                    <DetailItem label="Latest Sanctioned Amount" value={request.latestSanctionedAmount ? request.latestSanctionedAmount.toLocaleString() : 'N/A'} icon={DollarSign} />
                                     <DetailItem label="Expected Stay" value={request.expectedStay ? `${request.expectedStay} days` : 'N/A'} icon={Clock} />
                                     <DetailItem label="Room Category" value={request.roomCategory} icon={Building} />
                                 </CardContent>
@@ -283,7 +283,7 @@ export default function ViewPreAuthPage() {
                                         <TableRow key={claim.id}>
                                             <TableCell><Badge>{claim.status}</Badge></TableCell>
                                             <TableCell>{claim.reason || 'N/A'}</TableCell>
-                                            <TableCell>₹{claim.claimAmount?.toLocaleString() || 'N/A'}</TableCell>
+                                            <TableCell>{claim.claimAmount?.toLocaleString() || 'N/A'}</TableCell>
                                             <TableCell>{formatDate(claim.updated_at, true)}</TableCell>
                                         </TableRow>
                                     ))}

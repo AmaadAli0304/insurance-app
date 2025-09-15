@@ -77,7 +77,7 @@ export function RejectedPreAuthsTable({ requests }: RejectedPreAuthsTableProps) 
                     <TableCell>{req.tpaOrInsurerName}</TableCell>
                     <TableCell className="text-destructive">{req.reason || 'No reason provided'}</TableCell>
                     <TableCell className="text-right font-mono">
-                        ₹{req.amountRequested?.toLocaleString('en-IN') ?? 'N/A'}
+                        {req.amountRequested?.toLocaleString('en-IN') ?? 'N/A'}
                     </TableCell>
                     </TableRow>
                 ))

@@ -174,8 +174,8 @@ export default function ViewInvoicePage() {
                                 <TableRow>
                                     <TableHead className="w-1/2">Description</TableHead>
                                     <TableHead className="text-center">Qty</TableHead>
-                                    <TableHead className="text-right">Rate (₹)</TableHead>
-                                    <TableHead className="text-right">Amount (₹)</TableHead>
+                                    <TableHead className="text-right">Rate</TableHead>
+                                    <TableHead className="text-right">Amount</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -194,9 +194,9 @@ export default function ViewInvoicePage() {
                     <div className="grid md:grid-cols-2 gap-12 mt-8">
                         <div className="space-y-4"></div>
                         <div className="space-y-2">
-                            <div className="flex justify-between"><span>Subtotal</span><span>₹{subtotal.toLocaleString('en-IN')}</span></div>
-                            <div className="flex justify-between"><span>GST @ {taxRate}%</span><span>₹{taxAmount.toLocaleString('en-IN')}</span></div>
-                            <div className="flex justify-between font-bold text-lg border-t pt-2"><span>Grand Total</span><span>₹{grandTotal.toLocaleString('en-IN')}</span></div>
+                            <div className="flex justify-between"><span>Subtotal</span><span>{subtotal.toLocaleString('en-IN')}</span></div>
+                            <div className="flex justify-between"><span>GST @ {taxRate}%</span><span>{taxAmount.toLocaleString('en-IN')}</span></div>
+                            <div className="flex justify-between font-bold text-lg border-t pt-2"><span>Grand Total</span><span>{grandTotal.toLocaleString('en-IN')}</span></div>
                             <div className="text-sm text-muted-foreground pt-2"><strong>In Words:</strong> {numberToWords(grandTotal)}</div>
                         </div>
                     </div>

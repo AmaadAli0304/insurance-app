@@ -287,8 +287,8 @@ export default function EditInvoicePage() {
                                 <TableRow>
                                     <TableHead className="w-1/2">Description</TableHead>
                                     <TableHead className="w-[100px]">Qty</TableHead>
-                                    <TableHead className="w-[150px]">Rate (Rs)</TableHead>
-                                    <TableHead className="text-right w-[150px]">Amount (Rs)</TableHead>
+                                    <TableHead className="w-[150px]">Rate</TableHead>
+                                    <TableHead className="text-right w-[150px]">Amount</TableHead>
                                     <TableHead className="w-[50px]"></TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -305,7 +305,7 @@ export default function EditInvoicePage() {
                                             <Input placeholder="0.00" type="text" value={item.rate} onChange={(e) => handleItemChange(item._id, 'rate', e.target.value)} onBlur={() => handleRateBlur(item._id)} />
                                         </TableCell>
                                         <TableCell className="text-right font-medium">
-                                            Rs {calculateAmount(item).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            {calculateAmount(item).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </TableCell>
                                         <TableCell>
                                             <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveItem(item._id)} className="text-destructive">
@@ -328,15 +328,15 @@ export default function EditInvoicePage() {
                         <div className="space-y-2">
                             <div className="flex justify-between">
                                 <span>Subtotal</span>
-                                <span>Rs {subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                <span>{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span>GST @ {taxRate}%</span>
-                                <span>Rs {taxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                <span>{taxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
                             <div className="flex justify-between font-bold text-lg border-t pt-2">
                                 <span>Grand Total (Billed)</span>
-                                <span>Rs {grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                <span>{grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
                             <div className="text-sm text-muted-foreground pt-2">
                                 <strong>In Words:</strong> {numberToWords(grandTotal)}

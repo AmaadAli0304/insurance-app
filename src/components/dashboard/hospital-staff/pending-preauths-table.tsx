@@ -75,7 +75,7 @@ export function PendingPreAuthsTable({ requests, title, description, filename }:
                   <TableCell className="font-medium">{req.patientName}</TableCell>
                   <TableCell>{req.tpaOrInsurerName}</TableCell>
                   <TableCell className="text-right font-mono">
-                    ₹{req.amountRequested.toLocaleString('en-IN')}
+                    {req.amountRequested.toLocaleString('en-IN')}
                   </TableCell>
                 </TableRow>
               ))
