@@ -173,7 +173,7 @@ export default function AttendancePage() {
                         </TableBody>
                     </Table>
                 </div>
-                <div className="flex justify-end p-4 border-t flex-shrink-0 bg-background rounded-b-lg mt-auto">
+                <div className="flex justify-start p-4 border-t flex-shrink-0 bg-background rounded-b-lg mt-auto">
                     <SaveButton />
                 </div>
             </form>
