@@ -186,7 +186,7 @@ export default function EditPreAuthPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="status">Pre-Auth Status</Label>
+                            <Label htmlFor="status">Pre-Auth Status <span className="text-destructive">*</span></Label>
                             <Select 
                                 name="status" 
                                 required 
