@@ -97,6 +97,9 @@ export default function AttendancePage() {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
   const monthName = currentDate.toLocaleString('default', { month: 'long' });
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   return (
     <form action={formAction}>
@@ -147,14 +150,19 @@ export default function AttendancePage() {
                             {staffList.map(staff => (
                                 <TableRow key={staff.id}>
                                     <TableCell className="sticky left-0 bg-background z-10 font-medium">{staff.name}</TableCell>
-                                    {days.map(day => (
-                                        <TableCell key={day} className="text-center">
-                                            <Checkbox
-                                                checked={!!attendance[staff.id]?.[day]}
-                                                onCheckedChange={() => handleAttendanceChange(staff.id, day)}
-                                            />
-                                        </TableCell>
-                                    ))}
+                                    {days.map(day => {
+                                        const dayDate = new Date(year, month, day);
+                                        const isFutureDate = dayDate > today;
+                                        return (
+                                            <TableCell key={day} className="text-center">
+                                                <Checkbox
+                                                    checked={!!attendance[staff.id]?.[day]}
+                                                    onCheckedChange={() => handleAttendanceChange(staff.id, day)}
+                                                    disabled={isFutureDate}
+                                                />
+                                            </TableCell>
+                                        );
+                                    })}
                                 </TableRow>
                             ))}
                         </TableBody>
