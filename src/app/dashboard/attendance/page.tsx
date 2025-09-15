@@ -139,7 +139,7 @@ export default function AttendancePage() {
         ) : (
             <Card>
                 <form action={formAction}>
-                    <CardContent className="p-0">
+                    <CardContent className="p-0 relative">
                         <input type="hidden" name="month" value={month + 1} />
                         <input type="hidden" name="year" value={year} />
                         <input type="hidden" name="attendanceData" value={JSON.stringify(attendance)} />
