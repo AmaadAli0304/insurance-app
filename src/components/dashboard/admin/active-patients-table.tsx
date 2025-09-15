@@ -118,7 +118,7 @@ export function AdminPatientBillingTable({ dateRange }: AdminPatientBillingTable
                         <TableBody>
                             {stats && stats.length > 0 ? (
                                 stats.map((stat) => (
-                                    <TableRow key={stat.patientId}>
+                                    <TableRow key={`${stat.patientId}-${stat.tpaName}`}>
                                         <TableCell className="font-medium flex items-center gap-3">
                                         <Avatar className="h-10 w-10">
                                             <AvatarImage src={stat.patientPhoto ?? undefined} alt={stat.patientName} />
