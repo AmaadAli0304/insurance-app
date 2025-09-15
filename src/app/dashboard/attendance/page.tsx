@@ -140,46 +140,42 @@ export default function AttendancePage() {
             </div>
         ) : (
             <form action={formAction} className="flex flex-col flex-grow mt-6">
-                <Card className="flex-grow flex flex-col">
-                    <CardContent className="flex-grow overflow-auto p-0">
-                        <div className="overflow-x-auto border rounded-lg">
-                             <input type="hidden" name="month" value={month + 1} />
-                            <input type="hidden" name="year" value={year} />
-                            <input type="hidden" name="attendanceData" value={JSON.stringify(attendance)} />
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="sticky left-0 bg-background z-10 w-[200px] min-w-[200px]">Staff Name</TableHead>
-                                        {days.map(day => <TableHead key={day} className="text-center min-w-[50px]">{day}</TableHead>)}
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {staffList.map(staff => (
-                                        <TableRow key={staff.id}>
-                                            <TableCell className="sticky left-0 bg-background z-10 font-medium">{staff.name}</TableCell>
-                                            {days.map(day => {
-                                                const dayDate = new Date(year, month, day);
-                                                const isFutureDate = dayDate > today;
-                                                return (
-                                                    <TableCell key={day} className="text-center">
-                                                        <Checkbox
-                                                            checked={!!attendance[staff.id]?.[day]}
-                                                            onCheckedChange={() => handleAttendanceChange(staff.id, day)}
-                                                            disabled={isFutureDate}
-                                                        />
-                                                    </TableCell>
-                                                );
-                                            })}
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
-                    </CardContent>
-                    <div className="flex justify-end p-4 border-t flex-shrink-0">
-                        <SaveButton />
-                    </div>
-                </Card>
+                <div className="flex-grow overflow-auto border rounded-lg">
+                    <input type="hidden" name="month" value={month + 1} />
+                    <input type="hidden" name="year" value={year} />
+                    <input type="hidden" name="attendanceData" value={JSON.stringify(attendance)} />
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="sticky top-0 bg-background z-10 w-[200px] min-w-[200px]">Staff Name</TableHead>
+                                {days.map(day => <TableHead key={day} className="text-center min-w-[50px] sticky top-0 bg-background z-10">{day}</TableHead>)}
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {staffList.map(staff => (
+                                <TableRow key={staff.id}>
+                                    <TableCell className="sticky left-0 bg-background z-10 font-medium">{staff.name}</TableCell>
+                                    {days.map(day => {
+                                        const dayDate = new Date(year, month, day);
+                                        const isFutureDate = dayDate > today;
+                                        return (
+                                            <TableCell key={day} className="text-center">
+                                                <Checkbox
+                                                    checked={!!attendance[staff.id]?.[day]}
+                                                    onCheckedChange={() => handleAttendanceChange(staff.id, day)}
+                                                    disabled={isFutureDate}
+                                                />
+                                            </TableCell>
+                                        );
+                                    })}
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+                <div className="flex justify-end p-4 border-t flex-shrink-0 mt-4 bg-background rounded-b-lg">
+                    <SaveButton />
+                </div>
             </form>
         )}
     </div>
