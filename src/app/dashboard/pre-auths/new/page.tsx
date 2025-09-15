@@ -87,7 +87,7 @@ const PdfPreAuthForm = ({
                 <p className="text-gray-500 mt-2">{hospital?.name}</p>
             </div>
 
-            <div className="mb-6">
+            <div className="mb-6 pdf-section">
                 <h2 className="text-xl font-semibold bg-blue-700 text-white p-2 rounded-t-md">A. Patient Details</h2>
                 <div className="border p-4 rounded-b-md space-y-2">
                     <Field label="First Name" value={patient.firstName} />
@@ -235,13 +235,13 @@ export default function NewRequestPage() {
         });
 
         const canvas = await html2canvas(formToCapture, {
-            scale: 2, 
+            scale: 1.5, // Reduced scale for smaller file size
             useCORS: true,
             windowWidth: formToCapture.scrollWidth,
             windowHeight: formToCapture.scrollHeight
         });
 
-        const imgData = canvas.toDataURL('image/png');
+        const imgData = canvas.toDataURL('image/jpeg', 0.8); // Use JPEG with quality 80%
         const pdf = new jsPDF({
             orientation: 'p',
             unit: 'mm',
@@ -259,13 +259,13 @@ export default function NewRequestPage() {
         let heightLeft = imgHeight;
         let position = 0;
 
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight, undefined, 'FAST');
         heightLeft -= pdfHeight;
 
         while (heightLeft > 0) {
             position = position - pdfHeight;
             pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+            pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight, undefined, 'FAST');
             heightLeft -= pdfHeight;
         }
         
@@ -1161,5 +1161,3 @@ export default function NewRequestPage() {
         </div>
     );
 }
-
-
