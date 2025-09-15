@@ -149,8 +149,6 @@ export function CompanyAdminDashboard() {
                 </CardContent>
             </Card>
           </div>
-    
-          <StaffOnDutyTable />
 
           <BusinessSummaryTable stats={businessStats}>
              <Popover>
@@ -196,6 +194,8 @@ export function CompanyAdminDashboard() {
           <PatientBillingTable dateRange={date} />
           
           <StaffPerformanceTable stats={staffPerformanceStats} isLoading={isLoadingStaff} />
+          
+          <StaffOnDutyTable />
         </>
       )}
     </div>
