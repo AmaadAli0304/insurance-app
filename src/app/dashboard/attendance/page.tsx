@@ -106,7 +106,7 @@ export default function AttendancePage() {
 
   return (
     <div className="flex flex-col h-full">
-        <Card>
+        <Card className="flex-shrink-0">
             <CardHeader>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
@@ -139,8 +139,8 @@ export default function AttendancePage() {
                 </Alert>
             </div>
         ) : (
-            <form action={formAction} className="flex flex-col flex-grow mt-6">
-                <div className="flex-grow overflow-auto border rounded-lg">
+            <form action={formAction} className="flex flex-col flex-grow mt-6 min-h-0">
+                 <div className="flex-grow overflow-auto border rounded-lg">
                     <input type="hidden" name="month" value={month + 1} />
                     <input type="hidden" name="year" value={year} />
                     <input type="hidden" name="attendanceData" value={JSON.stringify(attendance)} />
@@ -173,7 +173,7 @@ export default function AttendancePage() {
                         </TableBody>
                     </Table>
                 </div>
-                <div className="flex justify-end p-4 border-t flex-shrink-0 mt-4 bg-background rounded-b-lg">
+                <div className="flex justify-end p-4 border-t flex-shrink-0 bg-background rounded-b-lg mt-auto">
                     <SaveButton />
                 </div>
             </form>
