@@ -5,8 +5,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { StaffPerformanceStat } from "./actions";
-import { Loader2 } from "lucide-react";
+import { Loader2, Download } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 
 interface StaffPerformanceTableProps {
   stats: StaffPerformanceStat[];
@@ -19,12 +20,44 @@ export function StaffPerformanceTable({ stats, isLoading }: StaffPerformanceTabl
         if (!name) return 'S';
         return name.split(' ').map(n => n[0]).join('').toUpperCase();
     }
+
+    const handleExport = () => {
+        const headers = ["Staff Name", "Hospital", "No of Cases", "Total Collection"];
+        const csvRows = [headers.join(",")];
+
+        stats.forEach((stat) => {
+            const row = [
+                `"${stat.staffName}"`,
+                `"${stat.hospitalName}"`,
+                stat.numOfCases,
+                stat.totalCollection,
+            ];
+            csvRows.push(row.join(","));
+        });
+
+        const csvContent = csvRows.join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "staff_performance.csv");
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
     
     return (
         <Card>
-            <CardHeader>
-                <CardTitle>Staff Performance</CardTitle>
-                <CardDescription>Performance metrics for each staff member.</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle>Staff Performance</CardTitle>
+                    <CardDescription>Performance metrics for each staff member.</CardDescription>
+                </div>
+                 <Button onClick={handleExport} variant="outline" size="sm" disabled={stats.length === 0}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Export
+                </Button>
             </CardHeader>
             <CardContent>
                  {isLoading ? (

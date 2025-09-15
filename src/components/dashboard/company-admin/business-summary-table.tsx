@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
 import type { HospitalBusinessStats } from "./actions";
 import { ReactNode } from "react";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 
 interface BusinessSummaryTableProps {
   stats: HospitalBusinessStats[];
@@ -32,6 +34,45 @@ export function BusinessSummaryTable({ stats, children }: BusinessSummaryTablePr
             collection: 0,
         }
     );
+
+    const handleExport = () => {
+        const headers = ["Hospital Name", "Active Patients", "Pre-Auths Approved", "Pre-Auths Pending", "Final Auths Sanctioned", "Billed Amount", "Collection"];
+        const csvRows = [headers.join(",")];
+
+        stats.forEach((stat) => {
+            const row = [
+                `"${stat.hospitalName}"`,
+                stat.activePatients,
+                stat.preAuthApproved,
+                stat.preAuthPending,
+                stat.finalAuthSanctioned,
+                stat.billedAmount,
+                stat.collection,
+            ];
+            csvRows.push(row.join(","));
+        });
+        
+        csvRows.push([
+            "TOTAL",
+            totals.activePatients,
+            totals.preAuthApproved,
+            totals.preAuthPending,
+            totals.finalAuthSanctioned,
+            totals.billedAmount,
+            totals.collection,
+        ].join(","));
+
+        const csvContent = csvRows.join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "hospital_business_summary.csv");
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
     
     return (
         <Card>
@@ -40,7 +81,13 @@ export function BusinessSummaryTable({ stats, children }: BusinessSummaryTablePr
                   <CardTitle>Hospital Business Summary</CardTitle>
                   <CardDescription>A summary of business activity across all hospitals.</CardDescription>
                 </div>
-                {children}
+                <div className="flex items-center gap-2">
+                    {children}
+                    <Button onClick={handleExport} variant="outline" size="sm" disabled={stats.length === 0}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Export
+                    </Button>
+                </div>
             </CardHeader>
             <CardContent>
                 <Table>
