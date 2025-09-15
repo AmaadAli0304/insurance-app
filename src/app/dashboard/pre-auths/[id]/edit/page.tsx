@@ -29,10 +29,10 @@ const Editor = dynamic(
 );
 
 
-function SubmitButton() {
+function SubmitButton({ onClick }: { onClick: (e: React.MouseEvent<HTMLButtonElement>) => void }) {
     const { pending } = useFormStatus();
     return (
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending} onClick={onClick}>
             {pending ? (
                 <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -138,6 +138,17 @@ export default function EditPreAuthPage() {
     if (!request) {
         notFound();
     }
+
+    const handleSubmit = (event: React.MouseEvent<HTMLButtonElement>) => {
+        if (!selectedStatus) {
+            event.preventDefault();
+            toast({
+                title: "Validation Error",
+                description: "Please select a status before updating.",
+                variant: "destructive",
+            });
+        }
+    };
     
     const documentFields: Array<{ key: keyof StaffingRequest, label: string }> = [
         { key: 'adhaar_path', label: 'Aadhaar Card' },
@@ -284,7 +295,7 @@ export default function EditPreAuthPage() {
                         )}
                         
                         {state.message && state.type === 'error' && <p className="text-sm text-destructive">{state.message}</p>}
-                        <SubmitButton />
+                        <SubmitButton onClick={handleSubmit} />
                     </CardContent>
                 </form>
             </Card>
