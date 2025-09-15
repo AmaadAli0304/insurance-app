@@ -96,9 +96,25 @@ export default function ViewInvoicePage() {
         const canvasWidth = canvas.width;
         const canvasHeight = canvas.height;
         const ratio = canvasWidth / canvasHeight;
-        const height = pdfWidth / ratio;
 
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, height);
+        const imgHeight = pdfWidth / ratio;
+        const topMargin = 15;
+        const bottomMargin = 15;
+        const usablePageHeight = pdfHeight - topMargin - bottomMargin;
+        
+        let heightLeft = imgHeight;
+        let position = topMargin;
+
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        heightLeft -= usablePageHeight;
+
+        while (heightLeft > 0) {
+            position = position - pdfHeight + topMargin; 
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+            heightLeft -= usablePageHeight;
+        }
+
         pdf.save(`invoice-${invoice.to.replace(/ /g, '_')}-${invoice.id}.pdf`);
     };
 
@@ -215,3 +231,4 @@ export default function ViewInvoicePage() {
         </div>
     );
 }
+
