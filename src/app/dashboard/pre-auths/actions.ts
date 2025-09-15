@@ -514,6 +514,7 @@ export async function getPreAuthRequestById(id: string): Promise<StaffingRequest
                     p.voter_id_path,
                     p.driving_licence_path,
                     p.other_path,
+                    p.policy_path,
                     p.discharge_summary as discharge_summary_path,
                     p.final_bill as final_bill_path,
                     p.pharmacy_bill as pharmacy_bill_path,
@@ -540,6 +541,7 @@ export async function getPreAuthRequestById(id: string): Promise<StaffingRequest
         request.voter_id_path = getDocumentData(request.voter_id_path);
         request.driving_licence_path = getDocumentData(request.driving_licence_path);
         request.other_path = getDocumentData(request.other_path);
+        request.policy_path = getDocumentData(request.policy_path);
         request.discharge_summary_path = getDocumentData(request.discharge_summary_path);
         request.final_bill_path = getDocumentData(request.final_bill_path);
         request.pharmacy_bill_path = getDocumentData(request.pharmacy_bill_path);
