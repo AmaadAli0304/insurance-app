@@ -371,34 +371,38 @@ export async function getStaffOnDutyStats(): Promise<StaffOnDutyStat[]> {
                 FROM attendance
                 WHERE date >= @today AND date < @tomorrow AND status = 'present'
             ),
-            StaffActionStats AS (
+            PreAuthCounts AS (
                 SELECT
-                    user_id,
-                    SUM(CASE WHEN status = 'Pre auth Sent' THEN 1 ELSE 0 END) as preAuthCount,
+                    staff_id,
+                    COUNT(*) as preAuthCount
+                FROM preauth_request
+                WHERE status = 'Pre auth Sent' AND created_at >= @today AND created_at < @tomorrow
+                GROUP BY staff_id
+            ),
+            ClaimCounts AS (
+                SELECT
+                    created_by as user_id,
                     SUM(CASE WHEN status IN ('Final Amount Sanctioned', 'Final Discharge sent') THEN 1 ELSE 0 END) as finalApprovalCount,
                     SUM(CASE WHEN status = 'Settlement Done' THEN 1 ELSE 0 END) as dischargeCount,
                     SUM(CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END) as rejectionCount
-                FROM (
-                    SELECT staff_id as user_id, status, created_at FROM preauth_request
-                    UNION ALL
-                    SELECT created_by as user_id, status, created_at FROM claims
-                ) as actions
+                FROM claims
                 WHERE created_at >= @today AND created_at < @tomorrow
-                GROUP BY user_id
+                GROUP BY created_by
             )
             SELECT
                 u.uid as staffId,
                 u.name as staffName,
                 h.name as hospitalName,
-                ISNULL(sas.preAuthCount, 0) as preAuthCount,
-                ISNULL(sas.finalApprovalCount, 0) as finalApprovalCount,
-                ISNULL(sas.dischargeCount, 0) as dischargeCount,
-                ISNULL(sas.rejectionCount, 0) as rejectionCount
+                ISNULL(pa.preAuthCount, 0) as preAuthCount,
+                ISNULL(cc.finalApprovalCount, 0) as finalApprovalCount,
+                ISNULL(cc.dischargeCount, 0) as dischargeCount,
+                ISNULL(cc.rejectionCount, 0) as rejectionCount
             FROM PresentStaff ps
             JOIN users u ON ps.staff_id = u.uid
             LEFT JOIN hospital_staff hs ON u.uid = hs.staff_id
             LEFT JOIN hospitals h ON hs.hospital_id = h.id
-            LEFT JOIN StaffActionStats sas ON u.uid = sas.user_id
+            LEFT JOIN PreAuthCounts pa ON u.uid = pa.staff_id
+            LEFT JOIN ClaimCounts cc ON u.uid = cc.user_id
             ORDER BY u.name;
         `;
         
@@ -411,3 +415,4 @@ export async function getStaffOnDutyStats(): Promise<StaffOnDutyStat[]> {
     }
 }
     
+
