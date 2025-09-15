@@ -43,16 +43,9 @@ export default function AttendancePage() {
   const [state, formAction] = useActionState(saveAttendance, { message: "", type: "initial" });
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (state.type === 'success') {
-      toast({ title: "Success", description: state.message, variant: "success" });
-    } else if (state.type === 'error') {
-      toast({ title: "Error", description: state.message, variant: "destructive" });
-    }
-  }, [state, toast]);
-
   const loadAttendanceData = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const month = currentDate.getMonth() + 1;
       const year = currentDate.getFullYear();
@@ -70,14 +63,23 @@ export default function AttendancePage() {
   }, [currentDate]);
 
   useEffect(() => {
+    if (state.type === 'success') {
+      toast({ title: "Success", description: state.message, variant: "success" });
+      loadAttendanceData(); // Refetch data on successful save
+    } else if (state.type === 'error') {
+      toast({ title: "Error", description: state.message, variant: "destructive" });
+    }
+  }, [state, toast, loadAttendanceData]);
+
+
+  useEffect(() => {
     loadAttendanceData();
   }, [loadAttendanceData]);
 
   const handleAttendanceChange = (staffId: string, day: number) => {
     setAttendance(prev => {
         const newAttendance = { ...prev };
-        // Deep copy the specific staff member's attendance to ensure React detects the change
-        newAttendance[staffId] = { ...prev[staffId] };
+        newAttendance[staffId] = { ...(prev[staffId] || {}) };
         
         newAttendance[staffId][day] = !newAttendance[staffId][day];
         return newAttendance;
