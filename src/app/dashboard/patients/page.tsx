@@ -12,6 +12,8 @@ import type { Patient } from "@/lib/types"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useAuth } from "@/components/auth-provider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { useDebounce } from "@/hooks/use-debounce";
 
 export default function PatientsPage() {
   const { user, role } = useAuth();
@@ -19,13 +21,15 @@ export default function PatientsPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<'Active' | 'Inactive'>('Active');
+  const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   const loadPatients = useCallback(async () => {
     setIsLoading(true);
     try {
       // Pass the hospitalId only if the user is hospital staff
       const hospitalId = role === 'Hospital Staff' ? user?.hospitalId : null;
-      const patientData = await getPatients(hospitalId, statusFilter);
+      const patientData = await getPatients(hospitalId, statusFilter, debouncedSearchQuery);
       setPatients(patientData);
       setError(null);
     } catch (e: any) {
@@ -33,7 +37,7 @@ export default function PatientsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [user, role, statusFilter]);
+  }, [user, role, statusFilter, debouncedSearchQuery]);
 
   useEffect(() => {
     if (user) { // Only load patients if user is available
@@ -50,6 +54,13 @@ export default function PatientsPage() {
             <CardDescription>Manage patient records and their assigned insurance details.</CardDescription>
           </div>
           <div className="flex items-center gap-4">
+             <div className="w-64">
+                <Input 
+                    placeholder="Search by name or email..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+             </div>
              <div className="flex items-center gap-2">
                 <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as 'Active' | 'Inactive')}>
                   <SelectTrigger className="w-[180px]">

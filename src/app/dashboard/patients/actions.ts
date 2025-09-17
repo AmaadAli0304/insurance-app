@@ -180,7 +180,7 @@ export async function getDoctors(): Promise<Doctor[]> {
   }
 }
 
-export async function getPatients(hospitalId?: string | null, status?: 'Active' | 'Inactive'): Promise<Patient[]> {
+export async function getPatients(hospitalId?: string | null, status?: 'Active' | 'Inactive', searchQuery?: string): Promise<Patient[]> {
   try {
     const pool = await getDbPool();
     const request = pool.request();
@@ -191,17 +191,23 @@ export async function getPatients(hospitalId?: string | null, status?: 'Active' 
       whereClauses.push('p.hospital_id = @hospitalId');
     }
     if (status) {
+      const subQuery = `(SELECT TOP 1 status FROM admissions WHERE patient_id = p.id ORDER BY created_at DESC) = @status`;
       request.input('status', sql.NVarChar, status);
-      whereClauses.push('a.status = @status');
+      whereClauses.push(subQuery);
+    }
+    if (searchQuery) {
+        request.input('searchQuery', sql.NVarChar, `%${searchQuery}%`);
+        whereClauses.push(`(p.first_name LIKE @searchQuery OR p.last_name LIKE @searchQuery OR p.email_address LIKE @searchQuery)`);
     }
 
     const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
     const result = await request.query(`
-        SELECT p.id, p.first_name, p.last_name, p.photo, p.email_address, p.phone_number as phoneNumber, a.policy_number as policyNumber, co.name as companyName, a.status
+        SELECT p.id, p.first_name, p.last_name, p.photo, p.email_address, p.phone_number as phoneNumber,
+        (SELECT TOP 1 policy_number FROM admissions WHERE patient_id = p.id ORDER BY created_at DESC) as policyNumber,
+        (SELECT TOP 1 co.name FROM admissions a JOIN companies co ON a.insurance_company = co.id WHERE a.patient_id = p.id ORDER BY a.created_at DESC) as companyName,
+        (SELECT TOP 1 status FROM admissions WHERE patient_id = p.id ORDER BY created_at DESC) as status
         FROM patients p
-        LEFT JOIN admissions a ON p.id = a.patient_id
-        LEFT JOIN companies co ON a.insurance_company = co.id
         ${whereClause}
       `);
       
@@ -1068,6 +1074,7 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
     
 
     
+
 
 
 
