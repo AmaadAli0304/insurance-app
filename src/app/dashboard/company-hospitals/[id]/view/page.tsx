@@ -5,16 +5,20 @@ import { useState, useEffect, use } from "react";
 import { getHospitalById, getStaff, getCompaniesForForm, getTPAsForForm } from "../../actions";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building, Factory, Briefcase, Users } from "lucide-react";
+import { Building, Factory, Briefcase, Users, Mail, Phone, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Hospital, Staff, Company, TPA } from "@/lib/types";
 import { useParams } from 'next/navigation'
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 
-const DetailItem = ({ label, value }: { label: string, value?: string | null }) => (
-    <div>
-        <p className="text-sm font-medium text-muted-foreground">{label}</p>
-        <p className="text-base">{value || "N/A"}</p>
+const DetailItem = ({ label, value, icon: Icon }: { label: string, value?: string | null, icon: React.ElementType }) => (
+    <div className="flex items-start gap-3">
+        <Icon className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />
+        <div>
+            <p className="text-sm font-medium text-muted-foreground">{label}</p>
+            <p className="text-base">{value || "N/A"}</p>
+        </div>
     </div>
 );
 
@@ -97,21 +101,31 @@ export default function ViewHospitalPage() {
         // This case should be handled by notFound() inside useEffect, but as a fallback:
         return <div>Hospital not found.</div>;
     }
+    
+    const getInitials = (name: string) => {
+        if (!name || typeof name !== 'string') return 'H';
+        return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    }
 
     return (
         <div className="space-y-6">
             <Card>
-                <CardHeader>
-                    <CardTitle>Contact Information</CardTitle>
-                    <CardDescription>Primary contact and location details for {hospital.name}.</CardDescription>
+                <CardHeader className="flex flex-col md:flex-row items-center gap-6">
+                    <Avatar className="h-24 w-24">
+                        <AvatarImage src={hospital.photo ?? undefined} alt={hospital.name} />
+                        <AvatarFallback>{getInitials(hospital.name)}</AvatarFallback>
+                    </Avatar>
+                     <div className="flex-1 text-center md:text-left">
+                        <CardTitle className="text-3xl">{hospital.name}</CardTitle>
+                        <CardDescription>Primary contact and location details.</CardDescription>
+                    </div>
                 </CardHeader>
-                <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <DetailItem label="Hospital Name" value={hospital.name} />
-                    <DetailItem label="Contact Person" value={hospital.contactPerson} />
-                    <DetailItem label="Official Email" value={hospital.email} />
-                    <DetailItem label="Phone Number" value={hospital.phone} />
-                    <DetailItem label="Location / City" value={hospital.location} />
-                    <DetailItem label="Full Address" value={hospital.address} />
+                <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6 border-t">
+                    <DetailItem label="Contact Person" value={hospital.contactPerson} icon={Users} />
+                    <DetailItem label="Official Email" value={hospital.email} icon={Mail} />
+                    <DetailItem label="Phone Number" value={hospital.phone} icon={Phone} />
+                    <DetailItem label="Location / City" value={hospital.location} icon={MapPin} />
+                    <DetailItem label="Full Address" value={hospital.address} className="md:col-span-2" icon={MapPin}/>
                 </CardContent>
             </Card>
 

@@ -5,7 +5,7 @@ import { useActionState, useEffect, useRef } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal, Trash, Edit, Eye } from "lucide-react"
+import { MoreHorizontal, Trash, Edit, Eye, Building } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
 import { handleDeleteHospital } from "./actions"
@@ -23,6 +23,8 @@ import {
 import type { Hospital } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
 
 interface HospitalsTableProps {
   hospitals: Hospital[];
@@ -69,6 +71,11 @@ export function HospitalsTable({ hospitals, onHospitalDeleted }: HospitalsTableP
     router.push(`/dashboard/company-hospitals/${hospitalId}/view`);
   };
 
+  const getInitials = (name: string) => {
+    if (!name || typeof name !== 'string') return 'H';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  }
+
   return (
     <Table>
       <TableHeader>
@@ -83,7 +90,13 @@ export function HospitalsTable({ hospitals, onHospitalDeleted }: HospitalsTableP
       <TableBody>
         {hospitals.map(h => (
           <TableRow key={h.id} onClick={() => handleRowClick(h.id)} className="cursor-pointer">
-            <TableCell className="font-medium">{h.name}</TableCell>
+            <TableCell className="font-medium flex items-center gap-3">
+              <Avatar className="h-10 w-10">
+                  <AvatarImage src={h.photo ?? undefined} alt={h.name} />
+                  <AvatarFallback>{getInitials(h.name)}</AvatarFallback>
+              </Avatar>
+              {h.name}
+            </TableCell>
             <TableCell>{h.contactPerson || 'N/A'}</TableCell>
             <TableCell>{h.email || 'N/A'}</TableCell>
             <TableCell>{h.phone || 'N/A'}</TableCell>

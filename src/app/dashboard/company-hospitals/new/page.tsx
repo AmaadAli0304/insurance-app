@@ -1,7 +1,7 @@
 
 "use client";
-
-import { useState, useActionState, useEffect } from "react";
+import * as React from "react";
+import { useState, useActionState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
 import { handleAddHospital, getStaff, getCompaniesForForm, getTPAsForForm } from "../actions";
 import Link from "next/link";
-import { ArrowLeft, ChevronsUpDown, X } from "lucide-react";
+import { ArrowLeft, ChevronsUpDown, X, Loader2, Upload, Building } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
   DropdownMenu,
@@ -22,7 +22,21 @@ import type { Staff, Company, TPA } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { PhoneInput } from "@/components/phone-input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getPresignedUrl } from "@/app/dashboard/staff/actions";
 
+
+async function uploadFile(file: File): Promise<{ publicUrl: string } | { error: string }> {
+    const key = `uploads/hospitals/${Date.now()}-${file.name.replace(/\s/g, "_")}`;
+    const presignedUrlResult = await getPresignedUrl(key, file.type);
+    if ("error" in presignedUrlResult) {
+        return { error: presignedUrlResult.error };
+    }
+    const { url, publicUrl } = presignedUrlResult;
+    const res = await fetch(url, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+    if (!res.ok) return { error: "Failed to upload file to S3." };
+    return { publicUrl };
+}
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -46,6 +60,10 @@ export default function NewCompanyHospitalPage() {
     const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
     const [selectedTPAs, setSelectedTPAs] = useState<string[]>([]);
     const [selectedStaff, setSelectedStaff] = useState<string[]>([]);
+    
+    const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+    const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+    const photoInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         async function loadData() {
@@ -85,6 +103,21 @@ export default function NewCompanyHospitalPage() {
             });
         }
     }, [state, toast, router]);
+    
+    const handlePhotoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            setIsUploadingPhoto(true);
+            const result = await uploadFile(file);
+            if ("publicUrl" in result) {
+                setPhotoUrl(result.publicUrl);
+                toast({ title: "Success", description: "Photo uploaded.", variant: "success" });
+            } else {
+                toast({ title: "Error", description: result.error, variant: "destructive" });
+            }
+            setIsUploadingPhoto(false);
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -104,6 +137,27 @@ export default function NewCompanyHospitalPage() {
                 </CardHeader>
                 <form action={formAction}>
                     <CardContent className="space-y-4">
+                         <input type="hidden" name="photoUrl" value={photoUrl || ''} />
+
+                         <div className="flex flex-col items-center p-6">
+                            <Avatar className="h-32 w-32 mb-4">
+                               {isUploadingPhoto ? (
+                                    <div className="flex h-full w-full items-center justify-center rounded-full bg-muted">
+                                        <Loader2 className="h-10 w-10 animate-spin" />
+                                    </div>
+                                ) : (
+                                    <>
+                                        <AvatarImage src={photoUrl ?? undefined} alt="Hospital Photo" />
+                                        <AvatarFallback><Building className="h-16 w-16" /></AvatarFallback>
+                                    </>
+                                )}
+                            </Avatar>
+                            <Button type="button" variant="outline" onClick={() => photoInputRef.current?.click()} disabled={isUploadingPhoto}>
+                                <Upload className="mr-2 h-4 w-4" /> {isUploadingPhoto ? 'Uploading...' : 'Upload Photo'}
+                            </Button>
+                            <Input ref={photoInputRef} id="photo-upload" name="photo-upload-file" type="file" className="hidden" accept="image/*" onChange={handlePhotoChange} />
+                         </div>
+
                          <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Hospital Name <span className="text-destructive">*</span></Label>
@@ -272,5 +326,3 @@ export default function NewCompanyHospitalPage() {
         </div>
     );
 }
-
-    

@@ -14,6 +14,7 @@ const hospitalSchema = z.object({
     phone: z.string().optional(),
     email: z.string().email().optional().or(z.literal('')),
     address: z.string().optional(),
+    photo: z.string().optional().nullable(),
 });
 
 const hospitalUpdateSchema = hospitalSchema.extend({
@@ -58,7 +59,7 @@ export async function getTPAsForForm(): Promise<Pick<TPA, 'id' | 'name'>[]> {
 export async function getHospitals(): Promise<Hospital[]> {
     try {
         const db = await poolConnect;
-        const result = await db.request().query('SELECT id, name, location, address, contact_person as contactPerson, email, phone FROM hospitals');
+        const result = await db.request().query('SELECT id, name, location, address, contact_person as contactPerson, email, phone, photo FROM hospitals');
         return result.recordset as Hospital[];
     } catch (error) {
         const dbError = error as Error;
@@ -71,7 +72,7 @@ export async function getHospitalById(id: string): Promise<Hospital | null> {
         const db = await poolConnect;
         const hospitalResult = await db.request()
             .input('id', sql.NVarChar, id)
-            .query('SELECT id, name, location, address, contact_person as contactPerson, email, phone FROM hospitals WHERE id = @id');
+            .query('SELECT id, name, location, address, contact_person as contactPerson, email, phone, photo FROM hospitals WHERE id = @id');
 
         if (hospitalResult.recordset.length === 0) {
             return null;
@@ -106,6 +107,7 @@ export async function handleAddHospital(prevState: { message: string, type?:stri
         phone: formData.get("phone"),
         email: formData.get("email"),
         address: formData.get("address"),
+        photo: formData.get("photoUrl")
     });
 
     if (!validatedFields.success) {
@@ -133,8 +135,9 @@ export async function handleAddHospital(prevState: { message: string, type?:stri
             .input('contact_person', sql.NVarChar, validatedFields.data.contactPerson)
             .input('email', sql.NVarChar, validatedFields.data.email)
             .input('phone', sql.NVarChar, validatedFields.data.phone)
-            .query(`INSERT INTO hospitals (id, name, location, address, contact_person, email, phone) 
-                    VALUES (@id, @name, @location, @address, @contact_person, @email, @phone)`);
+            .input('photo', sql.NVarChar, validatedFields.data.photo)
+            .query(`INSERT INTO hospitals (id, name, location, address, contact_person, email, phone, photo) 
+                    VALUES (@id, @name, @location, @address, @contact_person, @email, @phone, @photo)`);
         
         // Insert into relationship tables
         for (const companyId of assignedCompanies) {
@@ -166,6 +169,7 @@ export async function handleUpdateHospital(prevState: { message: string, type?:s
         phone: formData.get("phone"),
         email: formData.get("email"),
         address: formData.get("address"),
+        photo: formData.get("photoUrl")
     });
 
     if (!validatedFields.success) {
@@ -192,7 +196,8 @@ export async function handleUpdateHospital(prevState: { message: string, type?:s
             .input('contact_person', sql.NVarChar, hospitalData.contactPerson)
             .input('email', sql.NVarChar, hospitalData.email)
             .input('phone', sql.NVarChar, hospitalData.phone)
-            .query(`UPDATE hospitals SET name = @name, location = @location, address = @address, contact_person = @contact_person, email = @email, phone = @phone 
+            .input('photo', sql.NVarChar, hospitalData.photo)
+            .query(`UPDATE hospitals SET name = @name, location = @location, address = @address, contact_person = @contact_person, email = @email, phone = @phone, photo = @photo 
                     WHERE id = @id`);
 
         // Clear existing associations
