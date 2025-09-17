@@ -834,7 +834,7 @@ export default function NewPatientPage() {
                                         <div className="space-y-2">
                                             <Label htmlFor="packageCharges">All-inclusive package charges</Label>
                                             <Input id="packageCharges" name="packageCharges" type="number" min="0" />
-                                             {isBifurcatedDisabled && <p className="text-sm text-muted-foreground">Bifurcated amounts are not necessary.</p>}
+                                             {isBifurcatedDisabled && <p className="text-sm text-destructive">Bifurcated amounts are not necessary.</p>}
                                         </div>
                                         <div className="space-y-2 md:col-span-3">
                                             <Label htmlFor="totalExpectedCost">Total expected cost</Label>
