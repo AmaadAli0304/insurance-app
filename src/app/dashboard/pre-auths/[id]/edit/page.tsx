@@ -393,8 +393,8 @@ export default function EditPreAuthPage() {
                                     <p className="text-sm text-muted-foreground">Attach existing documents or upload new ones.</p>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {documentFields.map(({ key, label }) => {
-                                            const doc = request[key] as { url: string; name: string; } | string | undefined;
-                                            const docUrl = typeof doc === 'object' ? doc.url : typeof doc === 'string' ? doc : undefined;
+                                            const doc = request[key] as { url: string; name: string; } | string | null | undefined;
+                                            const docUrl = doc && typeof doc === 'object' ? doc.url : typeof doc === 'string' ? doc : undefined;
 
                                             return (
                                                 <div key={key}>
@@ -435,3 +435,4 @@ export default function EditPreAuthPage() {
         </div>
     );
 }
+
