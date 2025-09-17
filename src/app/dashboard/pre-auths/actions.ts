@@ -664,7 +664,17 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
             const url = formData.get(`${key}_url`) as string;
             const name = formData.get(`${key}_name`) as string;
             if (url && name) {
-                const dbKey = key.replace('_path', '');
+                let dbKey = key;
+                if (key.endsWith('_path')) {
+                   dbKey = key.replace('_path','');
+                   if (dbKey === 'discharge_summary' || dbKey === 'final_bill' || dbKey === 'pharmacy_bill' || dbKey === 'implant_bill_stickers' || dbKey === 'lab_bill' || dbKey === 'ot_anesthesia_notes') {
+                       if (dbKey === 'implant_bill_stickers') dbKey = 'implant_bill';
+                       if (dbKey === 'ot_anesthesia_notes') dbKey = 'ot_notes';
+                   } else {
+                       dbKey = key;
+                   }
+                }
+                
                 setClauses.push(`${dbKey} = @${dbKey}`);
                 patientUpdateRequest.input(dbKey, sql.NVarChar, JSON.stringify({ url, name }));
             }
@@ -853,6 +863,8 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     revalidatePath('/dashboard/claims');
     return { message: 'Status updated and claim history recorded successfully.', type: 'success' };
 }
+
+    
 
     
 
