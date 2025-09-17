@@ -1,4 +1,5 @@
 
+
 "use server";
 
 import { redirect } from 'next/navigation';
@@ -516,8 +517,7 @@ export async function getPreAuthRequestById(id: string): Promise<StaffingRequest
                     p.pharmacy_bill as pharmacy_bill_path,
                     p.implant_bill as implant_bill_stickers_path,
                     p.lab_bill as lab_bill_path,
-                    p.ot_notes as ot_anesthesia_notes_path,
-                    pr.policy_number as policyNumber
+                    p.ot_notes as ot_anesthesia_notes_path
                 FROM preauth_request pr
                 LEFT JOIN patients p ON pr.patient_id = p.id
                 LEFT JOIN hospitals h ON pr.hospital_id = h.id
@@ -545,6 +545,7 @@ export async function getPreAuthRequestById(id: string): Promise<StaffingRequest
         request.lab_bill_path = getDocumentData(request.lab_bill_path);
         request.ot_anesthesia_notes_path = getDocumentData(request.ot_anesthesia_notes_path);
         request.claim_id = requestResult.recordset[0].claim_id;
+        request.policyNumber = requestResult.recordset[0].policy_number;
 
 
         const [chatResult, claimsResult] = await Promise.all([
