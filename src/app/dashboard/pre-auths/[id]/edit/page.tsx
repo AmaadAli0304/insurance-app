@@ -312,11 +312,18 @@ export default function EditPreAuthPage() {
                 <form action={formAction}>
                     <CardContent className="space-y-4">
                         <input type="hidden" name="id" value={request.id} />
+                        <input type="hidden" name="patientId" value={request.patientId} />
                         <input type="hidden" name="userId" value={user?.uid ?? ''} />
                         <input type="hidden" name="details" value={emailBody} />
                          {Object.entries(documentUrls).map(([key, value]) => 
-                            value ? <input type="hidden" name={`email_attachments`} value={JSON.stringify(value)} key={key} /> : null
+                            value ? (
+                                <React.Fragment key={key}>
+                                    <input type="hidden" name={`${key}_url`} value={value.url} />
+                                    <input type="hidden" name={`${key}_name`} value={value.name} />
+                                </React.Fragment>
+                            ) : null
                          )}
+
                         
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4 p-4 border rounded-lg bg-muted/50">
                             <div><span className="font-semibold">Patient:</span> {request.fullName}</div>
@@ -394,7 +401,8 @@ export default function EditPreAuthPage() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {documentFields.map(({ key, label }) => {
                                             const doc = request[key as keyof StaffingRequest];
-                                            const docUrl = doc && typeof doc === 'object' ? (doc as {url:string}).url : typeof doc === 'string' ? doc : undefined;
+                                            const docUrl = doc && typeof doc === 'object' && 'url' in doc ? (doc as {url:string}).url : null;
+                                            const docName = doc && typeof doc === 'object' && 'name' in doc ? (doc as {name:string}).name : label;
 
                                             return (
                                                 <div key={key}>
@@ -403,7 +411,7 @@ export default function EditPreAuthPage() {
                                                       <Checkbox
                                                         id={`attach-${key}`}
                                                         name="email_attachments"
-                                                        value={JSON.stringify({ name: label, url: docUrl })}
+                                                        value={JSON.stringify({ name: docName, url: docUrl })}
                                                         defaultChecked={true}
                                                       />
                                                       <Label htmlFor={`attach-${key}`} className="font-normal flex items-center gap-1 cursor-pointer text-green-600">

@@ -614,8 +614,19 @@ export async function handleDeleteRequest(formData: FormData) {
     revalidatePath('/dashboard/pre-auths');
 }
 
+const createDocumentJson = (url: string | undefined | null, name: string | undefined | null): string | null => {
+    if (url && name) {
+        return JSON.stringify({ url, name });
+    }
+    if (url) {
+        return JSON.stringify({ url, name: 'file' });
+    }
+    return null;
+};
+
 export async function handleUpdateRequest(prevState: { message: string, type?: string }, formData: FormData) {
     const id = formData.get('id') as string;
+    const patientId = formData.get('patientId') as string;
     const status = formData.get('status') as PreAuthStatus;
     const claim_id = formData.get('claim_id') as string;
     const reason = formData.get('reason') as string;
@@ -629,6 +640,13 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     const details = formData.get('details') as string;
     const emailAttachmentsData = formData.getAll('email_attachments');
 
+    // Handle new uploads
+    const documentKeys = [
+        'adhaar_path', 'pan_path', 'passport_path', 'voter_id_path', 'driving_licence_path',
+        'policy_path', 'other_path', 'discharge_summary_path', 'final_bill_path',
+        'pharmacy_bill_path', 'implant_bill_stickers_path', 'lab_bill_path', 'ot_anesthesia_notes_path'
+    ];
+
     const statusesThatSendEmail = ['Query Answered', 'Enhancement Request', 'Final Discharge sent'];
     const statusesThatLogTpaResponse = ['Query Raised', 'Enhanced Amount', 'Final Amount Sanctioned'];
     
@@ -638,6 +656,24 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         transaction = new sql.Transaction(pool);
         await transaction.begin();
         const now = new Date();
+
+        // Update patient documents if any were uploaded
+        let patientUpdateRequest = new sql.Request(transaction);
+        let setClauses: string[] = [];
+        documentKeys.forEach(key => {
+            const url = formData.get(`${key}_url`) as string;
+            const name = formData.get(`${key}_name`) as string;
+            if (url && name) {
+                const dbKey = key.replace('_path', '');
+                setClauses.push(`${dbKey} = @${dbKey}`);
+                patientUpdateRequest.input(dbKey, sql.NVarChar, JSON.stringify({ url, name }));
+            }
+        });
+        
+        if (setClauses.length > 0) {
+            patientUpdateRequest.input('patientId', sql.Int, Number(patientId));
+            await patientUpdateRequest.query(`UPDATE patients SET ${setClauses.join(', ')} WHERE id = @patientId`);
+        }
 
         const getPreAuthDetailsRequest = new sql.Request(transaction);
         const preAuthDetailsResult = await getPreAuthDetailsRequest
