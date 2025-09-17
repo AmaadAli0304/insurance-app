@@ -414,7 +414,51 @@ export async function getStaffOnDutyStats(): Promise<StaffOnDutyStat[]> {
         throw new Error('Failed to fetch staff on duty statistics.');
     }
 }
+
+export type StaffSalaryStat = {
+  hospitalName: string;
+  invoiceAmount: number;
+  invoiceNo: string;
+  status: string;
+  amountReceived: number;
+  tds: number;
+  gst: number;
+};
+
+export async function getStaffSalaryStats(dateRange?: DateRange): Promise<StaffSalaryStat[]> {
+    try {
+        const pool = await getDbPool();
+        const request = pool.request();
+        
+        let dateFilter = '';
+        if (dateRange?.from) {
+            const toDate = dateRange.to || new Date(); 
+            request.input('dateFrom', sql.DateTime, dateRange.from);
+            request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+            dateFilter = 'WHERE ss.created_at BETWEEN @dateFrom AND @dateTo';
+        }
+
+        const query = `
+            SELECT
+                h.name as hospitalName,
+                ss.invoice_amount as invoiceAmount,
+                ss.invoice_no as invoiceNo,
+                ss.status,
+                ss.amount_received as amountReceived,
+                ss.tds,
+                ss.gst
+            FROM staff_salary ss
+            JOIN hospitals h ON ss.hospital_id = h.id
+            ${dateFilter}
+            ORDER BY h.name, ss.created_at DESC;
+        `;
+        
+        const result = await request.query(query);
+        return result.recordset as StaffSalaryStat[];
+
+    } catch (error) {
+        console.error('Error fetching staff salary stats:', error);
+        throw new Error('Failed to fetch staff salary statistics.');
+    }
+}
     
-
-
-

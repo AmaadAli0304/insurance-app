@@ -971,3 +971,33 @@ export async function handleCreateAttendanceTable(prevState: { message: string, 
     return { message: `Error creating Attendance table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
+
+export async function handleCreateStaffSalaryTable(prevState: { message: string, type?: string }, formData: FormData) {
+  try {
+    const pool = await getDbPool();
+    const request = pool.request();
+    const createStaffSalaryTableQuery = `
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='staff_salary' and xtype='U')
+      BEGIN
+        CREATE TABLE staff_salary (
+          id INT IDENTITY(1,1) PRIMARY KEY,
+          hospital_id NVARCHAR(255) NOT NULL,
+          invoice_amount DECIMAL(18, 2),
+          invoice_no NVARCHAR(255),
+          status NVARCHAR(50),
+          amount_received DECIMAL(18, 2),
+          tds DECIMAL(18, 2),
+          gst DECIMAL(18, 2),
+          month NVARCHAR(50),
+          created_at DATETIME DEFAULT GETDATE()
+        );
+      END
+    `;
+    await request.query(createStaffSalaryTableQuery);
+    return { message: "Staff Salary table created successfully or already exists.", type: "success" };
+  } catch (error) {
+    const dbError = error as { message?: string };
+    console.error('Error creating Staff Salary table:', dbError);
+    return { message: `Error creating Staff Salary table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+  }
+}

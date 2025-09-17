@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useFormStatus } from "react-dom";
-import { handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable, handleCreateDoctorsTable, handleCreateChiefComplaintsTable, handleCreatePreAuthTable, handleCreateMedicalTable, handleCreateChatTable, handleAlterPreAuthTable, handleCreateClaimsTable, handleDeleteClaimsTable, handleDeletePreAuthRequestTable, handleUpdatePatientsTable, handleSendEmail, handleCreateChatFilesTable, handleCreateInvoicesTable, handleCreateInvoiceStaffTable, handleCreateAttendanceTable } from "./actions";
+import { handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable, handleCreateDoctorsTable, handleCreateChiefComplaintsTable, handleCreatePreAuthTable, handleCreateMedicalTable, handleCreateChatTable, handleAlterPreAuthTable, handleCreateClaimsTable, handleDeleteClaimsTable, handleDeletePreAuthRequestTable, handleUpdatePatientsTable, handleSendEmail, handleCreateChatFilesTable, handleCreateInvoicesTable, handleCreateInvoiceStaffTable, handleCreateAttendanceTable, handleCreateStaffSalaryTable } from "./actions";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble, Info, Stethoscope, FileHeart, Shield, MessageSquare, Pill, AlertTriangle, HandCoins, Trash2, RefreshCcw, Send, FileCode, FileSpreadsheet, CalendarCheck } from "lucide-react";
+import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble, Info, Stethoscope, FileHeart, Shield, MessageSquare, Pill, AlertTriangle, HandCoins, Trash2, RefreshCcw, Send, FileCode, FileSpreadsheet, CalendarCheck, Wallet } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -79,6 +79,7 @@ export default function ImportPage() {
     const [createInvoicesTableState, createInvoicesTableAction] = useActionState(handleCreateInvoicesTable, { message: "", type: undefined });
     const [createInvoiceStaffTableState, createInvoiceStaffTableAction] = useActionState(handleCreateInvoiceStaffTable, { message: "", type: undefined });
     const [createAttendanceTableState, createAttendanceTableAction] = useActionState(handleCreateAttendanceTable, { message: "", type: undefined });
+    const [createStaffSalaryTableState, createStaffSalaryTableAction] = useActionState(handleCreateStaffSalaryTable, { message: "", type: undefined });
     
     const useToastEffect = (state: { type?: string; message: string; }, title: string) => {
         useEffect(() => {
@@ -113,6 +114,7 @@ export default function ImportPage() {
     useToastEffect(createInvoicesTableState, "Database Action");
     useToastEffect(createInvoiceStaffTableState, "Database Action");
     useToastEffect(createAttendanceTableState, "Database Action");
+    useToastEffect(createStaffSalaryTableState, "Database Action");
     
 
     return (
@@ -143,6 +145,7 @@ export default function ImportPage() {
                     <SubmitActionButton action={createInvoicesTableAction} icon={FileSpreadsheet}>Create Invoices Table</SubmitActionButton>
                     <SubmitActionButton action={createInvoiceStaffTableAction} icon={FileSpreadsheet}>Create Invoice Staff Table</SubmitActionButton>
                     <SubmitActionButton action={createAttendanceTableAction} icon={CalendarCheck}>Create Attendance Table</SubmitActionButton>
+                    <SubmitActionButton action={createStaffSalaryTableAction} icon={Wallet}>Create Staff Salary Table</SubmitActionButton>
                 </CardContent>
             </Card>
 
