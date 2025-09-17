@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
 import { handleUpdateHospital, getStaff, getCompaniesForForm, getTPAsForForm, getHospitalById } from "../../actions";
 import Link from "next/link";
-import { ArrowLeft, ChevronsUpDown, X, Building, Loader2, Upload } from "lucide-react";
+import { ArrowLeft, ChevronsUpDown, X, Building, Loader2, Upload, XCircle } from "lucide-react";
 import { notFound, useRouter, useParams } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -125,16 +125,26 @@ export default function EditCompanyHospitalPage() {
         if (file) {
             setIsUploadingPhoto(true);
             const result = await uploadFile(file);
-            if ("publicUrl" in result) {
-                setPhotoUrl(result.publicUrl);
-                toast({ title: "Success", description: "Photo uploaded.", variant: "success" });
-            } else {
-                toast({ title: "Error", description: result.error, variant: "destructive" });
+            if (photoInputRef.current) {
+                if ("publicUrl" in result) {
+                    setPhotoUrl(result.publicUrl);
+                    toast({ title: "Success", description: "Photo uploaded.", variant: "success" });
+                } else {
+                    toast({ title: "Error", description: result.error, variant: "destructive" });
+                }
+                setIsUploadingPhoto(false);
             }
-            setIsUploadingPhoto(false);
         }
     };
     
+    const handleCancelPhotoUpload = () => {
+        setIsUploadingPhoto(false);
+        if (photoInputRef.current) {
+            photoInputRef.current.value = "";
+        }
+        setPhotoUrl(hospital?.photo ?? null); // Revert to original photo if cancelled
+        toast({ title: "Cancelled", description: "Photo upload has been cancelled.", variant: "default" });
+    };
 
     if (isLoading) {
         return <div>Loading...</div>;
@@ -179,9 +189,16 @@ export default function EditCompanyHospitalPage() {
                                 </>
                             )}
                           </Avatar>
-                          <Button type="button" variant="outline" onClick={() => photoInputRef.current?.click()} disabled={isUploadingPhoto}>
-                            <Upload className="mr-2 h-4 w-4" /> {isUploadingPhoto ? 'Uploading...' : 'Change Photo'}
-                          </Button>
+                            <div className="flex items-center gap-2">
+                                <Button type="button" variant="outline" onClick={() => photoInputRef.current?.click()} disabled={isUploadingPhoto}>
+                                    <Upload className="mr-2 h-4 w-4" /> {isUploadingPhoto ? 'Uploading...' : 'Change Photo'}
+                                </Button>
+                                {isUploadingPhoto && (
+                                    <Button type="button" variant="ghost" size="icon" onClick={handleCancelPhotoUpload}>
+                                        <XCircle className="h-6 w-6 text-destructive" />
+                                    </Button>
+                                )}
+                            </div>
                           <Input ref={photoInputRef} id="photo-upload" name="photo-upload-file" type="file" className="hidden" accept="image/*" onChange={handlePhotoChange} />
                         </div>
 
@@ -353,3 +370,5 @@ export default function EditCompanyHospitalPage() {
         </div>
     );
 }
+
+    
