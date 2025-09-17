@@ -5,11 +5,13 @@ import { useState, useEffect, use } from "react";
 import { getHospitalById, getStaff, getCompaniesForForm, getTPAsForForm } from "../../actions";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building, Factory, Briefcase, Users, Mail, Phone, MapPin } from "lucide-react";
+import { Building, Factory, Briefcase, Users, Mail, Phone, MapPin, Edit } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Hospital, Staff, Company, TPA } from "@/lib/types";
 import { useParams } from 'next/navigation'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 
 const DetailItem = ({ label, value, icon: Icon }: { label: string, value?: string | null, icon: React.ElementType }) => (
@@ -110,14 +112,24 @@ export default function ViewHospitalPage() {
     return (
         <div className="space-y-6">
             <Card>
-                <CardHeader className="flex flex-col md:flex-row items-center gap-6">
-                    <Avatar className="h-24 w-24">
-                        <AvatarImage src={hospital.photo ?? undefined} alt={hospital.name} />
-                        <AvatarFallback>{getInitials(hospital.name)}</AvatarFallback>
-                    </Avatar>
-                     <div className="flex-1 text-center md:text-left">
-                        <CardTitle className="text-3xl">{hospital.name}</CardTitle>
-                        <CardDescription>Primary contact and location details.</CardDescription>
+                <CardHeader>
+                    <div className="flex flex-col md:flex-row items-center gap-6 w-full">
+                        <Avatar className="h-24 w-24">
+                            <AvatarImage src={hospital.photo ?? undefined} alt={hospital.name} />
+                            <AvatarFallback>{getInitials(hospital.name)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 text-center md:text-left">
+                            <CardTitle className="text-3xl">{hospital.name}</CardTitle>
+                            <CardDescription>Primary contact and location details.</CardDescription>
+                        </div>
+                        <div className="flex-shrink-0">
+                            <Button asChild variant="outline">
+                                <Link href={`/dashboard/company-hospitals/${id}/edit`}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Edit Hospital
+                                </Link>
+                            </Button>
+                        </div>
                     </div>
                 </CardHeader>
                 <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6 border-t">
