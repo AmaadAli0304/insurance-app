@@ -1,14 +1,15 @@
 
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
 import { handleUpdateRequest, getPreAuthRequestById } from "../../actions";
+import { getPresignedUrl } from "@/app/dashboard/patients/actions";
 import Link from "next/link";
-import { ArrowLeft, Loader2, File as FileIcon } from "lucide-react";
+import { ArrowLeft, Loader2, File as FileIcon, Upload, Eye, XCircle } from "lucide-react";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import type { StaffingRequest, PreAuthStatus } from "@/lib/types";
@@ -27,6 +28,122 @@ const Editor = dynamic(
   () => import('react-draft-wysiwyg').then(mod => mod.Editor),
   { ssr: false }
 );
+
+async function uploadFile(file: File): Promise<{ publicUrl: string } | { error: string }> {
+    const key = `uploads/${Date.now()}-${file.name.replace(/\s/g, "_")}`;
+    
+    const presignedUrlResult = await getPresignedUrl(key, file.type);
+    if ("error" in presignedUrlResult) {
+        return { error: presignedUrlResult.error };
+    }
+
+    const { url, publicUrl } = presignedUrlResult;
+
+    const res = await fetch(url, {
+        method: "PUT",
+        body: file,
+        headers: {
+            "Content-Type": file.type,
+        },
+    });
+
+    if (!res.ok) {
+        return { error: "Failed to upload file to S3." };
+    }
+    
+    return { publicUrl };
+}
+
+const FileUploadField = React.memo(({ label, name, onUploadComplete, initialUrl, onFileRemove }: { label: string; name: string; onUploadComplete: (fieldName: string, name: string, url: string) => void; initialUrl?: string | null; onFileRemove: (fieldName: string) => void; }) => {
+    const [isUploading, setIsUploading] = useState(false);
+    const [fileUrl, setFileUrl] = useState<string | null>(initialUrl || null);
+    const [fileName, setFileName] = useState<string | null>(initialUrl ? label : null);
+    const { toast } = useToast();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const componentIsMounted = useRef(true);
+
+    useEffect(() => {
+        return () => {
+            componentIsMounted.current = false;
+        };
+    }, []);
+
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            setIsUploading(true);
+            const result = await uploadFile(file);
+
+            if (componentIsMounted.current) {
+                if ("publicUrl" in result) {
+                    setFileUrl(result.publicUrl);
+                    setFileName(file.name);
+                    onUploadComplete(name, file.name, result.publicUrl);
+                    toast({ title: "Success", description: `${label} uploaded.`, variant: "success" });
+                } else {
+                    toast({ title: "Error", description: result.error, variant: "destructive" });
+                }
+                setIsUploading(false);
+            }
+        }
+    };
+    
+    const handleCancelUpload = () => {
+        setIsUploading(false);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    };
+
+    const handleRemoveFile = () => {
+        setFileUrl(null);
+        setFileName(null);
+        onFileRemove(name);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    };
+
+    if (initialUrl && !fileUrl) {
+         setFileUrl(initialUrl);
+    }
+    
+    if (fileUrl) {
+        return (
+             <div className="flex items-center justify-between p-2 border rounded-md">
+                <div className="flex items-center gap-2">
+                    <FileIcon className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">{fileName || label}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                    <Button variant="outline" size="icon" className="h-6 w-6" asChild>
+                        <a href={fileUrl} target="_blank" rel="noopener noreferrer">
+                            <Eye className="h-3 w-3" />
+                        </a>
+                    </Button>
+                     <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={handleRemoveFile}>
+                        <XCircle className="h-4 w-4" />
+                    </Button>
+                </div>
+            </div>
+        )
+    }
+
+    return (
+        <div className="space-y-2">
+            <Label htmlFor={name} className="text-muted-foreground">{label}</Label>
+            <div className="flex items-center gap-2">
+                <Input ref={fileInputRef} id={name} name={`${name}-file`} type="file" onChange={handleFileChange} disabled={isUploading} className="w-full h-9 file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
+                {isUploading && (
+                    <Button variant="ghost" size="icon" onClick={handleCancelUpload}>
+                        <XCircle className="h-5 w-5 text-destructive" />
+                    </Button>
+                )}
+            </div>
+        </div>
+    );
+});
+FileUploadField.displayName = 'FileUploadField';
 
 
 function SubmitButton({ onClick }: { onClick: (e: React.MouseEvent<HTMLButtonElement>) => void }) {
@@ -74,7 +191,8 @@ export default function EditPreAuthPage() {
     const [state, formAction] = useActionState(handleUpdateRequest, { message: "", type: 'initial' });
     const [selectedStatus, setSelectedStatus] = useState<PreAuthStatus | null>(null);
     const [showEmailFields, setShowEmailFields] = useState(false);
-    const [selectedAttachments, setSelectedAttachments] = useState<string[]>([]);
+    
+    const [documentUrls, setDocumentUrls] = useState<Record<string, { url: string; name: string; } | null>>({});
 
     const [editorState, setEditorState] = useState(() => EditorState.createEmpty());
     const [emailBody, setEmailBody] = useState("");
@@ -165,7 +283,14 @@ export default function EditPreAuthPage() {
         { key: 'lab_bill_path', label: 'Lab Bill' },
         { key: 'ot_anesthesia_notes_path', label: 'OT & Anesthesia Notes' },
     ];
+    
+    const handleDocumentUploadComplete = (fieldName: string, name: string, url: string) => {
+        setDocumentUrls(prev => ({ ...prev, [fieldName]: { url, name } }));
+    };
 
+    const handleFileRemove = (fieldName: string) => {
+        setDocumentUrls(prev => ({ ...prev, [fieldName]: null }));
+    };
 
     return (
         <div className="space-y-6">
@@ -188,6 +313,9 @@ export default function EditPreAuthPage() {
                         <input type="hidden" name="id" value={request.id} />
                         <input type="hidden" name="userId" value={user?.uid ?? ''} />
                         <input type="hidden" name="details" value={emailBody} />
+                         {Object.entries(documentUrls).map(([key, value]) => 
+                            value ? <input type="hidden" name={`email_attachments`} value={JSON.stringify(value)} key={key} /> : null
+                         )}
                         
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4 p-4 border rounded-lg bg-muted/50">
                             <div><span className="font-semibold">Patient:</span> {request.fullName}</div>
@@ -260,34 +388,38 @@ export default function EditPreAuthPage() {
                                 </div>
                                 
                                 <div className="space-y-2 pt-4 border-t">
-                                    <Label>Available Documents to Attach</Label>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                    <Label>Documents</Label>
+                                    <p className="text-sm text-muted-foreground">Attach existing documents or upload new ones.</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {documentFields.map(({ key, label }) => {
-                                            const doc = request[key] as { url: string; name: string; } | undefined;
-                                            if (doc && typeof doc === 'object' && doc.url) {
-                                                return (
-                                                    <div key={key} className="flex items-center space-x-2">
-                                                        <Checkbox 
-                                                            id={`attach-${key}`} 
-                                                            name="email_attachments" 
-                                                            value={JSON.stringify({ name: doc.name, url: doc.url })}
-                                                            onCheckedChange={(checked) => {
-                                                                const attachmentString = JSON.stringify({ name: doc.name, url: doc.url });
-                                                                setSelectedAttachments(prev => 
-                                                                    checked 
-                                                                    ? [...prev, attachmentString]
-                                                                    : prev.filter(item => item !== attachmentString)
-                                                                );
-                                                            }}
-                                                        />
-                                                        <Label htmlFor={`attach-${key}`} className="font-normal flex items-center gap-1 cursor-pointer">
-                                                            <FileIcon className="h-4 w-4 text-muted-foreground" />
-                                                            {label}
-                                                        </Label>
+                                            const doc = request[key] as { url: string; name: string; } | string | undefined;
+                                            const docUrl = typeof doc === 'object' ? doc.url : typeof doc === 'string' ? doc : undefined;
+
+                                            return (
+                                                <div key={key}>
+                                                  {docUrl ? (
+                                                    <div className="flex items-center gap-2">
+                                                      <Checkbox
+                                                        id={`attach-${key}`}
+                                                        name="email_attachments"
+                                                        value={JSON.stringify({ name: label, url: docUrl })}
+                                                        defaultChecked={true}
+                                                      />
+                                                      <Label htmlFor={`attach-${key}`} className="font-normal flex items-center gap-1 cursor-pointer text-green-600">
+                                                        <FileIcon className="h-4 w-4" />
+                                                        {label} (Attached)
+                                                      </Label>
                                                     </div>
-                                                );
-                                            }
-                                            return null;
+                                                  ) : (
+                                                    <FileUploadField 
+                                                        label={label} 
+                                                        name={key} 
+                                                        onUploadComplete={handleDocumentUploadComplete} 
+                                                        onFileRemove={handleFileRemove}
+                                                    />
+                                                  )}
+                                                </div>
+                                            );
                                         })}
                                     </div>
                                 </div>
@@ -302,5 +434,3 @@ export default function EditPreAuthPage() {
         </div>
     );
 }
-
-    
