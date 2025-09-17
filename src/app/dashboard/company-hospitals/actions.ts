@@ -114,6 +114,8 @@ export async function handleAddHospital(prevState: { message: string, type?:stri
     if (!validatedFields.success) {
         return { message: "Invalid data: " + validatedFields.error.errors.map(e => e.message).join(', '), type: 'error' };
     }
+    
+    const { data } = validatedFields;
 
     const assignedCompanies = (formData.get("assignedInsuranceCompanies") as string || '').split(',').filter(Boolean);
     const assignedTPAs = (formData.get("assignedTPAs") as string || '').split(',').filter(Boolean);
@@ -130,13 +132,13 @@ export async function handleAddHospital(prevState: { message: string, type?:stri
         const hospitalRequest = new sql.Request(transaction);
         await hospitalRequest
             .input('id', sql.NVarChar, hospitalId)
-            .input('name', sql.NVarChar, validatedFields.data.name)
-            .input('location', sql.NVarChar, validatedFields.data.location)
-            .input('address', sql.NVarChar, validatedFields.data.address)
-            .input('contact_person', sql.NVarChar, validatedFields.data.contactPerson)
-            .input('email', sql.NVarChar, validatedFields.data.email)
-            .input('phone', sql.NVarChar, validatedFields.data.phone)
-            .input('photo', sql.NVarChar, validatedFields.data.photoUrl)
+            .input('name', sql.NVarChar, data.name)
+            .input('location', sql.NVarChar, data.location || null)
+            .input('address', sql.NVarChar, data.address || null)
+            .input('contact_person', sql.NVarChar, data.contactPerson || null)
+            .input('email', sql.NVarChar, data.email || null)
+            .input('phone', sql.NVarChar, data.phone || null)
+            .input('photo', sql.NVarChar, data.photoUrl || null)
             .query(`INSERT INTO hospitals (id, name, location, address, contact_person, email, phone, photo) 
                     VALUES (@id, @name, @location, @address, @contact_person, @email, @phone, @photo)`);
         
@@ -263,3 +265,6 @@ export async function handleDeleteHospital(prevState: { message: string, type?:s
     return { message: "Hospital deleted successfully.", type: 'success' };
 }
 
+
+
+  
