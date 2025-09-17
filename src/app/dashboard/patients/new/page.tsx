@@ -151,6 +151,8 @@ export default function NewPatientPage() {
 
     const [age, setAge] = useState<string>('');
     const [totalSum, setTotalSum] = useState<number | string>('');
+    const [packageCharges, setPackageCharges] = useState<number>(0);
+    const isBifurcatedDisabled = packageCharges > 0;
     
     const formRef = useRef<HTMLFormElement>(null);
     const [doctorContact, setDoctorContact] = useState('');
@@ -182,9 +184,19 @@ export default function NewPatientPage() {
      const calculateTotalCost = React.useCallback(() => {
         const form = formRef.current;
         if (!form) return;
+        
+        const packageChargesInput = form.querySelector('#packageCharges') as HTMLInputElement;
+        const packageValue = parseFloat(packageChargesInput?.value) || 0;
+        setPackageCharges(packageValue);
+        
+        if (packageValue > 0) {
+            setTotalCost(packageValue);
+            return;
+        }
+
         const costs = [
             'roomNursingDietCost', 'investigationCost', 'icuCost',
-            'otCost', 'professionalFees', 'medicineCost', 'otherHospitalExpenses', 'packageCharges'
+            'otCost', 'professionalFees', 'medicineCost', 'otherHospitalExpenses'
         ];
         let sum = 0;
         costs.forEach(id => {
@@ -792,39 +804,40 @@ export default function NewPatientPage() {
                                             </Select>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="roomNursingDietCost">Room + Nursing + Diet (₹)</Label>
-                                            <Input id="roomNursingDietCost" name="roomNursingDietCost" type="number" min="0" />
+                                            <Label htmlFor="roomNursingDietCost">Room + Nursing + Diet</Label>
+                                            <Input id="roomNursingDietCost" name="roomNursingDietCost" type="number" min="0" disabled={isBifurcatedDisabled} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="investigationCost">Diagnostics/investigations cost (₹)</Label>
-                                            <Input id="investigationCost" name="investigationCost" type="number" min="0" />
+                                            <Label htmlFor="investigationCost">Diagnostics/investigations cost</Label>
+                                            <Input id="investigationCost" name="investigationCost" type="number" min="0" disabled={isBifurcatedDisabled} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="icuCost">ICU charges (₹)</Label>
-                                            <Input id="icuCost" name="icuCost" type="number" min="0" />
+                                            <Label htmlFor="icuCost">ICU charges</Label>
+                                            <Input id="icuCost" name="icuCost" type="number" min="0" disabled={isBifurcatedDisabled} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="otCost">OT charges (₹)</Label>
-                                            <Input id="otCost" name="otCost" type="number" min="0" />
+                                            <Label htmlFor="otCost">OT charges</Label>
+                                            <Input id="otCost" name="otCost" type="number" min="0" disabled={isBifurcatedDisabled} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="professionalFees">Professional fees (₹)</Label>
-                                            <Input id="professionalFees" name="professionalFees" type="number" min="0" />
+                                            <Label htmlFor="professionalFees">Professional fees</Label>
+                                            <Input id="professionalFees" name="professionalFees" type="number" min="0" disabled={isBifurcatedDisabled} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="medicineCost">Medicines + consumables (₹)</Label>
-                                            <Input id="medicineCost" name="medicineCost" type="number" min="0" />
+                                            <Label htmlFor="medicineCost">Medicines + consumables</Label>
+                                            <Input id="medicineCost" name="medicineCost" type="number" min="0" disabled={isBifurcatedDisabled} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="otherHospitalExpenses">Other hospital expenses (₹)</Label>
-                                            <Input id="otherHospitalExpenses" name="otherHospitalExpenses" type="number" min="0" />
+                                            <Label htmlFor="otherHospitalExpenses">Other hospital expenses</Label>
+                                            <Input id="otherHospitalExpenses" name="otherHospitalExpenses" type="number" min="0" disabled={isBifurcatedDisabled} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="packageCharges">All-inclusive package charges (₹)</Label>
+                                            <Label htmlFor="packageCharges">All-inclusive package charges</Label>
                                             <Input id="packageCharges" name="packageCharges" type="number" min="0" />
+                                             {isBifurcatedDisabled && <p className="text-sm text-muted-foreground">Bifurcated amounts are not necessary.</p>}
                                         </div>
                                         <div className="space-y-2 md:col-span-3">
-                                            <Label htmlFor="totalExpectedCost">Total expected cost (₹)</Label>
+                                            <Label htmlFor="totalExpectedCost">Total expected cost</Label>
                                             <Input id="totalExpectedCost" name="totalExpectedCost" type="number" min="0" value={totalCost} readOnly className="font-bold text-lg" />
                                         </div>
                                     </CardContent>
@@ -856,5 +869,3 @@ export default function NewPatientPage() {
         </div>
     );
 }
-
-
