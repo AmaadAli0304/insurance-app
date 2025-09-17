@@ -306,9 +306,9 @@ export default function NewRequestPage() {
 
                 const patientIdFromUrl = searchParams.get('patientId');
                 if (patientIdFromUrl) {
+                    setSelectedPatientId(patientIdFromUrl);
                     const preselectedPatient = patients.find(p => String(p.id) === patientIdFromUrl);
                     if (preselectedPatient) {
-                        setSelectedPatientId(preselectedPatient.id);
                         setSearchQuery(`${preselectedPatient.fullName} - ${preselectedPatient.admission_id}`);
                     }
                 }
