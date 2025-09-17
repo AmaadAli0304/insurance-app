@@ -1,4 +1,5 @@
 
+
 "use server";
 
 import { redirect } from 'next/navigation';
@@ -14,7 +15,7 @@ const hospitalSchema = z.object({
     phone: z.string().optional(),
     email: z.string().email().optional().or(z.literal('')),
     address: z.string().optional(),
-    photo: z.string().optional().nullable(),
+    photoUrl: z.string().optional().nullable(),
 });
 
 const hospitalUpdateSchema = hospitalSchema.extend({
@@ -107,7 +108,7 @@ export async function handleAddHospital(prevState: { message: string, type?:stri
         phone: formData.get("phone"),
         email: formData.get("email"),
         address: formData.get("address"),
-        photo: formData.get("photoUrl")
+        photoUrl: formData.get("photoUrl")
     });
 
     if (!validatedFields.success) {
@@ -135,7 +136,7 @@ export async function handleAddHospital(prevState: { message: string, type?:stri
             .input('contact_person', sql.NVarChar, validatedFields.data.contactPerson)
             .input('email', sql.NVarChar, validatedFields.data.email)
             .input('phone', sql.NVarChar, validatedFields.data.phone)
-            .input('photo', sql.NVarChar, validatedFields.data.photo)
+            .input('photo', sql.NVarChar, validatedFields.data.photoUrl)
             .query(`INSERT INTO hospitals (id, name, location, address, contact_person, email, phone, photo) 
                     VALUES (@id, @name, @location, @address, @contact_person, @email, @phone, @photo)`);
         
@@ -169,7 +170,7 @@ export async function handleUpdateHospital(prevState: { message: string, type?:s
         phone: formData.get("phone"),
         email: formData.get("email"),
         address: formData.get("address"),
-        photo: formData.get("photoUrl")
+        photoUrl: formData.get("photoUrl")
     });
 
     if (!validatedFields.success) {
@@ -196,7 +197,7 @@ export async function handleUpdateHospital(prevState: { message: string, type?:s
             .input('contact_person', sql.NVarChar, hospitalData.contactPerson)
             .input('email', sql.NVarChar, hospitalData.email)
             .input('phone', sql.NVarChar, hospitalData.phone)
-            .input('photo', sql.NVarChar, hospitalData.photo)
+            .input('photo', sql.NVarChar, hospitalData.photoUrl)
             .query(`UPDATE hospitals SET name = @name, location = @location, address = @address, contact_person = @contact_person, email = @email, phone = @phone, photo = @photo 
                     WHERE id = @id`);
 
@@ -261,3 +262,4 @@ export async function handleDeleteHospital(prevState: { message: string, type?:s
     
     return { message: "Hospital deleted successfully.", type: 'success' };
 }
+

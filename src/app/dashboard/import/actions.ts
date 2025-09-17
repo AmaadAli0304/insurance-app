@@ -150,18 +150,27 @@ export async function handleCreateHospitalTable(prevState: { message: string, ty
           address NVARCHAR(MAX),
           contact_person NVARCHAR(255),
           email NVARCHAR(255),
-          phone NVARCHAR(50)
+          phone NVARCHAR(50),
+          photo NVARCHAR(MAX)
         );
+      END
+      ELSE
+      BEGIN
+        IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'photo' AND Object_ID = Object_ID(N'hospitals'))
+        BEGIN
+            ALTER TABLE hospitals ADD photo NVARCHAR(MAX);
+        END
       END
     `;
     await request.query(createHospitalTableQuery);
-    return { message: "Hospital table created successfully or already exists.", type: "success" };
+    return { message: "Hospital table created or updated successfully.", type: "success" };
   } catch (error) {
     const dbError = error as { message?: string };
-    console.error('Error creating Hospital table:', dbError);
-    return { message: `Error creating Hospital table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+    console.error('Error creating or updating Hospital table:', dbError);
+    return { message: `Error handling Hospital table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
+
 
 export async function handleCreatePatientsTable(prevState: { message: string, type?: string }, formData: FormData) {
   try {
