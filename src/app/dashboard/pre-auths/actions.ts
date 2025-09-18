@@ -25,7 +25,7 @@ const preAuthSchema = z.object({
     // Patient and Admission fields from the form
     first_name: z.string().optional().nullable(),
     last_name: z.string().optional().nullable(),
-    email_address: z.string().email().optional().nullable(),
+    email_address: z.string().optional().nullable(),
     phone_number: z.string().optional().nullable(),
     alternative_number: z.string().optional().nullable(),
     gender: z.string().optional().nullable(),
@@ -50,7 +50,7 @@ const preAuthSchema = z.object({
     other_policy_name: z.string().optional().nullable(),
     family_doctor_name: z.string().optional().nullable(),
     family_doctor_phone: z.string().optional().nullable(),
-    payer_email: z.string().email().optional().nullable(),
+    payer_email: z.string().optional().nullable(),
     payer_phone: z.string().optional().nullable(),
     tpaName: z.string().optional().nullable(), // TPA name comes from patient details
     treat_doc_name: z.string().optional().nullable(),
@@ -104,7 +104,7 @@ const preAuthSchema = z.object({
     packageCharges: z.coerce.number().optional().nullable(),
     patientDeclarationName: z.string().optional().nullable(),
     patientDeclarationContact: z.string().optional().nullable(),
-    patientDeclarationEmail: z.string().email().optional().nullable(),
+    patientDeclarationEmail: z.string().optional().nullable(),
     patientDeclarationDate: z.string().optional().nullable(),
     patientDeclarationTime: z.string().optional().nullable(),
     hospitalDeclarationDoctorName: z.string().optional().nullable(),

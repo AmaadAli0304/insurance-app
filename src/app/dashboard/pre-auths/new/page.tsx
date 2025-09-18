@@ -605,28 +605,28 @@ export default function NewRequestPage() {
                                     <AccordionContent>
                                         <CardContent className="grid md:grid-cols-3 gap-4">
                                             <div className="space-y-2">
-                                                <Label htmlFor="firstName">First Name <span className="text-destructive">*</span></Label>
-                                                <Input id="firstName" name="first_name" defaultValue={patientDetails.firstName} required />
+                                                <Label htmlFor="firstName">First Name</Label>
+                                                <Input id="firstName" name="first_name" defaultValue={patientDetails.firstName} />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="lastName">Last Name <span className="text-destructive">*</span></Label>
-                                                <Input id="lastName" name="last_name" defaultValue={patientDetails.lastName} required />
+                                                <Label htmlFor="lastName">Last Name</Label>
+                                                <Input id="lastName" name="last_name" defaultValue={patientDetails.lastName} />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="email_address">Email Address <span className="text-destructive">*</span></Label>
-                                                <Input id="email_address" name="email_address" type="email" defaultValue={patientDetails.email_address ?? ''} required />
+                                                <Label htmlFor="email_address">Email Address</Label>
+                                                <Input id="email_address" name="email_address" type="email" defaultValue={patientDetails.email_address ?? ''} />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="phone_number">Registered mobile number <span className="text-destructive">*</span></Label>
-                                                <PhoneInput name="phone_number" defaultValue={patientDetails.phoneNumber ?? ''} required />
+                                                <Label htmlFor="phone_number">Registered mobile number</Label>
+                                                <PhoneInput name="phone_number" defaultValue={patientDetails.phoneNumber ?? ''} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="alternative_number">Alternate contact number</Label>
                                                 <PhoneInput name="alternative_number" defaultValue={patientDetails.alternative_number ?? ''} />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="gender">Gender <span className="text-destructive">*</span></Label>
-                                                <Select name="gender" defaultValue={patientDetails.gender ?? undefined} required>
+                                                <Label htmlFor="gender">Gender</Label>
+                                                <Select name="gender" defaultValue={patientDetails.gender ?? undefined}>
                                                     <SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger>
                                                     <SelectContent>
                                                         <SelectItem value="Male">Male</SelectItem>
@@ -644,8 +644,8 @@ export default function NewRequestPage() {
                                                 <Input id="birth_date" name="birth_date" type="date" defaultValue={formatDateForInput(patientDetails.dateOfBirth)} max={new Date().toISOString().split('T')[0]}/>
                                             </div>
                                             <div className="md:col-span-2 space-y-2">
-                                                <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
-                                                <Input id="address" name="address" defaultValue={patientDetails.address ?? ''} required />
+                                                <Label htmlFor="address">Address</Label>
+                                                <Input id="address" name="address" defaultValue={patientDetails.address ?? ''} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="occupation">Occupation</Label>
@@ -660,8 +660,8 @@ export default function NewRequestPage() {
                                                 <Input id="abha_id" name="abha_id" defaultValue={patientDetails.abha_id ?? ''} />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="health_id">Health ID / UHID <span className="text-destructive">*</span></Label>
-                                                <Input id="health_id" name="health_id" defaultValue={patientDetails.health_id ?? ''} required/>
+                                                <Label htmlFor="health_id">Health ID / UHID</Label>
+                                                <Input id="health_id" name="health_id" defaultValue={patientDetails.health_id ?? ''} />
                                             </div>
                                         </CardContent>
                                     </AccordionContent>
@@ -678,24 +678,24 @@ export default function NewRequestPage() {
                                     <AccordionContent>
                                         <CardContent className="grid md:grid-cols-3 gap-4">
                                             <div className="space-y-2">
-                                                <Label htmlFor="admission_id">Admission ID <span className="text-destructive">*</span></Label>
-                                                <Input id="admission_id" name="admission_id" defaultValue={patientDetails.admission_id ?? ''} required />
+                                                <Label htmlFor="admission_id">Admission ID</Label>
+                                                <Input id="admission_id" name="admission_id" defaultValue={patientDetails.admission_id ?? ''} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="claim_id">Claim ID</Label>
                                                 <Input id="claim_id" name="claim_id" />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="relationship_policyholder">Relationship to policyholder <span className="text-destructive">*</span></Label>
-                                                <Input id="relationship_policyholder" name="relationship_policyholder" defaultValue={patientDetails.relationship_policyholder ?? ''} required />
+                                                <Label htmlFor="relationship_policyholder">Relationship to policyholder</Label>
+                                                <Input id="relationship_policyholder" name="relationship_policyholder" defaultValue={patientDetails.relationship_policyholder ?? ''} />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="policy_number">Policy number <span className="text-destructive">*</span></Label>
-                                                <Input id="policy_number" name="policy_number" defaultValue={patientDetails.policyNumber ?? ''} required />
+                                                <Label htmlFor="policy_number">Policy number</Label>
+                                                <Input id="policy_number" name="policy_number" defaultValue={patientDetails.policyNumber ?? ''} />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="insured_card_number">Insured member / card ID number <span className="text-destructive">*</span></Label>
-                                                <Input id="insured_card_number" name="insured_card_number" defaultValue={patientDetails.memberId ?? ''} required />
+                                                <Label htmlFor="insured_card_number">Insured member / card ID number</Label>
+                                                <Input id="insured_card_number" name="insured_card_number" defaultValue={patientDetails.memberId ?? ''} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="hospitalName">Hospital Name</Label>
@@ -706,12 +706,12 @@ export default function NewRequestPage() {
                                                 <Input id="companyName" name="companyName" defaultValue={patientDetails.companyName ?? ''} readOnly />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="policy_start_date">Policy Start Date <span className="text-destructive">*</span></Label>
-                                                <Input id="policy_start_date" name="policy_start_date" type="date" defaultValue={formatDateForInput(patientDetails.policyStartDate)} required max={new Date().toISOString().split('T')[0]} />
+                                                <Label htmlFor="policy_start_date">Policy Start Date</Label>
+                                                <Input id="policy_start_date" name="policy_start_date" type="date" defaultValue={formatDateForInput(patientDetails.policyStartDate)} max={new Date().toISOString().split('T')[0]} />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="policy_end_date">Policy End Date <span className="text-destructive">*</span></Label>
-                                                <Input id="policy_end_date" name="policy_end_date" type="date" defaultValue={formatDateForInput(patientDetails.policyEndDate)} required min={new Date().toISOString().split('T')[0]} />
+                                                <Label htmlFor="policy_end_date">Policy End Date</Label>
+                                                <Input id="policy_end_date" name="policy_end_date" type="date" defaultValue={formatDateForInput(patientDetails.policyEndDate)} min={new Date().toISOString().split('T')[0]} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="sumInsured">Sum Insured</Label>
@@ -742,32 +742,32 @@ export default function NewRequestPage() {
                                                 <PhoneInput name="family_doctor_phone" defaultValue={patientDetails.family_doctor_phone ?? ''} />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="payer_email">Proposer/Payer email ID <span className="text-destructive">*</span></Label>
-                                                <Input id="payer_email" name="payer_email" type="email" defaultValue={patientDetails.payer_email ?? ''} required />
+                                                <Label htmlFor="payer_email">Proposer/Payer email ID</Label>
+                                                <Input id="payer_email" name="payer_email" type="email" defaultValue={patientDetails.payer_email ?? ''} />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="payer_phone">Proposer/Payer phone number <span className="text-destructive">*</span></Label>
-                                                <PhoneInput name="payer_phone" defaultValue={patientDetails.payer_phone ?? ''} required />
+                                                <Label htmlFor="payer_phone">Proposer/Payer phone number</Label>
+                                                <PhoneInput name="payer_phone" defaultValue={patientDetails.payer_phone ?? ''} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="tpaName">TPA</Label>
                                                 <Input id="tpaName" name="tpaName" defaultValue={patientDetails.tpaName ?? ''} readOnly />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="treat_doc_name">Treating doctor’s name <span className="text-destructive">*</span></Label>
-                                                <Input id="treat_doc_name" name="treat_doc_name" defaultValue={patientDetails.treat_doc_name ?? ''} required />
+                                                <Label htmlFor="treat_doc_name">Treating doctor’s name</Label>
+                                                <Input id="treat_doc_name" name="treat_doc_name" defaultValue={patientDetails.treat_doc_name ?? ''} />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="treat_doc_number">Treating doctor’s contact <span className="text-destructive">*</span></Label>
-                                                <PhoneInput name="treat_doc_number" defaultValue={patientDetails.treat_doc_number ?? ''} required />
+                                                <Label htmlFor="treat_doc_number">Treating doctor’s contact</Label>
+                                                <PhoneInput name="treat_doc_number" defaultValue={patientDetails.treat_doc_number ?? ''} />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="treat_doc_qualification">Doctor’s qualification <span className="text-destructive">*</span></Label>
-                                                <Input id="treat_doc_qualification" name="treat_doc_qualification" defaultValue={patientDetails.treat_doc_qualification ?? ''} required />
+                                                <Label htmlFor="treat_doc_qualification">Doctor’s qualification</Label>
+                                                <Input id="treat_doc_qualification" name="treat_doc_qualification" defaultValue={patientDetails.treat_doc_qualification ?? ''} />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="treat_doc_reg_no">Doctor’s registration no. <span className="text-destructive">*</span></Label>
-                                                <Input id="treat_doc_reg_no" name="treat_doc_reg_no" defaultValue={patientDetails.treat_doc_reg_no ?? ''} required />
+                                                <Label htmlFor="treat_doc_reg_no">Doctor’s registration no.</Label>
+                                                <Input id="treat_doc_reg_no" name="treat_doc_reg_no" defaultValue={patientDetails.treat_doc_reg_no ?? ''} />
                                             </div>
                                         </CardContent>
                                     </AccordionContent>
@@ -1087,8 +1087,8 @@ export default function NewRequestPage() {
                             </div>
                             <div className="grid md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="to-display">To <span className="text-destructive">*</span></Label>
-                                    <Input id="to-display" name="to-display" placeholder="Select a patient to populate TPA email" value={toEmail} required readOnly disabled />
+                                    <Label htmlFor="to-display">To</Label>
+                                    <Input id="to-display" name="to-display" placeholder="Select a patient to populate TPA email" value={toEmail} readOnly disabled />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="from-display">From</Label>
@@ -1096,12 +1096,12 @@ export default function NewRequestPage() {
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="subject">Subject <span className="text-destructive">*</span></Label>
-                                <Input id="subject" name="subject" placeholder="Pre-Authorization Request for..." value={subject} onChange={(e) => setSubject(e.target.value)} required />
+                                <Label htmlFor="subject">Subject</Label>
+                                <Input id="subject" name="subject" placeholder="Pre-Authorization Request for..." value={subject} onChange={(e) => setSubject(e.target.value)} />
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="details">Compose Email <span className="text-destructive">*</span></Label>
+                                <Label htmlFor="details">Compose Email</Label>
                                 <Editor
                                   editorState={editorState}
                                   onEditorStateChange={setEditorState}
