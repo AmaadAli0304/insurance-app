@@ -482,19 +482,19 @@ export default function EditPatientPage() {
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={handleAgeAndTotalSumCalculation}>
                                         <div className="space-y-2">
-                                            <Label htmlFor="firstName">First Name <span className="text-destructive">*</span></Label>
+                                            <Label htmlFor="firstName">First Name</Label>
                                             <Input id="firstName" name="firstName" defaultValue={patient.firstName} required />
                                         </div>
                                          <div className="space-y-2">
-                                            <Label htmlFor="lastName">Last Name <span className="text-destructive">*</span></Label>
+                                            <Label htmlFor="lastName">Last Name</Label>
                                             <Input id="lastName" name="lastName" defaultValue={patient.lastName} required />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="email_address">Email Address <span className="text-destructive">*</span></Label>
+                                            <Label htmlFor="email_address">Email Address</Label>
                                             <Input id="email_address" name="email_address" type="email" defaultValue={patient.email_address ?? ''} required />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="phone_number">Registered mobile number <span className="text-destructive">*</span></Label>
+                                            <Label htmlFor="phone_number">Registered mobile number</Label>
                                             <PhoneInput name="phone_number" defaultValue={patient.phoneNumber ?? ''} required />
                                         </div>
                                         <div className="space-y-2">
@@ -502,7 +502,7 @@ export default function EditPatientPage() {
                                             <PhoneInput name="alternative_number" defaultValue={patient.alternative_number ?? ''} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="gender">Gender <span className="text-destructive">*</span></Label>
+                                            <Label htmlFor="gender">Gender</Label>
                                             <Select name="gender" defaultValue={patient.gender ?? undefined} required>
                                                 <SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger>
                                                 <SelectContent>
@@ -521,7 +521,7 @@ export default function EditPatientPage() {
                                             <Input id="age" name="age" type="text" value={age} placeholder="Age" readOnly />
                                         </div>
                                         <div className="md:col-span-2 space-y-2">
-                                            <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
+                                            <Label htmlFor="address">Address</Label>
                                             <Input id="address" name="address" defaultValue={patient.address ?? ''} required />
                                         </div>
                                         <div className="space-y-2">
@@ -537,7 +537,7 @@ export default function EditPatientPage() {
                                             <Input id="abha_id" name="abha_id" defaultValue={patient.abha_id ?? ''} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="health_id">Health ID / UHID <span className="text-destructive">*</span></Label>
+                                            <Label htmlFor="health_id">Health ID / UHID</Label>
                                             <Input id="health_id" name="health_id" defaultValue={patient.health_id ?? ''} required />
                                         </div>
                                     </CardContent>
@@ -578,11 +578,11 @@ export default function EditPatientPage() {
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={handleAgeAndTotalSumCalculation}>
                                         <div className="space-y-2">
-                                            <Label htmlFor="admission_id">Admission ID <span className="text-destructive">*</span></Label>
+                                            <Label htmlFor="admission_id">Admission ID</Label>
                                             <Input id="admission_id" name="admission_id" defaultValue={patient.admission_id ?? ''} required />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="relationship_policyholder">Relationship to policyholder <span className="text-destructive">*</span></Label>
+                                            <Label htmlFor="relationship_policyholder">Relationship to policyholder</Label>
                                             <Select name="relationship_policyholder" required defaultValue={patient.relationship_policyholder ?? undefined}>
                                                 <SelectTrigger><SelectValue placeholder="Select relationship" /></SelectTrigger>
                                                 <SelectContent>
@@ -598,15 +598,15 @@ export default function EditPatientPage() {
                                             </Select>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="policy_number">Policy number <span className="text-destructive">*</span></Label>
+                                            <Label htmlFor="policy_number">Policy number</Label>
                                             <Input id="policy_number" name="policy_number" defaultValue={patient.policyNumber ?? ''} required />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="insured_card_number">Insured member / card ID number <span className="text-destructive">*</span></Label>
+                                            <Label htmlFor="insured_card_number">Insured member / card ID number</Label>
                                             <Input id="insured_card_number" name="insured_card_number" defaultValue={patient.memberId ?? ''} required />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="company_id">Insurance Company <span className="text-destructive">*</span></Label>
+                                            <Label htmlFor="company_id">Insurance Company</Label>
                                             <Select name="company_id" required defaultValue={patient.companyId} disabled={isLoading || companies.length === 0}>
                                                 <SelectTrigger><SelectValue placeholder="Select a company" /></SelectTrigger>
                                                 <SelectContent>
@@ -617,11 +617,11 @@ export default function EditPatientPage() {
                                             </Select>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="policy_start_date">Policy Start Date <span className="text-destructive">*</span></Label>
+                                            <Label htmlFor="policy_start_date">Policy Start Date</Label>
                                             <Input id="policy_start_date" name="policy_start_date" type="date" defaultValue={patient.policyStartDate ?? ''} required max={today} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="policy_end_date">Policy End Date <span className="text-destructive">*</span></Label>
+                                            <Label htmlFor="policy_end_date">Policy End Date</Label>
                                             <Input id="policy_end_date" name="policy_end_date" type="date" defaultValue={patient.policyEndDate ?? ''} required min={today} />
                                         </div>
                                         <div className="space-y-2">
@@ -653,15 +653,15 @@ export default function EditPatientPage() {
                                             <PhoneInput name="family_doctor_phone" defaultValue={patient.family_doctor_phone ?? ''} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="payer_email">Proposer/Payer email ID <span className="text-destructive">*</span></Label>
+                                            <Label htmlFor="payer_email">Proposer/Payer email ID</Label>
                                             <Input id="payer_email" name="payer_email" type="email" defaultValue={patient.payer_email ?? ''} required />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="payer_phone">Proposer/Payer phone number <span className="text-destructive">*</span></Label>
+                                            <Label htmlFor="payer_phone">Proposer/Payer phone number</Label>
                                             <PhoneInput name="payer_phone" defaultValue={patient.payer_phone ?? ''} required />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="tpa_id">Select TPA <span className="text-destructive">*</span></Label>
+                                            <Label htmlFor="tpa_id">Select TPA</Label>
                                             <Select name="tpa_id" disabled={isLoading || tpas.length === 0} required defaultValue={patient.tpa_id?.toString() ?? undefined}>
                                                 <SelectTrigger><SelectValue placeholder="Select a TPA" /></SelectTrigger>
                                                 <SelectContent>
@@ -672,7 +672,7 @@ export default function EditPatientPage() {
                                             </Select>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="treat_doc_name">Treating doctor’s name <span className="text-destructive">*</span></Label>
+                                            <Label htmlFor="treat_doc_name">Treating doctor’s name</Label>
                                             <DoctorSearch
                                                 doctors={doctors}
                                                 defaultDoctorId={patient.doctor_id ?? undefined}
@@ -680,15 +680,15 @@ export default function EditPatientPage() {
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="treat_doc_number">Treating doctor’s contact <span className="text-destructive">*</span></Label>
+                                            <Label htmlFor="treat_doc_number">Treating doctor’s contact</Label>
                                             <PhoneInput name="treat_doc_number" value={doctorContact} onChange={setDoctorContact} required />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="treat_doc_qualification">Doctor’s qualification <span className="text-destructive">*</span></Label>
+                                            <Label htmlFor="treat_doc_qualification">Doctor’s qualification</Label>
                                             <Input id="treat_doc_qualification" name="treat_doc_qualification" defaultValue={patient.treat_doc_qualification ?? ''} required />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="treat_doc_reg_no">Doctor’s registration no. <span className="text-destructive">*</span></Label>
+                                            <Label htmlFor="treat_doc_reg_no">Doctor’s registration no.</Label>
                                             <Input id="treat_doc_reg_no" name="treat_doc_reg_no" defaultValue={patient.treat_doc_reg_no ?? ''} required />
                                         </div>
                                     </CardContent>
