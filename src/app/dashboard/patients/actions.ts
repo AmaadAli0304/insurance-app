@@ -22,7 +22,7 @@ const basePatientObjectSchema = z.object({
   // Patient Details
   firstName: z.string().min(1, 'First Name is required'),
   lastName: z.string().min(1, 'Last Name is required'),
-  email_address: z.string().email("Invalid email address.").optional().nullable(),
+  email_address: z.string().optional().nullable(),
   phone_number: z.string().optional().nullable(),
   alternative_number: z.string().optional().nullable(),
   gender: z.string().optional().nullable(),
@@ -79,7 +79,7 @@ const basePatientObjectSchema = z.object({
   other_policy_name: z.string().optional().nullable(),
   family_doctor_name: z.string().optional().nullable(),
   family_doctor_phone: z.string().optional().nullable(),
-  payer_email: z.string().email().optional().nullable(),
+  payer_email: z.string().optional().nullable(),
   payer_phone: z.string().optional().nullable(),
   
   // Hospital & TPA
@@ -1074,6 +1074,7 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
     
 
     
+
 
 
 
