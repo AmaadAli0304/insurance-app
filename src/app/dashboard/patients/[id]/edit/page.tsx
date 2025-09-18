@@ -483,19 +483,19 @@ export default function EditPatientPage() {
                                     <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={handleAgeAndTotalSumCalculation}>
                                         <div className="space-y-2">
                                             <Label htmlFor="firstName">First Name</Label>
-                                            <Input id="firstName" name="firstName" defaultValue={patient.firstName} required />
+                                            <Input id="firstName" name="firstName" defaultValue={patient.firstName} />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="lastName">Last Name</Label>
-                                            <Input id="lastName" name="lastName" defaultValue={patient.lastName} required />
+                                            <Input id="lastName" name="lastName" defaultValue={patient.lastName} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="email_address">Email Address</Label>
-                                            <Input id="email_address" name="email_address" type="email" defaultValue={patient.email_address ?? ''} required />
+                                            <Input id="email_address" name="email_address" type="email" defaultValue={patient.email_address ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="phone_number">Registered mobile number</Label>
-                                            <PhoneInput name="phone_number" defaultValue={patient.phoneNumber ?? ''} required />
+                                            <PhoneInput name="phone_number" defaultValue={patient.phoneNumber ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="alternative_number">Alternate contact number</Label>
@@ -503,7 +503,7 @@ export default function EditPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="gender">Gender</Label>
-                                            <Select name="gender" defaultValue={patient.gender ?? undefined} required>
+                                            <Select name="gender" defaultValue={patient.gender ?? undefined}>
                                                 <SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="Male">Male</SelectItem>
@@ -522,7 +522,7 @@ export default function EditPatientPage() {
                                         </div>
                                         <div className="md:col-span-2 space-y-2">
                                             <Label htmlFor="address">Address</Label>
-                                            <Input id="address" name="address" defaultValue={patient.address ?? ''} required />
+                                            <Input id="address" name="address" defaultValue={patient.address ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="occupation">Occupation</Label>
@@ -538,7 +538,7 @@ export default function EditPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="health_id">Health ID / UHID</Label>
-                                            <Input id="health_id" name="health_id" defaultValue={patient.health_id ?? ''} required />
+                                            <Input id="health_id" name="health_id" defaultValue={patient.health_id ?? ''} />
                                         </div>
                                     </CardContent>
                                 </AccordionContent>
@@ -579,11 +579,11 @@ export default function EditPatientPage() {
                                     <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={handleAgeAndTotalSumCalculation}>
                                         <div className="space-y-2">
                                             <Label htmlFor="admission_id">Admission ID</Label>
-                                            <Input id="admission_id" name="admission_id" defaultValue={patient.admission_id ?? ''} required />
+                                            <Input id="admission_id" name="admission_id" defaultValue={patient.admission_id ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="relationship_policyholder">Relationship to policyholder</Label>
-                                            <Select name="relationship_policyholder" required defaultValue={patient.relationship_policyholder ?? undefined}>
+                                            <Select name="relationship_policyholder" defaultValue={patient.relationship_policyholder ?? undefined}>
                                                 <SelectTrigger><SelectValue placeholder="Select relationship" /></SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="Self">Self</SelectItem>
@@ -599,15 +599,15 @@ export default function EditPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="policy_number">Policy number</Label>
-                                            <Input id="policy_number" name="policy_number" defaultValue={patient.policyNumber ?? ''} required />
+                                            <Input id="policy_number" name="policy_number" defaultValue={patient.policyNumber ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="insured_card_number">Insured member / card ID number</Label>
-                                            <Input id="insured_card_number" name="insured_card_number" defaultValue={patient.memberId ?? ''} required />
+                                            <Input id="insured_card_number" name="insured_card_number" defaultValue={patient.memberId ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="company_id">Insurance Company</Label>
-                                            <Select name="company_id" required defaultValue={patient.companyId} disabled={isLoading || companies.length === 0}>
+                                            <Select name="company_id" defaultValue={patient.companyId} disabled={isLoading || companies.length === 0}>
                                                 <SelectTrigger><SelectValue placeholder="Select a company" /></SelectTrigger>
                                                 <SelectContent>
                                                     {companies.map(c => (
@@ -618,11 +618,11 @@ export default function EditPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="policy_start_date">Policy Start Date</Label>
-                                            <Input id="policy_start_date" name="policy_start_date" type="date" defaultValue={patient.policyStartDate ?? ''} required max={today} />
+                                            <Input id="policy_start_date" name="policy_start_date" type="date" defaultValue={patient.policyStartDate ?? ''} max={today} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="policy_end_date">Policy End Date</Label>
-                                            <Input id="policy_end_date" name="policy_end_date" type="date" defaultValue={patient.policyEndDate ?? ''} required min={today} />
+                                            <Input id="policy_end_date" name="policy_end_date" type="date" defaultValue={patient.policyEndDate ?? ''} min={today} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="sumInsured">Sum Insured</Label>
@@ -654,15 +654,15 @@ export default function EditPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="payer_email">Proposer/Payer email ID</Label>
-                                            <Input id="payer_email" name="payer_email" type="email" defaultValue={patient.payer_email ?? ''} required />
+                                            <Input id="payer_email" name="payer_email" type="email" defaultValue={patient.payer_email ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="payer_phone">Proposer/Payer phone number</Label>
-                                            <PhoneInput name="payer_phone" defaultValue={patient.payer_phone ?? ''} required />
+                                            <PhoneInput name="payer_phone" defaultValue={patient.payer_phone ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="tpa_id">Select TPA</Label>
-                                            <Select name="tpa_id" disabled={isLoading || tpas.length === 0} required defaultValue={patient.tpa_id?.toString() ?? undefined}>
+                                            <Select name="tpa_id" disabled={isLoading || tpas.length === 0} defaultValue={patient.tpa_id?.toString() ?? undefined}>
                                                 <SelectTrigger><SelectValue placeholder="Select a TPA" /></SelectTrigger>
                                                 <SelectContent>
                                                     {tpas.map(t => (
@@ -681,15 +681,15 @@ export default function EditPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_number">Treating doctor’s contact</Label>
-                                            <PhoneInput name="treat_doc_number" value={doctorContact} onChange={setDoctorContact} required />
+                                            <PhoneInput name="treat_doc_number" value={doctorContact} onChange={setDoctorContact} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_qualification">Doctor’s qualification</Label>
-                                            <Input id="treat_doc_qualification" name="treat_doc_qualification" defaultValue={patient.treat_doc_qualification ?? ''} required />
+                                            <Input id="treat_doc_qualification" name="treat_doc_qualification" defaultValue={patient.treat_doc_qualification ?? ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="treat_doc_reg_no">Doctor’s registration no.</Label>
-                                            <Input id="treat_doc_reg_no" name="treat_doc_reg_no" defaultValue={patient.treat_doc_reg_no ?? ''} required />
+                                            <Input id="treat_doc_reg_no" name="treat_doc_reg_no" defaultValue={patient.treat_doc_reg_no ?? ''} />
                                         </div>
                                     </CardContent>
                                 </AccordionContent>
