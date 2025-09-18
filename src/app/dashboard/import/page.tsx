@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
@@ -130,7 +129,7 @@ export default function ImportPage() {
                     <SubmitActionButton action={createTableAction} icon={Database}>Create TPA Table</SubmitActionButton>
                     <SubmitActionButton action={createRelationshipTableAction} icon={GitMerge}>Create Relationship Tables</SubmitActionButton>
                     <SubmitActionButton action={createHospitalTableAction} icon={Building}>Create Hospital Table</SubmitActionButton>
-                    <SubmitActionButton action={createPatientsTableAction} icon={Users}>Create Patient & Admission Tables</SubmitActionButton>
+                    <SubmitActionButton action={createPatientsTableAction} icon={Users}>Create Patient &amp; Admission Tables</SubmitActionButton>
                     <SubmitActionButton action={createFieldsTableAction} icon={FilePlus2}>Create Fields Table</SubmitActionButton>
                     <SubmitActionButton action={createFieldOptionsTableAction} icon={ListPlus}>Create Field Options Table</SubmitActionButton>
                     <SubmitActionButton action={createAdmissionsTableAction} icon={BedDouble}>Create Admissions Table</SubmitActionButton>
