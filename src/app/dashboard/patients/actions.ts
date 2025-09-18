@@ -83,7 +83,7 @@ const basePatientObjectSchema = z.object({
   payer_phone: z.string().optional().nullable(),
   
   // Hospital & TPA
-  tpa_id: z.coerce.number().optional().nullable(),
+  tpa_id: z.coerce.number().min(1, 'TPA is required'),
   hospital_id: z.string().optional().nullable(),
   treat_doc_name: z.string().optional().nullable(),
   treat_doc_number: z.string().optional().nullable(),
@@ -1074,6 +1074,7 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
     
 
     
+
 
 
 

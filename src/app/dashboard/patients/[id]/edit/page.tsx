@@ -482,12 +482,12 @@ export default function EditPatientPage() {
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={handleAgeAndTotalSumCalculation}>
                                         <div className="space-y-2">
-                                            <Label htmlFor="firstName">First Name</Label>
-                                            <Input id="firstName" name="firstName" defaultValue={patient.firstName} />
+                                            <Label htmlFor="firstName">First Name <span className="text-destructive">*</span></Label>
+                                            <Input id="firstName" name="firstName" defaultValue={patient.firstName} required />
                                         </div>
                                          <div className="space-y-2">
-                                            <Label htmlFor="lastName">Last Name</Label>
-                                            <Input id="lastName" name="lastName" defaultValue={patient.lastName} />
+                                            <Label htmlFor="lastName">Last Name <span className="text-destructive">*</span></Label>
+                                            <Input id="lastName" name="lastName" defaultValue={patient.lastName} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="email_address">Email Address</Label>
@@ -661,8 +661,8 @@ export default function EditPatientPage() {
                                             <PhoneInput name="payer_phone" defaultValue={patient.payer_phone ?? ''} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="tpa_id">Select TPA</Label>
-                                            <Select name="tpa_id" disabled={isLoading || tpas.length === 0} defaultValue={patient.tpa_id?.toString() ?? undefined}>
+                                            <Label htmlFor="tpa_id">Select TPA <span className="text-destructive">*</span></Label>
+                                            <Select name="tpa_id" disabled={isLoading || tpas.length === 0} defaultValue={patient.tpa_id?.toString() ?? undefined} required>
                                                 <SelectTrigger><SelectValue placeholder="Select a TPA" /></SelectTrigger>
                                                 <SelectContent>
                                                     {tpas.map(t => (
