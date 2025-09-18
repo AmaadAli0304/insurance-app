@@ -162,25 +162,17 @@ export default function EditInvoicePage() {
     const handleItemChange = (_id: number, field: keyof Omit<EditInvoiceItem, '_id' | 'id' | 'invoice_id' | 'amount'>, value: string) => {
         setItems(items.map(item => {
             if (item._id === _id) {
-                if (field === 'rate' || field === 'qty') {
-                     if (value === '' || !isNaN(Number(value))) {
-                        return { ...item, [field]: value };
-                    }
-                    return item; 
-                }
-                 if (field === 'description') {
-                    return { ...item, [field]: value };
-                }
+                return { ...item, [field]: value };
             }
             return item;
         }));
     };
     
-    const handleRateBlur = (id: number) => {
+    const handleRateBlur = (id: number, field: 'rate' | 'qty') => {
         setItems(items.map(item => {
             if (item._id === id) {
-                const rateAsNumber = parseFloat(item.rate);
-                return { ...item, rate: isNaN(rateAsNumber) ? '0' : String(rateAsNumber) };
+                const valueAsNumber = parseFloat(item[field]);
+                return { ...item, [field]: isNaN(valueAsNumber) ? '0' : String(valueAsNumber) };
             }
             return item;
         }));
@@ -299,10 +291,10 @@ export default function EditInvoicePage() {
                                             <Input placeholder="Item name" value={item.description} onChange={(e) => handleItemChange(item._id, 'description', e.target.value)} />
                                         </TableCell>
                                         <TableCell>
-                                            <Input placeholder="1" type="number" value={item.qty} onChange={(e) => handleItemChange(item._id, 'qty', e.target.value)} />
+                                            <Input placeholder="1" type="number" value={item.qty} onChange={(e) => handleItemChange(item._id, 'qty', e.target.value)} onBlur={() => handleRateBlur(item._id, 'qty')} />
                                         </TableCell>
                                         <TableCell>
-                                            <Input placeholder="0.00" type="text" value={item.rate} onChange={(e) => handleItemChange(item._id, 'rate', e.target.value)} onBlur={() => handleRateBlur(item._id)} />
+                                            <Input placeholder="0.00" type="text" value={item.rate} onChange={(e) => handleItemChange(item._id, 'rate', e.target.value)} onBlur={() => handleRateBlur(item._id, 'rate')} />
                                         </TableCell>
                                         <TableCell className="text-right font-medium">
                                             {calculateAmount(item).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
