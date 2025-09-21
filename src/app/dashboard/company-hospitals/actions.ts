@@ -61,7 +61,7 @@ export async function getTPAsForForm(): Promise<Pick<TPA, 'id' | 'name'>[]> {
 export async function getHospitals(): Promise<Hospital[]> {
     try {
         const db = await poolConnect;
-        const result = await db.request().query('SELECT id, name, location, address, contact_person as contactPerson, email, phone, photo FROM hospitals');
+        const result = await db.request().query('SELECT id, name, location, address, contact_person as contactPerson, email, phone, photo FROM hospitals WHERE archived IS NULL OR archived = 0');
         return result.recordset as Hospital[];
     } catch (error) {
         const dbError = error as Error;
@@ -266,50 +266,35 @@ export async function handleDeleteHospital(prevState: { message: string, type?:s
     const hospitalName = formData.get('hospitalName') as string;
 
     if (!id) {
-      return { message: "Delete error: ID is missing", type: 'error' };
+      return { message: "Archive error: ID is missing", type: 'error' };
     }
     
-    let transaction;
     try {
         const db = await poolConnect;
-        transaction = new sql.Transaction(db);
-        await transaction.begin();
-
-        // Delete from relationship tables first
-        await new sql.Request(transaction).input('hospital_id', sql.NVarChar, id).query('DELETE FROM hospital_companies WHERE hospital_id = @hospital_id');
-        await new sql.Request(transaction).input('hospital_id', sql.NVarChar, id).query('DELETE FROM hospital_tpas WHERE hospital_id = @hospital_id');
-        await new sql.Request(transaction).input('hospital_id', sql.NVarChar, id).query('DELETE FROM hospital_staff WHERE hospital_id = @hospital_id');
-        
-        // Delete from main hospital table
-        const result = await new sql.Request(transaction).input('id', sql.NVarChar, id).query('DELETE FROM hospitals WHERE id = @id');
+        const result = await db.request()
+            .input('id', sql.NVarChar, id)
+            .query('UPDATE hospitals SET archived = 1 WHERE id = @id');
 
         if (result.rowsAffected[0] === 0) {
-            await transaction.rollback();
             return { message: "Hospital not found.", type: 'error' };
         }
-        
-        await transaction.commit();
 
         await logActivity({
             userId,
             userName,
-            actionType: 'DELETE_HOSPITAL',
-            details: `Deleted hospital: ${hospitalName}`,
+            actionType: 'ARCHIVE_HOSPITAL',
+            details: `Archived hospital: ${hospitalName}`,
             targetId: id,
             targetType: 'Hospital'
         });
 
     } catch (error) {
-        if(transaction) await transaction.rollback();
         console.error('Database error:', error);
-        return { message: "Database error during deletion.", type: 'error' };
+        return { message: "Database error during archival.", type: 'error' };
     }
     
-    return { message: "Hospital deleted successfully.", type: 'success' };
+    return { message: "Hospital archived successfully.", type: 'success' };
 }
-
-
-
   
 
     

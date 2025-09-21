@@ -150,7 +150,8 @@ export async function handleCreateHospitalTable(prevState: { message: string, ty
           contact_person NVARCHAR(255),
           email NVARCHAR(255),
           phone NVARCHAR(50),
-          photo NVARCHAR(MAX)
+          photo NVARCHAR(MAX),
+          archived BIT DEFAULT 0
         );
       END
       ELSE
@@ -158,6 +159,10 @@ export async function handleCreateHospitalTable(prevState: { message: string, ty
         IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'photo' AND Object_ID = Object_ID(N'hospitals'))
         BEGIN
             ALTER TABLE hospitals ADD photo NVARCHAR(MAX);
+        END
+        IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'archived' AND Object_ID = Object_ID(N'hospitals'))
+        BEGIN
+            ALTER TABLE hospitals ADD archived BIT DEFAULT 0;
         END
       END
     `;

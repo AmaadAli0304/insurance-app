@@ -21,6 +21,7 @@ export type ActionType =
   | 'CREATE_HOSPITAL'
   | 'UPDATE_HOSPITAL'
   | 'DELETE_HOSPITAL'
+  | 'ARCHIVE_HOSPITAL'
   | 'CREATE_TPA'
   | 'UPDATE_TPA'
   | 'DELETE_TPA'
