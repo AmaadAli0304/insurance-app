@@ -14,6 +14,7 @@ import { ArrowLeft } from "lucide-react";
 import { notFound, useRouter, useParams } from "next/navigation";
 import type { TPA } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/components/auth-provider";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -33,6 +34,7 @@ export default function EditTPAPage() {
     const [state, formAction] = useActionState(handleUpdateTPA, { message: "", type: "initial" });
     const { toast } = useToast();
     const router = useRouter();
+    const { user } = useAuth();
 
     useEffect(() => {
         async function fetchTpa() {
@@ -104,6 +106,8 @@ export default function EditTPAPage() {
                     <CardDescription>Modify the form to update the TPA's information.</CardDescription>
                 </CardHeader>
                 <form action={formAction}>
+                    <input type="hidden" name="userId" value={user?.uid ?? ''} />
+                    <input type="hidden" name="userName" value={user?.name ?? ''} />
                     <CardContent className="space-y-4">
                         <input type="hidden" name="id" value={tpa.id} />
                         <div className="grid md:grid-cols-2 gap-4">

@@ -5,6 +5,7 @@ import pool, { sql, poolConnect } from "@/lib/db";
 import { z } from 'zod';
 import { TPA } from "@/lib/types";
 import { redirect } from 'next/navigation';
+import { logActivity } from "@/lib/activity-log";
 
 const tpaSchema = z.object({
   name: z.string().min(1, "TPA name is required"),
@@ -59,6 +60,8 @@ export async function getTPAById(id: number): Promise<TPA | null> {
 }
 
 export async function handleAddTPA(prevState: { message: string, type?: string }, formData: FormData) {
+  const userId = formData.get('userId') as string;
+  const userName = formData.get('userName') as string;
   const validatedFields = tpaSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
@@ -72,9 +75,10 @@ export async function handleAddTPA(prevState: { message: string, type?: string }
       return { message: `Invalid data: ${errorMessages}`, type: 'error' };
   }
 
+  let tpaId;
   try {
     const db = await poolConnect;
-    await db.request()
+    const result = await db.request()
       .input('name', sql.NVarChar, validatedFields.data.name)
       .input('email', sql.NVarChar, validatedFields.data.email)
       .input('phone', sql.NVarChar, validatedFields.data.phone)
@@ -82,18 +86,31 @@ export async function handleAddTPA(prevState: { message: string, type?: string }
       .input('portalLink', sql.NVarChar, validatedFields.data.portalLink)
       .query(`
         INSERT INTO tpas (name, email, phone, address, portalLink) 
+        OUTPUT INSERTED.id
         VALUES (@name, @email, @phone, @address, @portalLink)
       `);
+    tpaId = result.recordset[0].id;
   } catch (error) {
     console.error('Error adding TPA:', error);
     const dbError = error as { message?: string };
     return { message: `Database Error: ${dbError.message || 'Unknown error'}`, type: "error" };
   }
+  
+  await logActivity({
+    userId,
+    userName,
+    actionType: 'CREATE_TPA',
+    details: `Created a new TPA: ${validatedFields.data.name}`,
+    targetId: tpaId,
+    targetType: 'TPA'
+  });
 
   return { message: "TPA added successfully.", type: "success" };
 }
 
 export async function handleUpdateTPA(prevState: { message: string, type?: string }, formData: FormData) {
+  const userId = formData.get('userId') as string;
+  const userName = formData.get('userName') as string;
   const parsed = tpaUpdateSchema.safeParse({
     id: formData.get("id"),
     name: formData.get("name"),
@@ -139,12 +156,25 @@ export async function handleUpdateTPA(prevState: { message: string, type?: strin
     console.error('Database error:', error);
     return { message: "Failed to update TPA in the database.", type: 'error' };
   }
+  
+  await logActivity({
+    userId,
+    userName,
+    actionType: 'UPDATE_TPA',
+    details: `Updated TPA: ${parsed.data.name}`,
+    targetId: parsed.data.id,
+    targetType: 'TPA'
+  });
 
   return { message: "TPA updated successfully.", type: "success" };
 }
 
 export async function handleDeleteTPA(prevState: { message: string, type?: string }, formData: FormData) {
     const id = formData.get("id") as string;
+    const userId = formData.get('userId') as string;
+    const userName = formData.get('userName') as string;
+    const tpaName = formData.get('tpaName') as string;
+
     if (!id) {
       return { message: "Delete error: ID is missing", type: 'error' };
     }
@@ -162,5 +192,15 @@ export async function handleDeleteTPA(prevState: { message: string, type?: strin
         console.error('Database error:', error);
         return { message: "Database error during deletion.", type: 'error' };
     }
+
+    await logActivity({
+        userId,
+        userName,
+        actionType: 'DELETE_TPA',
+        details: `Deleted TPA: ${tpaName}`,
+        targetId: id,
+        targetType: 'TPA'
+    });
+
     return { message: "TPA deleted successfully.", type: 'success' };
 }

@@ -12,6 +12,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/auth-provider";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -26,6 +27,7 @@ export default function NewTPAPage() {
     const [state, formAction] = useActionState(handleAddTPA, { message: "", type: undefined });
     const { toast } = useToast();
     const router = useRouter();
+    const { user } = useAuth();
 
     useEffect(() => {
         if (state.type === 'success') {
@@ -61,6 +63,8 @@ export default function NewTPAPage() {
                     <CardDescription>Fill in the form to add a new Third-Party Administrator.</CardDescription>
                 </CardHeader>
                 <form action={formAction}>
+                    <input type="hidden" name="userId" value={user?.uid ?? ''} />
+                    <input type="hidden" name="userName" value={user?.name ?? ''} />
                     <CardContent className="space-y-4">
                         <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">

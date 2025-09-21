@@ -23,6 +23,7 @@ import {
 import type { TPA } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/components/auth-provider';
 
 interface TPAsTableProps {
   tpas: TPA[];
@@ -47,6 +48,7 @@ export function TPAsTable({ tpas, onTPADeleted }: TPAsTableProps) {
   const [state, formAction] = useActionState(handleDeleteTPA, { message: "", type: "initial" });
   const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
+  const { user } = useAuth();
   
   useEffect(() => {
     if (state.type === 'success') {
@@ -121,6 +123,9 @@ export function TPAsTable({ tpas, onTPADeleted }: TPAsTableProps) {
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                        <form action={formAction} ref={formRef}>
                           <input type="hidden" name="id" value={tpa.id} />
+                          <input type="hidden" name="userId" value={user?.uid ?? ''} />
+                          <input type="hidden" name="userName" value={user?.name ?? ''} />
+                          <input type="hidden" name="tpaName" value={tpa.name} />
                           <DeleteButton />
                        </form>
                     </AlertDialogFooter>
