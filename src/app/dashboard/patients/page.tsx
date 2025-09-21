@@ -4,7 +4,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { PlusCircle, AlertTriangle } from "lucide-react"
+import { PlusCircle, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { getPatients } from "./actions"
 import { PatientsTable } from "./patients-table"
@@ -23,27 +23,39 @@ export default function PatientsPage() {
   const [statusFilter, setStatusFilter] = useState<'Active' | 'Inactive'>('Active');
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const loadPatients = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Pass the hospitalId only if the user is hospital staff
       const hospitalId = role === 'Hospital Staff' ? user?.hospitalId : null;
-      const patientData = await getPatients(hospitalId, statusFilter, debouncedSearchQuery);
+      const { patients: patientData, total } = await getPatients(hospitalId, statusFilter, debouncedSearchQuery, currentPage, itemsPerPage);
       setPatients(patientData);
+      setTotalPages(Math.ceil(total / itemsPerPage));
       setError(null);
     } catch (e: any) {
       setError(e.message);
     } finally {
       setIsLoading(false);
     }
-  }, [user, role, statusFilter, debouncedSearchQuery]);
+  }, [user, role, statusFilter, debouncedSearchQuery, currentPage, itemsPerPage]);
 
   useEffect(() => {
-    if (user) { // Only load patients if user is available
+    if (user) { 
       loadPatients();
     }
   }, [loadPatients, user]);
+  
+  const handlePrevPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
 
   return (
     <div className="space-y-6">
@@ -92,7 +104,32 @@ export default function PatientsPage() {
                 </AlertDescription>
               </Alert>
            ) : (
-            <PatientsTable patients={patients} onPatientDeleted={loadPatients} />
+            <>
+              <PatientsTable patients={patients} onPatientDeleted={loadPatients} />
+               <div className="flex items-center justify-end space-x-2 py-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </>
            )}
         </CardContent>
       </Card>

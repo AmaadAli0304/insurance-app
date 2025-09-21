@@ -180,38 +180,64 @@ export async function getDoctors(): Promise<Doctor[]> {
   }
 }
 
-export async function getPatients(hospitalId?: string | null, status?: 'Active' | 'Inactive', searchQuery?: string): Promise<Patient[]> {
+export async function getPatients(
+    hospitalId?: string | null, 
+    status?: 'Active' | 'Inactive', 
+    searchQuery?: string,
+    page: number = 1,
+    limit: number = 10
+): Promise<{ patients: Patient[], total: number }> {
   try {
     const pool = await getDbPool();
     const request = pool.request();
+    const countRequest = pool.request();
     
     let whereClauses: string[] = [];
     if (hospitalId) {
       request.input('hospitalId', sql.NVarChar, hospitalId);
+      countRequest.input('hospitalId', sql.NVarChar, hospitalId);
       whereClauses.push('p.hospital_id = @hospitalId');
     }
     if (status) {
-      const subQuery = `(SELECT TOP 1 status FROM admissions WHERE patient_id = p.id ORDER BY created_at DESC) = @status`;
+      const subQuery = `EXISTS (SELECT 1 FROM admissions WHERE patient_id = p.id AND status = @status)`;
       request.input('status', sql.NVarChar, status);
+      countRequest.input('status', sql.NVarChar, status);
       whereClauses.push(subQuery);
     }
     if (searchQuery) {
         request.input('searchQuery', sql.NVarChar, `%${searchQuery}%`);
+        countRequest.input('searchQuery', sql.NVarChar, `%${searchQuery}%`);
         whereClauses.push(`(p.first_name LIKE @searchQuery OR p.last_name LIKE @searchQuery OR p.email_address LIKE @searchQuery)`);
     }
 
     const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+    
+    const offset = (page - 1) * limit;
+    request.input('offset', sql.Int, offset);
+    request.input('limit', sql.Int, limit);
 
-    const result = await request.query(`
+    const dataQuery = `
         SELECT p.id, p.first_name, p.last_name, p.photo, p.email_address, p.phone_number as phoneNumber,
         (SELECT TOP 1 policy_number FROM admissions WHERE patient_id = p.id ORDER BY created_at DESC) as policyNumber,
         (SELECT TOP 1 co.name FROM admissions a JOIN companies co ON a.insurance_company = co.id WHERE a.patient_id = p.id ORDER BY a.created_at DESC) as companyName,
         (SELECT TOP 1 status FROM admissions WHERE patient_id = p.id ORDER BY created_at DESC) as status
         FROM patients p
         ${whereClause}
-      `);
+        ORDER BY p.id DESC
+        OFFSET @offset ROWS
+        FETCH NEXT @limit ROWS ONLY
+      `;
       
-    return result.recordset.map(record => {
+    const countQuery = `SELECT COUNT(*) as total FROM patients p ${whereClause}`;
+
+    const [result, totalResult] = await Promise.all([
+      request.query(dataQuery),
+      countRequest.query(countQuery)
+    ]);
+    
+    const total = totalResult.recordset[0].total;
+      
+    const patients = result.recordset.map(record => {
         let photoUrl = null;
         if (record.photo) {
             try {
@@ -230,6 +256,9 @@ export async function getPatients(hospitalId?: string | null, status?: 'Active' 
             photo: photoUrl
         }
     }) as Patient[];
+
+    return { patients, total };
+
   } catch (error) {
     const dbError = error as Error;
     throw new Error(`Error fetching patients: ${dbError.message}`);
@@ -1074,6 +1103,7 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
     
 
     
+
 
 
 
