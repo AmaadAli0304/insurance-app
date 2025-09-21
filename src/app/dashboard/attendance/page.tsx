@@ -197,6 +197,8 @@ export default function AttendancePage() {
                                 <input type="hidden" name="year" value={year} />
                                 <input type="hidden" name="attendanceData" value={JSON.stringify(attendance)} />
                                 <input type="hidden" name="hospitalId" value={selectedHospitalId ?? ''} />
+                                <input type="hidden" name="userId" value={user?.uid ?? ''} />
+                                <input type="hidden" name="userName" value={user?.name ?? ''} />
                                 <Table>
                                     <TableHeader>
                                         <TableRow>

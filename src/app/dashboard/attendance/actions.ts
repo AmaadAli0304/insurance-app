@@ -4,6 +4,7 @@
 import { revalidatePath } from 'next/cache';
 import { getDbPool, sql } from '@/lib/db';
 import type { Staff } from '@/lib/types';
+import { logActivity } from '@/lib/activity-log';
 
 export type AttendanceRecord = {
   staff_id: string;
@@ -69,6 +70,8 @@ export async function saveAttendance(prevState: { message: string, type?: string
   const year = formData.get('year') as string;
   const rawAttendanceData = formData.get('attendanceData') as string;
   const hospitalId = formData.get('hospitalId') as string;
+  const userId = formData.get('userId') as string;
+  const userName = formData.get('userName') as string;
 
   if (!month || !year || !rawAttendanceData || !hospitalId) {
     return { message: "Missing required data to save attendance. Please select a hospital.", type: "error" };
@@ -104,6 +107,16 @@ export async function saveAttendance(prevState: { message: string, type?: string
     }
 
     await transaction.commit();
+
+    await logActivity({
+        userId,
+        userName,
+        actionType: 'SAVE_ATTENDANCE',
+        details: `Saved attendance for hospital ID: ${hospitalId} for month ${month}/${year}.`,
+        targetId: hospitalId,
+        targetType: 'Attendance'
+    });
+
     revalidatePath('/dashboard/attendance');
     return { message: 'Attendance saved successfully!', type: 'success' };
   } catch (error) {
