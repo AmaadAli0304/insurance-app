@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import pool, { sql, poolConnect } from "@/lib/db";
 import type { Staff, Company, TPA, Hospital } from "@/lib/types";
 import { z } from "zod";
+import { logActivity } from '@/lib/activity-log';
 
 // Schemas for validation
 const hospitalSchema = z.object({
@@ -100,7 +101,13 @@ export async function getHospitalById(id: string): Promise<Hospital | null> {
 
 
 // CRUD Actions
-export async function handleAddHospital(prevState: { message: string, type?:string }, formData: FormData) {
+export async function handleAddHospital(
+    prevState: { message: string, type?: string }, 
+    formData: FormData
+) {
+    const userId = formData.get('userId') as string;
+    const userName = formData.get('userName') as string;
+
     const validatedFields = hospitalSchema.safeParse({
         name: formData.get("name"),
         location: formData.get("location"),
@@ -154,6 +161,16 @@ export async function handleAddHospital(prevState: { message: string, type?:stri
         }
 
         await transaction.commit();
+
+        await logActivity({
+            userId,
+            userName,
+            actionType: 'CREATE_HOSPITAL',
+            details: `Created a new hospital: ${data.name}`,
+            targetId: hospitalId,
+            targetType: 'Hospital'
+        });
+
     } catch (error) {
         if (transaction) await transaction.rollback();
         console.error("Database error:", error);
@@ -268,3 +285,5 @@ export async function handleDeleteHospital(prevState: { message: string, type?:s
 
 
   
+
+    

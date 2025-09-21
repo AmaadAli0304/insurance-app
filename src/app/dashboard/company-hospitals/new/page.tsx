@@ -24,6 +24,7 @@ import { useRouter } from "next/navigation";
 import { PhoneInput } from "@/components/phone-input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getPresignedUrl } from "@/app/dashboard/staff/actions";
+import { useAuth } from "@/components/auth-provider";
 
 
 async function uploadFile(file: File): Promise<{ publicUrl: string } | { error: string }> {
@@ -48,6 +49,7 @@ function SubmitButton() {
 }
 
 export default function NewCompanyHospitalPage() {
+    const { user } = useAuth();
     const [state, formAction] = useActionState(handleAddHospital, { message: "", type: "initial" });
     const { toast } = useToast();
     const router = useRouter();
@@ -149,6 +151,9 @@ export default function NewCompanyHospitalPage() {
                 <form action={formAction}>
                     <CardContent className="space-y-4">
                          <input type="hidden" name="photoUrl" value={photoUrl || ''} />
+                         <input type="hidden" name="userId" value={user?.uid || ''} />
+                         <input type="hidden" name="userName" value={user?.name || ''} />
+
 
                          <div className="flex flex-col items-center p-6">
                             <Avatar className="h-32 w-32 mb-4">
@@ -344,5 +349,7 @@ export default function NewCompanyHospitalPage() {
         </div>
     );
 }
+
+    
 
     
