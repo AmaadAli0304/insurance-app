@@ -5,7 +5,7 @@ import { useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal, PlusCircle, Trash, Eye, Edit, AlertTriangle } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Trash, Eye, Edit, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
 import { handleDeleteRequest, getPreAuthRequests } from "./actions"
@@ -38,7 +38,9 @@ export default function PreAuthsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<'Active' | 'Inactive' | 'All'>('Active');
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const itemsPerPage = 10;
 
   const loadRequests = useCallback(async () => {
     if (!user?.hospitalId) {
@@ -47,14 +49,15 @@ export default function PreAuthsPage() {
     };
     setIsLoading(true);
     try {
-      const data = await getPreAuthRequests(user.hospitalId, statusFilter);
+      const { requests: data, total } = await getPreAuthRequests(user.hospitalId, statusFilter, currentPage, itemsPerPage);
       setRequests(data);
+      setTotalPages(Math.ceil(total / itemsPerPage));
     } catch (err: any) {
       setError(err.message);
     } finally {
       setIsLoading(false);
     }
-  }, [user?.hospitalId, statusFilter]);
+  }, [user?.hospitalId, statusFilter, currentPage, itemsPerPage]);
 
   useEffect(() => {
     if(user) {
@@ -88,6 +91,14 @@ export default function PreAuthsPage() {
     if (!name || typeof name !== 'string') return 'P';
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   }
+
+  const handlePrevPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
 
   return (
     <div className="space-y-6">
@@ -126,89 +137,114 @@ export default function PreAuthsPage() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
            ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Patient</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Time</TableHead>
-                <TableHead>Time Ago</TableHead>
-                <TableHead><span className="sr-only">Actions</span></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {requests.length > 0 ? (
-                requests.map(r => (
-                  <TableRow key={r.id} onClick={() => handleRowClick(r.id)} className="cursor-pointer">
-                    <TableCell className="font-medium flex items-center gap-3">
-                       <Avatar className="h-10 w-10">
-                          <AvatarImage src={r.patientPhoto ?? undefined} alt={r.fullName} />
-                          <AvatarFallback>{getInitials(r.fullName!)}</AvatarFallback>
-                      </Avatar>
-                      {r.fullName}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusVariant(r.status)} className={r.status === 'Approval' ? 'bg-accent text-accent-foreground' : ''}>{r.status}</Badge>
-                    </TableCell>
-                    <TableCell>{format(new Date(r.createdAt), 'PPP')}</TableCell>
-                    <TableCell>{format(new Date(r.createdAt), 'p')}</TableCell>
-                    <TableCell>{formatDistanceToNow(new Date(r.createdAt), { addSuffix: true })}</TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <AlertDialog>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                             <DropdownMenuItem asChild>
-                               <Link href={`/dashboard/pre-auths/${r.id}/view`} className="flex items-center gap-2 cursor-pointer">
-                                  <Eye className="h-4 w-4" /> View Details
-                               </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                               <Link href={`/dashboard/pre-auths/${r.id}/edit`} className="flex items-center gap-2 cursor-pointer">
-                                  <Edit className="h-4 w-4" /> Edit Status
-                               </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                             <AlertDialogTrigger asChild>
-                               <DropdownMenuItem className="text-destructive flex items-center gap-2 cursor-pointer" onSelect={(e) => e.preventDefault()}>
-                                 <Trash className="h-4 w-4" /> Delete
-                               </DropdownMenuItem>
-                             </AlertDialogTrigger>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This action cannot be undone. This will permanently delete the request.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                             <form action={async (formData) => {
-                               await handleDeleteRequest(formData);
-                               loadRequests();
-                             }}>
-                                <input type="hidden" name="id" value={r.id} />
-                                <AlertDialogAction type="submit">Continue</AlertDialogAction>
-                             </form>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </TableCell>
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Patient</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Time</TableHead>
+                    <TableHead>Time Ago</TableHead>
+                    <TableHead><span className="sr-only">Actions</span></TableHead>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center">
-                    Data not found
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                </TableHeader>
+                <TableBody>
+                  {requests.length > 0 ? (
+                    requests.map(r => (
+                      <TableRow key={r.id} onClick={() => handleRowClick(r.id)} className="cursor-pointer">
+                        <TableCell className="font-medium flex items-center gap-3">
+                           <Avatar className="h-10 w-10">
+                              <AvatarImage src={r.patientPhoto ?? undefined} alt={r.fullName} />
+                              <AvatarFallback>{getInitials(r.fullName!)}</AvatarFallback>
+                          </Avatar>
+                          {r.fullName}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={getStatusVariant(r.status)} className={r.status === 'Approval' ? 'bg-accent text-accent-foreground' : ''}>{r.status}</Badge>
+                        </TableCell>
+                        <TableCell>{format(new Date(r.createdAt), 'PPP')}</TableCell>
+                        <TableCell>{format(new Date(r.createdAt), 'p')}</TableCell>
+                        <TableCell>{formatDistanceToNow(new Date(r.createdAt), { addSuffix: true })}</TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          <AlertDialog>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                 <DropdownMenuItem asChild>
+                                   <Link href={`/dashboard/pre-auths/${r.id}/view`} className="flex items-center gap-2 cursor-pointer">
+                                      <Eye className="h-4 w-4" /> View Details
+                                   </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                   <Link href={`/dashboard/pre-auths/${r.id}/edit`} className="flex items-center gap-2 cursor-pointer">
+                                      <Edit className="h-4 w-4" /> Edit Status
+                                   </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                 <AlertDialogTrigger asChild>
+                                   <DropdownMenuItem className="text-destructive flex items-center gap-2 cursor-pointer" onSelect={(e) => e.preventDefault()}>
+                                     <Trash className="h-4 w-4" /> Delete
+                                   </DropdownMenuItem>
+                                 </AlertDialogTrigger>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will permanently delete the request.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                 <form action={async (formData) => {
+                                   await handleDeleteRequest(formData);
+                                   loadRequests();
+                                 }}>
+                                    <input type="hidden" name="id" value={r.id} />
+                                    <AlertDialogAction type="submit">Continue</AlertDialogAction>
+                                 </form>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-24 text-center">
+                        Data not found
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+              <div className="flex items-center justify-end space-x-2 py-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePrevPage}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNextPage}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+            </>
            )}
         </CardContent>
       </Card>

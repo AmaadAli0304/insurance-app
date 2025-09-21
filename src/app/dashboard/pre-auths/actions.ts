@@ -419,12 +419,13 @@ export async function handleSaveDraftRequest(prevState: { message: string, type?
 }
 
 
-export async function getPreAuthRequests(hospitalId: string | null | undefined, filter: 'Active' | 'Inactive' | 'All'): Promise<StaffingRequest[]> {
-    if (!hospitalId) return [];
+export async function getPreAuthRequests(hospitalId: string | null | undefined, filter: 'Active' | 'Inactive' | 'All', page: number = 1, limit: number = 10): Promise<{ requests: StaffingRequest[], total: number }> {
+    if (!hospitalId) return { requests: [], total: 0 };
 
     try {
         const pool = await getDbPool();
         const request = pool.request().input('hospitalId', sql.NVarChar, hospitalId);
+        const countRequest = pool.request().input('hospitalId', sql.NVarChar, hospitalId);
 
         let statusFilterClause = '';
         if (filter === 'Active') {
@@ -433,7 +434,23 @@ export async function getPreAuthRequests(hospitalId: string | null | undefined, 
             statusFilterClause = `AND adm.status = 'Inactive'`;
         }
 
-        const query = `
+        const whereClause = `WHERE pr.hospital_id = @hospitalId ${statusFilterClause}`;
+
+        const countQuery = `
+            SELECT COUNT(DISTINCT pr.id) as total
+            FROM preauth_request pr
+            LEFT JOIN admissions adm ON pr.patient_id = adm.patient_id
+            ${whereClause}
+        `;
+
+        const totalResult = await countRequest.query(countQuery);
+        const total = totalResult.recordset[0].total;
+
+        const offset = (page - 1) * limit;
+        request.input('offset', sql.Int, offset);
+        request.input('limit', sql.Int, limit);
+        
+        const dataQuery = `
             SELECT DISTINCT
                 pr.id, 
                 pr.patient_id as patientId, 
@@ -445,13 +462,15 @@ export async function getPreAuthRequests(hospitalId: string | null | undefined, 
             FROM preauth_request pr
             LEFT JOIN patients p ON pr.patient_id = p.id
             LEFT JOIN admissions adm ON pr.patient_id = adm.patient_id
-            WHERE pr.hospital_id = @hospitalId ${statusFilterClause}
+            ${whereClause}
             ORDER BY pr.created_at DESC
+            OFFSET @offset ROWS
+            FETCH NEXT @limit ROWS ONLY
         `;
 
-        const result = await request.query(query);
+        const result = await request.query(dataQuery);
         
-        return result.recordset.map(record => {
+        const requests = result.recordset.map(record => {
             let photoUrl = null;
             if (record.patientPhoto) {
                 try {
@@ -468,6 +487,8 @@ export async function getPreAuthRequests(hospitalId: string | null | undefined, 
                 patientPhoto: photoUrl
             };
         }) as StaffingRequest[];
+
+        return { requests, total };
 
     } catch (error) {
         console.error("Error fetching pre-auth requests:", error);
@@ -744,12 +765,16 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
             return { message: 'Chat and Claim record created for amount received.', type: 'success' };
         }
         
-        if (status === 'Final Amount Sanctioned' && preAuthDetails.admission_id) {
-            await new sql.Request(transaction)
-                .input('admission_id', sql.NVarChar, preAuthDetails.admission_id)
-                .input('status', sql.NVarChar, 'Inactive')
-                .query('UPDATE admissions SET status = @status WHERE admission_id = @admission_id');
+        if (status === 'Final Amount Sanctioned') {
+            const admissionId = preAuthDetails.admission_id;
+            if (admissionId) {
+                await new sql.Request(transaction)
+                    .input('admission_id', sql.NVarChar, admissionId)
+                    .input('status', sql.NVarChar, 'Inactive')
+                    .query('UPDATE admissions SET status = @status WHERE admission_id = @admission_id');
+            }
         }
+
 
         const shouldSendEmail = statusesThatSendEmail.includes(status);
         const shouldLogTpaResponse = statusesThatLogTpaResponse.includes(status);
@@ -869,3 +894,4 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     
 
     
+
