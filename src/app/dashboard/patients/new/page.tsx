@@ -15,7 +15,7 @@ import { ArrowLeft, Upload, User as UserIcon, Loader2, Eye, File as FileIcon, XC
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Company, TPA } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth-provider";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -355,6 +355,7 @@ export default function NewPatientPage() {
             <form action={formAction} ref={formRef}>
                  <input type="hidden" name="hospital_id" value={user?.hospitalId || ''} />
                  <input type="hidden" name="staff_id" value={user?.uid || ''} />
+                 <input type="hidden" name="userName" value={user?.name || ''} />
                  <input type="hidden" name="photoUrl" value={photoUrl || ''} />
                  <input type="hidden" name="photoName" value={photoName || ''} />
                  {Object.entries(documentUrls).map(([key, value]) => (
@@ -766,7 +767,7 @@ export default function NewPatientPage() {
                         <Card>
                             <AccordionItem value="cost-info">
                                 <AccordionTrigger className="p-6">
-                                    <CardTitle>G. Admission &amp; Cost Estimate</CardTitle>
+                                    <CardTitle>G. Admission & Cost Estimate</CardTitle>
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={calculateTotalCost}>

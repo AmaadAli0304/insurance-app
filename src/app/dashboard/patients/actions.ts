@@ -9,6 +9,7 @@ import { z } from 'zod';
 
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { logActivity } from "@/lib/activity-log";
 
 const s3 = new S3Client({
   region: "ap-south-1", // change if needed
@@ -151,11 +152,14 @@ const basePatientObjectSchema = z.object({
 
 const patientAddFormSchema = basePatientObjectSchema.extend({
   staff_id: z.string().optional().nullable(),
+  userName: z.string(),
 });
 
 const patientUpdateFormSchema = basePatientObjectSchema.extend({
   id: z.string(), // Patient ID
   admission_db_id: z.coerce.number().optional().nullable(), // Admission ID from DB
+  userId: z.string(),
+  userName: z.string(),
 });
 
 
@@ -804,6 +808,15 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
 
     await transaction.commit();
 
+    await logActivity({
+        userId: data.staff_id!,
+        userName: data.userName,
+        actionType: 'CREATE_PATIENT',
+        details: `Created new patient: ${data.firstName} ${data.lastName}`,
+        targetId: patientId,
+        targetType: 'Patient'
+    });
+
   } catch (error) {
     if(transaction) await transaction.rollback();
     console.error('Error adding patient:', error);
@@ -824,7 +837,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
     }
 
     const { data } = validatedFields;
-    const { id: patientId, admission_db_id } = data;
+    const { id: patientId, admission_db_id, userId, userName } = data;
     let transaction;
 
     try {
@@ -991,6 +1004,15 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
 
         await transaction.commit();
 
+        await logActivity({
+            userId: userId,
+            userName: userName,
+            actionType: 'UPDATE_PATIENT',
+            details: `Updated patient: ${data.firstName} ${data.lastName}`,
+            targetId: patientId,
+            targetType: 'Patient'
+        });
+
     } catch (error) {
         if(transaction) await transaction.rollback();
         console.error('Error updating patient:', error);
@@ -1005,6 +1027,10 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
 
 export async function handleDeletePatient(prevState: { message: string, type?: string }, formData: FormData) {
     const id = formData.get("id") as string;
+    const userId = formData.get("userId") as string;
+    const userName = formData.get("userName") as string;
+    const patientName = formData.get("patientName") as string;
+
      if (!id) {
       return { message: "Delete error: ID is missing", type: 'error' };
     }
@@ -1032,6 +1058,15 @@ export async function handleDeletePatient(prevState: { message: string, type?: s
             return { message: "Patient not found.", type: 'error' };
         }
         await transaction.commit();
+
+        await logActivity({
+            userId,
+            userName,
+            actionType: 'DELETE_PATIENT',
+            details: `Deleted patient: ${patientName}`,
+            targetId: id,
+            targetType: 'Patient'
+        });
 
     } catch (error) {
         if (transaction) await transaction.rollback();
@@ -1103,6 +1138,7 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
     
 
     
+
 
 
 

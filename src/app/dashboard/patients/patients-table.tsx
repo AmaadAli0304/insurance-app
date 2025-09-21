@@ -24,6 +24,7 @@ import type { Patient } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAuth } from '@/components/auth-provider';
 
 interface PatientsTableProps {
   patients: Patient[];
@@ -48,6 +49,7 @@ export function PatientsTable({ patients, onPatientDeleted }: PatientsTableProps
   const [state, formAction] = useActionState(handleDeletePatient, { message: "", type: "initial" });
   const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
+  const { user } = useAuth();
   
   useEffect(() => {
     if (state.type === 'success') {
@@ -143,6 +145,9 @@ export function PatientsTable({ patients, onPatientDeleted }: PatientsTableProps
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                        <form action={formAction} ref={formRef}>
                           <input type="hidden" name="id" value={p.id} />
+                          <input type="hidden" name="userId" value={user?.uid ?? ''} />
+                          <input type="hidden" name="userName" value={user?.name ?? ''} />
+                          <input type="hidden" name="patientName" value={p.fullName} />
                           <DeleteButton />
                        </form>
                     </AlertDialogFooter>

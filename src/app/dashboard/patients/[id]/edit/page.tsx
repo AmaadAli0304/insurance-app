@@ -429,6 +429,8 @@ export default function EditPatientPage() {
                  <input type="hidden" name="hospital_id" value={user?.hospitalId || ''} />
                  <input type="hidden" name="photoUrl" value={photoUrl || ''} />
                  <input type="hidden" name="photoName" value={photoName || ''} />
+                 <input type="hidden" name="userId" value={user?.uid ?? ''} />
+                 <input type="hidden" name="userName" value={user?.name ?? ''} />
                  {Object.entries(documentUrls).map(([key, value]) => (
                     <React.Fragment key={key}>
                       <input type="hidden" name={`${key}_url`} value={value.url} />
