@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { Staff, Hospital, UserRole } from "@/lib/types";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { logActivity } from '@/lib/activity-log';
 
 const s3 = new S3Client({
   region: "ap-south-1", // change if needed
@@ -20,7 +21,7 @@ const staffSchema = z.object({
   name: z.string().min(1, "Full Name is required."),
   email: z.string().email("Invalid email address.").min(1, "Email is required."),
   password: z.string().min(6, "Password must be at least 6 characters."),
-  role: z.enum(['Admin', 'Hospital Staff']),
+  role: z.enum(['Admin', 'Hospital Staff', 'Company Admin']),
   hospitalId: z.string().optional().nullable(),
   designation: z.string().optional().nullable(),
   department: z.string().optional().nullable(),
@@ -33,6 +34,8 @@ const staffSchema = z.object({
   status: z.enum(["Active", "Inactive"]).optional().nullable(),
   photoUrl: z.string().optional().nullable(),
   photoName: z.string().optional().nullable(),
+  userId: z.string(),
+  userName: z.string(),
 });
 
 const staffUpdateSchema = staffSchema.extend({
@@ -51,7 +54,7 @@ export async function getStaff(): Promise<Staff[]> {
         FROM users u
         LEFT JOIN hospital_staff hs ON u.uid = hs.staff_id
         LEFT JOIN hospitals h ON hs.hospital_id = h.id
-        WHERE u.role IN ('Admin', 'Hospital Staff')
+        WHERE u.role IN ('Admin', 'Hospital Staff', 'Company Admin')
       `);
     return result.recordset as Staff[];
   } catch (error) {
@@ -80,7 +83,7 @@ export async function getStaffById(id: string): Promise<Staff | null> {
           .query(`
             SELECT u.*, u.uid as id
             FROM users u
-            WHERE u.uid = @uid AND u.role IN ('Admin', 'Hospital Staff')
+            WHERE u.uid = @uid AND u.role IN ('Admin', 'Hospital Staff', 'Company Admin')
           `);
 
     if (staffResult.recordset.length === 0) {
@@ -178,6 +181,15 @@ export async function handleAddStaff(prevState: { message: string, type?: string
 
     await transaction.commit();
     
+    await logActivity({
+        userId: data.userId,
+        userName: data.userName,
+        actionType: 'CREATE_STAFF',
+        details: `Created new staff member: ${data.name}`,
+        targetId: uid,
+        targetType: 'Staff'
+    });
+
   } catch (error) {
       if (transaction) await transaction.rollback();
       console.error('Error adding staff:', error);
@@ -203,7 +215,7 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
       return { message: `Invalid data: ${errorMessages}`, type: 'error' };
   }
   
-  const { id: staffId, hospitalId, ...data } = validatedFields.data;
+  const { id: staffId, hospitalId, userId, userName, ...data } = validatedFields.data;
 
   let transaction;
 
@@ -257,6 +269,15 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
 
     await transaction.commit();
 
+    await logActivity({
+        userId,
+        userName,
+        actionType: 'UPDATE_STAFF',
+        details: `Updated staff member: ${data.name}`,
+        targetId: staffId,
+        targetType: 'Staff'
+    });
+
   } catch (error) {
     if (transaction) await transaction.rollback();
     console.error('Database error:', error);
@@ -270,6 +291,10 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
 
 export async function handleDeleteStaff(prevState: { message: string, type?: string }, formData: FormData) {
     const id = formData.get("id") as string;
+    const userId = formData.get('userId') as string;
+    const userName = formData.get('userName') as string;
+    const staffName = formData.get('staffName') as string;
+
     if (!id) {
       return { message: "Delete error: ID is missing", type: 'error' };
     }
@@ -292,6 +317,15 @@ export async function handleDeleteStaff(prevState: { message: string, type?: str
         }
 
         await transaction.commit();
+
+        await logActivity({
+            userId,
+            userName,
+            actionType: 'DELETE_STAFF',
+            details: `Deleted staff member: ${staffName}`,
+            targetId: id,
+            targetType: 'Staff'
+        });
 
     } catch (error) {
         if(transaction) await transaction.rollback();

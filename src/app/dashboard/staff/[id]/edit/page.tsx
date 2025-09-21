@@ -17,6 +17,7 @@ import { format } from 'date-fns';
 import Link from "next/link";
 import { ArrowLeft, Upload, User as UserIcon, Loader2, XCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/components/auth-provider";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -52,9 +53,10 @@ async function uploadFile(file: File): Promise<{ publicUrl: string } | { error: 
     return { publicUrl };
 }
 
-const roles: UserRole[] = ['Admin', 'Hospital Staff'];
+const roles: UserRole[] = ['Admin', 'Hospital Staff', 'Company Admin'];
 
 export default function EditStaffPage() {
+    const { user } = useAuth();
     const params = useParams();
     const id = params.id as string;
     const [staff, setStaff] = useState<Staff | null>(null);
@@ -214,6 +216,8 @@ export default function EditStaffPage() {
                     <input type="hidden" name="id" value={staff.id} />
                     <input type="hidden" name="photoUrl" value={photoUrl || ''} />
                     <input type="hidden" name="photoName" value={photoName || ''} />
+                    <input type="hidden" name="userId" value={user?.uid ?? ''} />
+                    <input type="hidden" name="userName" value={user?.name ?? ''} />
 
                     <Card className="flex flex-col items-center p-6">
                         <Avatar className="h-32 w-32 mb-4">

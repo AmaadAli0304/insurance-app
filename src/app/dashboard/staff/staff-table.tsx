@@ -3,12 +3,12 @@
 
 import { useActionState, useEffect, useRef } from 'react';
 import { useFormStatus } from 'react-dom';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { MoreHorizontal, Trash, Edit, Eye, FileText } from "lucide-react"
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
-import Link from "next/link"
-import { handleDeleteStaff } from "./actions"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { MoreHorizontal, Trash, Edit, Eye, FileText } from "lucide-react";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import Link from "next/link";
+import { handleDeleteStaff } from "./actions";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,12 +19,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import type { Staff } from "@/lib/types"
+} from "@/components/ui/alert-dialog";
+import type { Staff } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAuth } from '@/components/auth-provider';
 
 
 interface StaffTableProps {
@@ -50,6 +51,7 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
   const [state, formAction] = useActionState(handleDeleteStaff, { message: "", type: "initial" });
   const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
+  const { user } = useAuth();
   
   useEffect(() => {
     if (state.type === 'success') {
@@ -153,6 +155,9 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                        <form action={formAction} ref={formRef}>
                           <input type="hidden" name="id" value={s.id} />
+                          <input type="hidden" name="userId" value={user?.uid ?? ''} />
+                          <input type="hidden" name="userName" value={user?.name ?? ''} />
+                          <input type="hidden" name="staffName" value={s.name ?? ''} />
                           <DeleteButton />
                        </form>
                     </AlertDialogFooter>

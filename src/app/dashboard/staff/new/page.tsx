@@ -16,6 +16,7 @@ import Link from "next/link";
 import { ArrowLeft, Upload, User as UserIcon, Loader2, XCircle } from "lucide-react";
 import type { Hospital, UserRole } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/components/auth-provider";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -55,9 +56,10 @@ async function uploadFile(file: File): Promise<{ publicUrl: string } | { error: 
     return { publicUrl };
 }
 
-const roles: UserRole[] = ['Admin', 'Hospital Staff'];
+const roles: UserRole[] = ['Admin', 'Hospital Staff', 'Company Admin'];
 
 export default function NewStaffPage() {
+    const { user } = useAuth();
     const [state, formAction] = useActionState(handleAddStaff, { message: "", type: "initial" });
     const { toast } = useToast();
     const router = useRouter();
@@ -147,6 +149,8 @@ export default function NewStaffPage() {
              <form action={formAction}>
                 <input type="hidden" name="photoUrl" value={photoUrl || ''} />
                 <input type="hidden" name="photoName" value={photoName || ''} />
+                <input type="hidden" name="userId" value={user?.uid ?? ''} />
+                <input type="hidden" name="userName" value={user?.name ?? ''} />
                  <div className="space-y-6">
                     <Card className="flex flex-col items-center p-6">
                         <Avatar className="h-32 w-32 mb-4">
