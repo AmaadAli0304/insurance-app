@@ -1000,3 +1000,31 @@ export async function handleCreateStaffSalaryTable(prevState: { message: string,
     return { message: `Error creating Staff Salary table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
+
+export async function handleCreateActivityLogTable(prevState: { message: string, type?: string }, formData: FormData) {
+  try {
+    const pool = await getDbPool();
+    const request = pool.request();
+    const createActivityLogTableQuery = `
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='activity_log' and xtype='U')
+      BEGIN
+        CREATE TABLE activity_log (
+          id INT IDENTITY(1,1) PRIMARY KEY,
+          user_id NVARCHAR(255),
+          user_name NVARCHAR(255),
+          action_type NVARCHAR(255) NOT NULL,
+          details NVARCHAR(MAX),
+          target_id NVARCHAR(255),
+          target_type NVARCHAR(100),
+          created_at DATETIME DEFAULT GETDATE()
+        );
+      END
+    `;
+    await request.query(createActivityLogTableQuery);
+    return { message: "Activity Log table created successfully or already exists.", type: "success" };
+  } catch (error) {
+    const dbError = error as { message?: string };
+    console.error('Error creating Activity Log table:', dbError);
+    return { message: `Error creating Activity Log table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+  }
+}
