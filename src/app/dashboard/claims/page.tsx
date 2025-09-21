@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal, PlusCircle, Trash, Edit, Eye, AlertTriangle, History, Loader2 } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Trash, Edit, Eye, AlertTriangle, History, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
 import { handleDeleteClaim, getClaims, getClaimsByPatientId } from "./actions"
@@ -42,11 +42,13 @@ export default function ClaimsPage() {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [selectedPatientName, setSelectedPatientName] = useState("");
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const itemsPerPage = 10;
+
   const loadClaims = useCallback(async () => {
-    // Admins can see all claims, hospital staff see only their hospital's claims
     const hospitalId = role === 'Hospital Staff' ? user?.hospitalId : null;
     
-    // Don't try to load if a hospital staff user doesn't have a hospital ID yet
     if (role === 'Hospital Staff' && !user?.hospitalId) {
         setIsLoading(false);
         setError("You are not assigned to a hospital. Please contact an administrator.");
@@ -55,14 +57,15 @@ export default function ClaimsPage() {
 
     setIsLoading(true);
     try {
-        const data = await getClaims(hospitalId);
+        const { claims: data, total } = await getClaims(hospitalId, currentPage, itemsPerPage);
         setClaims(data);
+        setTotalPages(Math.ceil(total / itemsPerPage));
     } catch(err: any) {
         setError(err.message);
     } finally {
         setIsLoading(false);
     }
-  }, [user, role]);
+  }, [user, role, currentPage, itemsPerPage]);
 
   useEffect(() => {
     if (user) {
@@ -114,6 +117,14 @@ export default function ClaimsPage() {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   }
 
+  const handlePrevPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
 
   return (
     <div className="space-y-6">
@@ -126,7 +137,7 @@ export default function ClaimsPage() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-             <p>Loading claims...</p>
+             <div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>
            ) : error ? (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
@@ -134,91 +145,116 @@ export default function ClaimsPage() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
            ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Patient</TableHead>
-                <TableHead>Claim ID</TableHead>
-                <TableHead>Hospital</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Reason</TableHead>
-                <TableHead>Last Updated</TableHead>
-                <TableHead><span className="sr-only">Actions</span></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {claims.length > 0 ? (
-                claims.map(c => (
-                  <TableRow key={c.id} onClick={() => handleRowClick(c.id)} className="cursor-pointer">
-                    <TableCell className="font-medium flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
-                          <AvatarImage src={c.patientPhoto ?? undefined} alt={c.Patient_name} />
-                          <AvatarFallback>{getInitials(c.Patient_name)}</AvatarFallback>
-                      </Avatar>
-                      {c.Patient_name}
-                    </TableCell>
-                    <TableCell className="font-mono">{c.claim_id || 'N/A'}</TableCell>
-                    <TableCell>{c.hospitalName || 'N/A'}</TableCell>
-                    <TableCell>{c.claimAmount?.toLocaleString() || 'N/A'}</TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusVariant(c.status)} className={c.status === 'Paid' || c.status === 'Approved' ? 'bg-accent text-accent-foreground' : ''}>{c.status}</Badge>
-                    </TableCell>
-                    <TableCell>{c.reason || 'N/A'}</TableCell>
-                    <TableCell>{new Date(c.updated_at).toLocaleDateString()}</TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/dashboard/claims/${c.id}/view`} className="flex items-center gap-2 cursor-pointer">
-                                <Eye className="h-4 w-4" /> View Details
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onSelect={() => handleHistoryClick(c.Patient_id, c.Patient_name)} className="flex items-center gap-2 cursor-pointer">
-                            <History className="h-4 w-4" /> History
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                            <DropdownMenuItem className="text-destructive flex items-center gap-2 cursor-pointer" onSelect={(e) => e.preventDefault()}>
-                              <Trash className="h-4 w-4" /> Delete
+          <>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Patient</TableHead>
+                  <TableHead>Claim ID</TableHead>
+                  <TableHead>Hospital</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Reason</TableHead>
+                  <TableHead>Last Updated</TableHead>
+                  <TableHead><span className="sr-only">Actions</span></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {claims.length > 0 ? (
+                  claims.map(c => (
+                    <TableRow key={c.id} onClick={() => handleRowClick(c.id)} className="cursor-pointer">
+                      <TableCell className="font-medium flex items-center gap-3">
+                        <Avatar className="h-10 w-10">
+                            <AvatarImage src={c.patientPhoto ?? undefined} alt={c.Patient_name} />
+                            <AvatarFallback>{getInitials(c.Patient_name)}</AvatarFallback>
+                        </Avatar>
+                        {c.Patient_name}
+                      </TableCell>
+                      <TableCell className="font-mono">{c.claim_id || 'N/A'}</TableCell>
+                      <TableCell>{c.hospitalName || 'N/A'}</TableCell>
+                      <TableCell>{c.claimAmount?.toLocaleString() || 'N/A'}</TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusVariant(c.status)} className={c.status === 'Paid' || c.status === 'Approved' ? 'bg-accent text-accent-foreground' : ''}>{c.status}</Badge>
+                      </TableCell>
+                      <TableCell>{c.reason || 'N/A'}</TableCell>
+                      <TableCell>{new Date(c.updated_at).toLocaleDateString()}</TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem asChild>
+                              <Link href={`/dashboard/claims/${c.id}/view`} className="flex items-center gap-2 cursor-pointer">
+                                  <Eye className="h-4 w-4" /> View Details
+                              </Link>
                             </DropdownMenuItem>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    This action cannot be undone. This will permanently delete this claim.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <form action={async (formData) => {
-                                    await handleDeleteClaim(formData);
-                                    loadClaims();
-                                  }}>
-                                      <input type="hidden" name="id" value={c.id} />
-                                      <AlertDialogAction type="submit">Continue</AlertDialogAction>
-                                  </form>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                          </AlertDialog>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                            <DropdownMenuItem onSelect={() => handleHistoryClick(c.Patient_id, c.Patient_name)} className="flex items-center gap-2 cursor-pointer">
+                              <History className="h-4 w-4" /> History
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                              <DropdownMenuItem className="text-destructive flex items-center gap-2 cursor-pointer" onSelect={(e) => e.preventDefault()}>
+                                <Trash className="h-4 w-4" /> Delete
+                              </DropdownMenuItem>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This action cannot be undone. This will permanently delete this claim.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <form action={async (formData) => {
+                                      await handleDeleteClaim(formData);
+                                      loadClaims();
+                                    }}>
+                                        <input type="hidden" name="id" value={c.id} />
+                                        <AlertDialogAction type="submit">Continue</AlertDialogAction>
+                                    </form>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={8} className="h-24 text-center">
+                      Data not found
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={8} className="h-24 text-center">
-                    Data not found
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                )}
+              </TableBody>
+            </Table>
+            <div className="flex items-center justify-end space-x-2 py-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+            </div>
+          </>
            )}
         </CardContent>
       </Card>

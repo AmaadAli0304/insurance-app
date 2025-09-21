@@ -22,56 +22,79 @@ const getDocumentData = (jsonString: string | null | undefined): { url: string; 
 };
 
 
-export async function getClaims(hospitalId?: string | null): Promise<Claim[]> {
+export async function getClaims(hospitalId?: string | null, page: number = 1, limit: number = 10): Promise<{ claims: Claim[], total: number }> {
     try {
         const pool = await getDbPool();
         const request = pool.request();
+        const countRequest = pool.request();
+        
+        let whereClauses: string[] = [];
+        if (hospitalId) {
+            request.input('hospitalId', sql.NVarChar, hospitalId);
+            countRequest.input('hospitalId', sql.NVarChar, hospitalId);
+            whereClauses.push('cl.hospital_id = @hospitalId');
+        }
+        
+        const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
-        let query = `
+        // Query to get the total count of unique claims
+        const countQuery = `
+            SELECT COUNT(*) as total
+            FROM (
+                SELECT 
+                    ROW_NUMBER() OVER(PARTITION BY cl.Patient_id ORDER BY cl.updated_at DESC) as rn
+                FROM claims cl
+                ${whereClause}
+            ) AS RankedClaims
+            WHERE rn = 1;
+        `;
+
+        const totalResult = await countRequest.query(countQuery);
+        const total = totalResult.recordset[0].total;
+
+        // Paginated query to get the claims
+        const offset = (page - 1) * limit;
+        request.input('offset', sql.Int, offset);
+        request.input('limit', sql.Int, limit);
+        
+        const dataQuery = `
             WITH RankedClaims AS (
                 SELECT 
                     cl.*,
                     h.name as hospitalName,
                     co.name as companyName,
                     p.photo as patientPhoto,
+                    p.first_name + ' ' + p.last_name as Patient_name_from_patient,
                     ROW_NUMBER() OVER(PARTITION BY cl.Patient_id ORDER BY cl.updated_at DESC) as rn
                 FROM claims cl
                 LEFT JOIN hospitals h ON cl.hospital_id = h.id
                 LEFT JOIN patients p ON cl.Patient_id = p.id
                 LEFT JOIN preauth_request pr ON cl.admission_id = pr.admission_id
                 LEFT JOIN companies co ON pr.company_id = co.id
-        `;
-        
-        let whereClauses: string[] = [];
-        if (hospitalId) {
-            request.input('hospitalId', sql.NVarChar, hospitalId);
-            whereClauses.push('cl.hospital_id = @hospitalId');
-        }
-
-        if(whereClauses.length > 0) {
-            query += ` WHERE ${whereClauses.join(' AND ')}`;
-        }
-
-        query += `
+                ${whereClause}
             )
             SELECT *
             FROM RankedClaims
             WHERE rn = 1
-            ORDER BY updated_at DESC;
+            ORDER BY updated_at DESC
+            OFFSET @offset ROWS
+            FETCH NEXT @limit ROWS ONLY;
         `;
 
 
-        const result = await request.query(query);
+        const result = await request.query(dataQuery);
 
-        return result.recordset.map(record => {
+        const claims = result.recordset.map(record => {
              const photoData = getDocumentData(record.patientPhoto);
              return {
                 ...record,
-                Patient_name: record.Patient_name,
+                Patient_name: record.Patient_name_from_patient || record.Patient_name,
                 patientPhoto: photoData?.url || null,
                 claimAmount: record.amount 
             }
         }) as Claim[];
+        
+        return { claims, total };
 
     } catch (error) {
         console.error("Error fetching claims:", error);
