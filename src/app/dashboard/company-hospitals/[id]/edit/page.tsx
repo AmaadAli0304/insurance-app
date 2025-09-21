@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PhoneInput } from "@/components/phone-input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getPresignedUrl } from "@/app/dashboard/staff/actions";
+import { useAuth } from "@/components/auth-provider";
 
 async function uploadFile(file: File): Promise<{ publicUrl: string } | { error: string }> {
     const key = `uploads/hospitals/${Date.now()}-${file.name.replace(/\s/g, "_")}`;
@@ -53,6 +54,7 @@ export default function EditCompanyHospitalPage() {
     const [state, formAction] = useActionState(handleUpdateHospital, { message: "", type: 'initial' });
     const router = useRouter();
     const { toast } = useToast();
+    const { user } = useAuth();
     
     const [companies, setCompanies] = useState<Pick<Company, 'id' | 'name'>[]>([]);
     const [tpas, setTpas] = useState<Pick<TPA, 'id' | 'name'>[]>([]);
@@ -175,6 +177,8 @@ export default function EditCompanyHospitalPage() {
                     <CardContent className="space-y-4">
                         <input type="hidden" name="id" value={hospital.id} />
                         <input type="hidden" name="photoUrl" value={photoUrl || ''} />
+                        <input type="hidden" name="userId" value={user?.uid || ''} />
+                        <input type="hidden" name="userName" value={user?.name || ''} />
 
                         <div className="flex flex-col items-center p-6">
                           <Avatar className="h-32 w-32 mb-4">

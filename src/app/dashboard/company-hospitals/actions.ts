@@ -181,6 +181,9 @@ export async function handleAddHospital(
 }
 
 export async function handleUpdateHospital(prevState: { message: string, type?:string }, formData: FormData) {
+    const userId = formData.get('userId') as string;
+    const userName = formData.get('userName') as string;
+
     const validatedFields = hospitalUpdateSchema.safeParse({
         id: formData.get("id"),
         name: formData.get("name"),
@@ -237,6 +240,16 @@ export async function handleUpdateHospital(prevState: { message: string, type?:s
         }
         
         await transaction.commit();
+
+        await logActivity({
+            userId,
+            userName,
+            actionType: 'UPDATE_HOSPITAL',
+            details: `Updated hospital: ${hospitalData.name}`,
+            targetId: hospitalId,
+            targetType: 'Hospital'
+        });
+
     } catch (error) {
         if (transaction) await transaction.rollback();
         console.error("Database error:", error);
@@ -248,6 +261,10 @@ export async function handleUpdateHospital(prevState: { message: string, type?:s
 
 export async function handleDeleteHospital(prevState: { message: string, type?:string }, formData: FormData) {
     const id = formData.get("id") as string;
+    const userId = formData.get('userId') as string;
+    const userName = formData.get('userName') as string;
+    const hospitalName = formData.get('hospitalName') as string;
+
     if (!id) {
       return { message: "Delete error: ID is missing", type: 'error' };
     }
@@ -272,6 +289,15 @@ export async function handleDeleteHospital(prevState: { message: string, type?:s
         }
         
         await transaction.commit();
+
+        await logActivity({
+            userId,
+            userName,
+            actionType: 'DELETE_HOSPITAL',
+            details: `Deleted hospital: ${hospitalName}`,
+            targetId: id,
+            targetType: 'Hospital'
+        });
 
     } catch (error) {
         if(transaction) await transaction.rollback();

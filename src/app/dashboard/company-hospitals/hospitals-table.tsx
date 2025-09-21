@@ -24,6 +24,7 @@ import type { Hospital } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAuth } from '@/components/auth-provider';
 
 
 interface HospitalsTableProps {
@@ -46,6 +47,7 @@ function DeleteButton() {
 
 export function HospitalsTable({ hospitals, onHospitalDeleted }: HospitalsTableProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [state, formAction] = useActionState(handleDeleteHospital, { message: "", type: "initial" });
   const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
@@ -136,6 +138,9 @@ export function HospitalsTable({ hospitals, onHospitalDeleted }: HospitalsTableP
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                      <form action={formAction} ref={formRef}>
                         <input type="hidden" name="id" value={h.id} />
+                        <input type="hidden" name="userId" value={user?.uid || ''} />
+                        <input type="hidden" name="userName" value={user?.name || ''} />
+                        <input type="hidden" name="hospitalName" value={h.name} />
                         <DeleteButton />
                      </form>
                   </AlertDialogFooter>
