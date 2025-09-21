@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
 import { handleUpdateRequest, getPreAuthRequestById } from "../../actions";
-import { getPresignedUrl } from "@/app/dashboard/patients/actions";
+import { getPresignedUrl } from "@/app/dashboard/staff/actions";
 import Link from "next/link";
 import { ArrowLeft, Loader2, File as FileIcon, Upload, Eye, XCircle } from "lucide-react";
 import { notFound, useParams, useRouter } from "next/navigation";
