@@ -19,7 +19,6 @@ import { PatientBillingTable } from "./patient-billing-table";
 import { SimpleBusinessSummaryTable } from "./simple-business-summary-table";
 import { StaffPerformanceTable } from "./staff-performance-table";
 import { StaffOnDutyTable } from "./staff-on-duty-table";
-import { StaffSalaryTable } from "./staff-salary-table";
 
 
 interface DashboardStats {
@@ -198,7 +197,6 @@ export function CompanyAdminDashboard() {
           
           <StaffOnDutyTable />
           
-          <StaffSalaryTable dateRange={date} />
         </>
       )}
     </div>
