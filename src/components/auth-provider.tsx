@@ -8,6 +8,8 @@ import type { User, UserRole } from '@/lib/types';
 // Helper to create role-specific storage keys
 const getUserKey = (role: UserRole) => `user_${role.replace(' ', '_')}`;
 const getTokenKey = (role: UserRole) => `token_${role.replace(' ', '_')}`;
+const LAST_ACTIVE_ROLE_KEY = 'last_active_role';
+
 
 interface AuthContextType {
   user: User | null;
@@ -26,14 +28,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const getRoleFromPath = (path: string): UserRole | null => {
-    if (path.includes('/admin')) return 'Admin';
-    if (path.includes('/company-admin') || path.startsWith('/dashboard/companies')) return 'Company Admin';
-    if (path.includes('/hospital-staff') || path.startsWith('/dashboard/patients')) return 'Hospital Staff';
-    // Fallback for generic dashboard pages
-    if (path.startsWith('/dashboard')) {
-        // This part is tricky without a clear role in the URL.
-        // We might need to check localStorage for any logged-in user.
+  const getRoleFromPath = useCallback((path: string): UserRole | null => {
+    // Specific dashboard pages for roles
+    if (path.startsWith('/dashboard/companies') || path.startsWith('/dashboard/company-hospitals') || path.startsWith('/dashboard/tpas') || path.startsWith('/dashboard/staff') || path.startsWith('/dashboard/invoices') || path.startsWith('/dashboard/attendance')) return 'Company Admin';
+    if (path.startsWith('/dashboard/patients') || path.startsWith('/dashboard/pre-auths') || path.startsWith('/dashboard/claims')) return 'Hospital Staff';
+    if (path.startsWith('/dashboard/doctors') || path.startsWith('/dashboard/import') || path.startsWith('/dashboard/activity-log')) {
+        // These can be accessed by both Admin and Company Admin
+        const lastRole = localStorage.getItem(LAST_ACTIVE_ROLE_KEY) as UserRole;
+        if(lastRole === 'Admin' || lastRole === 'Company Admin') return lastRole;
+    }
+    
+    // Login pages
+    if (path.includes('/login/admin')) return 'Admin';
+    if (path.includes('/login/company-admin')) return 'Company Admin';
+    if (path.includes('/login/hospital-staff')) return 'Hospital Staff';
+    
+    // Fallback for the main dashboard page
+    if (path === '/dashboard') {
+        const lastRole = localStorage.getItem(LAST_ACTIVE_ROLE_KEY) as UserRole;
+        if (lastRole && localStorage.getItem(getUserKey(lastRole))) {
+            return lastRole;
+        }
+        // If no last active role, check for any logged-in user
         const roles: UserRole[] = ['Company Admin', 'Hospital Staff', 'Admin'];
         for (const r of roles) {
             if (localStorage.getItem(getUserKey(r))) {
@@ -41,34 +57,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
         }
     }
+
     return null;
-  }
+  }, []);
 
   useEffect(() => {
     const currentRole = getRoleFromPath(pathname);
-    setRole(currentRole);
-
+    
     if (currentRole) {
       try {
         const storedUser = localStorage.getItem(getUserKey(currentRole));
         if (storedUser) {
           setUser(JSON.parse(storedUser));
+          setRole(currentRole);
+          localStorage.setItem(LAST_ACTIVE_ROLE_KEY, currentRole);
         } else {
+          // If no user for current path role, clear user state
           setUser(null);
+          setRole(null);
         }
       } catch (error) {
         console.error("Failed to parse user from localStorage", error);
         setUser(null);
+        setRole(null);
       }
     } else {
         setUser(null);
+        setRole(null);
     }
     setLoading(false);
-  }, [pathname]);
+  }, [pathname, getRoleFromPath]);
 
   const login = (userData: User, token: string) => {
     localStorage.setItem(getUserKey(userData.role), JSON.stringify(userData));
     localStorage.setItem(getTokenKey(userData.role), token);
+    localStorage.setItem(LAST_ACTIVE_ROLE_KEY, userData.role);
     setUser(userData);
     setRole(userData.role);
     router.push('/dashboard');
@@ -79,12 +102,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if(currentRole){
       localStorage.removeItem(getUserKey(currentRole));
       localStorage.removeItem(getTokenKey(currentRole));
+      localStorage.removeItem(LAST_ACTIVE_ROLE_KEY);
     }
     setUser(null);
     setRole(null);
-    const loginPath = currentRole ? `/login/${currentRole.toLowerCase().replace(' ', '-')}` : '/login/company-admin';
-    router.push(loginPath);
-  }, [role, pathname, router]);
+    // Redirect to a neutral login page or a default one
+    router.push('/login');
+  }, [role, pathname, router, getRoleFromPath]);
   
   const value = useMemo(() => ({
     user,
@@ -94,7 +118,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
   }), [user, role, loading, logout]);
 
-  // The loading UI prevents flicker during initial render and role detection.
   if (loading) {
     return (
         <div className="flex items-center justify-center h-screen bg-background">
