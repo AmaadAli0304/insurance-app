@@ -61,13 +61,6 @@ const FileUploadField = React.memo(({ label, name, onUploadComplete, initialUrl,
     const [fileName, setFileName] = useState<string | null>(initialUrl ? label : null);
     const { toast } = useToast();
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const componentIsMounted = useRef(true);
-
-    useEffect(() => {
-        return () => {
-            componentIsMounted.current = false;
-        };
-    }, []);
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -75,17 +68,15 @@ const FileUploadField = React.memo(({ label, name, onUploadComplete, initialUrl,
             setIsUploading(true);
             const result = await uploadFile(file);
 
-            if (componentIsMounted.current) {
-                if ("publicUrl" in result) {
-                    setFileUrl(result.publicUrl);
-                    setFileName(file.name);
-                    onUploadComplete(name, file.name, result.publicUrl);
-                    toast({ title: "Success", description: `${label} uploaded.`, variant: "success" });
-                } else {
-                    toast({ title: "Error", description: result.error, variant: "destructive" });
-                }
-                setIsUploading(false);
+            if ("publicUrl" in result) {
+                setFileUrl(result.publicUrl);
+                setFileName(file.name);
+                onUploadComplete(name, file.name, result.publicUrl);
+                toast({ title: "Success", description: `${label} uploaded.`, variant: "success" });
+            } else {
+                toast({ title: "Error", description: result.error, variant: "destructive" });
             }
+            setIsUploading(false);
         }
     };
     
