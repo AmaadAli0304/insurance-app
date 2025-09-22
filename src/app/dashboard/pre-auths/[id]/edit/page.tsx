@@ -19,10 +19,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/components/auth-provider";
 import dynamic from 'next/dynamic';
-import { EditorState, convertToRaw } from 'draft-js';
+import { EditorState, convertToRaw, ContentState } from 'draft-js';
 import draftToHtml from 'draftjs-to-html';
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import { Checkbox } from "@/components/ui/checkbox";
+
+let htmlToDraft: any = null;
+if (typeof window === 'object') {
+  htmlToDraft = require('html-to-draftjs').default;
+}
 
 
 const Editor = dynamic(
@@ -185,6 +190,7 @@ export default function EditPreAuthPage() {
     const [showEmailFields, setShowEmailFields] = useState(false);
     
     const [documentUrls, setDocumentUrls] = useState<Record<string, { url: string; name: string; } | null>>({});
+    const [selectedAttachments, setSelectedAttachments] = useState<string[]>([]);
 
     const [editorState, setEditorState] = useState(() => EditorState.createEmpty());
     const [emailBody, setEmailBody] = useState("");
@@ -278,9 +284,16 @@ export default function EditPreAuthPage() {
     
     const handleDocumentUploadComplete = (fieldName: string, name: string, url: string) => {
         setDocumentUrls(prev => ({ ...prev, [fieldName]: { url, name } }));
+        const attachmentString = JSON.stringify({ name, url });
+        setSelectedAttachments(prev => [...prev, attachmentString]);
     };
 
     const handleFileRemove = (fieldName: string) => {
+        const removedDoc = documentUrls[fieldName];
+        if(removedDoc){
+            const attachmentString = JSON.stringify({ name: removedDoc.name, url: removedDoc.url });
+            setSelectedAttachments(prev => prev.filter(att => att !== attachmentString));
+        }
         setDocumentUrls(prev => ({ ...prev, [fieldName]: null }));
     };
 
@@ -314,6 +327,9 @@ export default function EditPreAuthPage() {
                                 </React.Fragment>
                             ) : null
                          )}
+                         {selectedAttachments.map((attachment, index) => (
+                             <input key={index} type="hidden" name="email_attachments" value={attachment} />
+                         ))}
 
                         
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4 p-4 border rounded-lg bg-muted/50">
@@ -391,7 +407,7 @@ export default function EditPreAuthPage() {
                                     <p className="text-sm text-muted-foreground">Attach existing documents or upload new ones.</p>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {documentFields.map(({ key, label }) => {
-                                            const doc = request[key as keyof StaffingRequest];
+                                            const doc = request[key as keyof StaffingRequest] || documentUrls[key];
                                             const docUrl = doc && typeof doc === 'object' && 'url' in doc ? (doc as {url:string}).url : null;
                                             const docName = doc && typeof doc === 'object' && 'name' in doc ? (doc as {name:string}).name : label;
 
@@ -401,9 +417,16 @@ export default function EditPreAuthPage() {
                                                     <div className="flex items-center gap-2">
                                                       <Checkbox
                                                         id={`attach-${key}`}
-                                                        name="email_attachments"
                                                         value={JSON.stringify({ name: docName, url: docUrl })}
-                                                        defaultChecked={true}
+                                                        checked={selectedAttachments.includes(JSON.stringify({ name: docName, url: docUrl }))}
+                                                        onCheckedChange={(checked) => {
+                                                          const attachmentString = JSON.stringify({ name: docName, url: docUrl });
+                                                          setSelectedAttachments(prev => 
+                                                              checked 
+                                                              ? [...prev, attachmentString]
+                                                              : prev.filter(item => item !== attachmentString)
+                                                          );
+                                                        }}
                                                       />
                                                       <Label htmlFor={`attach-${key}`} className="font-normal flex items-center gap-1 cursor-pointer text-green-600">
                                                         <FileIcon className="h-4 w-4" />
@@ -434,3 +457,5 @@ export default function EditPreAuthPage() {
         </div>
     );
 }
+
+    
