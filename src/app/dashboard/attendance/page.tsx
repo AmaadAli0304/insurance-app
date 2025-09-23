@@ -233,7 +233,7 @@ export default function AttendancePage() {
                                                     );
                                                 })}
                                                 <TableCell className="text-right font-medium sticky right-0 bg-background z-10">
-                                                    {calculatePayableSalary(staff).toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                                                    {calculatePayableSalary(staff).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                                                 </TableCell>
                                             </TableRow>
                                         ))}
