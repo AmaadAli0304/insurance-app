@@ -208,13 +208,42 @@ export default function NewPatientPage() {
         setTotalCost(sum);
     }, []);
 
+    const calculateAge = (birthDateString: string): string => {
+        if (!birthDateString) return '';
+        const birthDate = new Date(birthDateString);
+        const today = new Date();
+
+        if (birthDate > today) return '';
+
+        const duration = intervalToDuration({ start: birthDate, end: today });
+        const years = duration.years || 0;
+        const months = duration.months || 0;
+        const days = duration.days || 0;
+
+        if (years > 0) {
+            let result = `${years} year${years > 1 ? 's' : ''}`;
+            if (months > 0) {
+                result += `, ${months} month${months > 1 ? 's' : ''}`;
+            }
+            return result;
+        }
+        if (months > 0) {
+            let result = `${months} month${months > 1 ? 's' : ''}`;
+            if (days > 0) {
+                result += `, ${days} day${days !== 1 ? 's' : ''}`;
+            }
+            return result;
+        }
+        return `${days} day${days !== 1 ? 's' : ''}`;
+    };
+    
     const handleAgeAndTotalSumCalculation = React.useCallback(() => {
         const form = formRef.current;
         if (!form) return;
 
         // Age
         const dobInput = form.elements.namedItem('birth_date') as HTMLInputElement;
-        if (dobInput) {
+        if (dobInput && dobInput.value) {
             setAge(calculateAge(dobInput.value));
         }
 
@@ -268,34 +297,6 @@ export default function NewPatientPage() {
         }
     }, [state, toast, router]);
     
-    const calculateAge = (birthDateString: string): string => {
-        if (!birthDateString) return '';
-        const birthDate = new Date(birthDateString);
-        const today = new Date();
-
-        if (birthDate > today) return '';
-
-        const duration = intervalToDuration({ start: birthDate, end: today });
-        const years = duration.years || 0;
-        const months = duration.months || 0;
-        const days = duration.days || 0;
-
-        if (years > 0) {
-            let result = `${years} year${years > 1 ? 's' : ''}`;
-            if (months > 0) {
-                result += `, ${months} month${months > 1 ? 's' : ''}`;
-            }
-            return result;
-        }
-        if (months > 0) {
-            let result = `${months} month${months > 1 ? 's' : ''}`;
-            if (days > 0) {
-                result += `, ${days} day${days !== 1 ? 's' : ''}`;
-            }
-            return result;
-        }
-        return `${days} day${days !== 1 ? 's' : ''}`;
-    };
 
     if (isLoading) {
         return (
@@ -447,7 +448,7 @@ export default function NewPatientPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="age">Age</Label>
-                                            <Input id="age" name="age" type="text" value={age} placeholder="Age" readOnly />
+                                            <Input id="age" name="age" type="text" value={age} onChange={(e) => setAge(e.target.value)} placeholder="Age" />
                                         </div>
                                         <div className="md:col-span-2 space-y-2">
                                             <Label htmlFor="address">Address</Label>
@@ -870,3 +871,4 @@ export default function NewPatientPage() {
         </div>
     );
 }
+
