@@ -39,7 +39,7 @@ export default function AttendancePage() {
   const { user, role } = useAuth();
   const [hospitals, setHospitals] = useState<Pick<Hospital, "id" | "name">[]>([]);
   const [selectedHospitalId, setSelectedHospitalId] = useState<string | null>(null);
-  const [staffList, setStaffList] = useState<Pick<Staff, 'id' | 'name'>[]>([]);
+  const [staffList, setStaffList] = useState<Pick<Staff, 'id' | 'name' | 'salary'>[]>([]);
   const [attendance, setAttendance] = useState<Record<string, Record<number, boolean>>>({});
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isLoading, setIsLoading] = useState(true);
@@ -133,6 +133,14 @@ export default function AttendancePage() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  const calculatePayableSalary = (staff: Pick<Staff, 'id' | 'name' | 'salary'>) => {
+    const monthlySalary = staff.salary ?? 0;
+    if (monthlySalary === 0) return 0;
+    const perDaySalary = monthlySalary / daysInMonth;
+    const presentDays = attendance[staff.id] ? Object.values(attendance[staff.id]).filter(Boolean).length : 0;
+    return perDaySalary * presentDays;
+  };
+
   return (
     <div className="space-y-6">
         <Card>
@@ -204,6 +212,7 @@ export default function AttendancePage() {
                                         <TableRow>
                                             <TableHead className="sticky left-0 bg-background z-10 w-[200px] min-w-[200px]">Staff Name</TableHead>
                                             {days.map(day => <TableHead key={day} className="text-center min-w-[50px] sticky top-0 bg-background z-10">{day}</TableHead>)}
+                                            <TableHead className="text-right min-w-[150px] sticky top-0 right-0 bg-background z-10">Payable Salary</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -223,6 +232,9 @@ export default function AttendancePage() {
                                                         </TableCell>
                                                     );
                                                 })}
+                                                <TableCell className="text-right font-medium sticky right-0 bg-background z-10">
+                                                    {calculatePayableSalary(staff).toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                                                </TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>

@@ -13,14 +13,14 @@ export type AttendanceRecord = {
   hospital_id: string;
 };
 
-export async function getStaffForAttendance(hospitalId: string | null): Promise<Pick<Staff, 'id' | 'name'>[]> {
+export async function getStaffForAttendance(hospitalId: string | null): Promise<Pick<Staff, 'id' | 'name' | 'salary'>[]> {
   if (!hospitalId) return [];
   try {
     const pool = await getDbPool();
     const result = await pool.request()
       .input('hospitalId', sql.NVarChar, hospitalId)
       .query(`
-        SELECT u.uid as id, u.name 
+        SELECT u.uid as id, u.name, u.salary
         FROM users u
         JOIN hospital_staff hs ON u.uid = hs.staff_id
         WHERE hs.hospital_id = @hospitalId AND u.role = 'Hospital Staff'
