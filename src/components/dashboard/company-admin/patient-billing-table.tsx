@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getPatientBilledStats, PatientBilledStat, getTpaList, getHospitalList } from "./actions";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2 } from "lucide-react";
+import { Download, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { TPA, Hospital } from "@/lib/types";
 import { useState, useEffect, useCallback } from "react";
@@ -24,15 +25,20 @@ export function PatientBillingTable({ dateRange }: PatientBillingTableProps) {
     const [selectedTpaId, setSelectedTpaId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const itemsPerPage = 10;
+
     const loadPatientStats = useCallback(async () => {
         setIsLoading(true);
         try {
-            const [patientData, tpas, hospitals] = await Promise.all([
-                getPatientBilledStats(dateRange, selectedHospitalId, selectedTpaId),
+            const [{ stats: patientData, total }, tpas, hospitals] = await Promise.all([
+                getPatientBilledStats(dateRange, selectedHospitalId, selectedTpaId, currentPage, itemsPerPage),
                 getTpaList(),
                 getHospitalList(),
             ]);
             setStats(patientData);
+            setTotalPages(Math.ceil(total / itemsPerPage));
             setTpaList(tpas);
             setHospitalList(hospitals);
         } catch (error) {
@@ -40,7 +46,7 @@ export function PatientBillingTable({ dateRange }: PatientBillingTableProps) {
         } finally {
             setIsLoading(false);
         }
-    }, [dateRange, selectedHospitalId, selectedTpaId]);
+    }, [dateRange, selectedHospitalId, selectedTpaId, currentPage, itemsPerPage]);
 
     useEffect(() => {
         loadPatientStats();
@@ -76,6 +82,14 @@ export function PatientBillingTable({ dateRange }: PatientBillingTableProps) {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    };
+
+    const handlePrevPage = () => {
+        setCurrentPage((prev) => Math.max(prev - 1, 1));
+    };
+
+    const handleNextPage = () => {
+        setCurrentPage((prev) => Math.min(prev + 1, totalPages));
     };
     
     return (
@@ -116,42 +130,65 @@ export function PatientBillingTable({ dateRange }: PatientBillingTableProps) {
                         <Loader2 className="h-8 w-8 animate-spin" />
                     </div>
                 ) : (
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Sr No</TableHead>
-                                <TableHead>Patient Name</TableHead>
-                                <TableHead>Hospital</TableHead>
-                                <TableHead>TPA / Insurance</TableHead>
-                                <TableHead className="text-right">Amount</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {stats && stats.length > 0 ? (
-                                stats.map((stat, index) => (
-                                    <TableRow key={stat.patientId}>
-                                        <TableCell>{index + 1}</TableCell>
-                                        <TableCell className="font-medium flex items-center gap-3">
-                                        <Avatar className="h-10 w-10">
-                                            <AvatarImage src={stat.patientPhoto ?? undefined} alt={stat.patientName} />
-                                            <AvatarFallback>{getInitials(stat.patientName)}</AvatarFallback>
-                                        </Avatar>
-                                        {stat.patientName}
-                                        </TableCell>
-                                        <TableCell>{stat.hospitalName}</TableCell>
-                                        <TableCell>{stat.tpaName}</TableCell>
-                                        <TableCell className="text-right font-mono">{stat.billedAmount.toLocaleString()}</TableCell>
-                                    </TableRow>
-                                ))
-                            ) : (
+                    <>
+                        <Table>
+                            <TableHeader>
                                 <TableRow>
-                                    <TableCell colSpan={5} className="h-24 text-center">
-                                        No patient billing data available.
-                                    </TableCell>
+                                    <TableHead>Sr No</TableHead>
+                                    <TableHead>Patient Name</TableHead>
+                                    <TableHead>Hospital</TableHead>
+                                    <TableHead>TPA / Insurance</TableHead>
+                                    <TableHead className="text-right">Amount</TableHead>
                                 </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {stats && stats.length > 0 ? (
+                                    stats.map((stat, index) => (
+                                        <TableRow key={stat.patientId}>
+                                            <TableCell>{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
+                                            <TableCell className="font-medium flex items-center gap-3">
+                                            <Avatar className="h-10 w-10">
+                                                <AvatarImage src={stat.patientPhoto ?? undefined} alt={stat.patientName} />
+                                                <AvatarFallback>{getInitials(stat.patientName)}</AvatarFallback>
+                                            </Avatar>
+                                            {stat.patientName}
+                                            </TableCell>
+                                            <TableCell>{stat.hospitalName}</TableCell>
+                                            <TableCell>{stat.tpaName}</TableCell>
+                                            <TableCell className="text-right font-mono">{stat.billedAmount.toLocaleString()}</TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="h-24 text-center">
+                                            No patient billing data available.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                        <div className="flex items-center justify-end space-x-2 py-4">
+                            <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handlePrevPage}
+                            disabled={currentPage === 1}
+                            >
+                                <ChevronLeft className="h-4 w-4 mr-1" /> Previous
+                            </Button>
+                            <span className="text-sm text-muted-foreground">
+                                Page {currentPage} of {totalPages}
+                            </span>
+                            <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleNextPage}
+                            disabled={currentPage === totalPages}
+                            >
+                                Next <ChevronRight className="h-4 w-4 ml-1" />
+                            </Button>
+                        </div>
+                    </>
                 )}
             </CardContent>
         </Card>
