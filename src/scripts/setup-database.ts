@@ -27,11 +27,24 @@ async function setupDatabase() {
         endDate DATE,
         shiftTime NVARCHAR(100),
         status NVARCHAR(50),
-        number NVARCHAR(50)
+        number NVARCHAR(50),
+        photo NVARCHAR(MAX),
+        salary DECIMAL(18, 2)
       );
     `;
     await request.query(createUsersTableQuery);
     console.log('"users" table created or already exists.');
+    
+    // Add salary column if it doesn't exist
+    const addSalaryColumnQuery = `
+      IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'salary' AND Object_ID = Object_ID(N'users'))
+      BEGIN
+          ALTER TABLE users ADD salary DECIMAL(18, 2);
+          PRINT 'Added "salary" column to "users" table.';
+      END
+    `;
+    await request.query(addSalaryColumnQuery);
+    console.log('Checked for salary column.');
 
     // Seed Users Table
     console.log('Seeding users table...');
@@ -59,9 +72,10 @@ async function setupDatabase() {
           .input('shiftTime', sql.NVarChar, user.shiftTime)
           .input('status', sql.NVarChar, user.status)
           .input('number', sql.NVarChar, user.number)
+          .input('salary', sql.Decimal(18, 2), user.salary || null)
           .query(`
-              INSERT INTO users (uid, name, email, role, companyId, password, designation, department, joiningDate, endDate, shiftTime, status, number) 
-              VALUES (@uid, @name, @email, @role, @companyId, @password, @designation, @department, @joiningDate, @endDate, @shiftTime, @status, @number)
+              INSERT INTO users (uid, name, email, role, companyId, password, designation, department, joiningDate, endDate, shiftTime, status, number, salary) 
+              VALUES (@uid, @name, @email, @role, @companyId, @password, @designation, @department, @joiningDate, @endDate, @shiftTime, @status, @number, @salary)
           `);
         console.log(`Inserted user: ${user.email}`);
       } else {

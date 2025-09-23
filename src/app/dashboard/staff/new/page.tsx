@@ -207,6 +207,10 @@ export default function NewStaffPage() {
                                 <Label htmlFor="number">Contact Number</Label>
                                 <Input id="number" name="number" placeholder="e.g., 9876543210" maxLength={10} />
                             </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="salary">Salary (per month)</Label>
+                                <Input id="salary" name="salary" type="number" step="0.01" placeholder="e.g., 50000" />
+                            </div>
                              <div className="space-y-2">
                                 <Label htmlFor="password">Password <span className="text-destructive">*</span></Label>
                                 <Input id="password" name="password" type="password" required />

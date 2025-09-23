@@ -21,6 +21,7 @@ export interface User {
   status?: 'Active' | 'Inactive' | null;
   number?: string | null;
   photo?: string | null;
+  salary?: number | null;
 }
 
 export interface Hospital {

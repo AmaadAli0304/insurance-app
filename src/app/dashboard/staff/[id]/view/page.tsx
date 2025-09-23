@@ -11,7 +11,7 @@ import type { Staff } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 
-const DetailItem = ({ label, value }: { label: string, value?: string | null }) => (
+const DetailItem = ({ label, value }: { label: string, value?: string | number | null }) => (
     <div>
         <p className="text-sm font-medium text-muted-foreground">{label}</p>
         <p className="text-base">{value || "N/A"}</p>
@@ -115,6 +115,7 @@ export default function ViewStaffPage() {
                     <DetailItem label="Department" value={staff.department} />
                     <DetailItem label="Assigned Hospital" value={staff.hospitalName || "N/A"} />
                     <DetailItem label="Shift Timing" value={staff.shiftTime} />
+                    <DetailItem label="Salary" value={staff.salary ? `₹${staff.salary.toLocaleString()}` : 'N/A'} />
                     <DetailItem label="Joining Date" value={formatDate(staff.joiningDate)} />
                     <DetailItem label="End Date" value={formatDate(staff.endDate)} />
                 </CardContent>

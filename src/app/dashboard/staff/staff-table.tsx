@@ -87,6 +87,7 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
           <TableHead>Assigned Hospital</TableHead>
           <TableHead>Email</TableHead>
           <TableHead>Role</TableHead>
+          <TableHead>Salary</TableHead>
           <TableHead>Status</TableHead>
           <TableHead><span className="sr-only">Actions</span></TableHead>
         </TableRow>
@@ -117,6 +118,7 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
               <TableCell>{s.hospitalName || 'N/A'}</TableCell>
               <TableCell>{s.email}</TableCell>
               <TableCell>{s.role || 'N/A'}</TableCell>
+              <TableCell>{s.salary ? `₹${s.salary.toLocaleString()}` : 'N/A'}</TableCell>
               <TableCell>
                 <Badge variant={s.status === 'Active' ? 'default' : 'destructive'} className={s.status === 'Active' ? 'bg-accent text-accent-foreground' : ''}>{s.status}</Badge>
               </TableCell>
@@ -168,7 +170,7 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
           )})
         ) : (
           <TableRow>
-            <TableCell colSpan={6} className="h-24 text-center">
+            <TableCell colSpan={7} className="h-24 text-center">
               No data found
             </TableCell>
           </TableRow>

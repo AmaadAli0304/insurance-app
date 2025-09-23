@@ -34,6 +34,7 @@ const staffSchema = z.object({
   status: z.enum(["Active", "Inactive"]).optional().nullable(),
   photoUrl: z.string().optional().nullable(),
   photoName: z.string().optional().nullable(),
+  salary: z.coerce.number().optional().nullable(),
   userId: z.string(),
   userName: z.string(),
 });
@@ -50,11 +51,11 @@ export async function getStaff(): Promise<Staff[]> {
     const db = await poolConnect;
     const result = await db.request()
       .query(`
-        SELECT u.uid as id, u.name, u.email, u.designation, u.department, u.status, u.role, u.photo, h.name as hospitalName
+        SELECT u.uid as id, u.name, u.email, u.designation, u.department, u.status, u.role, u.photo, u.salary, h.name as hospitalName
         FROM users u
         LEFT JOIN hospital_staff hs ON u.uid = hs.staff_id
         LEFT JOIN hospitals h ON hs.hospital_id = h.id
-        WHERE u.role IN ('Admin', 'Hospital Staff', 'Company Admin')
+        WHERE u.role IN ('Admin', 'Hospital Staff')
       `);
     return result.recordset as Staff[];
   } catch (error) {
@@ -166,9 +167,10 @@ export async function handleAddStaff(prevState: { message: string, type?: string
       .input('status', sql.NVarChar, data.status)
       .input('number', sql.NVarChar, data.number)
       .input('photo', sql.NVarChar, photoJson)
+      .input('salary', sql.Decimal(18, 2), data.salary)
       .query(`
-        INSERT INTO users (uid, name, email, role, password, designation, department, joiningDate, endDate, shiftTime, status, number, photo) 
-        VALUES (@uid, @name, @email, @role, @password, @designation, @department, @joiningDate, @endDate, @shiftTime, @status, @number, @photo)
+        INSERT INTO users (uid, name, email, role, password, designation, department, joiningDate, endDate, shiftTime, status, number, photo, salary) 
+        VALUES (@uid, @name, @email, @role, @password, @designation, @department, @joiningDate, @endDate, @shiftTime, @status, @number, @photo, @salary)
       `);
     
     if (data.hospitalId && data.hospitalId !== 'none') {
@@ -230,7 +232,8 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
     let setClauses = [
         `name = @name`, `email = @email`, `role = @role`, `number = @number`,
         `designation = @designation`, `department = @department`, `joiningDate = @joiningDate`,
-        `endDate = @endDate`, `shiftTime = @shiftTime`, `status = @status`, `photo = @photo`
+        `endDate = @endDate`, `shiftTime = @shiftTime`, `status = @status`, `photo = @photo`,
+        `salary = @salary`
     ];
     
     request
@@ -245,7 +248,8 @@ export async function handleUpdateStaff(prevState: { message: string, type?: str
       .input('endDate', data.endDate ? sql.Date : sql.Date, data.endDate ? new Date(data.endDate) : null)
       .input('shiftTime', sql.NVarChar, data.shiftTime)
       .input('status', sql.NVarChar, data.status)
-      .input('photo', sql.NVarChar, photoJson);
+      .input('photo', sql.NVarChar, photoJson)
+      .input('salary', sql.Decimal(18, 2), data.salary);
 
     if (password && password.length >= 6) {
         setClauses.push('password = @password');

@@ -274,7 +274,11 @@ export default function EditStaffPage() {
                                 <Label htmlFor="number">Contact Number</Label>
                                 <Input id="number" name="number" defaultValue={staff.number ?? ""} maxLength={10} />
                             </div>
-                                <div className="space-y-2">
+                            <div className="space-y-2">
+                                <Label htmlFor="salary">Salary (per month)</Label>
+                                <Input id="salary" name="salary" type="number" step="0.01" placeholder="e.g., 50000" defaultValue={staff.salary ?? ''} />
+                            </div>
+                            <div className="space-y-2">
                                 <Label htmlFor="password">Password</Label>
                                 <Input id="password" name="password" type="password" placeholder="Leave blank to keep current password" />
                             </div>
