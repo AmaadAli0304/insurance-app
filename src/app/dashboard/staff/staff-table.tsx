@@ -118,7 +118,7 @@ export function StaffTable({ staff, onStaffDeleted }: StaffTableProps) {
               <TableCell>{s.hospitalName || 'N/A'}</TableCell>
               <TableCell>{s.email}</TableCell>
               <TableCell>{s.role || 'N/A'}</TableCell>
-              <TableCell>{s.salary ? `₹${s.salary.toLocaleString()}` : 'N/A'}</TableCell>
+              <TableCell>{s.salary ? s.salary.toLocaleString() : 'N/A'}</TableCell>
               <TableCell>
                 <Badge variant={s.status === 'Active' ? 'default' : 'destructive'} className={s.status === 'Active' ? 'bg-accent text-accent-foreground' : ''}>{s.status}</Badge>
               </TableCell>
