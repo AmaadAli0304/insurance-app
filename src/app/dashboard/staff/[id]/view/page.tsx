@@ -115,7 +115,7 @@ export default function ViewStaffPage() {
                     <DetailItem label="Department" value={staff.department} />
                     <DetailItem label="Assigned Hospital" value={staff.hospitalName || "N/A"} />
                     <DetailItem label="Shift Timing" value={staff.shiftTime} />
-                    <DetailItem label="Salary" value={staff.salary ? `₹${staff.salary.toLocaleString()}` : 'N/A'} />
+                    <DetailItem label="Salary" value={staff.salary ? staff.salary.toLocaleString() : 'N/A'} />
                     <DetailItem label="Joining Date" value={formatDate(staff.joiningDate)} />
                     <DetailItem label="End Date" value={formatDate(staff.endDate)} />
                 </CardContent>
