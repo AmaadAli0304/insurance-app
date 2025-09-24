@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, FormEvent } from 'react';
@@ -9,6 +10,7 @@ import { useAuth } from '@/components/auth-provider';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Logo } from '@/components/logo';
 
 export default function CompanyAdminLoginPage() {
   const { login } = useAuth();
@@ -54,48 +56,65 @@ export default function CompanyAdminLoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
+    <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
+      <div className="hidden bg-muted lg:flex lg:flex-col items-center justify-center p-8 text-center">
+        <div className="mb-8">
+            <Logo />
+        </div>
+        <h1 className="text-4xl font-bold tracking-tighter">One Stop Insurance</h1>
+        <p className="mt-4 text-lg text-muted-foreground">Your centralized hub for seamless insurance and hospital management.</p>
+        <div className="relative flex items-center justify-center mt-8">
             <Image
-              src="/images/logo.png"
-              alt="One Stop Logo"
-              width={100}
-              height={100}
-              priority
-              data-ai-hint="logo"
+                src="/images/logo.png"
+                alt="Login character illustration"
+                width={350}
+                height={550}
+                className="object-contain"
+                data-ai-hint="logo"
             />
-          </div>
-          <CardTitle className="text-2xl">Company Admin Login</CardTitle>
-          <CardDescription>Enter your credentials to access your company dashboard.</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" name="email" type="email" placeholder="company.admin@example.com" defaultValue="companyadmin@yopmail.com" required />
+        </div>
+      </div>
+      <div className="flex items-center justify-center py-12">
+        <Card className="w-full max-w-sm">
+            <CardHeader className="text-center">
+            <div className="flex justify-center mb-4 lg:hidden">
+                <Logo />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" name="password" type="password" defaultValue="password" required />
-            </div>
-            {error && <p className="text-sm text-destructive text-center">{error}</p>}
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-             <Button className="w-full" type="submit" disabled={isLoading}>
-              {isLoading ? (
-                <div className="w-5 h-5 border-2 border-background border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                'Sign In'
-              )}
-            </Button>
-             <Link href="/login/hospital-staff" className="text-sm text-muted-foreground hover:underline">
-              Log in as Hospital Staff
-            </Link>
-          </CardFooter>
-        </form>
-      </Card>
+            <CardTitle className="text-2xl">Company Admin Login</CardTitle>
+            <CardDescription>Enter your credentials to access your company dashboard.</CardDescription>
+            </CardHeader>
+            <form onSubmit={handleSubmit}>
+            <CardContent className="space-y-4">
+                <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" name="email" type="email" placeholder="company.admin@example.com" defaultValue="companyadmin@yopmail.com" required />
+                </div>
+                <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input id="password" name="password" type="password" defaultValue="password" required />
+                </div>
+                {error && <p className="text-sm text-destructive text-center">{error}</p>}
+            </CardContent>
+            <CardFooter className="flex flex-col gap-4">
+                <Button className="w-full" type="submit" disabled={isLoading}>
+                {isLoading ? (
+                    <div className="w-5 h-5 border-2 border-background border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                    'Sign In'
+                )}
+                </Button>
+                <div className="flex justify-between w-full">
+                    <Link href="/login/hospital-staff" className="text-sm text-muted-foreground hover:underline">
+                        Log in as Hospital Staff
+                    </Link>
+                    <Link href="/login/admin" className="text-sm text-muted-foreground hover:underline">
+                        Log in as Admin
+                    </Link>
+                </div>
+            </CardFooter>
+            </form>
+        </Card>
+      </div>
     </div>
   );
 }
