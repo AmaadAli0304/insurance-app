@@ -87,11 +87,11 @@ export default function CompanyAdminLoginPage() {
             <CardContent className="space-y-4">
                 <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" name="email" type="email" placeholder="company.admin@example.com" defaultValue="companyadmin@yopmail.com" required />
+                <Input id="email" name="email" type="email" placeholder="company.admin@example.com" required />
                 </div>
                 <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" name="password" type="password" defaultValue="password" required />
+                <Input id="password" name="password" type="password" required />
                 </div>
                 {error && <p className="text-sm text-destructive text-center">{error}</p>}
             </CardContent>
