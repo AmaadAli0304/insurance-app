@@ -211,6 +211,11 @@ export default function NewCompanyHospitalPage() {
                                 <PhoneInput name="phone" placeholder="e.g. 916-453-4444" />
                             </div>
                         </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="mailtrap_token">Mailtrap Token</Label>
+                            <Input id="mailtrap_token" name="mailtrap_token" placeholder="Enter Mailtrap API Token" />
+                        </div>
                         
                          <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">

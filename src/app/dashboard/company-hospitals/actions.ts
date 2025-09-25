@@ -17,6 +17,7 @@ const hospitalSchema = z.object({
     email: z.string().email().optional().or(z.literal('')),
     address: z.string().optional(),
     photoUrl: z.string().optional().nullable(),
+    mailtrap_token: z.string().optional().nullable(),
 });
 
 const hospitalUpdateSchema = hospitalSchema.extend({
@@ -74,7 +75,7 @@ export async function getHospitalById(id: string): Promise<Hospital | null> {
         const db = await poolConnect;
         const hospitalResult = await db.request()
             .input('id', sql.NVarChar, id)
-            .query('SELECT id, name, location, address, contact_person as contactPerson, email, phone, photo FROM hospitals WHERE id = @id');
+            .query('SELECT id, name, location, address, contact_person as contactPerson, email, phone, photo, mailtrap_token FROM hospitals WHERE id = @id');
 
         if (hospitalResult.recordset.length === 0) {
             return null;
@@ -115,7 +116,8 @@ export async function handleAddHospital(
         phone: formData.get("phone"),
         email: formData.get("email"),
         address: formData.get("address"),
-        photoUrl: formData.get("photoUrl")
+        photoUrl: formData.get("photoUrl"),
+        mailtrap_token: formData.get("mailtrap_token"),
     });
 
     if (!validatedFields.success) {
@@ -146,8 +148,9 @@ export async function handleAddHospital(
             .input('email', sql.NVarChar, data.email || null)
             .input('phone', sql.NVarChar, data.phone || null)
             .input('photo', sql.NVarChar, data.photoUrl || null)
-            .query(`INSERT INTO hospitals (id, name, location, address, contact_person, email, phone, photo) 
-                    VALUES (@id, @name, @location, @address, @contact_person, @email, @phone, @photo)`);
+            .input('mailtrap_token', sql.NVarChar, data.mailtrap_token || null)
+            .query(`INSERT INTO hospitals (id, name, location, address, contact_person, email, phone, photo, mailtrap_token) 
+                    VALUES (@id, @name, @location, @address, @contact_person, @email, @phone, @photo, @mailtrap_token)`);
         
         // Insert into relationship tables
         for (const companyId of assignedCompanies) {
@@ -192,7 +195,8 @@ export async function handleUpdateHospital(prevState: { message: string, type?:s
         phone: formData.get("phone"),
         email: formData.get("email"),
         address: formData.get("address"),
-        photoUrl: formData.get("photoUrl")
+        photoUrl: formData.get("photoUrl"),
+        mailtrap_token: formData.get("mailtrap_token"),
     });
 
     if (!validatedFields.success) {
@@ -220,7 +224,8 @@ export async function handleUpdateHospital(prevState: { message: string, type?:s
             .input('email', sql.NVarChar, hospitalData.email)
             .input('phone', sql.NVarChar, hospitalData.phone)
             .input('photo', sql.NVarChar, hospitalData.photoUrl)
-            .query(`UPDATE hospitals SET name = @name, location = @location, address = @address, contact_person = @contact_person, email = @email, phone = @phone, photo = @photo 
+            .input('mailtrap_token', sql.NVarChar, hospitalData.mailtrap_token)
+            .query(`UPDATE hospitals SET name = @name, location = @location, address = @address, contact_person = @contact_person, email = @email, phone = @phone, photo = @photo, mailtrap_token = @mailtrap_token 
                     WHERE id = @id`);
 
         // Clear existing associations

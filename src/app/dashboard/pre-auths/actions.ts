@@ -124,27 +124,20 @@ async function sendPreAuthEmail(requestData: {
     to: string, 
     subject: string, 
     html: string,
-    attachments: { filename: string, content: Buffer, contentType: string }[] 
+    attachments: { filename: string, content: Buffer, contentType: string }[],
+    token: string,
 }) {
-    const { 
-        MAILTRAP_HOST, 
-        MAILTRAP_PORT, 
-        MAILTRAP_USER, 
-        MAILTRAP_PASS 
-    } = process.env;
-
-    if (!MAILTRAP_HOST || !MAILTRAP_PORT || !MAILTRAP_USER || !MAILTRAP_PASS) {
-        console.error("Mailtrap environment variables are not set.");
-        throw new Error("Email service is not configured. Please check server environment variables.");
+    if (!requestData.token) {
+        throw new Error("Mailtrap token is not configured for this hospital.");
     }
     
     try {
         const transporter = nodemailer.createTransport({
-            host: MAILTRAP_HOST,
-            port: Number(MAILTRAP_PORT),
+            host: "live.smtp.mailtrap.io",
+            port: 587,
             auth: {
-              user: MAILTRAP_USER,
-              pass: MAILTRAP_PASS
+              user: "api",
+              pass: requestData.token
             }
         });
 
@@ -183,6 +176,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
         SELECT 
           h.name as hospitalName, 
           h.email as hospitalEmail,
+          h.mailtrap_token as mailtrapToken,
           t.email as tpaEmail,
           a.tpa_id as tpaId,
           a.insurance_company as companyId
@@ -196,7 +190,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
         throw new Error("Could not find hospital or patient admission details.");
     }
     
-    const { hospitalName, hospitalEmail, tpaEmail, tpaId, companyId } = detailsRequest.recordset[0];
+    const { hospitalName, hospitalEmail, tpaEmail, tpaId, companyId, mailtrapToken } = detailsRequest.recordset[0];
     const fromEmail = hospitalEmail;
     
     const parsedAttachments = emailAttachmentsData
@@ -236,7 +230,8 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
             to: toEmailFromForm, 
             subject: subject, 
             html: details,
-            attachments: validAttachments
+            attachments: validAttachments,
+            token: mailtrapToken,
         });
     }
 
@@ -710,7 +705,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         const preAuthDetailsResult = await getPreAuthDetailsRequest
             .input('id', sql.Int, Number(id))
             .query(`
-                SELECT pr.*, t.email as tpaEmail, h.email as hospitalEmail, h.name as hospitalName
+                SELECT pr.*, t.email as tpaEmail, h.email as hospitalEmail, h.name as hospitalName, h.mailtrap_token as mailtrapToken
                 FROM preauth_request pr
                 LEFT JOIN tpas t ON pr.tpa_id = t.id
                 LEFT JOIN hospitals h ON pr.hospital_id = h.id
@@ -801,7 +796,8 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
                 to, 
                 subject, 
                 html: details,
-                attachments: fetchedAttachments.filter(att => att !== null) as any
+                attachments: fetchedAttachments.filter(att => att !== null) as any,
+                token: preAuthDetails.mailtrapToken,
             });
 
             const chatInsertRequest = new sql.Request(transaction);
@@ -894,4 +890,5 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     
 
     
+
 

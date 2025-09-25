@@ -237,6 +237,11 @@ export default function EditCompanyHospitalPage() {
                             </div>
                         </div>
 
+                        <div className="space-y-2">
+                            <Label htmlFor="mailtrap_token">Mailtrap Token</Label>
+                            <Input id="mailtrap_token" name="mailtrap_token" defaultValue={hospital.mailtrap_token ?? ""} placeholder="Enter Mailtrap API Token" />
+                        </div>
+
                          <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label>Assigned Insurance Companies</Label>

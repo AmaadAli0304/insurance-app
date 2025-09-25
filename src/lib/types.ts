@@ -34,6 +34,7 @@ export interface Hospital {
   address?: string | null;
   photo?: string | null;
   archived?: boolean | null;
+  mailtrap_token?: string | null;
   contact?: string; // Keeping for backward compatibility with admin view for now
   assignedCompanies: string[];
   assignedTPAs?: string[];
