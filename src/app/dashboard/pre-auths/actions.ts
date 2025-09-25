@@ -754,6 +754,11 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
                 .input('updated_at', sql.DateTime, now)
                 .query('INSERT INTO claims ( Patient_id, Patient_name, admission_id, status, reason, created_by, amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at ) VALUES ( @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at )');
 
+            const updatePreAuthRequest = new sql.Request(transaction)
+                .input('id', sql.Int, Number(id))
+                .input('status', sql.NVarChar, status)
+                .query('UPDATE preauth_request SET status = @status WHERE id = @id');
+
             await transaction.commit();
             revalidatePath('/dashboard/pre-auths');
             revalidatePath('/dashboard/claims');
@@ -890,6 +895,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     
 
     
+
 
 
 
