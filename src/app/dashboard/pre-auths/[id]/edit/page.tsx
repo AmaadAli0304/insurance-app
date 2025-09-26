@@ -167,6 +167,7 @@ const preAuthStatuses: PreAuthStatus[] = [
     'Final Discharge sent', 
     'Final Amount Sanctioned', 
     'Amount received',
+    'Settled',
     'Rejected'
 ];
 
@@ -457,5 +458,3 @@ export default function EditPreAuthPage() {
         </div>
     );
 }
-
-    

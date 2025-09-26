@@ -223,7 +223,8 @@ export type PreAuthStatus =
   | 'Final Discharge sent'
   | 'Final Amount Sanctioned'
   | 'Amount received'
-  | 'Pre auth Sent';
+  | 'Pre auth Sent'
+  | 'Settled';
 
 export interface ChatMessage {
   id: number;
