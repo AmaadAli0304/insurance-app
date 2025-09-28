@@ -271,34 +271,49 @@ export async function handleDeleteHospital(prevState: { message: string, type?:s
     const hospitalName = formData.get('hospitalName') as string;
 
     if (!id) {
-      return { message: "Archive error: ID is missing", type: 'error' };
+      return { message: "Delete error: ID is missing", type: 'error' };
     }
     
+    let transaction;
     try {
         const db = await poolConnect;
-        const result = await db.request()
+        transaction = new sql.Transaction(db);
+        await transaction.begin();
+
+        // Delete related records first
+        await new sql.Request(transaction).input('hospital_id', sql.NVarChar, id).query('DELETE FROM hospital_companies WHERE hospital_id = @hospital_id');
+        await new sql.Request(transaction).input('hospital_id', sql.NVarChar, id).query('DELETE FROM hospital_tpas WHERE hospital_id = @hospital_id');
+        await new sql.Request(transaction).input('hospital_id', sql.NVarChar, id).query('DELETE FROM hospital_staff WHERE hospital_id = @hospital_id');
+
+        // Delete the hospital
+        const result = await new sql.Request(transaction)
             .input('id', sql.NVarChar, id)
-            .query('UPDATE hospitals SET archived = 1 WHERE id = @id');
+            .query('DELETE FROM hospitals WHERE id = @id');
 
         if (result.rowsAffected[0] === 0) {
+            await transaction.rollback();
             return { message: "Hospital not found.", type: 'error' };
         }
+        
+        await transaction.commit();
+
 
         await logActivity({
             userId,
             userName,
-            actionType: 'ARCHIVE_HOSPITAL',
-            details: `Archived hospital: ${hospitalName}`,
+            actionType: 'DELETE_HOSPITAL',
+            details: `Deleted hospital: ${hospitalName}`,
             targetId: id,
             targetType: 'Hospital'
         });
 
     } catch (error) {
+        if(transaction) await transaction.rollback();
         console.error('Database error:', error);
-        return { message: "Database error during archival.", type: 'error' };
+        return { message: "Database error during deletion.", type: 'error' };
     }
     
-    return { message: "Hospital archived successfully.", type: 'success' };
+    return { message: "Hospital deleted successfully.", type: 'success' };
 }
   
 

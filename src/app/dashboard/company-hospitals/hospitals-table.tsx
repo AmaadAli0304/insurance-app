@@ -131,7 +131,7 @@ export function HospitalsTable({ hospitals, onHospitalDeleted }: HospitalsTableP
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                     <AlertDialogDescription>
                       This action cannot be undone. This will permanently delete the hospital
-                      and remove its data from our servers.
+                      and all associated data.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
