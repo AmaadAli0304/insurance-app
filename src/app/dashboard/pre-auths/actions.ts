@@ -131,8 +131,21 @@ async function sendPreAuthEmail(requestData: {
         throw new Error("Mailtrap token is not configured for this hospital.");
     }
     
-    try {
-        const transporter = nodemailer.createTransport({
+    let transporter;
+
+    if (requestData.fromEmail.endsWith('@gmail.com')) {
+        // Use Gmail with App Password
+        transporter = nodemailer.createTransport({
+            service: 'gmail',
+            secure: true,
+            auth: {
+                user: requestData.fromEmail,
+                pass: requestData.token, // This is the App Password
+            }
+        });
+    } else {
+        // Use Mailtrap for other domains
+        transporter = nodemailer.createTransport({
             host: "live.smtp.mailtrap.io",
             port: 587,
             auth: {
@@ -140,7 +153,9 @@ async function sendPreAuthEmail(requestData: {
               pass: requestData.token
             }
         });
-
+    }
+    
+    try {
         await transporter.sendMail({
             from: `"${requestData.fromName}" <${requestData.fromEmail}>`,
             to: requestData.to,
@@ -664,7 +679,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     ];
 
     const statusesThatSendEmail = ['Query Answered', 'Enhancement Request', 'Final Discharge sent'];
-    const statusesThatLogTpaResponse = ['Query Raised', 'Enhanced Amount', 'Final Amount Sanctioned'];
+    const statusesThatLogTpaResponse = ['Query Raised', 'Enhanced Amount', 'Final Amount Sanctioned', 'Settled'];
     
     let transaction;
     try {
@@ -895,6 +910,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     
 
     
+
 
 
 
