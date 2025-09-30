@@ -489,3 +489,49 @@ export async function getStaffSalaryStats(dateRange?: DateRange): Promise<StaffS
     }
 }
     
+export type FinalApprovalStat = {
+  patientName: string;
+  tpaName: string;
+  final_bill: number;
+  hospital_discount: number;
+  nm_deductions: number;
+  co_pay: number;
+  finalAuthorisedAmount: number;
+};
+
+export async function getFinalApprovalStats(dateRange?: DateRange): Promise<FinalApprovalStat[]> {
+    try {
+        const pool = await getDbPool();
+        const request = pool.request();
+        
+        let dateFilter = '';
+        if (dateRange?.from) {
+            const toDate = dateRange.to || new Date(); 
+            request.input('dateFrom', sql.DateTime, dateRange.from);
+            request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+            dateFilter = 'AND c.created_at BETWEEN @dateFrom AND @dateTo';
+        }
+
+        const query = `
+            SELECT
+                c.Patient_name as patientName,
+                t.name as tpaName,
+                c.final_bill,
+                c.hospital_discount,
+                c.nm_deductions,
+                c.co_pay,
+                c.paidAmount as finalAuthorisedAmount
+            FROM claims c
+            LEFT JOIN tpas t ON c.tpa_id = t.id
+            WHERE c.status = 'Final Approval' ${dateFilter}
+            ORDER BY c.created_at DESC;
+        `;
+        
+        const result = await request.query(query);
+        return result.recordset as FinalApprovalStat[];
+
+    } catch (error) {
+        console.error('Error fetching final approval stats:', error);
+        throw new Error('Failed to fetch final approval statistics.');
+    }
+}
