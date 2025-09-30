@@ -679,7 +679,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     ];
 
     const statusesThatSendEmail = ['Query Answered', 'Enhancement Request', 'Final Discharge sent'];
-    const statusesThatLogTpaResponse = ['Query Raised', 'Enhanced Amount', 'Final Amount Sanctioned', 'Settled'];
+    const statusesThatLogTpaResponse = ['Query Raised', 'Enhancement Approval', 'Final Amount Sanctioned', 'Settled'];
     
     let transaction;
     try {
@@ -910,6 +910,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     
 
     
+
 
 
 
