@@ -670,6 +670,13 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     const subject = formData.get('subject') as string;
     const details = formData.get('details') as string;
     const emailAttachmentsData = formData.getAll('email_attachments');
+    
+    // Fields for 'Settled' status
+    const final_authorised_amount_str = formData.get('final_authorised_amount') as string;
+    const deduction_str = formData.get('deduction') as string;
+    const tds_str = formData.get('tds') as string;
+    const final_settlement_amount_str = formData.get('final_settlement_amount') as string;
+
 
     // Handle new uploads
     const documentKeys = [
@@ -907,21 +914,33 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         
         if (status !== 'Final Approval') {
             const claimInsertRequest = new sql.Request(transaction);
-            await claimInsertRequest
+            claimInsertRequest
                 .input('Patient_id', sql.Int, preAuthDetails.patient_id)
                 .input('Patient_name', sql.NVarChar, fullName)
                 .input('admission_id', sql.NVarChar, preAuthDetails.admission_id)
                 .input('status', sql.NVarChar, status) 
                 .input('reason', sql.NVarChar, reason) 
                 .input('created_by', sql.NVarChar, userId || 'System Update') 
-                .input('amount', sql.Decimal(18, 2), amount_sanctioned ? amount_sanctioned : preAuthDetails.totalExpectedCost)
+                .input('amount', sql.Decimal(18, 2), amount_sanctioned ? amount_sanctioned : null)
                 .input('paidAmount', sql.Decimal(18, 2), amount_sanctioned) 
                 .input('hospital_id', sql.NVarChar, preAuthDetails.hospital_id)
                 .input('tpa_id', sql.Int, preAuthDetails.tpa_id)
                 .input('claim_id', sql.NVarChar, claim_id) 
                 .input('created_at', sql.DateTime, now)
-                .input('updated_at', sql.DateTime, now)
-                .query('INSERT INTO claims ( Patient_id, Patient_name, admission_id, status, reason, created_by, amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at ) VALUES ( @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at )');
+                .input('updated_at', sql.DateTime, now);
+
+            if(status === 'Settled'){
+                claimInsertRequest.input('final_amount', sql.Decimal(18,2), final_authorised_amount_str ? parseFloat(final_authorised_amount_str) : null)
+                claimInsertRequest.input('deduction', sql.Decimal(18,2), deduction_str ? parseFloat(deduction_str) : null)
+                claimInsertRequest.input('tds', sql.Decimal(18,2), tds_str ? parseFloat(tds_str) : null)
+                claimInsertRequest.input('final_settlement_amount', sql.Decimal(18,2), final_settlement_amount_str ? parseFloat(final_settlement_amount_str) : null)
+                
+                 await claimInsertRequest.query(`INSERT INTO claims ( Patient_id, Patient_name, admission_id, status, reason, created_by, amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at, final_amount, deduction, tds, final_settlement_amount ) VALUES ( @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at, @final_amount, @deduction, @tds, @final_settlement_amount )`);
+
+            } else {
+                 await claimInsertRequest.query('INSERT INTO claims ( Patient_id, Patient_name, admission_id, status, reason, created_by, amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at ) VALUES ( @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at )');
+            }
+
         }
         
         await transaction.commit();
@@ -953,3 +972,6 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
 
 
 
+
+
+    

@@ -173,6 +173,7 @@ export async function handleUpdateClaim(prevState: { message: string, type?: str
   const reason = formData.get("reason") as string;
   const paidAmount = formData.get("paidAmount") as string;
   const claim_id = formData.get("claim_id") as string;
+  const final_amount = formData.get("final_amount") as string;
   const now = new Date();
 
   if (!id || !status) {
@@ -197,6 +198,10 @@ export async function handleUpdateClaim(prevState: { message: string, type?: str
     if (paidAmount) {
         claimsUpdateQuery += ', paidAmount = @paidAmount';
         claimsRequest.input('paidAmount', sql.Decimal(18, 2), parseFloat(paidAmount));
+    }
+     if (final_amount) {
+        claimsUpdateQuery += ', final_amount = @final_amount';
+        claimsRequest.input('final_amount', sql.Decimal(18, 2), parseFloat(final_amount));
     }
     claimsUpdateQuery += ' WHERE id = @id';
     await claimsRequest.query(claimsUpdateQuery);
@@ -252,3 +257,6 @@ export async function handleDeleteClaim(formData: FormData) {
     }
     revalidatePath('/dashboard/claims');
 }
+
+
+    
