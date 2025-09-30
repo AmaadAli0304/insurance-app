@@ -390,10 +390,12 @@ export default function EditPreAuthPage() {
                             <Input id="amount_sanctioned" name="amount_sanctioned" type="number" step="0.01" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount sanctioned" />
                         </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="reason">Notes / Reason</Label>
-                            <Textarea id="reason" name="reason" defaultValue={request.reason ?? ""} placeholder="Add any relevant notes for this status update." />
-                        </div>
+                        {selectedStatus !== 'Final Approval' && (
+                            <div className="space-y-2">
+                                <Label htmlFor="reason">Notes / Reason</Label>
+                                <Textarea id="reason" name="reason" defaultValue={request.reason ?? ""} placeholder="Add any relevant notes for this status update." />
+                            </div>
+                        )}
 
                         {showEmailFields && (
                             <div className="space-y-4 pt-4 border-t">
@@ -481,3 +483,4 @@ export default function EditPreAuthPage() {
 }
 
     
+
