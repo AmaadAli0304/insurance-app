@@ -363,9 +363,30 @@ export default function EditPreAuthPage() {
                             <Label htmlFor="claim_id">Official Claim ID</Label>
                             <Input id="claim_id" name="claim_id" defaultValue={request.claim_id ?? ''} placeholder="Enter official claim ID from TPA/Insurer" />
                         </div>
+                        
+                        {selectedStatus === 'Final Approval' && (
+                            <div className="grid md:grid-cols-2 gap-4 pt-4 border-t">
+                                <div className="space-y-2">
+                                    <Label htmlFor="final_hospital_bill">Final Hospital Bill</Label>
+                                    <Input id="final_hospital_bill" name="final_hospital_bill" type="number" step="0.01" placeholder="Enter final bill amount" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="hospital_discount">Hospital Discount</Label>
+                                    <Input id="hospital_discount" name="hospital_discount" type="number" step="0.01" placeholder="Enter discount amount" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="nm_deductions">NM Deductions</Label>
+                                    <Input id="nm_deductions" name="nm_deductions" type="number" step="0.01" placeholder="Enter NM deductions" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="co_pay">Co-Pay</Label>
+                                    <Input id="co_pay" name="co_pay" type="number" step="0.01" placeholder="Enter Co-Pay amount" />
+                                </div>
+                            </div>
+                        )}
 
                         <div className="space-y-2">
-                            <Label htmlFor="amount_sanctioned">Amount Sanctioned</Label>
+                            <Label htmlFor="amount_sanctioned">{selectedStatus === 'Final Approval' ? 'Final Authorised Amount' : 'Amount Sanctioned'}</Label>
                             <Input id="amount_sanctioned" name="amount_sanctioned" type="number" step="0.01" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount sanctioned" />
                         </div>
 
@@ -458,3 +479,5 @@ export default function EditPreAuthPage() {
         </div>
     );
 }
+
+    
