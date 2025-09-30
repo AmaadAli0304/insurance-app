@@ -382,13 +382,24 @@ export default function EditPreAuthPage() {
                                     <Label htmlFor="co_pay">Co-Pay</Label>
                                     <Input id="co_pay" name="co_pay" type="number" step="0.01" placeholder="Enter Co-Pay amount" />
                                 </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="final_amount">Final Authorised Amount</Label>
+                                    <Input id="final_amount" name="final_amount" type="number" step="0.01" placeholder="Enter final authorised amount" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="amount_sanctioned">Amount Paid by insured</Label>
+                                    <Input id="amount_sanctioned" name="amount_sanctioned" type="number" step="0.01" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount sanctioned" />
+                                </div>
                             </div>
                         )}
 
-                        <div className="space-y-2">
-                            <Label htmlFor="amount_sanctioned">{selectedStatus === 'Final Approval' ? 'Amount Paid by insured' : 'Amount Sanctioned'}</Label>
-                            <Input id="amount_sanctioned" name="amount_sanctioned" type="number" step="0.01" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount sanctioned" />
-                        </div>
+                        {selectedStatus !== 'Final Approval' && (
+                           <div className="space-y-2">
+                               <Label htmlFor="amount_sanctioned">Amount Sanctioned</Label>
+                               <Input id="amount_sanctioned" name="amount_sanctioned" type="number" step="0.01" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount sanctioned" />
+                           </div>
+                        )}
+
 
                         {selectedStatus !== 'Final Approval' && (
                             <div className="space-y-2">
@@ -483,5 +494,6 @@ export default function EditPreAuthPage() {
 }
 
     
+
 
 
