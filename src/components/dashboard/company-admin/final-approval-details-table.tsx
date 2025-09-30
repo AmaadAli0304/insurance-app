@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -39,11 +40,12 @@ export function FinalApprovalDetailsTable({ dateRange }: FinalApprovalDetailsTab
         acc.nm_deductions += stat.nm_deductions || 0;
         acc.co_pay += stat.co_pay || 0;
         acc.finalAuthorisedAmount += stat.finalAuthorisedAmount || 0;
+        acc.amountPaidByInsured += stat.amountPaidByInsured || 0;
         return acc;
-    }, { final_bill: 0, hospital_discount: 0, nm_deductions: 0, co_pay: 0, finalAuthorisedAmount: 0 });
+    }, { final_bill: 0, hospital_discount: 0, nm_deductions: 0, co_pay: 0, finalAuthorisedAmount: 0, amountPaidByInsured: 0 });
 
     const handleExport = () => {
-        const headers = ["Patient Name", "TPA Name", "Final Hospital Bill", "Hospital Discount", "NM Deductions", "Co-Pay", "Final Authorised Amount"];
+        const headers = ["Patient Name", "TPA Name", "Final Hospital Bill", "Hospital Discount", "NM Deductions", "Co-Pay", "Final Authorised Amount", "Amount Paid by insured"];
         const csvRows = [headers.join(",")];
 
         stats.forEach((stat) => {
@@ -55,6 +57,7 @@ export function FinalApprovalDetailsTable({ dateRange }: FinalApprovalDetailsTab
                 stat.nm_deductions || 0,
                 stat.co_pay || 0,
                 stat.finalAuthorisedAmount || 0,
+                stat.amountPaidByInsured || 0,
             ];
             csvRows.push(row.join(","));
         });
@@ -67,6 +70,7 @@ export function FinalApprovalDetailsTable({ dateRange }: FinalApprovalDetailsTab
             totals.nm_deductions,
             totals.co_pay,
             totals.finalAuthorisedAmount,
+            totals.amountPaidByInsured,
         ].join(","));
 
         const csvContent = csvRows.join("\n");
@@ -81,8 +85,8 @@ export function FinalApprovalDetailsTable({ dateRange }: FinalApprovalDetailsTab
         document.body.removeChild(link);
     };
 
-    const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+    const formatValue = (value: number) => {
+        return new Intl.NumberFormat('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
     }
 
     return (
@@ -113,6 +117,7 @@ export function FinalApprovalDetailsTable({ dateRange }: FinalApprovalDetailsTab
                                 <TableHead className="text-right">NM Deductions</TableHead>
                                 <TableHead className="text-right">Co-Pay</TableHead>
                                 <TableHead className="text-right">Final Authorised Amount</TableHead>
+                                <TableHead className="text-right">Amount Paid by insured</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -121,16 +126,17 @@ export function FinalApprovalDetailsTable({ dateRange }: FinalApprovalDetailsTab
                                     <TableRow key={index}>
                                         <TableCell className="font-medium">{stat.patientName}</TableCell>
                                         <TableCell>{stat.tpaName}</TableCell>
-                                        <TableCell className="text-right font-mono">{formatCurrency(stat.final_bill || 0)}</TableCell>
-                                        <TableCell className="text-right font-mono">{formatCurrency(stat.hospital_discount || 0)}</TableCell>
-                                        <TableCell className="text-right font-mono">{formatCurrency(stat.nm_deductions || 0)}</TableCell>
-                                        <TableCell className="text-right font-mono">{formatCurrency(stat.co_pay || 0)}</TableCell>
-                                        <TableCell className="text-right font-mono">{formatCurrency(stat.finalAuthorisedAmount || 0)}</TableCell>
+                                        <TableCell className="text-right font-mono">{formatValue(stat.final_bill || 0)}</TableCell>
+                                        <TableCell className="text-right font-mono">{formatValue(stat.hospital_discount || 0)}</TableCell>
+                                        <TableCell className="text-right font-mono">{formatValue(stat.nm_deductions || 0)}</TableCell>
+                                        <TableCell className="text-right font-mono">{formatValue(stat.co_pay || 0)}</TableCell>
+                                        <TableCell className="text-right font-mono">{formatValue(stat.finalAuthorisedAmount || 0)}</TableCell>
+                                        <TableCell className="text-right font-mono">{formatValue(stat.amountPaidByInsured || 0)}</TableCell>
                                     </TableRow>
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={7} className="h-24 text-center">
+                                    <TableCell colSpan={8} className="h-24 text-center">
                                         No final approval data available for the selected period.
                                     </TableCell>
                                 </TableRow>
@@ -140,11 +146,12 @@ export function FinalApprovalDetailsTable({ dateRange }: FinalApprovalDetailsTab
                             <TableFooter>
                                 <TableRow>
                                     <TableHead colSpan={2}>TOTAL</TableHead>
-                                    <TableHead className="text-right font-mono">{formatCurrency(totals.final_bill)}</TableHead>
-                                    <TableHead className="text-right font-mono">{formatCurrency(totals.hospital_discount)}</TableHead>
-                                    <TableHead className="text-right font-mono">{formatCurrency(totals.nm_deductions)}</TableHead>
-                                    <TableHead className="text-right font-mono">{formatCurrency(totals.co_pay)}</TableHead>
-                                    <TableHead className="text-right font-mono">{formatCurrency(totals.finalAuthorisedAmount)}</TableHead>
+                                    <TableHead className="text-right font-mono">{formatValue(totals.final_bill)}</TableHead>
+                                    <TableHead className="text-right font-mono">{formatValue(totals.hospital_discount)}</TableHead>
+                                    <TableHead className="text-right font-mono">{formatValue(totals.nm_deductions)}</TableHead>
+                                    <TableHead className="text-right font-mono">{formatValue(totals.co_pay)}</TableHead>
+                                    <TableHead className="text-right font-mono">{formatValue(totals.finalAuthorisedAmount)}</TableHead>
+                                    <TableHead className="text-right font-mono">{formatValue(totals.amountPaidByInsured)}</TableHead>
                                 </TableRow>
                             </TableFooter>
                         )}

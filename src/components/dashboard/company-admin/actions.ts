@@ -497,6 +497,7 @@ export type FinalApprovalStat = {
   nm_deductions: number;
   co_pay: number;
   finalAuthorisedAmount: number;
+  amountPaidByInsured: number;
 };
 
 export async function getFinalApprovalStats(dateRange?: DateRange): Promise<FinalApprovalStat[]> {
@@ -520,7 +521,8 @@ export async function getFinalApprovalStats(dateRange?: DateRange): Promise<Fina
                 c.hospital_discount,
                 c.nm_deductions,
                 c.co_pay,
-                c.amount as finalAuthorisedAmount
+                c.final_amount as finalAuthorisedAmount,
+                c.paidAmount as amountPaidByInsured
             FROM claims c
             LEFT JOIN tpas t ON c.tpa_id = t.id
             WHERE c.status = 'Final Approval' ${dateFilter}
