@@ -386,7 +386,7 @@ export default function EditPreAuthPage() {
                         )}
 
                         <div className="space-y-2">
-                            <Label htmlFor="amount_sanctioned">{selectedStatus === 'Final Approval' ? 'Final Authorised Amount' : 'Amount Sanctioned'}</Label>
+                            <Label htmlFor="amount_sanctioned">{selectedStatus === 'Final Approval' ? 'Amount Paid by insured' : 'Amount Sanctioned'}</Label>
                             <Input id="amount_sanctioned" name="amount_sanctioned" type="number" step="0.01" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount sanctioned" />
                         </div>
 
@@ -483,4 +483,5 @@ export default function EditPreAuthPage() {
 }
 
     
+
 
