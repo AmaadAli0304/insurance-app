@@ -9,12 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Download, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/components/auth-provider";
 
 interface FinalApprovalDetailsTableProps {
   dateRange?: DateRange;
 }
 
 export function FinalApprovalDetailsTable({ dateRange }: FinalApprovalDetailsTableProps) {
+    const { user } = useAuth();
     const [stats, setStats] = useState<FinalApprovalStat[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
@@ -22,9 +24,10 @@ export function FinalApprovalDetailsTable({ dateRange }: FinalApprovalDetailsTab
     const itemsPerPage = 10;
 
     const loadData = useCallback(async () => {
+        if (!user) return;
         setIsLoading(true);
         try {
-            const { stats: data, total } = await getFinalApprovalStats(dateRange, currentPage, itemsPerPage);
+            const { stats: data, total } = await getFinalApprovalStats(dateRange, user.hospitalId, currentPage, itemsPerPage);
             setStats(data);
             setTotalPages(Math.ceil(total / itemsPerPage));
         } catch (error) {
@@ -32,7 +35,7 @@ export function FinalApprovalDetailsTable({ dateRange }: FinalApprovalDetailsTab
         } finally {
             setIsLoading(false);
         }
-    }, [dateRange, currentPage, itemsPerPage]);
+    }, [dateRange, user, currentPage, itemsPerPage]);
 
     useEffect(() => {
         loadData();

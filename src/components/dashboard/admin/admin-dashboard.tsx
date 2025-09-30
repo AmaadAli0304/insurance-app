@@ -15,6 +15,7 @@ import { AdminPatientBillingTable } from "./active-patients-table";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { TpaCollectionTable } from "./tpa-collection-table";
 import { RejectedCasesTable } from "./rejected-cases-table";
+import { FinalApprovalDetailsTable } from "./final-approval-details-table";
 
 
 export function AdminDashboard() {
@@ -77,6 +78,7 @@ export function AdminDashboard() {
       <AdminPatientBillingTable dateRange={date} />
       <TpaCollectionTable dateRange={date} />
       <RejectedCasesTable dateRange={date} />
+      <FinalApprovalDetailsTable dateRange={date} />
     </div>
   )
 }
