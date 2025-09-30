@@ -212,3 +212,84 @@ export async function getRejectedCases(dateRange?: DateRange): Promise<RejectedC
     }
 }
 
+export type FinalApprovalStat = {
+  patientName: string;
+  patientPhoto: string | null;
+  tpaName: string;
+  final_bill: number;
+  hospital_discount: number;
+  nm_deductions: number;
+  co_pay: number;
+  finalAuthorisedAmount: number;
+};
+
+export async function getFinalApprovalStats(
+  dateRange?: DateRange,
+  page: number = 1,
+  limit: number = 10
+): Promise<{ stats: FinalApprovalStat[], total: number }> {
+  try {
+    const pool = await getDbPool();
+    const request = pool.request();
+    const countRequest = pool.request();
+
+    let dateFilter = "WHERE c.status = 'Final Approval'";
+    if (dateRange?.from) {
+      const toDate = dateRange.to || new Date();
+      request.input("dateFrom", sql.DateTime, dateRange.from);
+      countRequest.input("dateFrom", sql.DateTime, dateRange.from);
+      request.input("dateTo", sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+      countRequest.input("dateTo", sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+      dateFilter += " AND c.created_at BETWEEN @dateFrom AND @dateTo";
+    }
+
+    const countQuery = `
+        SELECT COUNT(*) as total
+        FROM claims c
+        ${dateFilter};
+    `;
+    const totalResult = await countRequest.query(countQuery);
+    const total = totalResult.recordset[0].total;
+    
+    const offset = (page - 1) * limit;
+    request.input('offset', sql.Int, offset);
+    request.input('limit', sql.Int, limit);
+
+    const query = `
+            SELECT
+                c.Patient_name as patientName,
+                p.photo as patientPhoto,
+                t.name as tpaName,
+                c.final_bill,
+                c.hospital_discount,
+                c.nm_deductions,
+                c.co_pay,
+                c.amount as finalAuthorisedAmount
+            FROM claims c
+            LEFT JOIN patients p ON c.Patient_id = p.id
+            LEFT JOIN tpas t ON c.tpa_id = t.id
+            ${dateFilter}
+            ORDER BY c.created_at DESC
+            OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
+        `;
+
+    const result = await request.query(query);
+    const stats = result.recordset.map(row => {
+        let photoUrl = null;
+        if (row.patientPhoto) {
+            try {
+                const parsed = JSON.parse(row.patientPhoto);
+                photoUrl = parsed.url;
+            } catch {
+                photoUrl = typeof row.patientPhoto === 'string' && row.patientPhoto.startsWith('http') ? row.patientPhoto : null;
+            }
+        }
+        return { ...row, patientPhoto: photoUrl };
+    });
+
+    return { stats, total };
+  } catch (error) {
+    console.error("Error fetching final approval stats:", error);
+    throw new Error("Failed to fetch final approval statistics.");
+  }
+}
