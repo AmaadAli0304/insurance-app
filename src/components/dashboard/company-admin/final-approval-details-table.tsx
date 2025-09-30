@@ -7,8 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
 import { getFinalApprovalStats, FinalApprovalStat } from "./actions";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2 } from "lucide-react";
+import { Download, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { DateRange } from "react-day-picker";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface FinalApprovalDetailsTableProps {
   dateRange?: DateRange;
@@ -17,18 +18,22 @@ interface FinalApprovalDetailsTableProps {
 export function FinalApprovalDetailsTable({ dateRange }: FinalApprovalDetailsTableProps) {
     const [stats, setStats] = useState<FinalApprovalStat[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const itemsPerPage = 10;
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const data = await getFinalApprovalStats(dateRange);
+            const { stats: data, total } = await getFinalApprovalStats(dateRange, currentPage, itemsPerPage);
             setStats(data);
+            setTotalPages(Math.ceil(total / itemsPerPage));
         } catch (error) {
             console.error("Failed to load final approval stats:", error);
         } finally {
             setIsLoading(false);
         }
-    }, [dateRange]);
+    }, [dateRange, currentPage, itemsPerPage]);
 
     useEffect(() => {
         loadData();
@@ -87,7 +92,20 @@ export function FinalApprovalDetailsTable({ dateRange }: FinalApprovalDetailsTab
 
     const formatValue = (value: number) => {
         return new Intl.NumberFormat('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
+    };
+
+    const getInitials = (name: string) => {
+        if (!name) return 'P';
+        return name.split(' ').map(n => n[0]).join('').toUpperCase();
     }
+    
+    const handlePrevPage = () => {
+        setCurrentPage((prev) => Math.max(prev - 1, 1));
+    };
+
+    const handleNextPage = () => {
+        setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+    };
 
     return (
         <Card>
@@ -107,55 +125,84 @@ export function FinalApprovalDetailsTable({ dateRange }: FinalApprovalDetailsTab
                         <Loader2 className="h-8 w-8 animate-spin" />
                     </div>
                 ) : (
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Patient Name</TableHead>
-                                <TableHead>TPA Name</TableHead>
-                                <TableHead className="text-right">Final Hospital Bill</TableHead>
-                                <TableHead className="text-right">Hospital Discount</TableHead>
-                                <TableHead className="text-right">NM Deductions</TableHead>
-                                <TableHead className="text-right">Co-Pay</TableHead>
-                                <TableHead className="text-right">Final Authorised Amount</TableHead>
-                                <TableHead className="text-right">Amount Paid by insured</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {stats.length > 0 ? (
-                                stats.map((stat, index) => (
-                                    <TableRow key={index}>
-                                        <TableCell className="font-medium">{stat.patientName}</TableCell>
-                                        <TableCell>{stat.tpaName}</TableCell>
-                                        <TableCell className="text-right font-mono">{formatValue(stat.final_bill || 0)}</TableCell>
-                                        <TableCell className="text-right font-mono">{formatValue(stat.hospital_discount || 0)}</TableCell>
-                                        <TableCell className="text-right font-mono">{formatValue(stat.nm_deductions || 0)}</TableCell>
-                                        <TableCell className="text-right font-mono">{formatValue(stat.co_pay || 0)}</TableCell>
-                                        <TableCell className="text-right font-mono">{formatValue(stat.finalAuthorisedAmount || 0)}</TableCell>
-                                        <TableCell className="text-right font-mono">{formatValue(stat.amountPaidByInsured || 0)}</TableCell>
+                    <>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Patient Name</TableHead>
+                                    <TableHead>TPA Name</TableHead>
+                                    <TableHead className="text-right">Final Hospital Bill</TableHead>
+                                    <TableHead className="text-right">Hospital Discount</TableHead>
+                                    <TableHead className="text-right">NM Deductions</TableHead>
+                                    <TableHead className="text-right">Co-Pay</TableHead>
+                                    <TableHead className="text-right">Final Authorised Amount</TableHead>
+                                    <TableHead className="text-right">Amount Paid by insured</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {stats.length > 0 ? (
+                                    stats.map((stat, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell className="font-medium flex items-center gap-3">
+                                                 <Avatar className="h-10 w-10">
+                                                    <AvatarImage src={stat.patientPhoto ?? undefined} alt={stat.patientName} />
+                                                    <AvatarFallback>{getInitials(stat.patientName)}</AvatarFallback>
+                                                </Avatar>
+                                                {stat.patientName}
+                                            </TableCell>
+                                            <TableCell>{stat.tpaName}</TableCell>
+                                            <TableCell className="text-right font-mono">{formatValue(stat.final_bill || 0)}</TableCell>
+                                            <TableCell className="text-right font-mono">{formatValue(stat.hospital_discount || 0)}</TableCell>
+                                            <TableCell className="text-right font-mono">{formatValue(stat.nm_deductions || 0)}</TableCell>
+                                            <TableCell className="text-right font-mono">{formatValue(stat.co_pay || 0)}</TableCell>
+                                            <TableCell className="text-right font-mono">{formatValue(stat.finalAuthorisedAmount || 0)}</TableCell>
+                                            <TableCell className="text-right font-mono">{formatValue(stat.amountPaidByInsured || 0)}</TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={8} className="h-24 text-center">
+                                            No final approval data available for the selected period.
+                                        </TableCell>
                                     </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={8} className="h-24 text-center">
-                                        No final approval data available for the selected period.
-                                    </TableCell>
-                                </TableRow>
+                                )}
+                            </TableBody>
+                            {stats.length > 0 && (
+                                <TableFooter>
+                                    <TableRow>
+                                        <TableHead colSpan={2}>TOTAL</TableHead>
+                                        <TableHead className="text-right font-mono">{formatValue(totals.final_bill)}</TableHead>
+                                        <TableHead className="text-right font-mono">{formatValue(totals.hospital_discount)}</TableHead>
+                                        <TableHead className="text-right font-mono">{formatValue(totals.nm_deductions)}</TableHead>
+                                        <TableHead className="text-right font-mono">{formatValue(totals.co_pay)}</TableHead>
+                                        <TableHead className="text-right font-mono">{formatValue(totals.finalAuthorisedAmount)}</TableHead>
+                                        <TableHead className="text-right font-mono">{formatValue(totals.amountPaidByInsured)}</TableHead>
+                                    </TableRow>
+                                </TableFooter>
                             )}
-                        </TableBody>
-                        {stats.length > 0 && (
-                            <TableFooter>
-                                <TableRow>
-                                    <TableHead colSpan={2}>TOTAL</TableHead>
-                                    <TableHead className="text-right font-mono">{formatValue(totals.final_bill)}</TableHead>
-                                    <TableHead className="text-right font-mono">{formatValue(totals.hospital_discount)}</TableHead>
-                                    <TableHead className="text-right font-mono">{formatValue(totals.nm_deductions)}</TableHead>
-                                    <TableHead className="text-right font-mono">{formatValue(totals.co_pay)}</TableHead>
-                                    <TableHead className="text-right font-mono">{formatValue(totals.finalAuthorisedAmount)}</TableHead>
-                                    <TableHead className="text-right font-mono">{formatValue(totals.amountPaidByInsured)}</TableHead>
-                                </TableRow>
-                            </TableFooter>
-                        )}
-                    </Table>
+                        </Table>
+                         <div className="flex items-center justify-end space-x-2 py-4">
+                            <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handlePrevPage}
+                            disabled={currentPage === 1}
+                            >
+                                <ChevronLeft className="h-4 w-4 mr-1" /> Previous
+                            </Button>
+                            <span className="text-sm text-muted-foreground">
+                                Page {currentPage} of {totalPages}
+                            </span>
+                            <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleNextPage}
+                            disabled={currentPage === totalPages}
+                            >
+                                Next <ChevronRight className="h-4 w-4 ml-1" />
+                            </Button>
+                        </div>
+                    </>
                 )}
             </CardContent>
         </Card>

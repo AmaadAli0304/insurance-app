@@ -491,6 +491,7 @@ export async function getStaffSalaryStats(dateRange?: DateRange): Promise<StaffS
     
 export type FinalApprovalStat = {
   patientName: string;
+  patientPhoto: string | null;
   tpaName: string;
   final_bill: number;
   hospital_discount: number;
@@ -500,22 +501,44 @@ export type FinalApprovalStat = {
   amountPaidByInsured: number;
 };
 
-export async function getFinalApprovalStats(dateRange?: DateRange): Promise<FinalApprovalStat[]> {
+export async function getFinalApprovalStats(
+  dateRange?: DateRange,
+  page: number = 1,
+  limit: number = 10
+): Promise<{ stats: FinalApprovalStat[], total: number }> {
     try {
         const pool = await getDbPool();
         const request = pool.request();
+        const countRequest = pool.request();
         
-        let dateFilter = '';
+        let whereClauses: string[] = ["c.status = 'Final Approval'"];
         if (dateRange?.from) {
             const toDate = dateRange.to || new Date(); 
             request.input('dateFrom', sql.DateTime, dateRange.from);
+            countRequest.input('dateFrom', sql.DateTime, dateRange.from);
             request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-            dateFilter = 'AND c.created_at BETWEEN @dateFrom AND @dateTo';
+            countRequest.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+            whereClauses.push("c.created_at BETWEEN @dateFrom AND @dateTo");
         }
+
+        const whereClause = `WHERE ${whereClauses.join(' AND ')}`;
+
+        const countQuery = `
+            SELECT COUNT(*) as total
+            FROM claims c
+            ${whereClause};
+        `;
+        const totalResult = await countRequest.query(countQuery);
+        const total = totalResult.recordset[0].total;
+        
+        const offset = (page - 1) * limit;
+        request.input('offset', sql.Int, offset);
+        request.input('limit', sql.Int, limit);
 
         const query = `
             SELECT
                 c.Patient_name as patientName,
+                p.photo as patientPhoto,
                 t.name as tpaName,
                 c.final_bill,
                 c.hospital_discount,
@@ -524,18 +547,31 @@ export async function getFinalApprovalStats(dateRange?: DateRange): Promise<Fina
                 c.final_amount as finalAuthorisedAmount,
                 c.paidAmount as amountPaidByInsured
             FROM claims c
+            LEFT JOIN patients p ON c.Patient_id = p.id
             LEFT JOIN tpas t ON c.tpa_id = t.id
-            WHERE c.status = 'Final Approval' ${dateFilter}
-            ORDER BY c.created_at DESC;
+            ${whereClause}
+            ORDER BY c.created_at DESC
+            OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
         `;
         
         const result = await request.query(query);
-        return result.recordset as FinalApprovalStat[];
+         const stats = result.recordset.map(row => {
+            let photoUrl = null;
+            if (row.patientPhoto) {
+                try {
+                    const parsed = JSON.parse(row.patientPhoto);
+                    photoUrl = parsed.url;
+                } catch {
+                    photoUrl = typeof row.patientPhoto === 'string' && row.patientPhoto.startsWith('http') ? row.patientPhoto : null;
+                }
+            }
+            return { ...row, patientPhoto: photoUrl };
+        });
+
+        return { stats, total };
 
     } catch (error) {
         console.error('Error fetching final approval stats:', error);
         throw new Error('Failed to fetch final approval statistics.');
     }
 }
-
-    

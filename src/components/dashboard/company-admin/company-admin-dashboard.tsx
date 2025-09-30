@@ -19,7 +19,7 @@ import { PatientBillingTable } from "./patient-billing-table";
 import { SimpleBusinessSummaryTable } from "./simple-business-summary-table";
 import { StaffPerformanceTable } from "./staff-performance-table";
 import { StaffOnDutyTable } from "./staff-on-duty-table";
-import { FinalApprovalDetailsTable } from "../admin/final-approval-details-table";
+import { FinalApprovalDetailsTable } from "./final-approval-details-table";
 
 
 interface DashboardStats {
