@@ -30,7 +30,7 @@ const getStatusVariant = (status: ClaimStatus) => {
        case 'Approved':
        case 'Approval':
        case 'Amount Sanctioned':
-       case 'Amount Received':
+       case 'Initial Approval':
         return 'default'
       default:
         return 'secondary';

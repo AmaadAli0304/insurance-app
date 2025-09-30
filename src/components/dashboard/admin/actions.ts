@@ -56,7 +56,7 @@ export async function getPatientBilledStatsForAdmin(dateRange?: DateRange, hospi
                 (
                     SELECT ISNULL(SUM(c_inner.paidAmount), 0)
                     FROM claims c_inner
-                    WHERE c_inner.Patient_id = p.id AND c_inner.status = 'Final Amount Sanctioned'
+                    WHERE c_inner.Patient_id = p.id AND c_inner.status = 'Final Approval'
                     ${dateRange?.from ? 'AND c_inner.created_at BETWEEN @dateFrom AND @dateTo' : ''}
                 ) as sanctionedAmount
             FROM patients p
@@ -135,8 +135,8 @@ export async function getTpaCollectionStats(dateRange?: DateRange): Promise<TpaC
                 t.id AS tpaId,
                 t.name AS tpaName,
                 ISNULL(SUM(CASE WHEN c.status = 'Pre auth Sent' THEN c.amount ELSE 0 END), 0) as amount,
-                ISNULL(SUM(CASE WHEN c.status = 'Final Amount Sanctioned' THEN c.paidAmount ELSE 0 END), 0) as received,
-                (ISNULL(SUM(CASE WHEN c.status = 'Pre auth Sent' THEN c.amount ELSE 0 END), 0) - ISNULL(SUM(CASE WHEN c.status = 'Final Amount Sanctioned' THEN c.paidAmount ELSE 0 END), 0)) as deductions
+                ISNULL(SUM(CASE WHEN c.status = 'Final Approval' THEN c.paidAmount ELSE 0 END), 0) as received,
+                (ISNULL(SUM(CASE WHEN c.status = 'Pre auth Sent' THEN c.amount ELSE 0 END), 0) - ISNULL(SUM(CASE WHEN c.status = 'Final Approval' THEN c.paidAmount ELSE 0 END), 0)) as deductions
             FROM tpas t
             LEFT JOIN claims c ON t.id = c.tpa_id ${dateFilter}
             GROUP BY

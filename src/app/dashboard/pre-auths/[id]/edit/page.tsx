@@ -165,8 +165,8 @@ const preAuthStatuses: PreAuthStatus[] = [
     'Enhancement Request', 
     'Enhancement Approval', 
     'Final Discharge sent', 
-    'Final Amount Sanctioned', 
-    'Amount received',
+    'Final Approval', 
+    'Initial Approval',
     'Settled',
     'Rejected'
 ];

@@ -74,7 +74,7 @@ export default function PreAuthsPage() {
     switch (status) {
       case 'Approval':
       case 'Amount Sanctioned':
-      case 'Amount Received':
+      case 'Initial Approval':
       case 'Settlement Done':
         return 'default';
       case 'Rejected':

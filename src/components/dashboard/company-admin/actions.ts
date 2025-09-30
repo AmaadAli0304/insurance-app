@@ -106,9 +106,9 @@ export async function getHospitalBusinessStats(dateRange?: DateRange): Promise<H
         (SELECT COUNT(*) FROM admissions a WHERE a.hospital_id = h.id AND a.status = 'Active') as activePatients,
         (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Final Discharge sent' ${getDateFilter('pr')}) as preAuthApproved,
         (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Pre auth Sent' ${getDateFilter('pr')}) as preAuthPending,
-        (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Final Amount Sanctioned' ${getDateFilter('pr')}) as finalAuthSanctioned,
+        (SELECT COUNT(*) FROM preauth_request pr WHERE pr.hospital_id = h.id AND pr.status = 'Final Approval' ${getDateFilter('pr')}) as finalAuthSanctioned,
         ISNULL((SELECT SUM(c.amount) FROM claims c WHERE c.hospital_id = h.id AND c.status IN ('Pre auth Sent', 'Enhancement Request') ${getDateFilter('c')}), 0) as billedAmount,
-        ISNULL((SELECT SUM(c.amount) FROM claims c WHERE c.hospital_id = h.id AND c.status = 'Final Amount Sanctioned' ${getDateFilter('c')}), 0) as collection
+        ISNULL((SELECT SUM(c.amount) FROM claims c WHERE c.hospital_id = h.id AND c.status = 'Final Approval' ${getDateFilter('c')}), 0) as collection
       FROM hospitals h
       ORDER BY h.name
     `;
@@ -313,7 +313,7 @@ export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<S
             FROM 
                 users u
             LEFT JOIN 
-                claims c ON u.uid = c.created_by AND c.status = 'Final Amount Sanctioned' ${dateFilter}
+                claims c ON u.uid = c.created_by AND c.status = 'Final Approval' ${dateFilter}
             LEFT JOIN 
                 HospitalAssignments ha ON u.uid = ha.staff_id
             WHERE 
@@ -409,7 +409,7 @@ export async function getStaffOnDutyStats(): Promise<StaffOnDutyStat[]> {
             ClaimCounts AS (
                 SELECT
                     created_by,
-                    SUM(CASE WHEN status = 'Final Amount Sanctioned' THEN 1 ELSE 0 END) as finalApprovalCount,
+                    SUM(CASE WHEN status = 'Final Approval' THEN 1 ELSE 0 END) as finalApprovalCount,
                     SUM(CASE WHEN status = 'Final Discharge sent' THEN 1 ELSE 0 END) as dischargeCount,
                     SUM(CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END) as rejectionCount
                 FROM claims

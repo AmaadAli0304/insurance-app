@@ -213,7 +213,7 @@ export type PreAuthStatus =
   | 'Initial Approval Amount'
   | 'Approval'
   | 'Amount Sanctioned'
-  | 'Amount Received'
+  | 'Initial Approval'
   | 'Settlement Done'
   | 'Rejected'
   | 'Draft'
@@ -221,8 +221,8 @@ export type PreAuthStatus =
   | 'Enhancement Request'
   | 'Enhancement Approval'
   | 'Final Discharge sent'
-  | 'Final Amount Sanctioned'
-  | 'Amount received'
+  | 'Final Approval'
+  | 'Initial Approval'
   | 'Pre auth Sent'
   | 'Settled';
 
@@ -395,7 +395,7 @@ export interface StaffingRequest {
   proposedTreatment?: string;
 }
 
-export type ClaimStatus = 'Processing' | 'Approved' | 'Paid' | 'Rejected' | 'Appealed' | 'Pending' | 'Query Raised' | 'Query Answered' | 'Initial Approval Amount' | 'Amount Sanctioned' | 'Amount Received' | 'Settlement Done' | 'Pre auth Sent';
+export type ClaimStatus = 'Processing' | 'Approved' | 'Paid' | 'Rejected' | 'Appealed' | 'Pending' | 'Query Raised' | 'Query Answered' | 'Initial Approval Amount' | 'Amount Sanctioned' | 'Initial Approval' | 'Settlement Done' | 'Pre auth Sent';
 export interface Claim {
   id: number;
   claim_id?: string | null;

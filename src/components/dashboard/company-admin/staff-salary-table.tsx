@@ -42,7 +42,7 @@ export function StaffSalaryTable({ dateRange }: StaffSalaryTableProps) {
     }, { invoiceAmount: 0, amountReceived: 0, tds: 0, gst: 0 });
 
     const handleExport = () => {
-        const headers = ["Hospital", "Invoice Amount", "Invoice No", "Status", "Amount Received", "TDS", "GST"];
+        const headers = ["Hospital", "Invoice Amount", "Invoice No", "Status", "Initial Approval", "TDS", "GST"];
         const csvRows = [headers.join(",")];
 
         stats.forEach((stat) => {
@@ -105,7 +105,7 @@ export function StaffSalaryTable({ dateRange }: StaffSalaryTableProps) {
                                 <TableHead className="text-right">Invoice amount</TableHead>
                                 <TableHead>Invoice No</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead className="text-right">Amount received</TableHead>
+                                <TableHead className="text-right">Initial Approval</TableHead>
                                 <TableHead className="text-right">TDS</TableHead>
                                 <TableHead className="text-right">GST</TableHead>
                             </TableRow>

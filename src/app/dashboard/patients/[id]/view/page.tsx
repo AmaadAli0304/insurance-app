@@ -66,7 +66,7 @@ const getStatusVariant = (status?: PreAuthStatus) => {
     switch (status) {
       case 'Approval':
       case 'Amount Sanctioned':
-      case 'Amount Received':
+      case 'Initial Approval':
       case 'Settlement Done':
       case 'Approved':
         return 'default';

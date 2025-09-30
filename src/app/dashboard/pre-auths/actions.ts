@@ -679,7 +679,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     ];
 
     const statusesThatSendEmail = ['Query Answered', 'Enhancement Request', 'Final Discharge sent'];
-    const statusesThatLogTpaResponse = ['Query Raised', 'Enhancement Approval', 'Final Amount Sanctioned', 'Settled'];
+    const statusesThatLogTpaResponse = ['Query Raised', 'Enhancement Approval', 'Final Approval', 'Settled'];
     
     let transaction;
     try {
@@ -736,7 +736,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         const parsedAttachments = emailAttachmentsData
             .map(att => typeof att === 'string' ? JSON.parse(att) : att);
 
-        if (status === 'Amount received') {
+        if (status === 'Initial Approval') {
             const tpaEmail = preAuthDetails.tpaEmail;
             const hospitalEmail = preAuthDetails.hospitalEmail;
             const tpaSubject = `[${status}] Regarding Pre-Auth for ${fullName} - Claim ID: ${claim_id || preAuthDetails.claim_id || 'N/A'}`;
@@ -777,10 +777,10 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
             await transaction.commit();
             revalidatePath('/dashboard/pre-auths');
             revalidatePath('/dashboard/claims');
-            return { message: 'Chat and Claim record created for amount received.', type: 'success' };
+            return { message: 'Chat and Claim record created for Initial Approval.', type: 'success' };
         }
         
-        if (status === 'Final Amount Sanctioned') {
+        if (status === 'Final Approval') {
             const admissionId = preAuthDetails.admission_id;
             if (admissionId) {
                 await new sql.Request(transaction)

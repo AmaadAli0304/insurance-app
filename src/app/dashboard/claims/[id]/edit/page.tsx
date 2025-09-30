@@ -25,7 +25,7 @@ function SubmitButton() {
     );
 }
 
-const claimStatuses: ClaimStatus[] = ['Pending', 'Processing', 'Query Raised', 'Query Answered', 'Initial Approval Amount', 'Approval', 'Amount Sanctioned', 'Amount Received', 'Settlement Done', 'Rejected', 'Appealed', 'Paid', 'Approved'];
+const claimStatuses: ClaimStatus[] = ['Pending', 'Processing', 'Query Raised', 'Query Answered', 'Initial Approval Amount', 'Approval', 'Amount Sanctioned', 'Initial Approval', 'Settlement Done', 'Rejected', 'Appealed', 'Paid', 'Approved'];
 
 export default function EditClaimPage() {
     const params = useParams();

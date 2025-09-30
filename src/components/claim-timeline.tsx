@@ -28,7 +28,7 @@ const getStatusDetails = (status: ClaimStatus) => {
             return { icon: BadgeDollarSign, color: 'text-teal-500', description: 'Approved an initial amount' };
         case 'Amount Sanctioned':
              return { icon: HandCoins, color: 'text-indigo-500', description: 'Final amount approved' };
-        case 'Amount Received':
+        case 'Initial Approval':
             return { icon: CheckCircle2, color: 'text-green-600', description: 'Payment received from TPA/Insurer' };
         case 'Settlement Done':
         case 'Paid':
