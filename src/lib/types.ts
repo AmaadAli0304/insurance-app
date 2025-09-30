@@ -219,7 +219,7 @@ export type PreAuthStatus =
   | 'Draft'
   | 'Approved' // Kept for backwards compatibility
   | 'Enhancement Request'
-  | 'Enhanced Amount'
+  | 'Enhancement Approval'
   | 'Final Discharge sent'
   | 'Final Amount Sanctioned'
   | 'Amount received'

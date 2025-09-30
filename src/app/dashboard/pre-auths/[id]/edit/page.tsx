@@ -163,7 +163,7 @@ const preAuthStatuses: PreAuthStatus[] = [
     'Query Raised', 
     'Query Answered', 
     'Enhancement Request', 
-    'Enhanced Amount', 
+    'Enhancement Approval', 
     'Final Discharge sent', 
     'Final Amount Sanctioned', 
     'Amount received',
