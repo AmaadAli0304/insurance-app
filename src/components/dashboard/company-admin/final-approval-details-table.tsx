@@ -40,12 +40,12 @@ export function FinalApprovalDetailsTable({ dateRange }: FinalApprovalDetailsTab
     }, [loadData]);
     
     const totals = stats.reduce((acc, stat) => {
-        acc.final_bill += stat.final_bill || 0;
-        acc.hospital_discount += stat.hospital_discount || 0;
-        acc.nm_deductions += stat.nm_deductions || 0;
-        acc.co_pay += stat.co_pay || 0;
-        acc.finalAuthorisedAmount += stat.finalAuthorisedAmount || 0;
-        acc.amountPaidByInsured += stat.amountPaidByInsured || 0;
+        acc.final_bill += Number(stat.final_bill) || 0;
+        acc.hospital_discount += Number(stat.hospital_discount) || 0;
+        acc.nm_deductions += Number(stat.nm_deductions) || 0;
+        acc.co_pay += Number(stat.co_pay) || 0;
+        acc.finalAuthorisedAmount += Number(stat.finalAuthorisedAmount) || 0;
+        acc.amountPaidByInsured += Number(stat.amountPaidByInsured) || 0;
         return acc;
     }, { final_bill: 0, hospital_discount: 0, nm_deductions: 0, co_pay: 0, finalAuthorisedAmount: 0, amountPaidByInsured: 0 });
 
