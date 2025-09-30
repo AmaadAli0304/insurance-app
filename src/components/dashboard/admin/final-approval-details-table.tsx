@@ -95,7 +95,7 @@ export function FinalApprovalDetailsTable({ dateRange }: FinalApprovalDetailsTab
     };
 
     const formatValue = (value: number) => {
-        return new Intl.NumberFormat('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
+        return value.toLocaleString('en-IN');
     };
     
     const getInitials = (name: string) => {
