@@ -5,7 +5,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
-import { getFinalApprovalStats, FinalApprovalStat } from "./actions";
+import { getFinalApprovalStats, FinalApprovalStat } from "@/app/dashboard/admin/actions";
 import { Button } from "@/components/ui/button";
 import { Download, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { DateRange } from "react-day-picker";
@@ -203,3 +203,5 @@ export function FinalApprovalDetailsTable({ dateRange }: FinalApprovalDetailsTab
         </Card>
     );
 }
+
+    
