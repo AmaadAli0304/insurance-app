@@ -408,6 +408,11 @@ export interface Claim {
   created_by?: string | null;
   created_at: string;
   updated_at: string;
+  amount?: number;
+  final_bill?: number;
+  hospital_discount?: number;
+  nm_deductions?: number;
+  co_pay?: number;
   
   // Joined properties
   hospitalName?: string;

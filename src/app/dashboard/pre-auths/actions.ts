@@ -679,7 +679,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     ];
 
     const statusesThatSendEmail = ['Query Answered', 'Enhancement Request', 'Final Discharge sent'];
-    const statusesThatLogTpaResponse = ['Query Raised', 'Enhancement Approval', 'Final Approval', 'Settled'];
+    const statusesThatLogTpaResponse = ['Query Raised', 'Enhancement Approval', 'Settled'];
     
     let transaction;
     try {
@@ -788,6 +788,35 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
                     .input('status', sql.NVarChar, 'Inactive')
                     .query('UPDATE admissions SET status = @status WHERE admission_id = @admission_id');
             }
+            
+            const final_hospital_bill = formData.get('final_hospital_bill') as string;
+            const hospital_discount = formData.get('hospital_discount') as string;
+            const nm_deductions = formData.get('nm_deductions') as string;
+            const co_pay = formData.get('co_pay') as string;
+            
+            const claimInsertRequest = new sql.Request(transaction);
+            await claimInsertRequest
+                .input('Patient_id', sql.Int, preAuthDetails.patient_id)
+                .input('Patient_name', sql.NVarChar, fullName)
+                .input('admission_id', sql.NVarChar, preAuthDetails.admission_id)
+                .input('status', sql.NVarChar, status)
+                .input('created_by', sql.NVarChar, userId || 'System Update')
+                .input('amount', sql.Decimal(18, 2), amount_sanctioned ? parseFloat(amount_sanctioned.toString()) : null)
+                .input('final_bill', sql.Decimal(18, 2), final_hospital_bill ? parseFloat(final_hospital_bill) : null)
+                .input('hospital_discount', sql.Decimal(18, 2), hospital_discount ? parseFloat(hospital_discount) : null)
+                .input('nm_deductions', sql.Decimal(18, 2), nm_deductions ? parseFloat(nm_deductions) : null)
+                .input('co_pay', sql.Decimal(18, 2), co_pay ? parseFloat(co_pay) : null)
+                .input('hospital_id', sql.NVarChar, preAuthDetails.hospital_id)
+                .input('tpa_id', sql.Int, preAuthDetails.tpa_id)
+                .input('claim_id', sql.NVarChar, claim_id || preAuthDetails.claim_id)
+                .input('created_at', sql.DateTime, now)
+                .input('updated_at', sql.DateTime, now)
+                .query(`INSERT INTO claims (
+                    Patient_id, Patient_name, admission_id, status, created_by, amount, final_bill, hospital_discount, nm_deductions, co_pay, hospital_id, tpa_id, claim_id, created_at, updated_at
+                ) VALUES (
+                    @Patient_id, @Patient_name, @admission_id, @status, @created_by, @amount, @final_bill, @hospital_discount, @nm_deductions, @co_pay, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at
+                )`);
+
         }
 
 
@@ -874,22 +903,24 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
 
         await preAuthRequest.query(preAuthUpdateQuery);
         
-        const claimInsertRequest = new sql.Request(transaction);
-        await claimInsertRequest
-            .input('Patient_id', sql.Int, preAuthDetails.patient_id)
-            .input('Patient_name', sql.NVarChar, fullName)
-            .input('admission_id', sql.NVarChar, preAuthDetails.admission_id)
-            .input('status', sql.NVarChar, status) 
-            .input('reason', sql.NVarChar, reason) 
-            .input('created_by', sql.NVarChar, userId || 'System Update') 
-            .input('amount', sql.Decimal(18, 2), amount_sanctioned ? amount_sanctioned : preAuthDetails.totalExpectedCost)
-            .input('paidAmount', sql.Decimal(18, 2), amount_sanctioned) 
-            .input('hospital_id', sql.NVarChar, preAuthDetails.hospital_id)
-            .input('tpa_id', sql.Int, preAuthDetails.tpa_id)
-            .input('claim_id', sql.NVarChar, claim_id) 
-            .input('created_at', sql.DateTime, now)
-            .input('updated_at', sql.DateTime, now)
-            .query('INSERT INTO claims ( Patient_id, Patient_name, admission_id, status, reason, created_by, amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at ) VALUES ( @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at )');
+        if (status !== 'Final Approval') {
+            const claimInsertRequest = new sql.Request(transaction);
+            await claimInsertRequest
+                .input('Patient_id', sql.Int, preAuthDetails.patient_id)
+                .input('Patient_name', sql.NVarChar, fullName)
+                .input('admission_id', sql.NVarChar, preAuthDetails.admission_id)
+                .input('status', sql.NVarChar, status) 
+                .input('reason', sql.NVarChar, reason) 
+                .input('created_by', sql.NVarChar, userId || 'System Update') 
+                .input('amount', sql.Decimal(18, 2), amount_sanctioned ? amount_sanctioned : preAuthDetails.totalExpectedCost)
+                .input('paidAmount', sql.Decimal(18, 2), amount_sanctioned) 
+                .input('hospital_id', sql.NVarChar, preAuthDetails.hospital_id)
+                .input('tpa_id', sql.Int, preAuthDetails.tpa_id)
+                .input('claim_id', sql.NVarChar, claim_id) 
+                .input('created_at', sql.DateTime, now)
+                .input('updated_at', sql.DateTime, now)
+                .query('INSERT INTO claims ( Patient_id, Patient_name, admission_id, status, reason, created_by, amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at ) VALUES ( @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at )');
+        }
         
         await transaction.commit();
 
@@ -910,6 +941,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     
 
     
+
 
 
 

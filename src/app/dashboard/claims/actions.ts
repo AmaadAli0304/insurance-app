@@ -1,4 +1,5 @@
 
+
 "use server";
 
 import { redirect } from 'next/navigation';
@@ -106,7 +107,7 @@ export async function getClaimById(id: string): Promise<Claim | null> {
     try {
         const pool = await getDbPool();
         const result = await pool.request()
-            .input('id', sql.Int, Number(id))
+            .input('id', sql.NVarChar, id)
             .query(`
                  SELECT 
                     cl.*,

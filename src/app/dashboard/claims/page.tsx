@@ -172,7 +172,7 @@ export default function ClaimsPage() {
                       </TableCell>
                       <TableCell className="font-mono">{c.claim_id || 'N/A'}</TableCell>
                       <TableCell>{c.hospitalName || 'N/A'}</TableCell>
-                      <TableCell>{c.claimAmount?.toLocaleString() || 'N/A'}</TableCell>
+                      <TableCell>{c.amount?.toLocaleString() || 'N/A'}</TableCell>
                       <TableCell>
                         <Badge variant={getStatusVariant(c.status)} className={c.status === 'Paid' || c.status === 'Approved' ? 'bg-accent text-accent-foreground' : ''}>{c.status}</Badge>
                       </TableCell>
