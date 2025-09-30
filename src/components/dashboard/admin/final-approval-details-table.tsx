@@ -27,7 +27,8 @@ export function FinalApprovalDetailsTable({ dateRange }: FinalApprovalDetailsTab
         if (!user) return;
         setIsLoading(true);
         try {
-            const { stats: data, total } = await getFinalApprovalStats(dateRange, user.hospitalId, currentPage, itemsPerPage);
+            const hospitalId = user.role === 'Admin' ? user.hospitalId : null;
+            const { stats: data, total } = await getFinalApprovalStats(dateRange, hospitalId, currentPage, itemsPerPage);
             setStats(data);
             setTotalPages(Math.ceil(total / itemsPerPage));
         } catch (error) {
