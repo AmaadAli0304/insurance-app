@@ -274,7 +274,7 @@ export async function getFinalApprovalStats(
                 c.nm_deductions,
                 c.co_pay,
                 c.final_amount as finalAuthorisedAmount,
-                c.paidAmount as amountPaidByInsured
+                c.amount as amountPaidByInsured
             FROM claims c
             LEFT JOIN patients p ON c.Patient_id = p.id
             LEFT JOIN tpas t ON c.tpa_id = t.id
@@ -303,3 +303,4 @@ export async function getFinalApprovalStats(
     throw new Error("Failed to fetch final approval statistics.");
   }
 }
+
