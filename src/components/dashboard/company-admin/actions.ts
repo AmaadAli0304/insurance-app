@@ -520,7 +520,7 @@ export async function getFinalApprovalStats(dateRange?: DateRange): Promise<Fina
                 c.hospital_discount,
                 c.nm_deductions,
                 c.co_pay,
-                c.paidAmount as finalAuthorisedAmount
+                c.amount as finalAuthorisedAmount
             FROM claims c
             LEFT JOIN tpas t ON c.tpa_id = t.id
             WHERE c.status = 'Final Approval' ${dateFilter}
