@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -81,6 +80,10 @@ export function FinalApprovalDetailsTable({ dateRange }: FinalApprovalDetailsTab
         document.body.removeChild(link);
     };
 
+    const formatCurrency = (value: number) => {
+        return new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+    }
+
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
@@ -117,11 +120,11 @@ export function FinalApprovalDetailsTable({ dateRange }: FinalApprovalDetailsTab
                                     <TableRow key={index}>
                                         <TableCell className="font-medium">{stat.patientName}</TableCell>
                                         <TableCell>{stat.tpaName}</TableCell>
-                                        <TableCell className="text-right font-mono">{(stat.final_bill || 0).toLocaleString('en-IN')}</TableCell>
-                                        <TableCell className="text-right font-mono">{(stat.hospital_discount || 0).toLocaleString('en-IN')}</TableCell>
-                                        <TableCell className="text-right font-mono">{(stat.nm_deductions || 0).toLocaleString('en-IN')}</TableCell>
-                                        <TableCell className="text-right font-mono">{(stat.co_pay || 0).toLocaleString('en-IN')}</TableCell>
-                                        <TableCell className="text-right font-mono">{(stat.finalAuthorisedAmount || 0).toLocaleString('en-IN')}</TableCell>
+                                        <TableCell className="text-right font-mono">{formatCurrency(stat.final_bill || 0)}</TableCell>
+                                        <TableCell className="text-right font-mono">{formatCurrency(stat.hospital_discount || 0)}</TableCell>
+                                        <TableCell className="text-right font-mono">{formatCurrency(stat.nm_deductions || 0)}</TableCell>
+                                        <TableCell className="text-right font-mono">{formatCurrency(stat.co_pay || 0)}</TableCell>
+                                        <TableCell className="text-right font-mono">{formatCurrency(stat.finalAuthorisedAmount || 0)}</TableCell>
                                     </TableRow>
                                 ))
                             ) : (
@@ -136,11 +139,11 @@ export function FinalApprovalDetailsTable({ dateRange }: FinalApprovalDetailsTab
                             <TableFooter>
                                 <TableRow>
                                     <TableHead colSpan={2}>TOTAL</TableHead>
-                                    <TableHead className="text-right font-mono">{totals.final_bill.toLocaleString('en-IN')}</TableHead>
-                                    <TableHead className="text-right font-mono">{totals.hospital_discount.toLocaleString('en-IN')}</TableHead>
-                                    <TableHead className="text-right font-mono">{totals.nm_deductions.toLocaleString('en-IN')}</TableHead>
-                                    <TableHead className="text-right font-mono">{totals.co_pay.toLocaleString('en-IN')}</TableHead>
-                                    <TableHead className="text-right font-mono">{totals.finalAuthorisedAmount.toLocaleString('en-IN')}</TableHead>
+                                    <TableHead className="text-right font-mono">{formatCurrency(totals.final_bill)}</TableHead>
+                                    <TableHead className="text-right font-mono">{formatCurrency(totals.hospital_discount)}</TableHead>
+                                    <TableHead className="text-right font-mono">{formatCurrency(totals.nm_deductions)}</TableHead>
+                                    <TableHead className="text-right font-mono">{formatCurrency(totals.co_pay)}</TableHead>
+                                    <TableHead className="text-right font-mono">{formatCurrency(totals.finalAuthorisedAmount)}</TableHead>
                                 </TableRow>
                             </TableFooter>
                         )}
