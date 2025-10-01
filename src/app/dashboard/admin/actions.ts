@@ -436,7 +436,7 @@ export async function getPreAuthSummaryStats(
                 pr.first_name + ' ' + pr.last_name AS patientName,
                 pr.status,
                 pr.admissionDate,
-                COALESCE(t.name, comp.name, 'N/A') as tpaName,
+                COALESCE(tpa.name, comp.name, 'N/A') as tpaName,
                 comp.name as insuranceName,
                 pr.corporate_policy_number as corporate,
                 pr.amount_sanctioned as approvedAmount,
@@ -444,7 +444,7 @@ export async function getPreAuthSummaryStats(
                 pr.roomCategory,
                 pr.totalExpectedCost as budget
             FROM preauth_request pr
-            LEFT JOIN tpas t ON pr.tpa_id = t.id
+            LEFT JOIN tpas tpa ON pr.tpa_id = tpa.id
             LEFT JOIN companies comp ON pr.company_id = comp.id
             ${whereClause}
             ORDER BY pr.created_at DESC;
