@@ -393,3 +393,68 @@ export async function getSettledStatusStats(
         throw new Error("Failed to fetch settled status statistics.");
     }
 }
+
+export type PreAuthSummaryStat = {
+  patientName: string;
+  status: string;
+  admissionDate: string | null;
+  tpaName: string;
+  insuranceName: string;
+  corporate: string | null;
+  approvedAmount: number | null;
+  doctorInCharge: string | null;
+  roomCategory: string | null;
+  budget: number | null;
+};
+
+export async function getPreAuthSummaryStats(
+  dateRange?: DateRange,
+  hospitalId?: string | null
+): Promise<PreAuthSummaryStat[]> {
+    try {
+        const pool = await getDbPool();
+        const request = pool.request();
+        
+        let whereClauses: string[] = [];
+        
+        if (dateRange?.from) {
+            const toDate = dateRange.to || new Date(); 
+            request.input('dateFrom', sql.DateTime, dateRange.from);
+            request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+            whereClauses.push('pr.created_at BETWEEN @dateFrom AND @dateTo');
+        }
+
+        if (hospitalId) {
+            request.input('hospitalId', sql.NVarChar, hospitalId);
+            whereClauses.push('pr.hospital_id = @hospitalId');
+        }
+        
+        const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
+        const query = `
+            SELECT
+                pr.first_name + ' ' + pr.last_name AS patientName,
+                pr.status,
+                pr.admissionDate,
+                t.name as tpaName,
+                co.name as insuranceName,
+                pr.corporate_policy_number as corporate,
+                pr.amount_sanctioned as approvedAmount,
+                pr.treat_doc_name as doctorInCharge,
+                pr.roomCategory,
+                pr.totalExpectedCost as budget
+            FROM preauth_request pr
+            LEFT JOIN tpas t ON pr.tpa_id = t.id
+            LEFT JOIN companies co ON pr.company_id = co.id
+            ${whereClause}
+            ORDER BY pr.created_at DESC;
+        `;
+
+        const result = await request.query(query);
+        return result.recordset as PreAuthSummaryStat[];
+
+    } catch (error) {
+        console.error('Error fetching pre-auth summary stats:', error);
+        throw new Error('Failed to fetch pre-auth summary statistics.');
+    }
+}
