@@ -576,3 +576,86 @@ export async function getFinalApprovalStats(
     }
 }
 
+export type SettledStatusStat = {
+    patientName: string;
+    patientPhoto: string | null;
+    tpaName: string;
+    finalAuthorisedAmount: number;
+    deduction: number;
+    tds: number;
+    finalSettlementAmount: number;
+    netAmountCredited: number;
+};
+
+export async function getSettledStatusStats(
+  dateRange?: DateRange,
+  page: number = 1,
+  limit: number = 10
+): Promise<{ stats: SettledStatusStat[], total: number }> {
+    try {
+        const pool = await getDbPool();
+        const request = pool.request();
+        const countRequest = pool.request();
+
+        let whereClauses: string[] = ["c.status = 'Settled'"];
+        if (dateRange?.from) {
+            const toDate = dateRange.to || new Date();
+            request.input("dateFrom", sql.DateTime, dateRange.from);
+            countRequest.input("dateFrom", sql.DateTime, dateRange.from);
+            request.input("dateTo", sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+            countRequest.input("dateTo", sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+            whereClauses.push("c.created_at BETWEEN @dateFrom AND @dateTo");
+        }
+
+        const whereClause = `WHERE ${whereClauses.join(' AND ')}`;
+
+        const countQuery = `
+            SELECT COUNT(*) as total
+            FROM claims c
+            ${whereClause};
+        `;
+        const totalResult = await countRequest.query(countQuery);
+        const total = totalResult.recordset[0].total;
+
+        const offset = (page - 1) * limit;
+        request.input('offset', sql.Int, offset);
+        request.input('limit', sql.Int, limit);
+
+        const query = `
+            SELECT
+                c.Patient_name as patientName,
+                p.photo as patientPhoto,
+                t.name as tpaName,
+                c.final_amount as finalAuthorisedAmount,
+                c.nm_deductions as deduction,
+                c.tds,
+                c.final_settle_amount as finalSettlementAmount,
+                c.amount as netAmountCredited
+            FROM claims c
+            LEFT JOIN patients p ON c.Patient_id = p.id
+            LEFT JOIN tpas t ON c.tpa_id = t.id
+            ${whereClause}
+            ORDER BY c.created_at DESC
+            OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
+        `;
+
+        const result = await request.query(query);
+        const stats = result.recordset.map(row => {
+            let photoUrl = null;
+            if (row.patientPhoto) {
+                try {
+                    const parsed = JSON.parse(row.patientPhoto);
+                    photoUrl = parsed.url;
+                } catch {
+                    photoUrl = typeof row.patientPhoto === 'string' && row.patientPhoto.startsWith('http') ? row.patientPhoto : null;
+                }
+            }
+            return { ...row, patientPhoto: photoUrl };
+        });
+
+        return { stats, total };
+    } catch (error) {
+        console.error("Error fetching settled status stats:", error);
+        throw new Error("Failed to fetch settled status statistics.");
+    }
+}

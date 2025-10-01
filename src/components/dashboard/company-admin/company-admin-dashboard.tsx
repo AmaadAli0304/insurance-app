@@ -20,6 +20,7 @@ import { SimpleBusinessSummaryTable } from "./simple-business-summary-table";
 import { StaffPerformanceTable } from "./staff-performance-table";
 import { StaffOnDutyTable } from "./staff-on-duty-table";
 import { FinalApprovalDetailsTable } from "./final-approval-details-table";
+import { SettledStatusDetailsTable } from "./settled-status-details-table";
 
 
 interface DashboardStats {
@@ -199,6 +200,8 @@ export function CompanyAdminDashboard() {
           <StaffOnDutyTable />
 
           <FinalApprovalDetailsTable dateRange={date} />
+
+          <SettledStatusDetailsTable dateRange={date} />
           
         </>
       )}
