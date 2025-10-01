@@ -187,7 +187,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
     const detailsRequest = await pool.request()
       .input('hospitalId', sql.NVarChar, hospitalId)
       .input('patientId', sql.Int, patientId)
-      .query(\`
+      .query(`
         SELECT 
           h.name as hospitalName, 
           h.email as hospitalEmail,
@@ -199,7 +199,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
         CROSS JOIN (SELECT TOP 1 tpa_id, insurance_company FROM admissions WHERE patient_id = @patientId ORDER BY id DESC) a
         LEFT JOIN tpas t ON a.tpa_id = t.id
         WHERE h.id = @hospitalId
-      \`);
+      `);
       
     if (detailsRequest.recordset.length === 0) {
         throw new Error("Could not find hospital or patient admission details.");
@@ -231,7 +231,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
                         contentType: contentType
                     };
                 } catch (fetchError) {
-                    console.error(\`Error fetching attachment \${att.name}:\`, fetchError);
+                    console.error(`Error fetching attachment ${att.name}:`, fetchError);
                     return null; // Return null for failed downloads
                 }
             })
@@ -527,7 +527,7 @@ export async function getPreAuthRequestById(id: string): Promise<StaffingRequest
         const pool = await getDbPool();
         const requestResult = await pool.request()
             .input('id', sql.Int, Number(id))
-            .query(\`
+            .query(`
                 SELECT 
                     pr.*, 
                     pr.patient_id as patientId,
@@ -555,7 +555,7 @@ export async function getPreAuthRequestById(id: string): Promise<StaffingRequest
                 LEFT JOIN companies comp ON pr.company_id = comp.id
                 LEFT JOIN tpas tpa ON pr.tpa_id = tpa.id
                 WHERE pr.id = @id
-            \`);
+            `);
         
         if (requestResult.recordset.length === 0) return null;
         
@@ -585,7 +585,7 @@ export async function getPreAuthRequestById(id: string): Promise<StaffingRequest
                 .query('SELECT * FROM chat WHERE preauth_id = @id ORDER BY created_at DESC'),
             pool.request()
                 .input('patient_id', sql.Int, request.patientId)
-                .query(\`SELECT id, status, reason, amount as claimAmount, paidAmount, updated_at FROM claims WHERE Patient_id = @patient_id ORDER BY updated_at DESC\`)
+                .query(`SELECT id, status, reason, amount as claimAmount, paidAmount, updated_at FROM claims WHERE Patient_id = @patient_id ORDER BY updated_at DESC`)
         ]);
 
         const chatHistory = chatResult.recordset as ChatMessage[];
@@ -674,7 +674,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     const emailAttachmentsData = formData.getAll('email_attachments');
     
     // Fields for 'Settled' status
-    const final_authorised_amount_str = formData.get('final_authorised_amount') as string;
+    const final_authorised_amount_str = formData.get('final_amount') as string;
     const deduction_str = formData.get('nm_deductions') as string; // User said deduction maps to nm_deductions
     const tds_str = formData.get('tds') as string;
     const final_settlement_amount_str = formData.get('final_settle_amount') as string;
@@ -728,13 +728,13 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         const getPreAuthDetailsRequest = new sql.Request(transaction);
         const preAuthDetailsResult = await getPreAuthDetailsRequest
             .input('id', sql.Int, Number(id))
-            .query(\`
+            .query(`
                 SELECT pr.*, t.email as tpaEmail, h.email as hospitalEmail, h.name as hospitalName, h.mailtrap_token as mailtrapToken
                 FROM preauth_request pr
                 LEFT JOIN tpas t ON pr.tpa_id = t.id
                 LEFT JOIN hospitals h ON pr.hospital_id = h.id
                 WHERE pr.id = @id
-            \`);
+            `);
 
         if (preAuthDetailsResult.recordset.length === 0) {
             throw new Error('Could not find the pre-authorization request.');
@@ -823,11 +823,11 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
                 .input('claim_id', sql.NVarChar, claim_id || preAuthDetails.claim_id)
                 .input('created_at', sql.DateTime, now)
                 .input('updated_at', sql.DateTime, now)
-                .query(\`INSERT INTO claims (
+                .query(`INSERT INTO claims (
                     Patient_id, Patient_name, admission_id, status, created_by, amount, final_bill, hospital_discount, nm_deductions, co_pay, final_amount, hospital_id, tpa_id, claim_id, created_at, updated_at
                 ) VALUES (
                     @Patient_id, @Patient_name, @admission_id, @status, @created_by, @amount, @final_bill, @hospital_discount, @nm_deductions, @co_pay, @final_amount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at
-                )\`);
+                )`);
 
         }
 
@@ -845,7 +845,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
                         const contentType = response.headers.get('content-type') || 'application/octet-stream';
                         return { filename: att.name, content: Buffer.from(buffer), contentType };
                     } catch (fetchError) {
-                        console.error(\`Error fetching attachment \${att.name}:\`, fetchError);
+                        console.error(`Error fetching attachment ${att.name}:`, fetchError);
                         return null;
                     }
                 })
@@ -888,7 +888,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         if (shouldLogTpaResponse) {
             const tpaEmail = preAuthDetails.tpaEmail;
             const hospitalEmail = preAuthDetails.hospitalEmail;
-            const tpaSubject = \`[\${status}] Regarding Pre-Auth for \${fullName} - Claim ID: \${claim_id || preAuthDetails.claim_id || 'N/A'}\`;
+            const tpaSubject = `[${status}] Regarding Pre-Auth for ${fullName} - Claim ID: ${claim_id || preAuthDetails.claim_id || 'N/A'}`;
             
             const chatInsertRequest = new sql.Request(transaction);
             await chatInsertRequest
@@ -938,7 +938,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
                 claimInsertRequest.input('tds', sql.Decimal(18,2), tds_str ? parseFloat(tds_str) : null);
                 claimInsertRequest.input('final_settle_amount', sql.Decimal(18,2), final_settlement_amount_str ? parseFloat(final_settlement_amount_str) : null);
                 
-                 await claimInsertRequest.query(\`INSERT INTO claims ( Patient_id, Patient_name, admission_id, status, reason, created_by, amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at, final_amount, nm_deductions, tds, final_settle_amount ) VALUES ( @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at, @final_amount, @nm_deductions, @tds, @final_settle_amount )\`);
+                 await claimInsertRequest.query(`INSERT INTO claims ( Patient_id, Patient_name, admission_id, status, reason, created_by, amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at, final_amount, nm_deductions, tds, final_settle_amount ) VALUES ( @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at, @final_amount, @nm_deductions, @tds, @final_settle_amount )`);
 
             } else {
                  await claimInsertRequest.query('INSERT INTO claims ( Patient_id, Patient_name, admission_id, status, reason, created_by, amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at ) VALUES ( @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at )');
@@ -975,5 +975,6 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
 
 
 
-
     
+
+
