@@ -393,5 +393,3 @@ export async function getSettledStatusStats(
         throw new Error("Failed to fetch settled status statistics.");
     }
 }
-    
-```
