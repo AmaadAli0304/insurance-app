@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getPreAuthSummaryStats, PreAuthSummaryStat } from "./actions";
+import { getPreAuthSummaryStats, PreAuthSummaryStat } from "@/app/dashboard/admin/actions";
 import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
 import { DateRange } from "react-day-picker";
@@ -18,14 +18,13 @@ interface PreAuthSummaryTableProps {
 
 export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
     const { user } = useAuth();
-    const hospitalId = user?.hospitalId;
-
     const [stats, setStats] = useState<PreAuthSummaryStat[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
+            const hospitalId = user?.role === 'Admin' ? user.hospitalId : null;
             const data = await getPreAuthSummaryStats(dateRange, hospitalId);
             setStats(data);
         } catch (error) {
@@ -33,11 +32,13 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
         } finally {
             setIsLoading(false);
         }
-    }, [dateRange, hospitalId]);
+    }, [dateRange, user]);
 
     useEffect(() => {
-        loadData();
-    }, [loadData]);
+        if(user) {
+            loadData();
+        }
+    }, [loadData, user]);
     
     const handleExport = () => {
         const headers = ["Patient Name", "Status", "DOA", "TPA", "Insurance", "Year/Corporate", "Approval", "Dr in Charge", "Room Category", "Budget"];

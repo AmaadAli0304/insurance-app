@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getPatientBilledStatsForAdmin, getTpaList, PatientBilledStat } from "./actions";
+import { getPatientBilledStatsForAdmin, getTpaList, PatientBilledStat } from "@/app/dashboard/admin/actions";
 import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -19,16 +19,16 @@ interface AdminPatientBillingTableProps {
 
 export function AdminPatientBillingTable({ dateRange }: AdminPatientBillingTableProps) {
     const { user } = useAuth();
-    const hospitalId = user?.hospitalId;
-
     const [stats, setStats] = useState<PatientBilledStat[]>([]);
     const [tpaList, setTpaList] = useState<Pick<TPA, 'id' | 'name'>[]>([]);
     const [selectedTpaId, setSelectedTpaId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     const loadData = useCallback(async () => {
+        if (!user) return;
         setIsLoading(true);
         try {
+            const hospitalId = user.role === 'Admin' ? user.hospitalId : null;
             const [patientData, tpas] = await Promise.all([
                 getPatientBilledStatsForAdmin(dateRange, hospitalId, selectedTpaId),
                 getTpaList(),
@@ -40,7 +40,7 @@ export function AdminPatientBillingTable({ dateRange }: AdminPatientBillingTable
         } finally {
             setIsLoading(false);
         }
-    }, [dateRange, hospitalId, selectedTpaId]);
+    }, [dateRange, user, selectedTpaId]);
 
     useEffect(() => {
         loadData();

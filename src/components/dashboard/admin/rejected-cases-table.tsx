@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getRejectedCases, RejectedCase } from "./actions";
+import { getRejectedCases, RejectedCase } from "@/app/dashboard/admin/actions";
 import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
 import { DateRange } from "react-day-picker";
