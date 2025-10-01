@@ -1,4 +1,5 @@
 
+
 "use server";
 
 import { getDbPool, sql } from "@/lib/db";
@@ -845,23 +846,25 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
         transaction = new sql.Transaction(pool);
         await transaction.begin();
 
-        const photoJson = createDocumentJson(data.photoUrl, data.photoName);
-        const adhaarJson = createDocumentJson(data.adhaar_path_url, data.adhaar_path_name);
-        const panJson = createDocumentJson(data.pan_path_url, data.pan_path_name);
-        const passportJson = createDocumentJson(data.passport_path_url, data.passport_path_name);
-        const voterIdJson = createDocumentJson(data.voter_id_path_url, data.voter_id_path_name);
-        const drivingLicenceJson = createDocumentJson(data.driving_licence_path_url, data.driving_licence_path_name);
-        const otherJson = createDocumentJson(data.other_path_url, data.other_path_name);
-        const dischargeSummaryJson = createDocumentJson(data.discharge_summary_path_url, data.discharge_summary_path_name);
-        const finalBillJson = createDocumentJson(data.final_bill_path_url, data.final_bill_path_name);
-        const pharmacyBillJson = createDocumentJson(data.pharmacy_bill_path_url, data.pharmacy_bill_path_name);
-        const implantBillJson = createDocumentJson(data.implant_bill_stickers_path_url, data.implant_bill_stickers_path_name);
-        const labBillJson = createDocumentJson(data.lab_bill_path_url, data.lab_bill_path_name);
-        const otNotesJson = createDocumentJson(data.ot_anesthesia_notes_path_url, data.ot_anesthesia_notes_path_name);
-        const policyJson = createDocumentJson(data.policy_path_url, data.policy_path_name);
+        const documentFields: { [key: string]: string | null } = {
+            photo: createDocumentJson(data.photoUrl, data.photoName),
+            adhaar_path: createDocumentJson(data.adhaar_path_url, data.adhaar_path_name),
+            pan_path: createDocumentJson(data.pan_path_url, data.pan_path_name),
+            passport_path: createDocumentJson(data.passport_path_url, data.passport_path_name),
+            voter_id_path: createDocumentJson(data.voter_id_path_url, data.voter_id_path_name),
+            driving_licence_path: createDocumentJson(data.driving_licence_path_url, data.driving_licence_path_name),
+            other_path: createDocumentJson(data.other_path_url, data.other_path_name),
+            policy_path: createDocumentJson(data.policy_path_url, data.policy_path_name),
+            discharge_summary: createDocumentJson(data.discharge_summary_path_url, data.discharge_summary_path_name),
+            final_bill: createDocumentJson(data.final_bill_path_url, data.final_bill_path_name),
+            pharmacy_bill: createDocumentJson(data.pharmacy_bill_path_url, data.pharmacy_bill_path_name),
+            implant_bill: createDocumentJson(data.implant_bill_stickers_path_url, data.implant_bill_stickers_path_name),
+            lab_bill: createDocumentJson(data.lab_bill_path_url, data.lab_bill_path_name),
+            ot_notes: createDocumentJson(data.ot_anesthesia_notes_path_url, data.ot_anesthesia_notes_path_name),
+        };
 
         const patientRequest = new sql.Request(transaction);
-        await patientRequest
+        patientRequest
             .input('id', sql.Int, Number(patientId))
             .input('first_name', sql.NVarChar, data.firstName)
             .input('last_name', sql.NVarChar, data.lastName)
@@ -875,34 +878,25 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
             .input('employee_id', sql.NVarChar, data.employee_id || null)
             .input('abha_id', sql.NVarChar, data.abha_id || null)
             .input('health_id', sql.NVarChar, data.health_id || null)
-            .input('hospital_id', sql.NVarChar, data.hospital_id || null)
-            .input('photo', sql.NVarChar, photoJson)
-            .input('adhaar_path', sql.NVarChar, adhaarJson)
-            .input('pan_path', sql.NVarChar, panJson)
-            .input('passport_path', sql.NVarChar, passportJson)
-            .input('voter_id_path', sql.NVarChar, voterIdJson)
-            .input('driving_licence_path', sql.NVarChar, drivingLicenceJson)
-            .input('other_path', sql.NVarChar, otherJson)
-            .input('discharge_summary', sql.NVarChar, dischargeSummaryJson)
-            .input('final_bill', sql.NVarChar, finalBillJson)
-            .input('pharmacy_bill', sql.NVarChar, pharmacyBillJson)
-            .input('implant_bill', sql.NVarChar, implantBillJson)
-            .input('lab_bill', sql.NVarChar, labBillJson)
-            .input('ot_notes', sql.NVarChar, otNotesJson)
-            .input('policy_path', sql.NVarChar, policyJson)
-            .query(`
-                UPDATE patients 
-                SET 
-                first_name = @first_name, last_name = @last_name, email_address = @email_address, phone_number = @phone_number, alternative_number = @alternative_number, 
-                gender = @gender, birth_date = @birth_date, address = @address, occupation = @occupation,
-                employee_id = @employee_id, abha_id = @abha_id, health_id = @health_id, hospital_id = @hospital_id,
-                photo = @photo, adhaar_path = @adhaar_path, pan_path = @pan_path, passport_path = @passport_path, 
-                voter_id_path = @voter_id_path, driving_licence_path = @driving_licence_path, other_path = @other_path,
-                discharge_summary = @discharge_summary, final_bill = @final_bill, pharmacy_bill = @pharmacy_bill,
-                implant_bill = @implant_bill, lab_bill = @lab_bill, ot_notes = @ot_notes, policy_path = @policy_path,
-                updated_at = GETDATE()
-                WHERE id = @id
-            `);
+            .input('hospital_id', sql.NVarChar, data.hospital_id || null);
+
+        let patientSetClauses: string[] = [
+            'first_name = @first_name', 'last_name = @last_name', 'email_address = @email_address', 
+            'phone_number = @phone_number', 'alternative_number = @alternative_number', 'gender = @gender', 
+            'birth_date = @birth_date', 'address = @address', 'occupation = @occupation', 
+            'employee_id = @employee_id', 'abha_id = @abha_id', 'health_id = @health_id', 'hospital_id = @hospital_id',
+            'updated_at = GETDATE()'
+        ];
+
+        for (const [key, value] of Object.entries(documentFields)) {
+            if (value !== null) {
+                patientSetClauses.push(`${key} = @${key}`);
+                patientRequest.input(key, sql.NVarChar, value);
+            }
+        }
+        
+        await patientRequest.query(`UPDATE patients SET ${patientSetClauses.join(', ')} WHERE id = @id`);
+
 
         // Update admissions table
         if (admission_db_id) {
@@ -1138,6 +1132,7 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
     
 
     
+
 
 
 
