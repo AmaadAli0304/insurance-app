@@ -846,23 +846,6 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
         transaction = new sql.Transaction(pool);
         await transaction.begin();
 
-        const documentFields: { [key: string]: string | null } = {
-            photo: createDocumentJson(data.photoUrl, data.photoName),
-            adhaar_path: createDocumentJson(data.adhaar_path_url, data.adhaar_path_name),
-            pan_path: createDocumentJson(data.pan_path_url, data.pan_path_name),
-            passport_path: createDocumentJson(data.passport_path_url, data.passport_path_name),
-            voter_id_path: createDocumentJson(data.voter_id_path_url, data.voter_id_path_name),
-            driving_licence_path: createDocumentJson(data.driving_licence_path_url, data.driving_licence_path_name),
-            other_path: createDocumentJson(data.other_path_url, data.other_path_name),
-            policy_path: createDocumentJson(data.policy_path_url, data.policy_path_name),
-            discharge_summary: createDocumentJson(data.discharge_summary_path_url, data.discharge_summary_path_name),
-            final_bill: createDocumentJson(data.final_bill_path_url, data.final_bill_path_name),
-            pharmacy_bill: createDocumentJson(data.pharmacy_bill_path_url, data.pharmacy_bill_path_name),
-            implant_bill: createDocumentJson(data.implant_bill_stickers_path_url, data.implant_bill_stickers_path_name),
-            lab_bill: createDocumentJson(data.lab_bill_path_url, data.lab_bill_path_name),
-            ot_notes: createDocumentJson(data.ot_anesthesia_notes_path_url, data.ot_anesthesia_notes_path_name),
-        };
-
         const patientRequest = new sql.Request(transaction);
         patientRequest
             .input('id', sql.Int, Number(patientId))
@@ -888,15 +871,36 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
             'updated_at = GETDATE()'
         ];
 
-        for (const [key, value] of Object.entries(documentFields)) {
-            if (value !== null) {
-                patientSetClauses.push(`${key} = @${key}`);
-                patientRequest.input(key, sql.NVarChar, value);
+        const documentKeys: (keyof typeof data)[] = [
+            'photoUrl', 'adhaar_path_url', 'pan_path_url', 'passport_path_url', 'voter_id_path_url', 'driving_licence_path_url', 'other_path_url', 'policy_path_url', 'discharge_summary_path_url',
+            'final_bill_path_url', 'pharmacy_bill_path_url', 'implant_bill_stickers_path_url', 'lab_bill_path_url', 'ot_anesthesia_notes_path_url'
+        ];
+
+        for (const urlKey of documentKeys) {
+            const nameKey = urlKey.replace('_url', '_name') as keyof typeof data;
+            const dbFieldKey = urlKey.replace('_path_url', '').replace('_url', '');
+            
+            const url = data[urlKey] as string | undefined;
+            const name = data[nameKey] as string | undefined;
+            const fileInputName = urlKey.replace('_url', '-file');
+            
+            if (formData.has(fileInputName) && url && name) {
+                const docJson = JSON.stringify({ url, name });
+                
+                let dbColumn = dbFieldKey;
+                if (dbFieldKey === 'discharge_summary_path') dbColumn = 'discharge_summary';
+                else if (dbFieldKey === 'final_bill_path') dbColumn = 'final_bill';
+                else if (dbFieldKey === 'pharmacy_bill_path') dbColumn = 'pharmacy_bill';
+                else if (dbFieldKey === 'implant_bill_stickers_path') dbColumn = 'implant_bill';
+                else if (dbFieldKey === 'lab_bill_path') dbColumn = 'lab_bill';
+                else if (dbFieldKey === 'ot_anesthesia_notes_path') dbColumn = 'ot_notes';
+                
+                patientSetClauses.push(`${dbColumn} = @${dbColumn}`);
+                patientRequest.input(dbColumn, sql.NVarChar, docJson);
             }
         }
         
         await patientRequest.query(`UPDATE patients SET ${patientSetClauses.join(', ')} WHERE id = @id`);
-
 
         // Update admissions table
         if (admission_db_id) {
@@ -1143,3 +1147,6 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
 
 
 
+
+
+    
