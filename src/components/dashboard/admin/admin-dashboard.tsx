@@ -16,6 +16,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { TpaCollectionTable } from "./tpa-collection-table";
 import { RejectedCasesTable } from "./rejected-cases-table";
 import { FinalApprovalDetailsTable } from "./final-approval-details-table";
+import { SettledStatusDetailsTable } from "./settled-status-details-table";
 
 
 export function AdminDashboard() {
@@ -79,6 +80,7 @@ export function AdminDashboard() {
       <TpaCollectionTable dateRange={date} />
       <RejectedCasesTable dateRange={date} />
       <FinalApprovalDetailsTable dateRange={date} />
+      <SettledStatusDetailsTable dateRange={date} />
     </div>
   )
 }
