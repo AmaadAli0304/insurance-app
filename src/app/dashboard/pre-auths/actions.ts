@@ -187,7 +187,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
     const detailsRequest = await pool.request()
       .input('hospitalId', sql.NVarChar, hospitalId)
       .input('patientId', sql.Int, patientId)
-      .query(`
+      .query(\`
         SELECT 
           h.name as hospitalName, 
           h.email as hospitalEmail,
@@ -199,7 +199,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
         CROSS JOIN (SELECT TOP 1 tpa_id, insurance_company FROM admissions WHERE patient_id = @patientId ORDER BY id DESC) a
         LEFT JOIN tpas t ON a.tpa_id = t.id
         WHERE h.id = @hospitalId
-      `);
+      \`);
       
     if (detailsRequest.recordset.length === 0) {
         throw new Error("Could not find hospital or patient admission details.");
@@ -231,7 +231,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
                         contentType: contentType
                     };
                 } catch (fetchError) {
-                    console.error(`Error fetching attachment ${att.name}:`, fetchError);
+                    console.error(\`Error fetching attachment \${att.name}:\`, fetchError);
                     return null; // Return null for failed downloads
                 }
             })
@@ -527,7 +527,7 @@ export async function getPreAuthRequestById(id: string): Promise<StaffingRequest
         const pool = await getDbPool();
         const requestResult = await pool.request()
             .input('id', sql.Int, Number(id))
-            .query(`
+            .query(\`
                 SELECT 
                     pr.*, 
                     pr.patient_id as patientId,
@@ -555,7 +555,7 @@ export async function getPreAuthRequestById(id: string): Promise<StaffingRequest
                 LEFT JOIN companies comp ON pr.company_id = comp.id
                 LEFT JOIN tpas tpa ON pr.tpa_id = tpa.id
                 WHERE pr.id = @id
-            `);
+            \`);
         
         if (requestResult.recordset.length === 0) return null;
         
@@ -585,7 +585,7 @@ export async function getPreAuthRequestById(id: string): Promise<StaffingRequest
                 .query('SELECT * FROM chat WHERE preauth_id = @id ORDER BY created_at DESC'),
             pool.request()
                 .input('patient_id', sql.Int, request.patientId)
-                .query(`SELECT id, status, reason, amount as claimAmount, paidAmount, updated_at FROM claims WHERE Patient_id = @patient_id ORDER BY updated_at DESC`)
+                .query(\`SELECT id, status, reason, amount as claimAmount, paidAmount, updated_at FROM claims WHERE Patient_id = @patient_id ORDER BY updated_at DESC\`)
         ]);
 
         const chatHistory = chatResult.recordset as ChatMessage[];
@@ -661,8 +661,10 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     const status = formData.get('status') as PreAuthStatus;
     const claim_id = formData.get('claim_id') as string;
     const reason = formData.get('reason') as string;
+    const amount_str = formData.get('amount') as string;
     const amount_sanctioned_str = formData.get('amount_sanctioned') as string;
     const amount_sanctioned = amount_sanctioned_str ? parseFloat(amount_sanctioned_str) : null;
+    const amount = amount_str ? parseFloat(amount_str) : null;
     const userId = formData.get('userId') as string;
 
     const from = formData.get('from') as string;
@@ -673,9 +675,9 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     
     // Fields for 'Settled' status
     const final_authorised_amount_str = formData.get('final_authorised_amount') as string;
-    const deduction_str = formData.get('deduction') as string;
+    const deduction_str = formData.get('nm_deductions') as string; // User said deduction maps to nm_deductions
     const tds_str = formData.get('tds') as string;
-    const final_settlement_amount_str = formData.get('final_settlement_amount') as string;
+    const final_settlement_amount_str = formData.get('final_settle_amount') as string;
 
 
     // Handle new uploads
@@ -686,7 +688,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     ];
 
     const statusesThatSendEmail = ['Query Answered', 'Enhancement Request', 'Final Discharge sent'];
-    const statusesThatLogTpaResponse = ['Query Raised', 'Enhancement Approval', 'Settled'];
+    const statusesThatLogTpaResponse = ['Query Raised', 'Enhancement Approval'];
     
     let transaction;
     try {
@@ -726,13 +728,13 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         const getPreAuthDetailsRequest = new sql.Request(transaction);
         const preAuthDetailsResult = await getPreAuthDetailsRequest
             .input('id', sql.Int, Number(id))
-            .query(`
+            .query(\`
                 SELECT pr.*, t.email as tpaEmail, h.email as hospitalEmail, h.name as hospitalName, h.mailtrap_token as mailtrapToken
                 FROM preauth_request pr
                 LEFT JOIN tpas t ON pr.tpa_id = t.id
                 LEFT JOIN hospitals h ON pr.hospital_id = h.id
                 WHERE pr.id = @id
-            `);
+            \`);
 
         if (preAuthDetailsResult.recordset.length === 0) {
             throw new Error('Could not find the pre-authorization request.');
@@ -800,7 +802,8 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
             const hospital_discount = formData.get('hospital_discount') as string;
             const nm_deductions = formData.get('nm_deductions') as string;
             const co_pay = formData.get('co_pay') as string;
-            const final_amount = formData.get('final_amount') as string;
+            const final_amount_str = formData.get('final_amount') as string;
+            const amount_paid_by_insured_str = formData.get('amount_sanctioned') as string;
             
             const claimInsertRequest = new sql.Request(transaction);
             await claimInsertRequest
@@ -809,22 +812,22 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
                 .input('admission_id', sql.NVarChar, preAuthDetails.admission_id)
                 .input('status', sql.NVarChar, status)
                 .input('created_by', sql.NVarChar, userId || 'System Update')
-                .input('amount', sql.Decimal(18, 2), amount_sanctioned ? parseFloat(amount_sanctioned.toString()) : null)
+                .input('amount', sql.Decimal(18, 2), amount_paid_by_insured_str ? parseFloat(amount_paid_by_insured_str) : null)
                 .input('final_bill', sql.Decimal(18, 2), final_hospital_bill ? parseFloat(final_hospital_bill) : null)
                 .input('hospital_discount', sql.Decimal(18, 2), hospital_discount ? parseFloat(hospital_discount) : null)
                 .input('nm_deductions', sql.Decimal(18, 2), nm_deductions ? parseFloat(nm_deductions) : null)
                 .input('co_pay', sql.Decimal(18, 2), co_pay ? parseFloat(co_pay) : null)
-                .input('final_amount', sql.Decimal(18, 2), final_amount ? parseFloat(final_amount) : null)
+                .input('final_amount', sql.Decimal(18, 2), final_amount_str ? parseFloat(final_amount_str) : null)
                 .input('hospital_id', sql.NVarChar, preAuthDetails.hospital_id)
                 .input('tpa_id', sql.Int, preAuthDetails.tpa_id)
                 .input('claim_id', sql.NVarChar, claim_id || preAuthDetails.claim_id)
                 .input('created_at', sql.DateTime, now)
                 .input('updated_at', sql.DateTime, now)
-                .query(`INSERT INTO claims (
+                .query(\`INSERT INTO claims (
                     Patient_id, Patient_name, admission_id, status, created_by, amount, final_bill, hospital_discount, nm_deductions, co_pay, final_amount, hospital_id, tpa_id, claim_id, created_at, updated_at
                 ) VALUES (
                     @Patient_id, @Patient_name, @admission_id, @status, @created_by, @amount, @final_bill, @hospital_discount, @nm_deductions, @co_pay, @final_amount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at
-                )`);
+                )\`);
 
         }
 
@@ -842,7 +845,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
                         const contentType = response.headers.get('content-type') || 'application/octet-stream';
                         return { filename: att.name, content: Buffer.from(buffer), contentType };
                     } catch (fetchError) {
-                        console.error(`Error fetching attachment ${att.name}:`, fetchError);
+                        console.error(\`Error fetching attachment \${att.name}:\`, fetchError);
                         return null;
                     }
                 })
@@ -885,7 +888,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         if (shouldLogTpaResponse) {
             const tpaEmail = preAuthDetails.tpaEmail;
             const hospitalEmail = preAuthDetails.hospitalEmail;
-            const tpaSubject = `[${status}] Regarding Pre-Auth for ${fullName} - Claim ID: ${claim_id || preAuthDetails.claim_id || 'N/A'}`;
+            const tpaSubject = \`[\${status}] Regarding Pre-Auth for \${fullName} - Claim ID: \${claim_id || preAuthDetails.claim_id || 'N/A'}\`;
             
             const chatInsertRequest = new sql.Request(transaction);
             await chatInsertRequest
@@ -921,7 +924,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
                 .input('status', sql.NVarChar, status) 
                 .input('reason', sql.NVarChar, reason) 
                 .input('created_by', sql.NVarChar, userId || 'System Update') 
-                .input('amount', sql.Decimal(18, 2), amount_sanctioned ? amount_sanctioned : null)
+                .input('amount', sql.Decimal(18, 2), amount || null)
                 .input('paidAmount', sql.Decimal(18, 2), amount_sanctioned) 
                 .input('hospital_id', sql.NVarChar, preAuthDetails.hospital_id)
                 .input('tpa_id', sql.Int, preAuthDetails.tpa_id)
@@ -930,17 +933,16 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
                 .input('updated_at', sql.DateTime, now);
 
             if(status === 'Settled'){
-                claimInsertRequest.input('final_amount', sql.Decimal(18,2), final_authorised_amount_str ? parseFloat(final_authorised_amount_str) : null)
-                claimInsertRequest.input('deduction', sql.Decimal(18,2), deduction_str ? parseFloat(deduction_str) : null)
-                claimInsertRequest.input('tds', sql.Decimal(18,2), tds_str ? parseFloat(tds_str) : null)
-                claimInsertRequest.input('final_settlement_amount', sql.Decimal(18,2), final_settlement_amount_str ? parseFloat(final_settlement_amount_str) : null)
+                claimInsertRequest.input('final_amount', sql.Decimal(18,2), final_authorised_amount_str ? parseFloat(final_authorised_amount_str) : null);
+                claimInsertRequest.input('nm_deductions', sql.Decimal(18,2), deduction_str ? parseFloat(deduction_str) : null);
+                claimInsertRequest.input('tds', sql.Decimal(18,2), tds_str ? parseFloat(tds_str) : null);
+                claimInsertRequest.input('final_settle_amount', sql.Decimal(18,2), final_settlement_amount_str ? parseFloat(final_settlement_amount_str) : null);
                 
-                 await claimInsertRequest.query(`INSERT INTO claims ( Patient_id, Patient_name, admission_id, status, reason, created_by, amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at, final_amount, deduction, tds, final_settlement_amount ) VALUES ( @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at, @final_amount, @deduction, @tds, @final_settlement_amount )`);
+                 await claimInsertRequest.query(\`INSERT INTO claims ( Patient_id, Patient_name, admission_id, status, reason, created_by, amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at, final_amount, nm_deductions, tds, final_settle_amount ) VALUES ( @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at, @final_amount, @nm_deductions, @tds, @final_settle_amount )\`);
 
             } else {
                  await claimInsertRequest.query('INSERT INTO claims ( Patient_id, Patient_name, admission_id, status, reason, created_by, amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at ) VALUES ( @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at )');
             }
-
         }
         
         await transaction.commit();

@@ -388,35 +388,36 @@ export default function EditPreAuthPage() {
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="amount_sanctioned">Amount Paid by insured</Label>
-                                    <Input id="amount_sanctioned" name="amount_sanctioned" type="number" step="0.01" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount sanctioned" />
+                                    <Input id="amount_sanctioned" name="amount_sanctioned" type="number" step="0.01" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount paid by insured" />
                                 </div>
                             </div>
                         )}
                         
                         {selectedStatus === 'Settled' && (
-                            <div className="grid md:grid-cols-2 gap-4 pt-4 border-t">
+                           <div className="grid md:grid-cols-2 gap-4 pt-4 border-t">
                                 <div className="space-y-2">
-                                    <Label htmlFor="final_authorised_amount">Final Authorised Amount</Label>
-                                    <Input id="final_authorised_amount" name="final_authorised_amount" type="number" step="0.01" placeholder="Enter final authorised amount" />
+                                    <Label htmlFor="final_amount">Final Authorised Amount</Label>
+                                    <Input id="final_amount" name="final_amount" type="number" step="0.01" placeholder="Enter final authorised amount" />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="deduction">Deduction</Label>
-                                    <Input id="deduction" name="deduction" type="number" step="0.01" placeholder="Enter deduction amount" />
+                                    <Label htmlFor="nm_deductions">Deduction</Label>
+                                    <Input id="nm_deductions" name="nm_deductions" type="number" step="0.01" placeholder="Enter deduction amount" />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="tds">TDS</Label>
                                     <Input id="tds" name="tds" type="number" step="0.01" placeholder="Enter TDS amount" />
                                 </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="final_settlement_amount">Final Settlement Amount</Label>
-                                    <Input id="final_settlement_amount" name="final_settlement_amount" type="number" step="0.01" placeholder="Enter final settlement amount" />
+                                 <div className="space-y-2">
+                                    <Label htmlFor="final_settle_amount">Final Settlement Amount</Label>
+                                    <Input id="final_settle_amount" name="final_settle_amount" type="number" step="0.01" placeholder="Enter final settlement amount" />
                                 </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="amount_sanctioned">Net Amount Credited</Label>
-                                    <Input id="amount_sanctioned" name="amount_sanctioned" type="number" step="0.01" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount sanctioned" />
-                                </div>
-                            </div>
+                               <div className="space-y-2">
+                                   <Label htmlFor="amount">Net Amount Credited</Label>
+                                   <Input id="amount" name="amount" type="number" step="0.01" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter net amount credited" />
+                               </div>
+                           </div>
                         )}
+
 
                         {selectedStatus !== 'Final Approval' && selectedStatus !== 'Settled' && (
                            <div className="space-y-2">
@@ -517,11 +518,3 @@ export default function EditPreAuthPage() {
         </div>
     );
 }
-
-    
-
-
-
-
-
-    
