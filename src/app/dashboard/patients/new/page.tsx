@@ -104,7 +104,7 @@ const FileUploadField = React.memo(({ label, name, onUploadComplete, initialData
         <div className="space-y-2">
             <Label htmlFor={name}>{label}</Label>
             <div className="flex items-center gap-2">
-                <Input ref={fileInputRef} id={name} name={`${name}-file`} type="file" onChange={handleFileChange} disabled={isUploading} className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
+                <Input ref={fileInputRef} id={name} type="file" onChange={handleFileChange} disabled={isUploading} className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
                 {isUploading && (
                     <div className="flex items-center gap-2">
                         <Loader2 className="h-5 w-5 animate-spin" />
@@ -395,7 +395,6 @@ export default function NewPatientPage() {
                         <Input 
                             ref={photoInputRef}
                             id="photo-upload" 
-                            name="photo-upload-file" 
                             type="file" 
                             className="hidden" 
                             accept="image/*"
