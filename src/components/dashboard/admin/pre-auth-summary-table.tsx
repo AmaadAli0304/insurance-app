@@ -11,9 +11,35 @@ import { DateRange } from "react-day-picker";
 import { useAuth } from "@/components/auth-provider";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { PreAuthStatus } from "@/lib/types";
 
 interface PreAuthSummaryTableProps {
   dateRange?: DateRange;
+}
+
+const getStatusVariant = (status: PreAuthStatus) => {
+    switch (status) {
+        case 'Pre auth Sent':
+        case 'Enhancement Request':
+            return 'badge-light-blue';
+        case 'Query Raised':
+            return 'badge-orange';
+        case 'Query Answered':
+        case 'Enhancement Approval':
+            return 'badge-yellow';
+        case 'Initial Approval':
+        case 'Final Discharge sent':
+            return 'badge-light-green';
+        case 'Final Approval':
+            return 'badge-green';
+        case 'Settled':
+            return 'badge-purple';
+        case 'Rejected':
+            return 'destructive';
+        default:
+            return 'secondary';
+    }
 }
 
 export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
@@ -92,13 +118,13 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Patient Name</TableHead>
-                                <TableHead>Status</TableHead>
                                 <TableHead>DOA</TableHead>
+                                <TableHead>TPA</TableHead>
+                                <TableHead>Insurance</TableHead>
+                                <TableHead>Status</TableHead>
                                 <TableHead>Dr in Charge</TableHead>
                                 <TableHead>Room Category</TableHead>
                                 <TableHead>Budget</TableHead>
-                                <TableHead>TPA</TableHead>
-                                <TableHead>Insurance</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -106,13 +132,17 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                                 stats.map((stat, index) => (
                                     <TableRow key={index}>
                                         <TableCell className="font-medium">{stat.patientName}</TableCell>
-                                        <TableCell><Badge>{stat.status}</Badge></TableCell>
                                         <TableCell>{stat.admissionDate ? format(new Date(stat.admissionDate), 'MMM dd, yyyy') : 'N/A'}</TableCell>
+                                        <TableCell>{stat.tpaName}</TableCell>
+                                        <TableCell>{stat.insuranceName}</TableCell>
+                                        <TableCell>
+                                            <Badge className={cn(getStatusVariant(stat.status as PreAuthStatus), 'border-transparent')}>
+                                                {stat.status}
+                                            </Badge>
+                                        </TableCell>
                                         <TableCell>{stat.doctorInCharge || 'N/A'}</TableCell>
                                         <TableCell>{stat.roomCategory || 'N/A'}</TableCell>
                                         <TableCell className="text-right font-mono">{stat.budget?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                        <TableCell>{stat.tpaName}</TableCell>
-                                        <TableCell>{stat.insuranceName}</TableCell>
                                     </TableRow>
                                 ))
                             ) : (
