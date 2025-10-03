@@ -399,6 +399,7 @@ export type PreAuthSummaryStat = {
   admissionDate: string | null;
   tpaName: string;
   insuranceName: string;
+  doctorInCharge: string | null;
 };
 
 export async function getPreAuthSummaryStats(
@@ -431,7 +432,8 @@ export async function getPreAuthSummaryStats(
                 pr.status,
                 pr.admissionDate,
                 COALESCE(t.name, 'N/A') as tpaName,
-                COALESCE(c.name, 'N/A') as insuranceName
+                COALESCE(c.name, 'N/A') as insuranceName,
+                pr.treat_doc_name as doctorInCharge
             FROM preauth_request pr
             LEFT JOIN companies c ON pr.company_id = c.id
             LEFT JOIN tpas t ON pr.tpa_id = t.id
@@ -452,6 +454,7 @@ export async function getPreAuthSummaryStats(
     
 
     
+
 
 
 

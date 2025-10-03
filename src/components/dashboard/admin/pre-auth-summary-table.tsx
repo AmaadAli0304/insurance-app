@@ -41,7 +41,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
     }, [loadData, user]);
     
     const handleExport = () => {
-        const headers = ["Patient Name", "Status", "DOA", "TPA", "Insurance"];
+        const headers = ["Patient Name", "Status", "DOA", "Dr in Charge", "TPA", "Insurance"];
         const csvRows = [headers.join(",")];
 
         stats.forEach((stat) => {
@@ -49,6 +49,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                 `"${stat.patientName}"`,
                 `"${stat.status}"`,
                 stat.admissionDate ? format(new Date(stat.admissionDate), 'yyyy-MM-dd') : 'N/A',
+                `"${stat.doctorInCharge || 'N/A'}"`,
                 `"${stat.tpaName}"`,
                 `"${stat.insuranceName}"`,
             ];
@@ -91,6 +92,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                                 <TableHead>Patient Name</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>DOA</TableHead>
+                                <TableHead>Dr in Charge</TableHead>
                                 <TableHead>TPA</TableHead>
                                 <TableHead>Insurance</TableHead>
                             </TableRow>
@@ -102,13 +104,14 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                                         <TableCell className="font-medium">{stat.patientName}</TableCell>
                                         <TableCell><Badge>{stat.status}</Badge></TableCell>
                                         <TableCell>{stat.admissionDate ? format(new Date(stat.admissionDate), 'MMM dd, yyyy') : 'N/A'}</TableCell>
+                                        <TableCell>{stat.doctorInCharge || 'N/A'}</TableCell>
                                         <TableCell>{stat.tpaName}</TableCell>
                                         <TableCell>{stat.insuranceName}</TableCell>
                                     </TableRow>
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="h-24 text-center">
+                                    <TableCell colSpan={6} className="h-24 text-center">
                                         No pre-authorization data available for the selected period.
                                     </TableCell>
                                 </TableRow>
