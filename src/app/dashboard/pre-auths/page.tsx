@@ -73,27 +73,27 @@ export default function PreAuthsPage() {
 
   const getStatusVariant = (status: PreAuthStatus) => {
     switch (status) {
-      case 'Pre auth Sent':
-      case 'Enhancement Request':
-        return 'badge-light-blue';
-      case 'Query Raised':
-        return 'badge-orange';
-      case 'Query Answered':
-      case 'Enhancement Approval':
-        return 'badge-yellow';
-      case 'Initial Approval':
-      case 'Final Discharge sent':
-        return 'badge-light-green';
-      case 'Final Approval':
-        return 'badge-green';
-      case 'Settled':
-        return 'badge-purple';
-      case 'Rejected':
-        return 'destructive';
-      default:
-        return 'secondary';
+        case 'Pre auth Sent':
+        case 'Enhancement Request':
+            return 'badge-light-blue';
+        case 'Query Raised':
+            return 'badge-orange';
+        case 'Query Answered':
+        case 'Enhancement Approval':
+            return 'badge-yellow';
+        case 'Initial Approval':
+        case 'Final Discharge sent':
+            return 'badge-light-green';
+        case 'Final Approval':
+            return 'badge-green';
+        case 'Settled':
+            return 'badge-purple';
+        case 'Rejected':
+            return 'destructive';
+        default:
+            return 'secondary';
     }
-}
+  }
 
   const getInitials = (name: string) => {
     if (!name || typeof name !== 'string') return 'P';
@@ -169,7 +169,10 @@ export default function PreAuthsPage() {
                           {r.fullName}
                         </TableCell>
                         <TableCell>
-                          <Badge variant={getStatusVariant(r.status) as any}>{r.status}</Badge>
+                          <Badge className={cn(
+                              getStatusVariant(r.status),
+                              'border-transparent' // Using this to override default badge borders
+                          )}>{r.status}</Badge>
                         </TableCell>
                         <TableCell>{format(new Date(r.createdAt), 'PPP')}</TableCell>
                         <TableCell>{format(new Date(r.createdAt), 'p')}</TableCell>
