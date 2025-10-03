@@ -41,7 +41,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
     }, [loadData, user]);
     
     const handleExport = () => {
-        const headers = ["Patient Name", "Status", "DOA", "TPA", "Insurance", "Year/Corporate", "Approval", "Dr in Charge", "Room Category", "Budget"];
+        const headers = ["Patient Name", "Status", "DOA", "TPA", "Insurance"];
         const csvRows = [headers.join(",")];
 
         stats.forEach((stat) => {
@@ -51,11 +51,6 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                 stat.admissionDate ? format(new Date(stat.admissionDate), 'yyyy-MM-dd') : 'N/A',
                 `"${stat.tpaName}"`,
                 `"${stat.insuranceName}"`,
-                `"${stat.corporate || 'N/A'}"`,
-                stat.approvedAmount?.toLocaleString('en-IN') || 'N/A',
-                `"${stat.doctorInCharge || 'N/A'}"`,
-                `"${stat.roomCategory || 'N/A'}"`,
-                stat.budget?.toLocaleString('en-IN') || 'N/A',
             ];
             csvRows.push(row.join(","));
         });
@@ -98,11 +93,6 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                                 <TableHead>DOA</TableHead>
                                 <TableHead>TPA</TableHead>
                                 <TableHead>Insurance</TableHead>
-                                <TableHead>Year/Corporate</TableHead>
-                                <TableHead>Approval</TableHead>
-                                <TableHead>Dr in Charge</TableHead>
-                                <TableHead>Room Category</TableHead>
-                                <TableHead className="text-right">Budget</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -114,16 +104,11 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                                         <TableCell>{stat.admissionDate ? format(new Date(stat.admissionDate), 'MMM dd, yyyy') : 'N/A'}</TableCell>
                                         <TableCell>{stat.tpaName}</TableCell>
                                         <TableCell>{stat.insuranceName}</TableCell>
-                                        <TableCell>{stat.corporate || 'N/A'}</TableCell>
-                                        <TableCell className="font-mono">{stat.approvedAmount?.toLocaleString('en-IN') || 'N/A'}</TableCell>
-                                        <TableCell>{stat.doctorInCharge || 'N/A'}</TableCell>
-                                        <TableCell>{stat.roomCategory || 'N/A'}</TableCell>
-                                        <TableCell className="text-right font-mono">{stat.budget?.toLocaleString('en-IN') || 'N/A'}</TableCell>
                                     </TableRow>
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={10} className="h-24 text-center">
+                                    <TableCell colSpan={5} className="h-24 text-center">
                                         No pre-authorization data available for the selected period.
                                     </TableCell>
                                 </TableRow>

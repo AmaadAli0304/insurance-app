@@ -399,11 +399,6 @@ export type PreAuthSummaryStat = {
   admissionDate: string | null;
   tpaName: string;
   insuranceName: string;
-  corporate: string | null;
-  approvedAmount: number | null;
-  doctorInCharge: string | null;
-  roomCategory: string | null;
-  budget: number | null;
 };
 
 export async function getPreAuthSummaryStats(
@@ -436,12 +431,7 @@ export async function getPreAuthSummaryStats(
                 pr.status,
                 pr.admissionDate,
                 COALESCE(t.name, 'N/A') as tpaName,
-                COALESCE(c.name, 'N/A') as insuranceName,
-                pr.corporate_policy_number as corporate,
-                pr.amount_sanctioned as approvedAmount,
-                pr.treat_doc_name as doctorInCharge,
-                pr.roomCategory,
-                pr.totalExpectedCost as budget
+                COALESCE(c.name, 'N/A') as insuranceName
             FROM preauth_request pr
             LEFT JOIN companies c ON pr.company_id = c.id
             LEFT JOIN tpas t ON pr.tpa_id = t.id
@@ -462,5 +452,6 @@ export async function getPreAuthSummaryStats(
     
 
     
+
 
 
