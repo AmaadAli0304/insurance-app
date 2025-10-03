@@ -890,12 +890,6 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
             'final_bill_path_url', 'pharmacy_bill_path_url', 'implant_bill_stickers_path_url', 'lab_bill_path_url', 'ot_anesthesia_notes_path_url'
         ];
         
-        const photoJson = createDocumentJson(data.photoUrl, data.photoName);
-        if (photoJson) {
-            patientSetClauses.push(`photo = @photo`);
-            patientRequest.input(`photo`, sql.NVarChar, photoJson);
-        }
-
         for (const urlKey of documentKeys) {
             const nameKey = urlKey.replace('_url', '_name') as keyof typeof data;
             const dbFieldKey = urlKey.replace('_url', '');
@@ -903,23 +897,23 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
             const url = data[urlKey] as string | undefined | null;
             const name = data[nameKey] as string | undefined | null;
             
-            let dbColumn = dbFieldKey.replace('_path', '');
-            if (!['photo', 'adhaar', 'pan', 'passport', 'voter_id', 'driving_licence', 'other', 'policy'].includes(dbColumn)) {
-                 if (dbColumn === 'discharge_summary') dbColumn = 'discharge_summary';
-                 else if (dbColumn === 'final_bill') dbColumn = 'final_bill';
-                 else if (dbColumn === 'pharmacy_bill') dbColumn = 'pharmacy_bill';
-                 else if (dbColumn === 'implant_bill_stickers') dbColumn = 'implant_bill';
-                 else if (dbColumn === 'lab_bill') dbColumn = 'lab_bill';
-                 else if (dbColumn === 'ot_anesthesia_notes') dbColumn = 'ot_notes';
-                 else dbColumn = `${dbColumn}_path`;
-            } else {
-                 if (dbColumn !== 'photo') {
-                    dbColumn = `${dbColumn}_path`;
-                 }
-            }
-            
-            if (url !== undefined) {
+            if (url) {
                 const docJson = createDocumentJson(url, name);
+                let dbColumn = dbFieldKey;
+
+                if(dbColumn === 'photoUrl') {
+                    dbColumn = 'photo';
+                } else if (dbColumn.endsWith('_path')) {
+                     const pathKey = dbColumn.replace('_path', '');
+                     if (['discharge_summary', 'final_bill', 'pharmacy_bill', 'lab_bill'].includes(pathKey)) {
+                        dbColumn = pathKey;
+                     } else if (pathKey === 'implant_bill_stickers') {
+                        dbColumn = 'implant_bill';
+                     } else if (pathKey === 'ot_anesthesia_notes') {
+                        dbColumn = 'ot_notes';
+                     }
+                }
+                
                 patientSetClauses.push(`${dbColumn} = @${dbColumn}`);
                 patientRequest.input(dbColumn, sql.NVarChar, docJson);
             }
@@ -1175,3 +1169,4 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
 
 
     
+
