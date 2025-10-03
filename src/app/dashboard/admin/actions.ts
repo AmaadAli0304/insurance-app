@@ -406,27 +406,41 @@ export type PreAuthSummaryStat = {
 
 export async function getPreAuthSummaryStats(
   dateRange?: DateRange,
-  hospitalId?: string | null
-): Promise<PreAuthSummaryStat[]> {
+  hospitalId?: string | null,
+  page: number = 1,
+  limit: number = 10
+): Promise<{ stats: PreAuthSummaryStat[]; total: number }> {
     try {
         const pool = await getDbPool();
         const request = pool.request();
+        const countRequest = pool.request();
         
         let whereClauses: string[] = [];
         
         if (dateRange?.from) {
             const toDate = dateRange.to || new Date(); 
             request.input('dateFrom', sql.DateTime, dateRange.from);
+            countRequest.input('dateFrom', sql.DateTime, dateRange.from);
             request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+            countRequest.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
             whereClauses.push('pr.created_at BETWEEN @dateFrom AND @dateTo');
         }
 
         if (hospitalId) {
             request.input('hospitalId', sql.NVarChar, hospitalId);
+            countRequest.input('hospitalId', sql.NVarChar, hospitalId);
             whereClauses.push('pr.hospital_id = @hospitalId');
         }
         
         const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
+        const countQuery = `SELECT COUNT(*) as total FROM preauth_request pr ${whereClause}`;
+        const totalResult = await countRequest.query(countQuery);
+        const total = totalResult.recordset[0].total;
+
+        const offset = (page - 1) * limit;
+        request.input('offset', sql.Int, offset);
+        request.input('limit', sql.Int, limit);
 
         const query = `
             SELECT
@@ -442,11 +456,15 @@ export async function getPreAuthSummaryStats(
             LEFT JOIN companies c ON pr.company_id = c.id
             LEFT JOIN tpas t ON pr.tpa_id = t.id
             ${whereClause}
-            ORDER BY pr.created_at DESC;
+            ORDER BY pr.created_at DESC
+            OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
         `;
 
         const result = await request.query(query);
-        return result.recordset as PreAuthSummaryStat[];
+        return {
+            stats: result.recordset as PreAuthSummaryStat[],
+            total: total
+        };
 
     } catch (error) {
         console.error('Error fetching pre-auth summary stats:', error);
@@ -458,6 +476,7 @@ export async function getPreAuthSummaryStats(
     
 
     
+
 
 
 

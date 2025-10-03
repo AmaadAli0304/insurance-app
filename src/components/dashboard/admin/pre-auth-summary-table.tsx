@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getPreAuthSummaryStats, PreAuthSummaryStat } from "@/app/dashboard/admin/actions";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2 } from "lucide-react";
+import { Download, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { useAuth } from "@/components/auth-provider";
 import { Badge } from "@/components/ui/badge";
@@ -46,19 +46,23 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
     const { user } = useAuth();
     const [stats, setStats] = useState<PreAuthSummaryStat[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const itemsPerPage = 10;
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
             const hospitalId = user?.role === 'Admin' ? user.hospitalId : null;
-            const data = await getPreAuthSummaryStats(dateRange, hospitalId);
+            const { stats: data, total } = await getPreAuthSummaryStats(dateRange, hospitalId, currentPage, itemsPerPage);
             setStats(data);
+            setTotalPages(Math.ceil(total / itemsPerPage));
         } catch (error) {
             console.error("Failed to load pre-auth summary stats:", error);
         } finally {
             setIsLoading(false);
         }
-    }, [dateRange, user]);
+    }, [dateRange, user, currentPage, itemsPerPage]);
 
     useEffect(() => {
         if(user) {
@@ -95,6 +99,14 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
         link.click();
         document.body.removeChild(link);
     };
+
+    const handlePrevPage = () => {
+        setCurrentPage((prev) => Math.max(prev - 1, 1));
+    };
+
+    const handleNextPage = () => {
+        setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+    };
     
     return (
         <Card>
@@ -114,6 +126,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                         <Loader2 className="h-8 w-8 animate-spin" />
                     </div>
                 ) : (
+                    <>
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -154,6 +167,18 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                             )}
                         </TableBody>
                     </Table>
+                    <div className="flex items-center justify-end space-x-2 py-4">
+                        <Button variant="outline" size="sm" onClick={handlePrevPage} disabled={currentPage === 1}>
+                            <ChevronLeft className="h-4 w-4 mr-1" /> Previous
+                        </Button>
+                        <span className="text-sm text-muted-foreground">
+                            Page {currentPage} of {totalPages}
+                        </span>
+                        <Button variant="outline" size="sm" onClick={handleNextPage} disabled={currentPage === totalPages}>
+                            Next <ChevronRight className="h-4 w-4 ml-1" />
+                        </Button>
+                    </div>
+                    </>
                 )}
             </CardContent>
         </Card>
