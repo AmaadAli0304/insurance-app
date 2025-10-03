@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
 import { handleUpdatePatient, getPatientEditPageData, getPresignedUrl, Doctor } from "../../actions";
 import Link from "next/link";
-import { ArrowLeft, Upload, User as UserIcon, Loader2, Eye, File as FileIcon, XCircle } from "lucide-react";
+import { ArrowLeft, Upload, User as UserIcon, Loader2, Eye, File as FileIcon, XCircle, Send, Save } from "lucide-react";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Patient, Company, TPA } from "@/lib/types";
@@ -29,11 +29,16 @@ import { intervalToDuration } from "date-fns";
 import { countries } from "@/lib/countries";
 
 
-function SubmitButton() {
+function SubmitButton({ formAction, status }: { formAction: (payload: FormData) => void; status: 'draft' | 'active' }) {
     const { pending } = useFormStatus();
+    const Icon = status === 'draft' ? Save : Send;
+    const text = status === 'draft' ? "Save Draft" : "Save as Active";
+    const pendingText = status === 'draft' ? "Saving..." : "Saving...";
+
     return (
-        <Button type="submit" disabled={pending} size="lg">
-            {pending ? "Saving..." : "Save Changes"}
+        <Button type="submit" disabled={pending} formAction={formAction} size="lg" variant={status === 'draft' ? 'outline' : 'default'}>
+            <Icon className="mr-2 h-4 w-4" />
+            {pending ? pendingText : text}
         </Button>
     );
 }
@@ -431,6 +436,7 @@ export default function EditPatientPage() {
                  <input type="hidden" name="photoName" value={photoName || ''} />
                  <input type="hidden" name="userId" value={user?.uid ?? ''} />
                  <input type="hidden" name="userName" value={user?.name ?? ''} />
+                 <input type="hidden" name="current_status" value={patient.status ?? 'Active'} />
                  {Object.entries(documentUrls).map(([key, value]) => (
                     <React.Fragment key={key}>
                       <input type="hidden" name={`${key}_url`} value={value.url} />
@@ -933,9 +939,12 @@ export default function EditPatientPage() {
                         </Card>
                     </Accordion>
 
-                    <div className="flex justify-end">
+                    <div className="flex justify-end gap-2">
                         {state.type === 'error' && <p className="text-sm text-destructive self-center mr-4">{state.message}</p>}
-                        <SubmitButton />
+                        {patient.status === 'Draft' && <SubmitButton formAction={formAction} status="draft" />}
+                        <Button type="submit" size="lg" name="status" value="Active">
+                            <Send className="mr-2 h-4 w-4" /> Save as Active
+                        </Button>
                     </div>
                 </div>
             </form>

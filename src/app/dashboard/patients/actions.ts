@@ -161,6 +161,8 @@ const patientUpdateFormSchema = basePatientObjectSchema.extend({
   admission_db_id: z.coerce.number().optional().nullable(), // Admission ID from DB
   userId: z.string(),
   userName: z.string(),
+  status: z.enum(['Active', 'Draft']).default('Active'),
+  current_status: z.enum(['Active', 'Inactive', 'Draft']),
 });
 
 
@@ -360,6 +362,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
             implant_bill_stickers_path: getDocumentData(record.implant_bill),
             lab_bill_path: getDocumentData(record.lab_bill),
             ot_anesthesia_notes_path: getDocumentData(record.ot_notes),
+            status: record.status,
             admission_id: record.admission_id,
             relationship_policyholder: record.relationship_policyholder,
             policyNumber: record.policy_number,
@@ -852,7 +855,10 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
     }
 
     const { data } = validatedFields;
-    const { id: patientId, admission_db_id, userId, userName } = data;
+    const { id: patientId, admission_db_id, userId, userName, status: newStatus, current_status } = data;
+    
+    const finalStatus = newStatus === 'Active' ? 'Active' : current_status;
+    
     let transaction;
 
     try {
@@ -892,30 +898,35 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
         
         for (const urlKey of documentKeys) {
             const nameKey = urlKey.replace('_url', '_name') as keyof typeof data;
-            const dbFieldKey = urlKey.replace('_url', '');
-
+            
             const url = data[urlKey] as string | undefined | null;
             const name = data[nameKey] as string | undefined | null;
             
-            if (url) {
-                const docJson = createDocumentJson(url, name);
-                let dbColumn = dbFieldKey;
+            if (url && name) {
+                let dbKey = urlKey.replace('_url', '');
 
-                if(dbColumn === 'photoUrl') {
-                    dbColumn = 'photo';
-                } else if (dbColumn.endsWith('_path')) {
-                     const pathKey = dbColumn.replace('_path', '');
-                     if (['discharge_summary', 'final_bill', 'pharmacy_bill', 'lab_bill'].includes(pathKey)) {
-                        dbColumn = pathKey;
-                     } else if (pathKey === 'implant_bill_stickers') {
-                        dbColumn = 'implant_bill';
-                     } else if (pathKey === 'ot_anesthesia_notes') {
-                        dbColumn = 'ot_notes';
+                if(dbKey === 'photoUrl') {
+                    dbKey = 'photo';
+                } else if (dbKey.endsWith('_path')) {
+                     dbKey = dbKey.replace('_path', '');
+                     if (dbKey === 'implant_bill_stickers') {
+                        dbKey = 'implant_bill';
+                     } else if (dbKey === 'ot_anesthesia_notes') {
+                        dbKey = 'ot_notes';
                      }
+                } else if (!['adhaar_path', 'pan_path', 'passport_path', 'voter_id_path', 'driving_licence_path', 'other_path', 'policy_path'].includes(dbKey)) {
+                   dbKey = `${dbKey}_path`;
                 }
+
+                if (['discharge_summary', 'final_bill', 'pharmacy_bill', 'implant_bill', 'lab_bill', 'ot_notes'].includes(dbKey)) {
+                     // these are direct columns now
+                } else {
+                     dbKey = `${dbKey}_path`;
+                }
+                if (dbKey === 'photo_path') dbKey = 'photo';
                 
-                patientSetClauses.push(`${dbColumn} = @${dbColumn}`);
-                patientRequest.input(dbColumn, sql.NVarChar, docJson);
+                patientSetClauses.push(`${dbKey} = @${dbKey}`);
+                patientRequest.input(dbKey, sql.NVarChar, createDocumentJson(url, name));
             }
         }
         
@@ -995,6 +1006,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
               .input('otherHospitalExpenses', sql.Decimal(18, 2), data.otherHospitalExpenses)
               .input('packageCharges', sql.Decimal(18, 2), data.packageCharges)
               .input('totalExpectedCost', sql.Decimal(18, 2), data.totalExpectedCost)
+              .input('status', sql.NVarChar, finalStatus)
               .query(`
                 UPDATE admissions SET
                   doctor_id = @doctor_id, admission_id = @admission_id, relationship_policyholder = @relationship_policyholder, policy_number = @policy_number, insured_card_number = @insured_card_number, insurance_company = @insurance_company,
@@ -1012,7 +1024,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
                   expectedStay = @expectedStay, expectedIcuStay = @expectedIcuStay, roomCategory = @roomCategory, roomNursingDietCost = @roomNursingDietCost,
                   investigationCost = @investigationCost, icuCost = @icuCost, otCost = @otCost, professionalFees = @professionalFees, medicineCost = @medicineCost,
                   otherHospitalExpenses = @otherHospitalExpenses, packageCharges = @packageCharges, totalExpectedCost = @totalExpectedCost,
-                  updated_at = GETDATE()
+                  status = @status, updated_at = GETDATE()
                 WHERE id = @id
               `);
         }
@@ -1169,4 +1181,5 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
 
 
     
+
 
