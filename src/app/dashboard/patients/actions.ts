@@ -187,7 +187,7 @@ export async function getDoctors(): Promise<Doctor[]> {
 
 export async function getPatients(
     hospitalId?: string | null, 
-    status?: 'Active' | 'Inactive', 
+    status?: 'Active' | 'Inactive' | 'Draft', 
     searchQuery?: string,
     page: number = 1,
     limit: number = 10
@@ -889,26 +889,37 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
             'photoUrl', 'adhaar_path_url', 'pan_path_url', 'passport_path_url', 'voter_id_path_url', 'driving_licence_path_url', 'other_path_url', 'policy_path_url', 'discharge_summary_path_url',
             'final_bill_path_url', 'pharmacy_bill_path_url', 'implant_bill_stickers_path_url', 'lab_bill_path_url', 'ot_anesthesia_notes_path_url'
         ];
+        
+        const photoJson = createDocumentJson(data.photoUrl, data.photoName);
+        if (photoJson) {
+            patientSetClauses.push(`photo = @photo`);
+            patientRequest.input(`photo`, sql.NVarChar, photoJson);
+        }
 
         for (const urlKey of documentKeys) {
             const nameKey = urlKey.replace('_url', '_name') as keyof typeof data;
-            const dbFieldKey = urlKey.replace('_path_url', '').replace('_url', '');
+            const dbFieldKey = urlKey.replace('_url', '');
+
+            const url = data[urlKey] as string | undefined | null;
+            const name = data[nameKey] as string | undefined | null;
             
-            if (formData.has(`${dbFieldKey}-file`) || formData.has(`${dbFieldKey}_path-file`)) {
-                const url = data[urlKey] as string | undefined;
-                const name = data[nameKey] as string | undefined;
+            let dbColumn = dbFieldKey.replace('_path', '');
+            if (!['photo', 'adhaar', 'pan', 'passport', 'voter_id', 'driving_licence', 'other', 'policy'].includes(dbColumn)) {
+                 if (dbColumn === 'discharge_summary') dbColumn = 'discharge_summary';
+                 else if (dbColumn === 'final_bill') dbColumn = 'final_bill';
+                 else if (dbColumn === 'pharmacy_bill') dbColumn = 'pharmacy_bill';
+                 else if (dbColumn === 'implant_bill_stickers') dbColumn = 'implant_bill';
+                 else if (dbColumn === 'lab_bill') dbColumn = 'lab_bill';
+                 else if (dbColumn === 'ot_anesthesia_notes') dbColumn = 'ot_notes';
+                 else dbColumn = `${dbColumn}_path`;
+            } else {
+                 if (dbColumn !== 'photo') {
+                    dbColumn = `${dbColumn}_path`;
+                 }
+            }
+            
+            if (url !== undefined) {
                 const docJson = createDocumentJson(url, name);
-                
-                let dbColumn = dbFieldKey;
-                if (['discharge_summary', 'final_bill', 'pharmacy_bill', 'implant_bill', 'lab_bill', 'ot_notes'].includes(dbColumn)) {
-                    // These fields are already correct.
-                } else {
-                   dbColumn = `${dbFieldKey}_path`;
-                }
-
-                if (dbColumn === 'implant_bill_stickers_path') dbColumn = 'implant_bill';
-                if (dbColumn === 'ot_anesthesia_notes_path') dbColumn = 'ot_notes';
-
                 patientSetClauses.push(`${dbColumn} = @${dbColumn}`);
                 patientRequest.input(dbColumn, sql.NVarChar, docJson);
             }

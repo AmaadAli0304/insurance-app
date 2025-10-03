@@ -20,7 +20,7 @@ export default function PatientsPage() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<'Active' | 'Inactive'>('Active');
+  const [statusFilter, setStatusFilter] = useState<'Active' | 'Inactive' | 'Draft'>('Active');
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   
@@ -74,13 +74,14 @@ export default function PatientsPage() {
                 />
              </div>
              <div className="flex items-center gap-2">
-                <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as 'Active' | 'Inactive')}>
+                <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as 'Active' | 'Inactive' | 'Draft')}>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Filter by status" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Active">Active</SelectItem>
                     <SelectItem value="Inactive">Completed</SelectItem>
+                    <SelectItem value="Draft">Draft</SelectItem>
                   </SelectContent>
                 </Select>
             </div>
