@@ -31,6 +31,7 @@ export function MainNav() {
       { href: '/dashboard/doctors', label: 'Doctors', icon: Stethoscope },
       { href: '/dashboard/invoices', label: 'Invoices', icon: FileText },
       { href: '/dashboard/attendance', label: 'Attendance', icon: FileText },
+      { href: '/dashboard/import', label: 'Import', icon: Upload },
     ],
   };
 
