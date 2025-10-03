@@ -28,12 +28,26 @@ import { DoctorSearch } from "@/components/doctor-search";
 import { intervalToDuration } from "date-fns";
 
 
-function SubmitButton({ formAction }: { formAction: (payload: FormData) => void }) {
+function SubmitButton({ formAction, status }: { formAction: (payload: FormData) => void; status: 'draft' | 'active' }) {
     const { pending } = useFormStatus();
+    const isDraft = status === 'draft';
+    const Icon = isDraft ? Save : Send;
+    const text = isDraft ? "Save as Draft" : "Save & Create Pre-Auth";
+    const pendingText = isDraft ? "Saving..." : "Creating...";
+
     return (
-        <Button type="submit" disabled={pending} formAction={formAction}>
-            <Send className="mr-2 h-4 w-4" />
-            {pending ? "Sending..." : "Save & Send Request"}
+        <Button type="submit" disabled={pending} formAction={formAction} variant={isDraft ? 'outline' : 'default'} size="lg">
+             {pending ? (
+                <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {pendingText}
+                </>
+             ) : (
+                <>
+                    <Icon className="mr-2 h-4 w-4" />
+                    {text}
+                </>
+             )}
         </Button>
     );
 }

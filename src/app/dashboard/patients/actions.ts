@@ -840,15 +840,21 @@ async function savePatient(
 }
 
 export async function handleAddPatient(prevState: { message: string, type?: string }, formData: FormData) {
-  await savePatient(formData, 'Active');
-  revalidatePath('/dashboard/patients');
-  redirect('/dashboard/patients');
+  const result = await savePatient(formData, 'Active');
+  if (result.type === 'success') {
+    revalidatePath('/dashboard/patients');
+    redirect('/dashboard/patients');
+  }
+  return result;
 }
 
 export async function handleSaveDraftPatient(prevState: { message: string, type?: string }, formData: FormData) {
-    await savePatient(formData, 'Draft');
-    revalidatePath('/dashboard/patients');
-    redirect('/dashboard/patients');
+    const result = await savePatient(formData, 'Draft');
+    if (result.type === 'success') {
+        revalidatePath('/dashboard/patients');
+        redirect('/dashboard/patients');
+    }
+    return result;
 }
 
 export async function handleUpdatePatient(prevState: { message: string, type?: string }, formData: FormData) {
@@ -1184,6 +1190,7 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
 
 
     
+
 
 
 
