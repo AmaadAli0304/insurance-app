@@ -72,17 +72,24 @@ export default function PreAuthsPage() {
 
   const getStatusVariant = (status: PreAuthStatus) => {
     switch (status) {
-      case 'Approval':
-      case 'Amount Sanctioned':
+      case 'Pre auth Sent':
+      case 'Enhancement Request':
+        return 'badge-light-blue';
+      case 'Query Raised':
+        return 'badge-orange';
+      case 'Query Answered':
+      case 'Enhancement Approval':
+        return 'badge-yellow';
       case 'Initial Approval':
-      case 'Settlement Done':
-        return 'default';
+      case 'Final Discharge sent':
+        return 'badge-light-green';
+      case 'Final Approval':
+        return 'badge-green';
+      case 'Settled':
+        return 'badge-purple';
       case 'Rejected':
         return 'destructive';
-      case 'Query Raised':
-      case 'Initial Approval Amount':
-        return 'secondary';
-      default: // Pending, Query Answered, Draft
+      default:
         return 'secondary';
     }
 }
@@ -161,7 +168,7 @@ export default function PreAuthsPage() {
                           {r.fullName}
                         </TableCell>
                         <TableCell>
-                          <Badge variant={getStatusVariant(r.status)} className={r.status === 'Approval' ? 'bg-accent text-accent-foreground' : ''}>{r.status}</Badge>
+                          <Badge className={getStatusVariant(r.status)}>{r.status}</Badge>
                         </TableCell>
                         <TableCell>{format(new Date(r.createdAt), 'PPP')}</TableCell>
                         <TableCell>{format(new Date(r.createdAt), 'p')}</TableCell>
