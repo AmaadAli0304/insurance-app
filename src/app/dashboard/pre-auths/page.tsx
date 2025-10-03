@@ -28,6 +28,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format, formatDistanceToNow } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 
 export default function PreAuthsPage() {
@@ -168,7 +169,7 @@ export default function PreAuthsPage() {
                           {r.fullName}
                         </TableCell>
                         <TableCell>
-                          <Badge className={getStatusVariant(r.status)}>{r.status}</Badge>
+                          <Badge variant={getStatusVariant(r.status) as any}>{r.status}</Badge>
                         </TableCell>
                         <TableCell>{format(new Date(r.createdAt), 'PPP')}</TableCell>
                         <TableCell>{format(new Date(r.createdAt), 'p')}</TableCell>
