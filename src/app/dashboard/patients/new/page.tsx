@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useActionState, useEffect, useState, useRef } from "react";
@@ -32,8 +31,8 @@ function SubmitButton({ formAction, status }: { formAction: (payload: FormData) 
     const { pending } = useFormStatus();
     const isDraft = status === 'draft';
     const Icon = isDraft ? Save : Send;
-    const text = isDraft ? "Save as Draft" : "Save & Create Pre-Auth";
-    const pendingText = isDraft ? "Saving..." : "Creating...";
+    const text = isDraft ? "Save as Draft" : "Save Patient";
+    const pendingText = "Saving...";
 
     return (
         <Button type="submit" disabled={pending} formAction={formAction} variant={isDraft ? 'outline' : 'default'} size="lg">
