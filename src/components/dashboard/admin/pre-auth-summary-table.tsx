@@ -13,6 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { PreAuthStatus } from "@/lib/types";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 
 interface PreAuthSummaryTableProps {
   dateRange?: DateRange;
@@ -107,6 +109,11 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
     const handleNextPage = () => {
         setCurrentPage((prev) => Math.min(prev + 1, totalPages));
     };
+
+    const getInitials = (name: string) => {
+        if (!name) return 'P';
+        return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    }
     
     return (
         <Card>
@@ -144,7 +151,13 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                             {stats && stats.length > 0 ? (
                                 stats.map((stat, index) => (
                                     <TableRow key={index}>
-                                        <TableCell className="font-medium">{stat.patientName}</TableCell>
+                                        <TableCell className="font-medium flex items-center gap-3">
+                                            <Avatar className="h-10 w-10">
+                                                <AvatarImage src={stat.patientPhoto ?? undefined} alt={stat.patientName} />
+                                                <AvatarFallback>{getInitials(stat.patientName)}</AvatarFallback>
+                                            </Avatar>
+                                            {stat.patientName}
+                                        </TableCell>
                                         <TableCell>{stat.admissionDate ? format(new Date(stat.admissionDate), 'MMM dd, yyyy') : 'N/A'}</TableCell>
                                         <TableCell>{stat.tpaName}</TableCell>
                                         <TableCell>{stat.insuranceName}</TableCell>

@@ -395,6 +395,7 @@ export async function getSettledStatusStats(
 
 export type PreAuthSummaryStat = {
   patientName: string;
+  patientPhoto: string | null;
   status: string;
   admissionDate: string | null;
   tpaName: string;
@@ -445,6 +446,7 @@ export async function getPreAuthSummaryStats(
         const query = `
             SELECT
                 pr.first_name + ' ' + pr.last_name AS patientName,
+                p.photo as patientPhoto,
                 pr.status,
                 pr.admissionDate,
                 COALESCE(t.name, 'N/A') as tpaName,
@@ -453,6 +455,7 @@ export async function getPreAuthSummaryStats(
                 pr.roomCategory,
                 pr.totalExpectedCost as budget
             FROM preauth_request pr
+            LEFT JOIN patients p ON pr.patient_id = p.id
             LEFT JOIN companies c ON pr.company_id = c.id
             LEFT JOIN tpas t ON pr.tpa_id = t.id
             ${whereClause}
@@ -461,8 +464,21 @@ export async function getPreAuthSummaryStats(
         `;
 
         const result = await request.query(query);
+        const stats = result.recordset.map(row => {
+            let photoUrl = null;
+            if (row.patientPhoto) {
+                try {
+                    const parsed = JSON.parse(row.patientPhoto);
+                    photoUrl = parsed.url;
+                } catch {
+                    photoUrl = typeof row.patientPhoto === 'string' && row.patientPhoto.startsWith('http') ? row.patientPhoto : null;
+                }
+            }
+            return { ...row, patientPhoto: photoUrl };
+        });
+
         return {
-            stats: result.recordset as PreAuthSummaryStat[],
+            stats,
             total: total
         };
 
@@ -476,6 +492,7 @@ export async function getPreAuthSummaryStats(
     
 
     
+
 
 
 
