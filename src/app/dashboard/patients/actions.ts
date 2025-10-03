@@ -627,8 +627,10 @@ async function handleSaveChiefComplaints(transaction: sql.Transaction, patientId
     }
 }
 
-
-export async function handleAddPatient(prevState: { message: string, type?: string }, formData: FormData) {
+async function savePatient(
+    formData: FormData,
+    status: 'Active' | 'Draft'
+): Promise<{ message: string, type?: string }> {
   const formObject = Object.fromEntries(formData.entries());
   const validatedFields = patientAddFormSchema.safeParse(formObject);
   
@@ -784,7 +786,7 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
       .input('otherHospitalExpenses', sql.Decimal(18, 2), data.otherHospitalExpenses)
       .input('packageCharges', sql.Decimal(18, 2), data.packageCharges)
       .input('totalExpectedCost', sql.Decimal(18, 2), data.totalExpectedCost)
-      .input('status', sql.NVarChar, 'Active')
+      .input('status', sql.NVarChar, status)
       .query(`
         INSERT INTO admissions (
           patient_id, doctor_id, admission_id, relationship_policyholder, policy_number, insured_card_number, insurance_company, policy_start_date, policy_end_date, 
@@ -813,10 +815,12 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
         userId: data.staff_id!,
         userName: data.userName,
         actionType: 'CREATE_PATIENT',
-        details: `Created new patient: ${data.firstName} ${data.lastName}`,
+        details: `Created new patient: ${data.firstName} ${data.lastName} (Status: ${status})`,
         targetId: patientId,
         targetType: 'Patient'
     });
+    
+    return { message: `Patient saved as ${status}.`, type: "success" };
 
   } catch (error) {
     if(transaction) await transaction.rollback();
@@ -824,8 +828,18 @@ export async function handleAddPatient(prevState: { message: string, type?: stri
     const dbError = error as { message?: string };
     return { message: `Database Error: ${dbError.message || 'Unknown error'}`, type: "error" };
   }
+}
+
+export async function handleAddPatient(prevState: { message: string, type?: string }, formData: FormData) {
+  await savePatient(formData, 'Active');
   revalidatePath('/dashboard/patients');
   redirect('/dashboard/patients');
+}
+
+export async function handleSaveDraftPatient(prevState: { message: string, type?: string }, formData: FormData) {
+    await savePatient(formData, 'Draft');
+    revalidatePath('/dashboard/patients');
+    redirect('/dashboard/patients');
 }
 
 export async function handleUpdatePatient(prevState: { message: string, type?: string }, formData: FormData) {
@@ -846,6 +860,14 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
         transaction = new sql.Transaction(pool);
         await transaction.begin();
 
+        let patientSetClauses: string[] = [
+            'first_name = @first_name', 'last_name = @last_name', 'email_address = @email_address', 
+            'phone_number = @phone_number', 'alternative_number = @alternative_number', 'gender = @gender', 
+            'birth_date = @birth_date', 'address = @address', 'occupation = @occupation', 
+            'employee_id = @employee_id', 'abha_id = @abha_id', 'health_id = @health_id', 'hospital_id = @hospital_id',
+            'updated_at = GETDATE()'
+        ];
+
         const patientRequest = new sql.Request(transaction);
         patientRequest
             .input('id', sql.Int, Number(patientId))
@@ -863,14 +885,6 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
             .input('health_id', sql.NVarChar, data.health_id || null)
             .input('hospital_id', sql.NVarChar, data.hospital_id || null);
 
-        let patientSetClauses: string[] = [
-            'first_name = @first_name', 'last_name = @last_name', 'email_address = @email_address', 
-            'phone_number = @phone_number', 'alternative_number = @alternative_number', 'gender = @gender', 
-            'birth_date = @birth_date', 'address = @address', 'occupation = @occupation', 
-            'employee_id = @employee_id', 'abha_id = @abha_id', 'health_id = @health_id', 'hospital_id = @hospital_id',
-            'updated_at = GETDATE()'
-        ];
-
         const documentKeys: (keyof typeof data)[] = [
             'photoUrl', 'adhaar_path_url', 'pan_path_url', 'passport_path_url', 'voter_id_path_url', 'driving_licence_path_url', 'other_path_url', 'policy_path_url', 'discharge_summary_path_url',
             'final_bill_path_url', 'pharmacy_bill_path_url', 'implant_bill_stickers_path_url', 'lab_bill_path_url', 'ot_anesthesia_notes_path_url'
@@ -880,21 +894,21 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
             const nameKey = urlKey.replace('_url', '_name') as keyof typeof data;
             const dbFieldKey = urlKey.replace('_path_url', '').replace('_url', '');
             
-            const url = data[urlKey] as string | undefined;
-            const name = data[nameKey] as string | undefined;
-            const fileInputName = urlKey.replace('_url', '-file');
-            
-            if (formData.has(fileInputName) && url && name) {
-                const docJson = JSON.stringify({ url, name });
+            if (formData.has(`${dbFieldKey}-file`) || formData.has(`${dbFieldKey}_path-file`)) {
+                const url = data[urlKey] as string | undefined;
+                const name = data[nameKey] as string | undefined;
+                const docJson = createDocumentJson(url, name);
                 
                 let dbColumn = dbFieldKey;
-                if (dbFieldKey === 'discharge_summary_path') dbColumn = 'discharge_summary';
-                else if (dbFieldKey === 'final_bill_path') dbColumn = 'final_bill';
-                else if (dbFieldKey === 'pharmacy_bill_path') dbColumn = 'pharmacy_bill';
-                else if (dbFieldKey === 'implant_bill_stickers_path') dbColumn = 'implant_bill';
-                else if (dbFieldKey === 'lab_bill_path') dbColumn = 'lab_bill';
-                else if (dbFieldKey === 'ot_anesthesia_notes_path') dbColumn = 'ot_notes';
-                
+                if (['discharge_summary', 'final_bill', 'pharmacy_bill', 'implant_bill', 'lab_bill', 'ot_notes'].includes(dbColumn)) {
+                    // These fields are already correct.
+                } else {
+                   dbColumn = `${dbFieldKey}_path`;
+                }
+
+                if (dbColumn === 'implant_bill_stickers_path') dbColumn = 'implant_bill';
+                if (dbColumn === 'ot_anesthesia_notes_path') dbColumn = 'ot_notes';
+
                 patientSetClauses.push(`${dbColumn} = @${dbColumn}`);
                 patientRequest.input(dbColumn, sql.NVarChar, docJson);
             }

@@ -9,9 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormStatus } from "react-dom";
-import { handleAddPatient, getNewPatientPageData, getPresignedUrl, Doctor } from "../actions";
+import { handleAddPatient, handleSaveDraftPatient, getNewPatientPageData, getPresignedUrl, Doctor } from "../actions";
 import Link from "next/link";
-import { ArrowLeft, Upload, User as UserIcon, Loader2, Eye, File as FileIcon, XCircle, Send } from "lucide-react";
+import { ArrowLeft, Upload, User as UserIcon, Loader2, Eye, File as FileIcon, XCircle, Send, Save } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Company, TPA } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
@@ -28,12 +28,16 @@ import { DoctorSearch } from "@/components/doctor-search";
 import { intervalToDuration } from "date-fns";
 
 
-function SubmitButton() {
+function SubmitButton({ formAction, status }: { formAction: (payload: FormData) => void; status: 'draft' | 'active' }) {
     const { pending } = useFormStatus();
+    const Icon = status === 'draft' ? Save : Send;
+    const text = status === 'draft' ? "Save as Draft" : "Save Patient";
+    const pendingText = status === 'draft' ? "Saving..." : "Saving...";
+
     return (
-        <Button type="submit" disabled={pending} size="lg">
-            <Send className="mr-2 h-4 w-4" />
-            {pending ? "Saving..." : "Save Patient"}
+        <Button type="submit" disabled={pending} formAction={formAction} size="lg" variant={status === 'draft' ? 'outline' : 'default'}>
+            <Icon className="mr-2 h-4 w-4" />
+            {pending ? pendingText : text}
         </Button>
     );
 }
@@ -135,7 +139,9 @@ export default function NewPatientPage() {
     const router = useRouter();
     const { toast } = useToast();
     
-    const [state, formAction] = useActionState(handleAddPatient, { message: "", type: 'initial' });
+    const [addState, addAction] = useActionState(handleAddPatient, { message: "", type: 'initial' });
+    const [draftState, draftAction] = useActionState(handleSaveDraftPatient, { message: "", type: "initial" });
+    
     const [companies, setCompanies] = useState<Pick<Company, "id" | "name">[]>([]);
     const [tpas, setTpas] = useState<Pick<TPA, "id" | "name">[]>([]);
     const [doctors, setDoctors] = useState<Doctor[]>([]);
@@ -289,13 +295,14 @@ export default function NewPatientPage() {
     }, [toast, user]);
     
      useEffect(() => {
+        const state = addState.type !== 'initial' ? addState : draftState;
         if (state.type === 'success') {
             toast({ title: "Patient", description: state.message, variant: "success" });
             router.push('/dashboard/patients');
         } else if (state.type === 'error') {
             toast({ title: "Error", description: state.message, variant: "destructive" });
         }
-    }, [state, toast, router]);
+    }, [addState, draftState, toast, router]);
     
 
     if (isLoading) {
@@ -353,7 +360,7 @@ export default function NewPatientPage() {
                 </Button>
                 <h1 className="text-lg font-semibold md:text-2xl">New Patient</h1>
             </div>
-            <form action={formAction} ref={formRef}>
+            <form ref={formRef}>
                  <input type="hidden" name="hospital_id" value={user?.hospitalId || ''} />
                  <input type="hidden" name="staff_id" value={user?.uid || ''} />
                  <input type="hidden" name="userName" value={user?.name || ''} />
@@ -493,7 +500,7 @@ export default function NewPatientPage() {
                                         <FileUploadField label="Pharmacy Bill" name="pharmacy_bill_path" onUploadComplete={handleDocumentUploadComplete} />
                                         <FileUploadField label="Implant Bill & Stickers" name="implant_bill_stickers_path" onUploadComplete={handleDocumentUploadComplete} />
                                         <FileUploadField label="Lab Bill" name="lab_bill_path" onUploadComplete={handleDocumentUploadComplete} />
-                                        <FileUploadField label="OT &amp; Anesthesia Notes" name="ot_anesthesia_notes_path" onUploadComplete={handleDocumentUploadComplete} />
+                                        <FileUploadField label="OT & Anesthesia Notes" name="ot_anesthesia_notes_path" onUploadComplete={handleDocumentUploadComplete} />
                                     </CardContent>
                                 </AccordionContent>
                             </AccordionItem>
@@ -861,9 +868,10 @@ export default function NewPatientPage() {
                     </Accordion>
 
 
-                    <div className="flex justify-end">
-                        {state.type === 'error' && <p className="text-sm text-destructive self-center mr-4">{state.message}</p>}
-                        <SubmitButton />
+                    <div className="flex justify-end gap-2">
+                        {(addState.type === 'error' || draftState.type === 'error') && <p className="text-sm text-destructive self-center">{addState.message || draftState.message}</p>}
+                        <SubmitButton formAction={draftAction} status="draft" />
+                        <SubmitButton formAction={addAction} status="active" />
                     </div>
                 </div>
             </form>
