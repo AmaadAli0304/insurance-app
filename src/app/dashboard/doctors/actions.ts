@@ -3,6 +3,7 @@
 
 import pool, { sql, poolConnect } from "@/lib/db";
 import { z } from 'zod';
+import { Hospital } from "@/lib/types";
 
 // Define the shape of a Doctor object
 export type Doctor = {
@@ -12,6 +13,8 @@ export type Doctor = {
   phone?: string | null;
   qualification?: string | null;
   reg_no?: string | null;
+  hospital_id?: string | null;
+  hospitalName?: string | null;
 }
 
 // Zod schema for validation
@@ -21,6 +24,7 @@ const doctorSchema = z.object({
   email: z.string().email("Invalid email address.").optional().or(z.literal('')),
   phone: z.string().optional(),
   reg_no: z.string().optional(),
+  hospitalId: z.string().optional().nullable(),
 });
 
 const doctorUpdateSchema = doctorSchema.extend({
@@ -31,7 +35,11 @@ const doctorUpdateSchema = doctorSchema.extend({
 export async function getDoctors(): Promise<Doctor[]> {
   try {
     const db = await poolConnect;
-    const result = await db.request().query('SELECT * FROM doctors');
+    const result = await db.request().query(`
+        SELECT d.*, h.name as hospitalName 
+        FROM doctors d
+        LEFT JOIN hospitals h ON d.hospital_id = h.id
+    `);
     return result.recordset as Doctor[];
   } catch (error) {
     console.error('Error fetching doctors:', error);
@@ -67,6 +75,7 @@ export async function handleAddDoctor(prevState: { message: string, type?: strin
     email: formData.get("email"),
     phone: formData.get("phone"),
     reg_no: formData.get("reg_no"),
+    hospitalId: formData.get("hospitalId"),
   });
 
   if (!validatedFields.success) {
@@ -74,7 +83,7 @@ export async function handleAddDoctor(prevState: { message: string, type?: strin
       return { message: `Invalid data: ${errorMessages}`, type: 'error' };
   }
   
-  const { name, qualification, email, phone, reg_no } = validatedFields.data;
+  const { name, qualification, email, phone, reg_no, hospitalId } = validatedFields.data;
 
   try {
     const db = await poolConnect;
@@ -84,9 +93,10 @@ export async function handleAddDoctor(prevState: { message: string, type?: strin
       .input('email', sql.NVarChar, email)
       .input('phone', sql.NVarChar, phone)
       .input('reg_no', sql.NVarChar, reg_no)
+      .input('hospital_id', sql.NVarChar, hospitalId === 'none' ? null : hospitalId)
       .query(`
-        INSERT INTO doctors (name, qualification, email, phone, reg_no) 
-        VALUES (@name, @qualification, @email, @phone, @reg_no)
+        INSERT INTO doctors (name, qualification, email, phone, reg_no, hospital_id) 
+        VALUES (@name, @qualification, @email, @phone, @reg_no, @hospital_id)
       `);
   } catch (error) {
     console.error('Error adding doctor:', error);
@@ -106,6 +116,7 @@ export async function handleUpdateDoctor(prevState: { message: string, type?: st
     email: formData.get("email"),
     phone: formData.get("phone"),
     reg_no: formData.get("reg_no"),
+    hospitalId: formData.get("hospitalId"),
   });
   
   if (!parsed.success) {
@@ -113,7 +124,7 @@ export async function handleUpdateDoctor(prevState: { message: string, type?: st
     return { message: `Invalid data: ${errorMessages}`, type: 'error' };
   }
 
-  const { id, ...dataToUpdate } = parsed.data;
+  const { id, hospitalId, ...dataToUpdate } = parsed.data;
 
   try {
     const db = await poolConnect;
@@ -122,6 +133,8 @@ export async function handleUpdateDoctor(prevState: { message: string, type?: st
       .map(([key, value]) => (value != null && value !== '') ? `${key} = @${key}` : null)
       .filter(Boolean)
       .join(', ');
+    
+    setClauses.concat(', hospital_id = @hospital_id');
 
     if (!setClauses) {
       return { message: "No data to update.", type: "error" };
@@ -135,7 +148,8 @@ export async function handleUpdateDoctor(prevState: { message: string, type?: st
 
     const result = await request
       .input('id', sql.Int, id)
-      .query(`UPDATE doctors SET ${setClauses} WHERE id = @id`);
+      .input('hospital_id', sql.NVarChar, hospitalId === 'none' ? null : hospitalId)
+      .query(`UPDATE doctors SET ${setClauses}, hospital_id = @hospital_id WHERE id = @id`);
 
     if (result.rowsAffected[0] === 0) {
       return { message: "Doctor not found or data is the same.", type: 'error' };

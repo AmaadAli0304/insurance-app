@@ -460,16 +460,24 @@ export async function handleCreateDoctorsTable(prevState: { message: string, typ
           email NVARCHAR(255),
           phone NVARCHAR(50),
           qualification NVARCHAR(255),
-          reg_no NVARCHAR(100)
+          reg_no NVARCHAR(100),
+          hospital_id NVARCHAR(255) NULL
         );
+      END
+      ELSE
+      BEGIN
+        IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'hospital_id' AND Object_ID = Object_ID(N'doctors'))
+        BEGIN
+          ALTER TABLE doctors ADD hospital_id NVARCHAR(255) NULL;
+        END
       END
     `;
     await request.query(createDoctorsTableQuery);
-    return { message: "Doctors table created successfully or already exists.", type: "success" };
+    return { message: "Doctors table created or updated successfully.", type: "success" };
   } catch (error) {
     const dbError = error as { message?: string };
-    console.error('Error creating Doctors table:', dbError);
-    return { message: `Error creating Doctors table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+    console.error('Error creating/updating Doctors table:', dbError);
+    return { message: `Error creating/updating Doctors table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
 

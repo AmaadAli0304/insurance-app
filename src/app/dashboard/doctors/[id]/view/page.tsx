@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { getDoctorById, Doctor } from "../../actions";
 import { notFound, useParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Stethoscope, Mail, Phone, Award, Fingerprint } from "lucide-react";
+import { Stethoscope, Mail, Phone, Award, Fingerprint, Building } from "lucide-react";
 
 const DetailItem = ({ label, value, icon: Icon }: { label: string, value?: string | null, icon: React.ElementType }) => (
     <div className="flex items-start gap-3">
@@ -80,6 +80,7 @@ export default function ViewDoctorPage() {
                 <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6 border-t">
                     <DetailItem label="Qualification" value={doctor.qualification} icon={Award} />
                     <DetailItem label="Registration Number" value={doctor.reg_no} icon={Fingerprint} />
+                    <DetailItem label="Assigned Hospital" value={doctor.hospitalName} icon={Building} />
                     <DetailItem label="Email Address" value={doctor.email} icon={Mail} />
                     <DetailItem label="Phone Number" value={doctor.phone} icon={Phone} />
                 </CardContent>

@@ -72,6 +72,7 @@ export function DoctorsTable({ doctors, onDoctorDeleted }: DoctorsTableProps) {
       <TableHeader>
         <TableRow>
           <TableHead>Name</TableHead>
+          <TableHead>Assigned Hospital</TableHead>
           <TableHead>Email</TableHead>
           <TableHead>Phone</TableHead>
           <TableHead>Registration No.</TableHead>
@@ -83,6 +84,7 @@ export function DoctorsTable({ doctors, onDoctorDeleted }: DoctorsTableProps) {
           doctors.map(doctor => (
             <TableRow key={doctor.id} onClick={() => handleRowClick(doctor.id!)} className="cursor-pointer">
               <TableCell className="font-medium">{doctor.name}</TableCell>
+              <TableCell>{doctor.hospitalName || 'N/A'}</TableCell>
               <TableCell>{doctor.email || 'N/A'}</TableCell>
               <TableCell>{doctor.phone || 'N/A'}</TableCell>
               <TableCell>{doctor.reg_no || 'N/A'}</TableCell>
@@ -131,7 +133,7 @@ export function DoctorsTable({ doctors, onDoctorDeleted }: DoctorsTableProps) {
           ))
         ) : (
           <TableRow>
-            <TableCell colSpan={5} className="h-24 text-center">
+            <TableCell colSpan={6} className="h-24 text-center">
               No doctors found.
             </TableCell>
           </TableRow>

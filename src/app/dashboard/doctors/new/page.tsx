@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,9 @@ import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { PhoneInput } from "@/components/phone-input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { getHospitalsForForm } from "@/app/dashboard/staff/actions";
+import { Hospital } from "@/lib/types";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -27,6 +30,15 @@ export default function NewDoctorPage() {
     const [state, formAction] = useActionState(handleAddDoctor, { message: "", type: undefined });
     const { toast } = useToast();
     const router = useRouter();
+    const [hospitals, setHospitals] = useState<Pick<Hospital, "id" | "name">[]>([]);
+    const [isLoadingHospitals, setIsLoadingHospitals] = useState(true);
+
+    useEffect(() => {
+        getHospitalsForForm()
+            .then(setHospitals)
+            .catch(() => toast({ title: "Error", description: "Could not load hospitals.", variant: "destructive" }))
+            .finally(() => setIsLoadingHospitals(false));
+    }, [toast]);
 
     useEffect(() => {
         if (state.type === 'success') {
@@ -80,10 +92,26 @@ export default function NewDoctorPage() {
                                 <Label htmlFor="phone">Phone</Label>
                                 <PhoneInput name="phone" placeholder="e.g. 9876543210" />
                             </div>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="reg_no">Registration Number</Label>
-                            <Input id="reg_no" name="reg_no" placeholder="e.g. 12345-ABC" />
+                            <div className="space-y-2">
+                                <Label htmlFor="reg_no">Registration Number</Label>
+                                <Input id="reg_no" name="reg_no" placeholder="e.g. 12345-ABC" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="hospitalId">Assign Hospital</Label>
+                                <Select name="hospitalId" disabled={isLoadingHospitals}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a hospital" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">None</SelectItem>
+                                        {hospitals.map(hospital => (
+                                            <SelectItem key={hospital.id} value={hospital.id}>
+                                                {hospital.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
 
                         {state.type === 'error' && <p className="text-sm text-destructive">{state.message}</p>}

@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { useEffect, useActionState } from "react";
+import { useEffect, useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,9 @@ import { ArrowLeft } from "lucide-react";
 import { notFound, useRouter, useParams } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { PhoneInput } from "@/components/phone-input";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { getHospitalsForForm } from "@/app/dashboard/staff/actions";
+import { Hospital } from "@/lib/types";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -28,26 +31,34 @@ export default function EditDoctorPage() {
     const params = useParams();
     const id = params.id as string;
     const [doctor, setDoctor] = React.useState<Doctor | null>(null);
+    const [hospitals, setHospitals] = useState<Pick<Hospital, 'id' | 'name'>[]>([]);
     const [isLoading, setIsLoading] = React.useState(true);
     const [error, setError] = React.useState<string | null>(null);
     const [state, formAction] = useActionState(handleUpdateDoctor, { message: "", type: "initial" });
     const { toast } = useToast();
     const router = useRouter();
+    const [selectedHospitalId, setSelectedHospitalId] = useState<string | null>(null);
 
     useEffect(() => {
-        async function fetchDoctor() {
+        async function fetchDoctorAndHospitals() {
             try {
                 const doctorId = Number(id);
                 if (isNaN(doctorId)) {
                     notFound();
                     return;
                 }
-                const fetchedDoctor = await getDoctorById(doctorId);
+                const [fetchedDoctor, hospitalList] = await Promise.all([
+                    getDoctorById(doctorId),
+                    getHospitalsForForm()
+                ]);
+                
                 if (!fetchedDoctor) {
                     notFound();
                     return;
                 }
                 setDoctor(fetchedDoctor);
+                setHospitals(hospitalList);
+                setSelectedHospitalId(fetchedDoctor.hospital_id || null);
             } catch (err) {
                 const dbError = err as Error;
                 setError(dbError.message);
@@ -55,7 +66,7 @@ export default function EditDoctorPage() {
                 setIsLoading(false);
             }
         }
-        fetchDoctor();
+        fetchDoctorAndHospitals();
     }, [id]);
 
     useEffect(() => {
@@ -123,10 +134,26 @@ export default function EditDoctorPage() {
                                 <Label htmlFor="phone">Phone</Label>
                                 <PhoneInput name="phone" defaultValue={doctor.phone ?? ""} />
                             </div>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="reg_no">Registration Number</Label>
-                            <Input id="reg_no" name="reg_no" defaultValue={doctor.reg_no ?? ""} />
+                             <div className="space-y-2">
+                                <Label htmlFor="reg_no">Registration Number</Label>
+                                <Input id="reg_no" name="reg_no" defaultValue={doctor.reg_no ?? ""} />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="hospitalId">Assign Hospital</Label>
+                                <Select name="hospitalId" value={selectedHospitalId ?? "none"} onValueChange={setSelectedHospitalId}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a hospital" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">None</SelectItem>
+                                        {hospitals.map(hospital => (
+                                            <SelectItem key={hospital.id} value={hospital.id}>
+                                                {hospital.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
                         
                         {state.type === 'error' && <p className="text-sm text-destructive">{state.message}</p>}
