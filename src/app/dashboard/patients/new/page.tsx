@@ -295,7 +295,7 @@ export default function NewPatientPage() {
     }, [toast, user]);
     
      useEffect(() => {
-        const state = addState.type !== 'initial' ? addState : draftState;
+        const state = addState.type === 'initial' ? draftState : addState;
         if (state.type === 'success') {
             toast({ title: "Patient", description: state.message, variant: "success" });
             router.push('/dashboard/patients');

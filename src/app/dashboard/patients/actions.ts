@@ -175,10 +175,16 @@ export type Doctor = {
   reg_no?: string | null;
 }
 
-export async function getDoctors(): Promise<Doctor[]> {
+export async function getDoctors(hospitalId?: string | null): Promise<Doctor[]> {
   try {
     const pool = await getDbPool();
-    const result = await pool.request().query('SELECT * FROM doctors');
+    const request = pool.request();
+    let query = 'SELECT * FROM doctors';
+    if (hospitalId) {
+        query += ' WHERE hospital_id = @hospitalId';
+        request.input('hospitalId', sql.NVarChar, hospitalId);
+    }
+    const result = await request.query(query);
     return result.recordset as Doctor[];
   } catch (error) {
     console.error('Error fetching doctors:', error);
@@ -500,7 +506,7 @@ export async function getNewPatientPageData(hospitalId: string) {
         const [companies, tpas, doctors] = await Promise.all([
             getCompaniesByHospital(hospitalId),
             getTPAsByHospital(hospitalId),
-            getDoctors(),
+            getDoctors(hospitalId),
         ]);
 
         type CompaniesType = Pick<Company, 'id' | 'name'>[];
@@ -529,7 +535,7 @@ export async function getPatientEditPageData(patientId: string) {
         const [companies, tpas, doctors, complaints] = await Promise.all([
             hospitalId ? getCompaniesByHospital(hospitalId) : Promise.resolve([]),
             hospitalId ? getTPAsByHospital(hospitalId) : Promise.resolve([]),
-            getDoctors(),
+            hospitalId ? getDoctors(hospitalId) : Promise.resolve([]),
             getChiefComplaints(Number(patientId))
         ]);
 
@@ -905,28 +911,25 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
             if (url && name) {
                 let dbKey = urlKey.replace('_url', '');
 
-                if(dbKey === 'photoUrl') {
-                    dbKey = 'photo';
+                if(dbKey === 'photo') {
+                   // Correctly handled
+                } else if (['discharge_summary_path', 'final_bill_path', 'pharmacy_bill_path', 'implant_bill_stickers_path', 'lab_bill_path', 'ot_anesthesia_notes_path'].includes(urlKey)) {
+                     dbKey = dbKey.replace('_path','');
+                     if (dbKey === 'implant_bill_stickers') dbKey = 'implant_bill';
+                     if (dbKey === 'ot_anesthesia_notes') dbKey = 'ot_notes';
                 } else if (dbKey.endsWith('_path')) {
-                     dbKey = dbKey.replace('_path', '');
-                     if (dbKey === 'implant_bill_stickers') {
-                        dbKey = 'implant_bill';
-                     } else if (dbKey === 'ot_anesthesia_notes') {
-                        dbKey = 'ot_notes';
-                     }
-                } else if (!['adhaar_path', 'pan_path', 'passport_path', 'voter_id_path', 'driving_licence_path', 'other_path', 'policy_path'].includes(dbKey)) {
+                     // Correctly handled
+                } else {
                    dbKey = `${dbKey}_path`;
                 }
 
-                if (['discharge_summary', 'final_bill', 'pharmacy_bill', 'implant_bill', 'lab_bill', 'ot_notes'].includes(dbKey)) {
-                     // these are direct columns now
+                if (dbKey !== 'photo_path'){
+                  patientSetClauses.push(`${dbKey} = @${dbKey}`);
+                  patientRequest.input(dbKey, sql.NVarChar, createDocumentJson(url, name));
                 } else {
-                     dbKey = `${dbKey}_path`;
+                    patientSetClauses.push(`photo = @photo`);
+                    patientRequest.input('photo', sql.NVarChar, createDocumentJson(url, name));
                 }
-                if (dbKey === 'photo_path') dbKey = 'photo';
-                
-                patientSetClauses.push(`${dbKey} = @${dbKey}`);
-                patientRequest.input(dbKey, sql.NVarChar, createDocumentJson(url, name));
             }
         }
         
@@ -1181,5 +1184,6 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
 
 
     
+
 
 

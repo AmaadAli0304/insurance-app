@@ -26,12 +26,12 @@ const MemoizedDoctorSearch = ({ doctors, defaultDoctorId, onDoctorSelect }: Doct
     onDoctorSelect(selectedDoctor);
   };
 
-  const selectedDoctorName = doctors?.find(d => String(d.id) === selectedDoctorId)?.name || "";
+  const selectedDoctor = doctors?.find(d => String(d.id) === selectedDoctorId);
 
   return (
     <div>
         <input type="hidden" name="doctor_id" value={selectedDoctorId} />
-        <input type="hidden" name="treat_doc_name" value={selectedDoctorName} />
+        <input type="hidden" name="treat_doc_name" value={selectedDoctor?.name || ""} />
         <Select
             value={selectedDoctorId}
             onValueChange={handleSelect}
@@ -44,7 +44,7 @@ const MemoizedDoctorSearch = ({ doctors, defaultDoctorId, onDoctorSelect }: Doct
             <SelectContent>
                 {doctors?.map((doctor) => (
                     <SelectItem key={doctor.id} value={String(doctor.id)}>
-                        {doctor.name}
+                        {doctor.name}{doctor.qualification && ` (${doctor.qualification})`}
                     </SelectItem>
                 ))}
             </SelectContent>
