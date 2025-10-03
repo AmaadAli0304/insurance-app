@@ -28,16 +28,12 @@ import { DoctorSearch } from "@/components/doctor-search";
 import { intervalToDuration } from "date-fns";
 
 
-function SubmitButton({ formAction, status }: { formAction: (payload: FormData) => void; status: 'draft' | 'active' }) {
+function SubmitButton({ formAction }: { formAction: (payload: FormData) => void }) {
     const { pending } = useFormStatus();
-    const Icon = status === 'draft' ? Save : Send;
-    const text = status === 'draft' ? "Save as Draft" : "Save Patient";
-    const pendingText = status === 'draft' ? "Saving..." : "Saving...";
-
     return (
-        <Button type="submit" disabled={pending} formAction={formAction} size="lg" variant={status === 'draft' ? 'outline' : 'default'}>
-            <Icon className="mr-2 h-4 w-4" />
-            {pending ? pendingText : text}
+        <Button type="submit" disabled={pending} formAction={formAction}>
+            <Send className="mr-2 h-4 w-4" />
+            {pending ? "Sending..." : "Save & Send Request"}
         </Button>
     );
 }
@@ -68,7 +64,7 @@ async function uploadFile(file: File): Promise<{ publicUrl: string } | { error: 
 }
 
 
-const FileUploadField = React.memo(({ label, name, onUploadComplete, initialData }: { label: string; name: string; onUploadComplete: (fieldName: string, name: string, url: string) => void; initialData?: { url: string | null; name: string | null } | null }) => {
+const FileUploadField = React.memo(({ label, name, onUploadComplete, initialData, required }: { label: string; name: string; onUploadComplete: (fieldName: string, name: string, url: string) => void; initialData?: { url: string | null; name: string | null } | null, required?: boolean }) => {
     const [isUploading, setIsUploading] = useState(false);
     const [fileUrl, setFileUrl] = useState<string | null>(initialData?.url || null);
     const [fileName, setFileName] = useState<string | null>(initialData?.name || null);
@@ -106,9 +102,9 @@ const FileUploadField = React.memo(({ label, name, onUploadComplete, initialData
 
     return (
         <div className="space-y-2">
-            <Label htmlFor={name}>{label}</Label>
+            <Label htmlFor={name}>{label}{required && <span className="text-destructive">*</span>}</Label>
             <div className="flex items-center gap-2">
-                <Input ref={fileInputRef} id={name} type="file" onChange={handleFileChange} disabled={isUploading} className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
+                <Input ref={fileInputRef} id={name} type="file" onChange={handleFileChange} disabled={isUploading} className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" required={required && !fileUrl} />
                 {isUploading && (
                     <div className="flex items-center gap-2">
                         <Loader2 className="h-5 w-5 animate-spin" />
@@ -430,16 +426,16 @@ export default function NewPatientPage() {
                                             <Input id="email_address" name="email_address" type="email" />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="phone_number">Registered mobile number</Label>
-                                            <PhoneInput name="phone_number" />
+                                            <Label htmlFor="phone_number">Registered mobile number <span className="text-destructive">*</span></Label>
+                                            <PhoneInput name="phone_number" required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="alternative_number">Alternate contact number</Label>
                                             <PhoneInput name="alternative_number" />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="gender">Gender</Label>
-                                            <Select name="gender">
+                                            <Label htmlFor="gender">Gender <span className="text-destructive">*</span></Label>
+                                            <Select name="gender" required>
                                                 <SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="Male">Male</SelectItem>
@@ -449,8 +445,8 @@ export default function NewPatientPage() {
                                             </Select>
                                         </div>
                                          <div className="space-y-2">
-                                            <Label htmlFor="birth_date">Date of birth</Label>
-                                            <Input id="birth_date" name="birth_date" type="date" max={today} />
+                                            <Label htmlFor="birth_date">Date of birth <span className="text-destructive">*</span></Label>
+                                            <Input id="birth_date" name="birth_date" type="date" max={today} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="age">Age</Label>
@@ -473,8 +469,8 @@ export default function NewPatientPage() {
                                             <Input id="abha_id" name="abha_id" />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="health_id">Health ID / UHID</Label>
-                                            <Input id="health_id" name="health_id" />
+                                            <Label htmlFor="health_id">Health ID / UHID <span className="text-destructive">*</span></Label>
+                                            <Input id="health_id" name="health_id" required />
                                         </div>
                                     </CardContent>
                                 </AccordionContent>
@@ -488,13 +484,13 @@ export default function NewPatientPage() {
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-2 gap-4">
-                                        <FileUploadField label="Aadhaar Card" name="adhaar_path" onUploadComplete={handleDocumentUploadComplete} />
-                                        <FileUploadField label="PAN Card" name="pan_path" onUploadComplete={handleDocumentUploadComplete} />
+                                        <FileUploadField label="Aadhaar Card" name="adhaar_path" onUploadComplete={handleDocumentUploadComplete} required />
+                                        <FileUploadField label="PAN Card" name="pan_path" onUploadComplete={handleDocumentUploadComplete} required />
                                         <FileUploadField label="Passport" name="passport_path" onUploadComplete={handleDocumentUploadComplete} />
                                         <FileUploadField label="Driving License" name="driving_licence_path" onUploadComplete={handleDocumentUploadComplete} />
                                         <FileUploadField label="Voter ID" name="voter_id_path" onUploadComplete={handleDocumentUploadComplete} />
-                                        <FileUploadField label="Policy File" name="policy_path" onUploadComplete={handleDocumentUploadComplete} />
-                                        <FileUploadField label="Other Document" name="other_path" onUploadComplete={handleDocumentUploadComplete} />
+                                        <FileUploadField label="Policy File" name="policy_path" onUploadComplete={handleDocumentUploadComplete} required />
+                                        <FileUploadField label="Other Document" name="other_path" onUploadComplete={handleDocumentUploadComplete} required />
                                         <FileUploadField label="Discharge Summary" name="discharge_summary_path" onUploadComplete={handleDocumentUploadComplete} />
                                         <FileUploadField label="Final Bill" name="final_bill_path" onUploadComplete={handleDocumentUploadComplete} />
                                         <FileUploadField label="Pharmacy Bill" name="pharmacy_bill_path" onUploadComplete={handleDocumentUploadComplete} />
@@ -534,8 +530,8 @@ export default function NewPatientPage() {
                                             </Select>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="policy_number">Policy number</Label>
-                                            <Input id="policy_number" name="policy_number" />
+                                            <Label htmlFor="policy_number">Policy number <span className="text-destructive">*</span></Label>
+                                            <Input id="policy_number" name="policy_number" required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="insured_card_number">Insured member / card ID number</Label>
@@ -553,16 +549,16 @@ export default function NewPatientPage() {
                                             </Select>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="policy_start_date">Policy Start Date</Label>
-                                            <Input id="policy_start_date" name="policy_start_date" type="date" max={today} />
+                                            <Label htmlFor="policy_start_date">Policy Start Date <span className="text-destructive">*</span></Label>
+                                            <Input id="policy_start_date" name="policy_start_date" type="date" max={today} required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="policy_end_date">Policy End Date</Label>
                                             <Input id="policy_end_date" name="policy_end_date" type="date" min={today} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="sumInsured">Sum Insured</Label>
-                                            <Input id="sumInsured" name="sumInsured" type="number" min="0" />
+                                            <Label htmlFor="sumInsured">Sum Insured <span className="text-destructive">*</span></Label>
+                                            <Input id="sumInsured" name="sumInsured" type="number" min="0" required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="sumUtilized">Sum Utilized</Label>
@@ -573,8 +569,8 @@ export default function NewPatientPage() {
                                             <Input id="totalSum" name="totalSum" type="number" min="0" value={totalSum} readOnly />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="corporate_policy_number">Corporate policy name/number</Label>
-                                            <Input id="corporate_policy_number" name="corporate_policy_number" />
+                                            <Label htmlFor="corporate_policy_number">Corporate policy name/number <span className="text-destructive">*</span></Label>
+                                            <Input id="corporate_policy_number" name="corporate_policy_number" required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="other_policy_name">Other active health insurance</Label>
@@ -608,10 +604,11 @@ export default function NewPatientPage() {
                                             </Select>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="treat_doc_name">Treating doctor’s name</Label>
+                                            <Label htmlFor="treat_doc_name">Treating doctor’s name <span className="text-destructive">*</span></Label>
                                             <DoctorSearch
                                                 doctors={doctors}
                                                 onDoctorSelect={handleDoctorSelect}
+                                                required
                                             />
                                         </div>
                                         <div className="space-y-2">
@@ -667,7 +664,7 @@ export default function NewPatientPage() {
                                             <IctCodeSearch name="icd10Codes" />
                                         </div>
                                         <div className="space-y-2 md:col-span-2">
-                                            <Label>Proposed line of treatment</Label>
+                                            <Label>Proposed line of treatment <span className="text-destructive">*</span></Label>
                                             <div className="grid md:grid-cols-2 gap-4">
                                                <Input name="treatmentMedical" placeholder="Medical management" />
                                                <Input name="treatmentSurgical" placeholder="Surgical management" />
@@ -779,16 +776,16 @@ export default function NewPatientPage() {
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-3 gap-4" onBlurCapture={calculateTotalCost}>
                                         <div className="space-y-2">
-                                            <Label htmlFor="admissionDate">Admission date</Label>
-                                            <Input id="admissionDate" name="admissionDate" type="date" />
+                                            <Label htmlFor="admissionDate">Admission date <span className="text-destructive">*</span></Label>
+                                            <Input id="admissionDate" name="admissionDate" type="date" required />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="admissionTime">Admission time</Label>
-                                            <Input id="admissionTime" name="admissionTime" type="time" />
+                                            <Label htmlFor="admissionTime">Admission time <span className="text-destructive">*</span></Label>
+                                            <Input id="admissionTime" name="admissionTime" type="time" required />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="admissionType">Type of admission</Label>
-                                            <Input id="admissionType" name="admissionType" placeholder="e.g. Emergency, Planned" />
+                                            <Label htmlFor="admissionType">Type of admission <span className="text-destructive">*</span></Label>
+                                            <Input id="admissionType" name="admissionType" placeholder="e.g. Emergency, Planned" required />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="expectedStay">Expected days of stay</Label>
@@ -799,8 +796,8 @@ export default function NewPatientPage() {
                                             <Input id="expectedIcuStay" name="expectedIcuStay" type="number" min="0" />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="roomCategory">Requested room category</Label>
-                                             <Select name="roomCategory">
+                                            <Label htmlFor="roomCategory">Requested room category <span className="text-destructive">*</span></Label>
+                                             <Select name="roomCategory" required>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Select a room category" />
                                                 </SelectTrigger>
@@ -878,3 +875,4 @@ export default function NewPatientPage() {
         </div>
     );
 }
+

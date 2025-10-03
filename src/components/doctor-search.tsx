@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -9,9 +10,10 @@ interface DoctorSearchProps {
   doctors: Doctor[];
   defaultDoctorId?: number;
   onDoctorSelect: (doctor: Doctor | null) => void;
+  required?: boolean;
 }
 
-const MemoizedDoctorSearch = ({ doctors, defaultDoctorId, onDoctorSelect }: DoctorSearchProps) => {
+const MemoizedDoctorSearch = ({ doctors, defaultDoctorId, onDoctorSelect, required }: DoctorSearchProps) => {
   const [selectedDoctorId, setSelectedDoctorId] = useState<string>(defaultDoctorId?.toString() ?? "");
 
   useEffect(() => {
@@ -35,7 +37,7 @@ const MemoizedDoctorSearch = ({ doctors, defaultDoctorId, onDoctorSelect }: Doct
         <Select
             value={selectedDoctorId}
             onValueChange={handleSelect}
-            required
+            required={required}
             disabled={!doctors || doctors.length === 0}
         >
             <SelectTrigger>
