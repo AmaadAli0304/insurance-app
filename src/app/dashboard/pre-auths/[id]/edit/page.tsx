@@ -447,6 +447,10 @@ export default function EditPreAuthPage() {
                                         <Input id="from" name="from" value={request.fromEmail || user?.email || ''} readOnly />
                                     </div>
                                 </div>
+                                 <div className="space-y-2">
+                                    <Label htmlFor="cc">CC</Label>
+                                    <Input id="cc" name="cc" placeholder="recipient1@example.com, recipient2@example.com" />
+                                </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="subject">Subject <span className="text-destructive">*</span></Label>
                                     <Input id="subject" name="subject" value={subject} onChange={(e) => setSubject(e.target.value)} required={showEmailFields} />

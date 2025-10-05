@@ -1,5 +1,4 @@
 
-
 "use server";
 
 import { redirect } from 'next/navigation';
@@ -122,6 +121,7 @@ async function sendPreAuthEmail(requestData: {
     fromName: string, 
     fromEmail: string, 
     to: string, 
+    cc?: string,
     subject: string, 
     html: string,
     attachments: { filename: string, content: Buffer, contentType: string }[],
@@ -159,6 +159,7 @@ async function sendPreAuthEmail(requestData: {
         await transporter.sendMail({
             from: `"${requestData.fromName}" <${requestData.fromEmail}>`,
             to: requestData.to,
+            cc: requestData.cc,
             subject: requestData.subject,
             html: requestData.html,
             attachments: requestData.attachments
@@ -669,6 +670,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
 
     const from = formData.get('from') as string;
     const to = formData.get('to') as string;
+    const cc = formData.get('cc') as string;
     const subject = formData.get('subject') as string;
     const details = formData.get('details') as string;
     const emailAttachmentsData = formData.getAll('email_attachments');
@@ -854,7 +856,8 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
             await sendPreAuthEmail({ 
                 fromName: preAuthDetails.hospitalName, 
                 fromEmail: from, 
-                to, 
+                to,
+                cc,
                 subject, 
                 html: details,
                 attachments: fetchedAttachments.filter(att => att !== null) as any,
@@ -958,23 +961,3 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     revalidatePath('/dashboard/claims');
     return { message: 'Status updated and claim history recorded successfully.', type: 'success' };
 }
-
-    
-
-    
-
-    
-
-
-
-
-
-
-
-
-
-
-
-    
-
-
