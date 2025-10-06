@@ -1095,6 +1095,10 @@ export default function NewRequestPage() {
                                     <Input id="from-display" name="from-display" value={hospitalDetails?.email || user?.email || ''} readOnly disabled />
                                 </div>
                             </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="cc">CC</Label>
+                                <Input id="cc" name="cc" placeholder="recipient1@example.com, recipient2@example.com" />
+                            </div>
                             <div className="space-y-2">
                                 <Label htmlFor="subject">Subject</Label>
                                 <Input id="subject" name="subject" placeholder="Pre-Authorization Request for..." value={subject} onChange={(e) => setSubject(e.target.value)} />
@@ -1161,3 +1165,4 @@ export default function NewRequestPage() {
         </div>
     );
 }
+

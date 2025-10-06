@@ -1,4 +1,5 @@
 
+
 "use server";
 
 import { redirect } from 'next/navigation';
@@ -14,6 +15,7 @@ const preAuthSchema = z.object({
     hospitalId: z.string().optional().nullable(),
     from: z.string().email().optional().nullable(),
     to: z.string().email().optional().nullable(),
+    cc: z.string().optional().nullable(),
     subject: z.string().optional().nullable(),
     details: z.string().optional().nullable(),
     requestType: z.string().optional().nullable(),
@@ -178,7 +180,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
   const emailAttachmentsData = formData.getAll('email_attachments');
   
   const data = formEntries;
-  const { subject, details, requestType, patientId, totalExpectedCost, doctor_id, claim_id, userId, hospitalId, to: toEmailFromForm } = data as Record<string, any>;
+  const { subject, details, requestType, patientId, totalExpectedCost, doctor_id, claim_id, userId, hospitalId, to: toEmailFromForm, cc } = data as Record<string, any>;
   
   let transaction;
   try {
@@ -244,6 +246,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
             fromName: hospitalName, 
             fromEmail: fromEmail, 
             to: toEmailFromForm, 
+            cc: cc,
             subject: subject, 
             html: details,
             attachments: validAttachments,
