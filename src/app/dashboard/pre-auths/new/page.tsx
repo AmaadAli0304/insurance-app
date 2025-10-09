@@ -198,7 +198,7 @@ export default function NewRequestPage() {
         "ICU II", "GW I", "GW II", "Semi Deluxe", "Capped Bed", "Super deluxe 2", 
         "Triple Sharing", "EXECUTIVE 01", "EXECUTIVE II", "EXECUTIVE I", "CLASSIC", 
         "CLASSIC I", "CLASSIC II", "CLASSIC III", "CLASSIC SUITE I", "CLASSIC SUITE II", 
-        "CLASSIC SUITE III", "RECOVERY", "SPECIAL", "SEMI SPECIAL"
+        "CLASSIC SUITE III", "RECOVERY", "SPECIAL", "SEMI SPECIAL","Day Care"
     ];
 
     const calculateTotalCost = React.useCallback(() => {
