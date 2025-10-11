@@ -368,27 +368,27 @@ export default function EditPreAuthPage() {
                             <div className="grid md:grid-cols-2 gap-4 pt-4 border-t">
                                 <div className="space-y-2">
                                     <Label htmlFor="final_hospital_bill">Final Hospital Bill</Label>
-                                    <Input id="final_hospital_bill" name="final_hospital_bill" type="number" step="0.01" placeholder="Enter final bill amount" />
+                                    <Input id="final_hospital_bill" name="final_hospital_bill" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter final bill amount" />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="hospital_discount">Hospital Discount</Label>
-                                    <Input id="hospital_discount" name="hospital_discount" type="number" step="0.01" placeholder="Enter discount amount" />
+                                    <Input id="hospital_discount" name="hospital_discount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter discount amount" />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="nm_deductions">NM Deductions</Label>
-                                    <Input id="nm_deductions" name="nm_deductions" type="number" step="0.01" placeholder="Enter NM deductions" />
+                                    <Input id="nm_deductions" name="nm_deductions" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter NM deductions" />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="co_pay">Co-Pay</Label>
-                                    <Input id="co_pay" name="co_pay" type="number" step="0.01" placeholder="Enter Co-Pay amount" />
+                                    <Input id="co_pay" name="co_pay" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter Co-Pay amount" />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="final_amount">Final Authorised Amount</Label>
-                                    <Input id="final_amount" name="final_amount" type="number" step="0.01" placeholder="Enter final authorised amount" />
+                                    <Input id="final_amount" name="final_amount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter final authorised amount" />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="amount_sanctioned">Amount Paid by insured</Label>
-                                    <Input id="amount_sanctioned" name="amount_sanctioned" type="number" step="0.01" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount paid by insured" />
+                                    <Input id="amount_sanctioned" name="amount_sanctioned" type="text" inputMode="decimal" pattern="[0-9.]*" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount paid by insured" />
                                 </div>
                             </div>
                         )}
@@ -397,23 +397,23 @@ export default function EditPreAuthPage() {
                            <div className="grid md:grid-cols-2 gap-4 pt-4 border-t">
                                 <div className="space-y-2">
                                     <Label htmlFor="final_amount">Final Authorised Amount</Label>
-                                    <Input id="final_amount" name="final_amount" type="number" step="0.01" placeholder="Enter final authorised amount" />
+                                    <Input id="final_amount" name="final_amount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter final authorised amount" />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="nm_deductions">Deduction</Label>
-                                    <Input id="nm_deductions" name="nm_deductions" type="number" step="0.01" placeholder="Enter deduction amount" />
+                                    <Input id="nm_deductions" name="nm_deductions" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter deduction amount" />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="tds">TDS</Label>
-                                    <Input id="tds" name="tds" type="number" step="0.01" placeholder="Enter TDS amount" />
+                                    <Input id="tds" name="tds" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter TDS amount" />
                                 </div>
                                  <div className="space-y-2">
                                     <Label htmlFor="final_settle_amount">Final Settlement Amount</Label>
-                                    <Input id="final_settle_amount" name="final_settle_amount" type="number" step="0.01" placeholder="Enter final settlement amount" />
+                                    <Input id="final_settle_amount" name="final_settle_amount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter final settlement amount" />
                                 </div>
                                <div className="space-y-2">
                                    <Label htmlFor="amount">Net Amount Credited</Label>
-                                   <Input id="amount" name="amount" type="number" step="0.01" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter net amount credited" />
+                                   <Input id="amount" name="amount" type="text" inputMode="decimal" pattern="[0-9.]*" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter net amount credited" />
                                </div>
                            </div>
                         )}
@@ -422,7 +422,7 @@ export default function EditPreAuthPage() {
                         {selectedStatus !== 'Final Approval' && selectedStatus !== 'Settled' && (
                            <div className="space-y-2">
                                <Label htmlFor="amount_sanctioned">Amount Sanctioned</Label>
-                               <Input id="amount_sanctioned" name="amount_sanctioned" type="number" step="0.01" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount sanctioned" />
+                               <Input id="amount_sanctioned" name="amount_sanctioned" type="text" inputMode="decimal" pattern="[0-9.]*" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount sanctioned" />
                            </div>
                         )}
 
@@ -522,3 +522,5 @@ export default function EditPreAuthPage() {
         </div>
     );
 }
+
+    
