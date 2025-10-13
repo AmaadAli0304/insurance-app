@@ -110,7 +110,22 @@ export async function getClaimById(id: string): Promise<Claim | null> {
             .input('id', sql.NVarChar, id)
             .query(`
                  SELECT 
-                    cl.*,
+                    cl.id,
+                    cl.claim_id,
+                    cl.Patient_id,
+                    cl.status,
+                    cl.reason,
+                    cl.created_at,
+                    cl.updated_at,
+                    cl.paidAmount,
+                    cl.hospital_id,
+                    cl.amount,
+                    cl.tpa_id,
+                    cl.final_bill,
+                    cl.hospital_discount,
+                    cl.nm_deductions,
+                    cl.co_pay,
+                    cl.final_amount,
                     h.name as hospitalName,
                     pr.totalExpectedCost as claimAmount,
                     pr.policy_number as policyNumber,
