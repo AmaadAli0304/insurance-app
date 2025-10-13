@@ -126,11 +126,11 @@ export async function getClaimById(id: string): Promise<Claim | null> {
                     cl.nm_deductions,
                     cl.co_pay,
                     cl.final_amount,
+                    cl.admission_id,
                     h.name as hospitalName,
                     cl.amount as claimAmount,
                     COALESCE(pr.policy_number, adm.policy_number) as policyNumber,
                     COALESCE(co_pr.name, co_adm.name) as companyName,
-                    cl.admission_id,
                     pr.natureOfIllness,
                     p.first_name + ' ' + p.last_name as Patient_name
                 FROM claims cl
