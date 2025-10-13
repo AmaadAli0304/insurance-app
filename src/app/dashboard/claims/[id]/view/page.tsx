@@ -39,21 +39,23 @@ const getStatusVariant = (status: ClaimStatus) => {
 }
 
 
-export default function ViewClaimPage({ params }: { params: { id: string } }) {
+export default function ViewClaimPage() {
+    const params = useParams();
+    const id = params.id as string;
     const [claim, setClaim] = useState<Claim | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        if (!params.id) return;
+        if (!id) return;
         setIsLoading(true);
-        getClaimById(params.id)
+        getClaimById(id)
             .then(data => {
                 if (!data) notFound();
                 setClaim(data);
             })
             .catch(console.error)
             .finally(() => setIsLoading(false));
-    }, [params.id]);
+    }, [id]);
 
     if (isLoading) {
         return <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin" /></div>;
