@@ -930,7 +930,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
                 .input('status', sql.NVarChar, status) 
                 .input('reason', sql.NVarChar, reason) 
                 .input('created_by', sql.NVarChar, userId || 'System Update') 
-                .input('amount', sql.Decimal(18, 2), amount || (status === 'Enhancement Request' ? amount_sanctioned : null) || null)
+                .input('amount', sql.Decimal(18, 2), amount || (status === 'Enhancement Request' || status === 'Enhancement Approval' ? amount_sanctioned : null) || null)
                 .input('paidAmount', sql.Decimal(18, 2), amount_sanctioned) 
                 .input('hospital_id', sql.NVarChar, preAuthDetails.hospital_id)
                 .input('tpa_id', sql.Int, preAuthDetails.tpa_id)
