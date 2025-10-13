@@ -413,6 +413,7 @@ export interface Claim {
   hospital_discount?: number;
   nm_deductions?: number;
   co_pay?: number;
+  preauthId?: number;
   
   // Joined properties
   hospitalName?: string;

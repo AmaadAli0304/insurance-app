@@ -108,7 +108,7 @@ export default function ViewClaimPage({ params }: { params: { id: string } }) {
                             <CardTitle className="text-xl">Associated Pre-Authorization</CardTitle>
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-2 gap-4">
-                            <DetailItem label="Request ID" value={claim.admission_id} />
+                            <DetailItem label="Request ID" value={claim.preauthId} />
                             <DetailItem label="Request Date" value={new Date(claim.created_at).toLocaleDateString()} />
                         </CardContent>
                     </Card>
