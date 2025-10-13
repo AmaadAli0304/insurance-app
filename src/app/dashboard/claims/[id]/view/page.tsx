@@ -109,7 +109,6 @@ export default function ViewClaimPage({ params }: { params: { id: string } }) {
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-2 gap-4">
                             <DetailItem label="Request ID" value={claim.admission_id} />
-                            <DetailItem label="Request Subject" value={claim.reason} />
                             <DetailItem label="Request Date" value={new Date(claim.created_at).toLocaleDateString()} />
                         </CardContent>
                     </Card>

@@ -131,7 +131,7 @@ export async function getClaimById(id: string): Promise<Claim | null> {
                     COALESCE(pr.policy_number, adm.policy_number) as policyNumber,
                     COALESCE(co_pr.name, co_adm.name) as companyName,
                     cl.admission_id,
-                    pr.natureOfIllness as request_subject,
+                    pr.natureOfIllness,
                     p.first_name + ' ' + p.last_name as Patient_name
                 FROM claims cl
                 LEFT JOIN patients p ON cl.Patient_id = p.id
