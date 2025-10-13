@@ -92,7 +92,7 @@ export function RejectedCasesTable({ dateRange }: RejectedCasesTableProps) {
                                         <TableCell className="font-medium">{c.patientName}</TableCell>
                                         <TableCell>{c.tpaName}</TableCell>
                                         <TableCell className="text-destructive">{c.reason || 'N/A'}</TableCell>
-                                        <TableCell className="text-right font-mono">{c.amount.toLocaleString('en-IN')}</TableCell>
+                                        <TableCell className="text-right font-mono">{(c.amount ?? 0).toLocaleString('en-IN')}</TableCell>
                                     </TableRow>
                                 ))
                             ) : (
