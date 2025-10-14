@@ -30,7 +30,7 @@ export async function getPatientBilledStatsForAdmin(dateRange?: DateRange, hospi
 
         if (hospitalId) {
             request.input('hospitalId', sql.NVarChar, hospitalId);
-            whereClauses.push('c.hospital_id = @hospitalId AND p.hospital_id = @hospitalId');
+            whereClauses.push('c.hospital_id = @hospitalId');
         }
         
         if (tpaId) {
@@ -41,7 +41,7 @@ export async function getPatientBilledStatsForAdmin(dateRange?: DateRange, hospi
         const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
         const query = `
-            SELECT
+            SELECT DISTINCT
                 p.id AS patientId,
                 p.first_name + ' ' + p.last_name AS patientName,
                 p.photo AS patientPhoto,
@@ -64,15 +64,8 @@ export async function getPatientBilledStatsForAdmin(dateRange?: DateRange, hospi
             LEFT JOIN companies co ON pr.company_id = co.id
             LEFT JOIN tpas t ON c.tpa_id = t.id
             ${whereClause}
-            GROUP BY 
-                p.id,
-                p.first_name,
-                p.last_name,
-                p.photo,
-                t.name,
-                co.name
             ORDER BY
-                p.first_name;
+                patientName;
         `;
 
         const result = await request.query(query);
@@ -492,6 +485,7 @@ export async function getPreAuthSummaryStats(
     
 
     
+
 
 
 
