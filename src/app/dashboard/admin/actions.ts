@@ -14,31 +14,55 @@ export type PatientBilledStat = {
   sanctionedAmount: number;
 };
 
-export async function getPatientBilledStatsForAdmin(dateRange?: DateRange, hospitalId?: string | null, tpaId?: string | null): Promise<PatientBilledStat[]> {
+export async function getPatientBilledStatsForAdmin(
+    dateRange?: DateRange, 
+    hospitalId?: string | null, 
+    tpaId?: string | null,
+    page: number = 1,
+    limit: number = 10
+): Promise<{ stats: PatientBilledStat[], total: number }> {
     try {
         const pool = await getDbPool();
         const request = pool.request();
+        const countRequest = pool.request();
         
         let whereClauses: string[] = [];
         
         if (dateRange?.from) {
             const toDate = dateRange.to || new Date(); 
             request.input('dateFrom', sql.DateTime, dateRange.from);
+            countRequest.input('dateFrom', sql.DateTime, dateRange.from);
             request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+            countRequest.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
             whereClauses.push('c.created_at BETWEEN @dateFrom AND @dateTo');
         }
 
         if (hospitalId) {
             request.input('hospitalId', sql.NVarChar, hospitalId);
+            countRequest.input('hospitalId', sql.NVarChar, hospitalId);
             whereClauses.push('c.hospital_id = @hospitalId');
         }
         
         if (tpaId) {
             request.input('tpaId', sql.Int, Number(tpaId));
+            countRequest.input('tpaId', sql.Int, Number(tpaId));
             whereClauses.push('c.tpa_id = @tpaId');
         }
 
         const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
+        const countQuery = `
+            SELECT COUNT(DISTINCT p.id) as total
+            FROM patients p
+            LEFT JOIN claims c ON p.id = c.Patient_id
+            ${whereClause};
+        `;
+        const totalResult = await countRequest.query(countQuery);
+        const total = totalResult.recordset[0].total;
+
+        const offset = (page - 1) * limit;
+        request.input('offset', sql.Int, offset);
+        request.input('limit', sql.Int, limit);
 
         const query = `
             SELECT DISTINCT
@@ -64,13 +88,13 @@ export async function getPatientBilledStatsForAdmin(dateRange?: DateRange, hospi
             LEFT JOIN companies co ON pr.company_id = co.id
             LEFT JOIN tpas t ON c.tpa_id = t.id
             ${whereClause}
-            ORDER BY
-                patientName;
+            ORDER BY patientName
+            OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
         `;
 
         const result = await request.query(query);
         
-        return result.recordset.map(row => {
+        const stats = result.recordset.map(row => {
             let photoUrl = null;
             if (row.patientPhoto) {
                 try {
@@ -82,6 +106,8 @@ export async function getPatientBilledStatsForAdmin(dateRange?: DateRange, hospi
             }
             return { ...row, patientPhoto: photoUrl };
         });
+
+        return { stats, total };
 
     } catch (error) {
         console.error('Error fetching patient billing stats for admin:', error);
@@ -494,3 +520,6 @@ export async function getPreAuthSummaryStats(
 
 
 
+
+
+    
