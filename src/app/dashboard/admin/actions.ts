@@ -135,18 +135,26 @@ export type TpaCollectionStat = {
   deductions: number;
 };
 
-export async function getTpaCollectionStats(dateRange?: DateRange): Promise<TpaCollectionStat[]> {
+export async function getTpaCollectionStats(dateRange?: DateRange, hospitalId?: string | null): Promise<TpaCollectionStat[]> {
     try {
         const pool = await getDbPool();
         const request = pool.request();
         
-        let dateFilter = '';
+        let whereClauses: string[] = [];
+
         if (dateRange?.from) {
             const toDate = dateRange.to || new Date(); 
             request.input('dateFrom', sql.DateTime, dateRange.from);
             request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-            dateFilter = 'WHERE c.created_at BETWEEN @dateFrom AND @dateTo';
+            whereClauses.push('c.created_at BETWEEN @dateFrom AND @dateTo');
         }
+
+        if (hospitalId) {
+            request.input('hospitalId', sql.NVarChar, hospitalId);
+            whereClauses.push('c.hospital_id = @hospitalId');
+        }
+
+        const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
         const query = `
             SELECT
@@ -156,7 +164,7 @@ export async function getTpaCollectionStats(dateRange?: DateRange): Promise<TpaC
                 ISNULL(SUM(CASE WHEN c.status = 'Final Approval' THEN c.paidAmount ELSE 0 END), 0) as received,
                 (ISNULL(SUM(CASE WHEN c.status = 'Pre auth Sent' THEN c.amount ELSE 0 END), 0) - ISNULL(SUM(CASE WHEN c.status = 'Final Approval' THEN c.paidAmount ELSE 0 END), 0)) as deductions
             FROM tpas t
-            LEFT JOIN claims c ON t.id = c.tpa_id ${dateFilter}
+            LEFT JOIN claims c ON t.id = c.tpa_id ${whereClause}
             GROUP BY
                 t.id,
                 t.name

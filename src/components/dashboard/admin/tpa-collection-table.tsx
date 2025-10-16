@@ -8,26 +8,29 @@ import { getTpaCollectionStats, TpaCollectionStat } from "@/app/dashboard/admin/
 import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
 import { DateRange } from "react-day-picker";
+import { useAuth } from "@/components/auth-provider";
 
 interface TpaCollectionTableProps {
   dateRange?: DateRange;
 }
 
 export function TpaCollectionTable({ dateRange }: TpaCollectionTableProps) {
+    const { user } = useAuth();
     const [stats, setStats] = useState<TpaCollectionStat[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const tpaData = await getTpaCollectionStats(dateRange);
+            const hospitalId = user?.role === 'Admin' ? user.hospitalId : null;
+            const tpaData = await getTpaCollectionStats(dateRange, hospitalId);
             setStats(tpaData);
         } catch (error) {
             console.error("Failed to load TPA collection stats:", error);
         } finally {
             setIsLoading(false);
         }
-    }, [dateRange]);
+    }, [dateRange, user]);
 
     useEffect(() => {
         loadData();
