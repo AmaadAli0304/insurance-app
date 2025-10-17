@@ -165,6 +165,7 @@ export async function getClaimsByPatientId(patientId: number): Promise<Claim[]> 
                     cl.id,
                     cl.status,
                     cl.reason,
+                    cl.amount,
                     cl.updated_at
                 FROM claims cl
                 WHERE cl.Patient_id = @patientId
