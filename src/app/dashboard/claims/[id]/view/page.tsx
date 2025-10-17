@@ -99,7 +99,6 @@ export default function ViewClaimPage() {
                         </CardHeader>
                          <CardContent className="grid md:grid-cols-2 gap-4">
                             <DetailItem label="Patient Name" value={claim.Patient_name} />
-                            <DetailItem label="Policy Number" value={claim.policyNumber} />
                             <DetailItem label="Insurance Company" value={claim.companyName} />
                             <DetailItem label="Hospital" value={claim.hospitalName} />
                         </CardContent>

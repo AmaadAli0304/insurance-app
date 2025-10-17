@@ -129,7 +129,6 @@ export async function getClaimById(id: string): Promise<Claim | null> {
                     cl.admission_id,
                     h.name as hospitalName,
                     cl.amount as claimAmount,
-                    COALESCE(pr.policy_number, adm.policy_number) as policyNumber,
                     COALESCE(co_pr.name, co_adm.name) as companyName,
                     pr.natureOfIllness,
                     p.first_name + ' ' + p.last_name as Patient_name,
@@ -276,6 +275,3 @@ export async function handleDeleteClaim(formData: FormData) {
     }
     revalidatePath('/dashboard/claims');
 }
-
-
-    
