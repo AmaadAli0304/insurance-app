@@ -773,12 +773,12 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
                 .input('admission_id', sql.NVarChar, preAuthDetails.admission_id)
                 .input('status', sql.NVarChar, status)
                 .input('created_by', sql.NVarChar, userId || 'System Update')
-                .input('amount', sql.Decimal(18, 2), amount_paid_by_insured_str ? parseFloat(amount_paid_by_insured_str) : null)
+                .input('amount', sql.Decimal(18, 2), final_amount_str ? parseFloat(final_amount_str) : null)
                 .input('final_bill', sql.Decimal(18, 2), final_hospital_bill ? parseFloat(final_hospital_bill) : null)
                 .input('hospital_discount', sql.Decimal(18, 2), hospital_discount ? parseFloat(hospital_discount) : null)
                 .input('nm_deductions', sql.Decimal(18, 2), nm_deductions ? parseFloat(nm_deductions) : null)
                 .input('co_pay', sql.Decimal(18, 2), co_pay ? parseFloat(co_pay) : null)
-                .input('final_amount', sql.Decimal(18, 2), final_amount_str ? parseFloat(final_amount_str) : null)
+                .input('final_amount', sql.Decimal(18, 2), amount_paid_by_insured_str ? parseFloat(amount_paid_by_insured_str) : null)
                 .input('hospital_id', sql.NVarChar, preAuthDetails.hospital_id)
                 .input('tpa_id', sql.Int, preAuthDetails.tpa_id)
                 .input('claim_id', sql.NVarChar, claim_id || preAuthDetails.claim_id)
@@ -928,6 +928,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     revalidatePath('/dashboard/claims');
     return { message: 'Status updated and claim history recorded successfully.', type: 'success' };
 }
+
 
 
 
