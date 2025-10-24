@@ -375,6 +375,10 @@ export default function EditPreAuthPage() {
                                     <Input id="hospital_discount" name="hospital_discount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter discount amount" />
                                 </div>
                                 <div className="space-y-2">
+                                    <Label htmlFor="mou_discount">MOU Discount</Label>
+                                    <Input id="mou_discount" name="mou_discount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter MOU discount" />
+                                </div>
+                                <div className="space-y-2">
                                     <Label htmlFor="nm_deductions">NM Deductions</Label>
                                     <Input id="nm_deductions" name="nm_deductions" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter NM deductions" />
                                 </div>
@@ -452,10 +456,14 @@ export default function EditPreAuthPage() {
                                     <Label htmlFor="mou_discount">MOU Discount <span className="text-destructive">*</span></Label>
                                     <Input id="mou_discount" name="mou_discount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter MOU Discount" required />
                                 </div>
+                                 <div className="space-y-2">
+                                    <Label htmlFor="amount_sanctioned">Amount Sanctioned</Label>
+                                    <Input id="amount_sanctioned" name="amount_sanctioned" type="text" inputMode="decimal" pattern="[0-9.]*" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount sanctioned" />
+                                </div>
                             </div>
                         )}
 
-                        {selectedStatus !== 'Final Approval' && selectedStatus !== 'Settled' && (
+                        {selectedStatus !== 'Final Approval' && selectedStatus !== 'Settled' && selectedStatus !== 'Final Discharge sent' && (
                            <div className="space-y-2">
                                <Label htmlFor="amount_sanctioned">Amount Sanctioned</Label>
                                <Input id="amount_sanctioned" name="amount_sanctioned" type="text" inputMode="decimal" pattern="[0-9.]*" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount sanctioned" />
@@ -558,5 +566,3 @@ export default function EditPreAuthPage() {
         </div>
     );
 }
-
-    

@@ -775,6 +775,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
             const co_pay = formData.get('co_pay') as string;
             const final_amount_str = formData.get('final_amount') as string;
             const amount_paid_by_insured_str = formData.get('amount_sanctioned') as string;
+            const mou_discount = formData.get('mou_discount') as string;
             
             const claimInsertRequest = new sql.Request(transaction);
             await claimInsertRequest
@@ -786,6 +787,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
                 .input('amount', sql.Decimal(18, 2), final_amount_str ? parseFloat(final_amount_str) : null)
                 .input('final_bill', sql.Decimal(18, 2), final_hospital_bill ? parseFloat(final_hospital_bill) : null)
                 .input('hospital_discount', sql.Decimal(18, 2), hospital_discount ? parseFloat(hospital_discount) : null)
+                .input('mou_discount', sql.Decimal(18, 2), mou_discount ? parseFloat(mou_discount) : null)
                 .input('nm_deductions', sql.Decimal(18, 2), nm_deductions ? parseFloat(nm_deductions) : null)
                 .input('co_pay', sql.Decimal(18, 2), co_pay ? parseFloat(co_pay) : null)
                 .input('final_amount', sql.Decimal(18, 2), amount_paid_by_insured_str ? parseFloat(amount_paid_by_insured_str) : null)
@@ -795,9 +797,9 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
                 .input('created_at', sql.DateTime, now)
                 .input('updated_at', sql.DateTime, now)
                 .query(`INSERT INTO claims (
-                    Patient_id, Patient_name, admission_id, status, created_by, amount, final_bill, hospital_discount, nm_deductions, co_pay, final_amount, hospital_id, tpa_id, claim_id, created_at, updated_at
+                    Patient_id, Patient_name, admission_id, status, created_by, amount, final_bill, hospital_discount, nm_deductions, co_pay, final_amount, mou_discount, hospital_id, tpa_id, claim_id, created_at, updated_at
                 ) VALUES (
-                    @Patient_id, @Patient_name, @admission_id, @status, @created_by, @amount, @final_bill, @hospital_discount, @nm_deductions, @co_pay, @final_amount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at
+                    @Patient_id, @Patient_name, @admission_id, @status, @created_by, @amount, @final_bill, @hospital_discount, @nm_deductions, @co_pay, @final_amount, @mou_discount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at
                 )`);
 
         }
@@ -957,5 +959,3 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     revalidatePath('/dashboard/claims');
     return { message: 'Status updated and claim history recorded successfully.', type: 'success' };
 }
-
-    
