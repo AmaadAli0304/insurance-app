@@ -684,6 +684,16 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     const tds_str = formData.get('tds') as string;
     const final_settlement_amount_str = formData.get('final_settle_amount') as string;
 
+    // Fields for 'Final Discharge Sent' status
+    const pharmacy_bill = formData.get('pharmacy_bill') as string;
+    const lab_bill = formData.get('lab_bill') as string;
+    const ct_scan_charges = formData.get('ct_scan_charges') as string;
+    const mri_charges = formData.get('mri_charges') as string;
+    const usg_charges = formData.get('usg_charges') as string;
+    const other_charges = formData.get('other_charges') as string;
+    const xray_charges = formData.get('xray_charges') as string;
+    const mou_discount = formData.get('mou_discount') as string;
+
 
     // Handle new uploads
     const documentKeys = [
@@ -902,6 +912,25 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
                 
                  await claimInsertRequest.query(`INSERT INTO claims ( Patient_id, Patient_name, admission_id, status, reason, created_by, amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at, final_amount, nm_deductions, tds, final_settle_amount ) VALUES ( @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at, @final_amount, @nm_deductions, @tds, @final_settle_amount )`);
 
+            } else if (status === 'Final Discharge sent') {
+                 claimInsertRequest
+                    .input('pharmacy_bill', sql.Decimal(18,2), pharmacy_bill ? parseFloat(pharmacy_bill) : null)
+                    .input('lab_bill', sql.Decimal(18,2), lab_bill ? parseFloat(lab_bill) : null)
+                    .input('ct_scan_charges', sql.Decimal(18,2), ct_scan_charges ? parseFloat(ct_scan_charges) : null)
+                    .input('mri_charges', sql.Decimal(18,2), mri_charges ? parseFloat(mri_charges) : null)
+                    .input('usg_charges', sql.Decimal(18,2), usg_charges ? parseFloat(usg_charges) : null)
+                    .input('other_charges', sql.Decimal(18,2), other_charges ? parseFloat(other_charges) : null)
+                    .input('xray_charges', sql.Decimal(18,2), xray_charges ? parseFloat(xray_charges) : null)
+                    .input('mou_discount', sql.Decimal(18,2), mou_discount ? parseFloat(mou_discount) : null);
+
+                await claimInsertRequest.query(`INSERT INTO claims ( 
+                    Patient_id, Patient_name, admission_id, status, reason, created_by, amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at,
+                    pharmacy_bill, lab_bill, ct_scan_charges, mri_charges, usg_charges, other_charges, xray_charges, mou_discount
+                ) VALUES ( 
+                    @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at,
+                    @pharmacy_bill, @lab_bill, @ct_scan_charges, @mri_charges, @usg_charges, @other_charges, @xray_charges, @mou_discount
+                )`);
+
             } else {
                  await claimInsertRequest.query('INSERT INTO claims ( Patient_id, Patient_name, admission_id, status, reason, created_by, amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at ) VALUES ( @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at )');
             }
@@ -928,8 +957,3 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     revalidatePath('/dashboard/claims');
     return { message: 'Status updated and claim history recorded successfully.', type: 'success' };
 }
-
-
-
-
-

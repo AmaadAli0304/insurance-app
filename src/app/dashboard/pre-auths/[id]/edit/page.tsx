@@ -418,8 +418,44 @@ export default function EditPreAuthPage() {
                            </div>
                         )}
 
+                        {selectedStatus === 'Final Discharge sent' && (
+                            <div className="grid md:grid-cols-2 gap-4 pt-4 border-t">
+                                <div className="space-y-2">
+                                    <Label htmlFor="pharmacy_bill">Pharmacy Bill <span className="text-destructive">*</span></Label>
+                                    <Input id="pharmacy_bill" name="pharmacy_bill" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter Pharmacy Bill" required />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="lab_bill">Lab Bill <span className="text-destructive">*</span></Label>
+                                    <Input id="lab_bill" name="lab_bill" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter Lab Bill" required />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="ct_scan_charges">CT Scan Charges <span className="text-destructive">*</span></Label>
+                                    <Input id="ct_scan_charges" name="ct_scan_charges" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter CT Scan Charges" required />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="mri_charges">MRI Charges <span className="text-destructive">*</span></Label>
+                                    <Input id="mri_charges" name="mri_charges" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter MRI Charges" required />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="usg_charges">USG Charge <span className="text-destructive">*</span></Label>
+                                    <Input id="usg_charges" name="usg_charges" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter USG Charge" required />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="other_charges">Other Charges <span className="text-destructive">*</span></Label>
+                                    <Input id="other_charges" name="other_charges" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter Other Charges" required />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="xray_charges">X-ray Charges <span className="text-destructive">*</span></Label>
+                                    <Input id="xray_charges" name="xray_charges" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter X-ray Charges" required />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="mou_discount">MOU Discount <span className="text-destructive">*</span></Label>
+                                    <Input id="mou_discount" name="mou_discount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter MOU Discount" required />
+                                </div>
+                            </div>
+                        )}
 
-                        {selectedStatus !== 'Final Approval' && selectedStatus !== 'Settled' && (
+                        {selectedStatus !== 'Final Approval' && selectedStatus !== 'Settled' && selectedStatus !== 'Final Discharge sent' && (
                            <div className="space-y-2">
                                <Label htmlFor="amount_sanctioned">Amount Sanctioned</Label>
                                <Input id="amount_sanctioned" name="amount_sanctioned" type="text" inputMode="decimal" pattern="[0-9.]*" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount sanctioned" />
@@ -522,5 +558,3 @@ export default function EditPreAuthPage() {
         </div>
     );
 }
-
-    
