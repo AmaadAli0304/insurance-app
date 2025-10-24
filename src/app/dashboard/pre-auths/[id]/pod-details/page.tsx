@@ -124,8 +124,6 @@ export default function PodDetailsPage() {
   const [request, setRequest] = useState<StaffingRequest | null>(null);
   const [podType, setPodType] = useState<PodType>("Courier");
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [screenshotUrl, setScreenshotUrl] = useState<string>('');
-  const [podCopyUrl, setPodCopyUrl] = useState<string>('');
   const [editorState, setEditorState] = useState(() => EditorState.createEmpty());
   const [state, formAction] = useActionState(handleSavePodDetails, { message: "", type: "initial" });
   const { toast } = useToast();
@@ -184,9 +182,7 @@ export default function PodDetailsPage() {
                 <input type="hidden" name="podType" value={podType} />
                 <input type="hidden" name="userId" value={user?.uid ?? ''} />
                 <input type="hidden" name="userName" value={user?.name ?? ''} />
-                <input type="hidden" name="screenshot_url" value={documentUrls.screenshot_url?.url || ''} />
-                <input type="hidden" name="pod_copy_url" value={documentUrls.pod_copy_url?.url || ''} />
-                 {Object.entries(documentUrls).map(([key, value]) => 
+                {Object.entries(documentUrls).map(([key, value]) => 
                     value ? (
                         <React.Fragment key={key}>
                             <input type="hidden" name={`${key}_url`} value={value.url} />
@@ -215,37 +211,44 @@ export default function PodDetailsPage() {
 
                     {podType === 'Courier' && (
                         <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="courierName">Courier Name</Label>
                                     <Input id="courierName" name="courierName" />
                                 </div>
                                 <div className="space-y-2">
+                                    <Label htmlFor="pod_number">POD Number</Label>
+                                    <Input id="pod_number" name="pod_number" />
+                                </div>
+                                <div className="space-y-2">
                                     <Label htmlFor="refNo">Ref No</Label>
-                                    <Input id="refNo" name="refNo" />
+                                    <Input id="refNo" name="ref_no" />
                                 </div>
                             </div>
-                             <div className="space-y-2">
-                                <Label>Date of Sent</Label>
-                                <input type="hidden" name="date" value={date?.toISOString() ?? ''} />
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}>
-                                            <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {date ? format(date, "PPP") : <span>Pick a date</span>}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={date} onSelect={setDate} initialFocus /></PopoverContent>
-                                </Popover>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                 <div className="space-y-2">
+                                    <Label>Date of Sent</Label>
+                                    <input type="hidden" name="date_of_sent" value={date?.toISOString() ?? ''} />
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}>
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {date ? format(date, "PPP") : <span>Pick a date</span>}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={date} onSelect={setDate} initialFocus /></PopoverContent>
+                                    </Popover>
+                                </div>
+                                <FileUpload label="POD Copy" name="pod_copy_url" onUploadComplete={handleDocumentUploadComplete} />
                             </div>
                         </div>
                     )}
 
                     {podType === 'Portal' && (
-                        <div className="space-y-4">
+                        <div className="space-y-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label>Date</Label>
-                                <input type="hidden" name="date" value={date?.toISOString() ?? ''} />
+                                <input type="hidden" name="date_of_sent" value={date?.toISOString() ?? ''} />
                                 <Popover>
                                     <PopoverTrigger asChild>
                                     <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}>
@@ -256,6 +259,11 @@ export default function PodDetailsPage() {
                                     <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={date} onSelect={setDate} initialFocus /></PopoverContent>
                                 </Popover>
                             </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="refNo">Reference Number</Label>
+                                <Input id="refNo" name="ref_no" />
+                            </div>
+                             <FileUpload label="Screenshot Upload" name="screenshot_url" onUploadComplete={handleDocumentUploadComplete} isRequired />
                         </div>
                     )}
 
@@ -277,7 +285,7 @@ export default function PodDetailsPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label>Date</Label>
-                                <input type="hidden" name="date" value={date?.toISOString() ?? ''} />
+                                <input type="hidden" name="date_of_sent" value={date?.toISOString() ?? ''} />
                                 <Popover>
                                     <PopoverTrigger asChild>
                                     <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}>
@@ -290,7 +298,7 @@ export default function PodDetailsPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label>Email Content</Label>
-                                <input type="hidden" name="emailBody" value={draftToHtml(convertToRaw(editorState.getCurrentContent()))} />
+                                <input type="hidden" name="email_body" value={draftToHtml(convertToRaw(editorState.getCurrentContent()))} />
                                 <Editor
                                     editorState={editorState}
                                     onEditorStateChange={setEditorState}

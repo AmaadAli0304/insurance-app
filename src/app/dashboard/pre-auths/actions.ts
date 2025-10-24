@@ -761,6 +761,9 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         const parsedAttachments = emailAttachmentsData
             .map(att => typeof att === 'string' ? JSON.parse(att) : att);
 
+        const shouldSendEmail = statusesThatSendEmail.includes(status);
+        const shouldLogTpaResponse = statusesThatLogTpaResponse.includes(status);
+
         if (shouldSendEmail) {
             const fetchedAttachments = await Promise.all(
                 parsedAttachments.map(async (att: { name: string, url: string }) => {
@@ -922,21 +925,32 @@ export async function handleSavePodDetails(prevState: { message: string, type?: 
   const userId = formData.get('userId') as string;
   const userName = formData.get('userName') as string;
 
+  const pod_number = formData.get('pod_number') as string;
   const courierName = formData.get('courierName') as string;
-  const date = formData.get('date') as string;
-  const refNo = formData.get('refNo') as string;
+  const date = formData.get('date_of_sent') as string;
+  const refNo = formData.get('ref_no') as string;
   
   const from = formData.get('from') as string;
   const to = formData.get('to') as string;
   const cc = formData.get('cc') as string;
-
   const emailBody = formData.get('emailBody') as string;
-  const attachmentUrl = formData.get('attachment_1_url') as string | null;
-  const attachmentName = formData.get('attachment_1_name') as string | null;
+
+  const screenshotUrl = formData.get('screenshot_url_url') as string | null;
+  const podCopyUrl = formData.get('pod_copy_url_url') as string | null;
 
   let transaction;
   try {
     const pool = await getDbPool();
+    
+    const requestDetailsResult = await pool.request()
+        .input('requestId', sql.Int, Number(requestId))
+        .query(`SELECT hospital_id, tpa_id FROM preauth_request WHERE id = @requestId`);
+
+    if (requestDetailsResult.recordset.length === 0) {
+        throw new Error("Pre-auth request not found.");
+    }
+    const { hospital_id, tpa_id } = requestDetailsResult.recordset[0];
+
     transaction = new sql.Transaction(pool);
     await transaction.begin();
 
@@ -944,31 +958,36 @@ export async function handleSavePodDetails(prevState: { message: string, type?: 
     request
       .input('preauth_id', sql.Int, Number(requestId))
       .input('pod_type', sql.NVarChar, podType)
-      .input('created_by', sql.NVarChar, userName);
+      .input('created_by', sql.NVarChar, userName)
+      .input('tpa_id', sql.Int, tpa_id)
+      .input('hospital_id', sql.NVarChar, hospital_id)
+      .input('date_of_sent', sql.Date, date ? new Date(date) : null);
 
-    let query = 'INSERT INTO pod_details (preauth_id, pod_type, created_by';
-    let values = ' VALUES (@preauth_id, @pod_type, @created_by';
+    let query = 'INSERT INTO pod_details (preauth_id, pod_type, created_by, tpa_id, hospital_id, date_of_sent';
+    let values = ') VALUES (@preauth_id, @pod_type, @created_by, @tpa_id, @hospital_id, @date_of_sent';
 
     if (podType === 'Courier') {
-      query += ', courier_name, date_of_sent, ref_no)';
-      values += ', @courier_name, @date_of_sent, @ref_no)';
+      query += ', courier_name, pod_number, pod_copy_url, ref_no';
+      values += ', @courier_name, @pod_number, @pod_copy_url, @ref_no';
       request.input('courier_name', sql.NVarChar, courierName);
-      request.input('date_of_sent', sql.Date, date ? new Date(date) : null);
+      request.input('pod_number', sql.NVarChar, pod_number);
+      request.input('pod_copy_url', sql.NVarChar, podCopyUrl);
       request.input('ref_no', sql.NVarChar, refNo);
 
     } else if (podType === 'Portal') {
-      query += ', date_of_sent)';
-      values += ', @date_of_sent)';
-      request.input('date_of_sent', sql.Date, date ? new Date(date) : null);
+      query += ', screenshot_url, ref_no';
+      values += ', @screenshot_url, @ref_no';
+      request.input('screenshot_url', sql.NVarChar, screenshotUrl);
+      request.input('ref_no', sql.NVarChar, refNo);
+
     } else if (podType === 'Email') {
-      query += ', date_of_sent, email_body)';
-      values += ', @date_of_sent, @email_body)';
-      request.input('date_of_sent', sql.Date, date ? new Date(date) : null);
+      query += ', email_body, ref_no'; // Assuming ref_no might be used for email reference as well
+      values += ', @email_body, @ref_no';
       request.input('email_body', sql.NVarChar, emailBody);
-      // Here you would also handle sending the email and saving attachments
+      request.input('ref_no', sql.NVarChar, refNo); // Or maybe another field
     }
     
-    await request.query(query + values);
+    await request.query(query + values + ')');
 
     await transaction.commit();
     
