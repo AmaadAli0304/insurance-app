@@ -17,13 +17,15 @@ import { EditorState, convertToRaw } from 'draft-js';
 import draftToHtml from 'draftjs-to-html';
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import { useAuth } from "@/components/auth-provider";
-import { handleSavePodDetails } from "@/app/dashboard/pre-auths/actions";
+import { handleSavePodDetails, getPreAuthRequestById } from "@/app/dashboard/pre-auths/actions";
 import { useToast } from "@/hooks/use-toast";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { getPresignedUrl } from "@/app/dashboard/staff/actions";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, notFound } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { StaffingRequest } from "@/lib/types";
+
 
 const Editor = dynamic(
   () => import('react-draft-wysiwyg').then(mod => mod.Editor),
@@ -44,7 +46,7 @@ async function uploadFile(file: File): Promise<{ publicUrl: string } | { error: 
     return { publicUrl };
 }
 
-const FileUpload = ({ label, name, onUploadComplete, isRequired }: { label: string; name: string; onUploadComplete: (url: string) => void; isRequired?: boolean; }) => {
+const FileUpload = ({ label, name, onUploadComplete, isRequired }: { label: string; name: string; onUploadComplete: (fieldName: string, name: string, url: string) => void; isRequired?: boolean; }) => {
     const [isUploading, setIsUploading] = useState(false);
     const [fileUrl, setFileUrl] = useState<string | null>(null);
     const [fileName, setFileName] = useState<string | null>(null);
@@ -59,7 +61,7 @@ const FileUpload = ({ label, name, onUploadComplete, isRequired }: { label: stri
             if ("publicUrl" in result) {
                 setFileUrl(result.publicUrl);
                 setFileName(file.name);
-                onUploadComplete(result.publicUrl);
+                onUploadComplete(name, file.name, result.publicUrl);
                 toast({ title: "Success", description: `${label} uploaded.`, variant: "success" });
             } else {
                 toast({ title: "Error", description: result.error, variant: "destructive" });
@@ -118,12 +120,18 @@ export default function PodDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const requestId = params.id as string;
+  
+  const [request, setRequest] = useState<StaffingRequest | null>(null);
   const [podType, setPodType] = useState<PodType>("Courier");
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [screenshotUrl, setScreenshotUrl] = useState<string>('');
+  const [podCopyUrl, setPodCopyUrl] = useState<string>('');
   const [editorState, setEditorState] = useState(() => EditorState.createEmpty());
   const [state, formAction] = useActionState(handleSavePodDetails, { message: "", type: "initial" });
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [documentUrls, setDocumentUrls] = useState<Record<string, { url: string; name: string; } | null>>({});
 
   useEffect(() => {
     if (state.type === "success") {
@@ -133,6 +141,27 @@ export default function PodDetailsPage() {
       toast({ title: "Error", description: state.message, variant: "destructive" });
     }
   }, [state, toast, router]);
+  
+  useEffect(() => {
+    if (!requestId) return;
+    setIsLoading(true);
+    getPreAuthRequestById(requestId)
+      .then(data => {
+        if (!data) notFound();
+        else setRequest(data);
+      })
+      .catch(console.error)
+      .finally(() => setIsLoading(false));
+  }, [requestId]);
+
+  const handleDocumentUploadComplete = (fieldName: string, name: string, url: string) => {
+    setDocumentUrls(prev => ({ ...prev, [fieldName]: { url, name } }));
+  };
+
+
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -155,7 +184,17 @@ export default function PodDetailsPage() {
                 <input type="hidden" name="podType" value={podType} />
                 <input type="hidden" name="userId" value={user?.uid ?? ''} />
                 <input type="hidden" name="userName" value={user?.name ?? ''} />
-                
+                <input type="hidden" name="screenshot_url" value={documentUrls.screenshot_url?.url || ''} />
+                <input type="hidden" name="pod_copy_url" value={documentUrls.pod_copy_url?.url || ''} />
+                 {Object.entries(documentUrls).map(([key, value]) => 
+                    value ? (
+                        <React.Fragment key={key}>
+                            <input type="hidden" name={`${key}_url`} value={value.url} />
+                            <input type="hidden" name={`${key}_name`} value={value.name} />
+                        </React.Fragment>
+                    ) : null
+                 )}
+
                 <div className="space-y-6">
                     <RadioGroup defaultValue="Courier" onValueChange={(value: PodType) => setPodType(value)}>
                         <div className="flex items-center space-x-4">
@@ -222,6 +261,20 @@ export default function PodDetailsPage() {
 
                     {podType === 'Email' && (
                         <div className="space-y-4">
+                             <div className="grid md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="from">From</Label>
+                                    <Input id="from" name="from" value={request?.fromEmail || user?.email || ''} readOnly />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="to">To</Label>
+                                    <Input id="to" name="to" value={request?.tpaEmail || ''} readOnly />
+                                </div>
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="cc">CC</Label>
+                                <Input id="cc" name="cc" placeholder="recipient1@example.com, recipient2@example.com" />
+                            </div>
                             <div className="space-y-2">
                                 <Label>Date</Label>
                                 <input type="hidden" name="date" value={date?.toISOString() ?? ''} />
@@ -246,6 +299,9 @@ export default function PodDetailsPage() {
                                     toolbarClassName="border-b border-input"
                                 />
                             </div>
+                             <div className="space-y-2">
+                                <FileUpload label="Attach File" name="attachment_1" onUploadComplete={handleDocumentUploadComplete} />
+                            </div>
                         </div>
                     )}
                 </div>
@@ -261,5 +317,3 @@ export default function PodDetailsPage() {
     </div>
   );
 }
-
-    

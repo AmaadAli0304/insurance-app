@@ -1105,5 +1105,3 @@ export async function handleCreateActivityLogTable(prevState: { message: string,
     return { message: `Error creating Activity Log table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
-
-    
