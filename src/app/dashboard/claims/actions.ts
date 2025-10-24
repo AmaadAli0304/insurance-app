@@ -106,17 +106,19 @@ export async function getClaims(hospitalId?: string | null, page: number = 1, li
 export async function getClaimById(id: string): Promise<Claim | null> {
     try {
         const pool = await getDbPool();
-        const result = await pool.request()
+        
+        // Get the current claim's details
+        const claimResult = await pool.request()
             .input('id', sql.NVarChar, id)
             .query(`
-                 SELECT 
+                SELECT 
                     cl.*,
                     h.name as hospitalName,
                     COALESCE(co_pr.name, co_adm.name) as companyName,
                     pr.natureOfIllness,
                     p.first_name + ' ' + p.last_name as PatientFullName,
                     pr.id as preauthId,
-                    pr.totalExpectedCost as BilledAmount
+                    pr.totalExpectedCost
                 FROM claims cl
                 LEFT JOIN patients p ON cl.Patient_id = p.id
                 LEFT JOIN hospitals h ON cl.hospital_id = h.id
@@ -127,12 +129,26 @@ export async function getClaimById(id: string): Promise<Claim | null> {
                 WHERE cl.id = @id
             `);
 
-        if (result.recordset.length === 0) {
+        if (claimResult.recordset.length === 0) {
             return null;
         }
 
-        const record = result.recordset[0];
-        record.Patient_name = record.PatientFullName; // Use the correct full name
+        const record = claimResult.recordset[0];
+        
+        // Get the initial "Pre auth Sent" amount
+        const preAuthSentResult = await pool.request()
+            .input('admission_id', sql.NVarChar, record.admission_id)
+            .query(`
+                SELECT TOP 1 amount 
+                FROM claims 
+                WHERE admission_id = @admission_id AND status = 'Pre auth Sent'
+                ORDER BY created_at ASC
+            `);
+
+        record.amount = preAuthSentResult.recordset[0]?.amount ?? record.totalExpectedCost;
+
+        // Backward compatibility for patient name
+        record.Patient_name = record.PatientFullName || record.Patient_name;
 
         return record as Claim;
     } catch (error) {
@@ -140,6 +156,7 @@ export async function getClaimById(id: string): Promise<Claim | null> {
         throw new Error("Failed to fetch claim details from database.");
     }
 }
+
 
 export async function getClaimsByPatientId(patientId: number): Promise<Claim[]> {
     try {
@@ -262,3 +279,5 @@ export async function handleDeleteClaim(formData: FormData) {
     }
     revalidatePath('/dashboard/claims');
 }
+
+    

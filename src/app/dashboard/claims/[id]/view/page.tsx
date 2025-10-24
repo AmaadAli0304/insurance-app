@@ -126,8 +126,7 @@ export default function ViewClaimPage() {
                                 <DetailItem label="Hospital Discount" value={claim.hospital_discount} isCurrency />
                                 <DetailItem label="NM Deductions" value={claim.nm_deductions} isCurrency />
                                 <DetailItem label="Co-Pay" value={claim.co_pay} isCurrency />
-                                <DetailItem label="Final Authorised Amount" value={claim.amount} isCurrency />
-                                <DetailItem label="Amount Paid by Insured" value={claim.final_amount} isCurrency />
+                                <DetailItem label="Final Authorised Amount" value={claim.final_amount} isCurrency />
                             </CardContent>
                         </Card>
                     )}
@@ -178,3 +177,5 @@ export default function ViewClaimPage() {
         </div>
     );
 }
+
+    
