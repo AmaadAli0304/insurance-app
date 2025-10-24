@@ -683,6 +683,8 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     const deduction_str = formData.get('nm_deductions') as string; // User said deduction maps to nm_deductions
     const tds_str = formData.get('tds') as string;
     const final_settlement_amount_str = formData.get('final_settle_amount') as string;
+    const utr_no = formData.get('utr_no') as string;
+    const date_settlement_str = formData.get('date_settlement') as string;
 
     // Fields for 'Final Discharge Sent' status
     const pharmacy_bill = formData.get('pharmacy_bill') as string;
@@ -911,8 +913,12 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
                 claimInsertRequest.input('nm_deductions', sql.Decimal(18,2), deduction_str ? parseFloat(deduction_str) : null);
                 claimInsertRequest.input('tds', sql.Decimal(18,2), tds_str ? parseFloat(tds_str) : null);
                 claimInsertRequest.input('final_settle_amount', sql.Decimal(18,2), final_settlement_amount_str ? parseFloat(final_settlement_amount_str) : null);
+                claimInsertRequest.input('mou_discount', sql.Decimal(18,2), mou_discount ? parseFloat(mou_discount) : null);
+                claimInsertRequest.input('utr_no', sql.NVarChar, utr_no);
+                claimInsertRequest.input('date_settlement', sql.Date, date_settlement_str ? new Date(date_settlement_str) : null);
+
                 
-                 await claimInsertRequest.query(`INSERT INTO claims ( Patient_id, Patient_name, admission_id, status, reason, created_by, amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at, final_amount, nm_deductions, tds, final_settle_amount ) VALUES ( @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at, @final_amount, @nm_deductions, @tds, @final_settle_amount )`);
+                 await claimInsertRequest.query(`INSERT INTO claims ( Patient_id, Patient_name, admission_id, status, reason, created_by, amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at, final_amount, nm_deductions, tds, final_settle_amount, mou_discount, utr_no, date_settlement ) VALUES ( @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at, @final_amount, @nm_deductions, @tds, @final_settle_amount, @mou_discount, @utr_no, @date_settlement )`);
 
             } else if (status === 'Final Discharge sent') {
                  claimInsertRequest
@@ -959,3 +965,5 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     revalidatePath('/dashboard/claims');
     return { message: 'Status updated and claim history recorded successfully.', type: 'success' };
 }
+
+    

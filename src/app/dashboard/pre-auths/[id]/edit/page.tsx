@@ -419,6 +419,18 @@ export default function EditPreAuthPage() {
                                    <Label htmlFor="amount">Net Amount Credited</Label>
                                    <Input id="amount" name="amount" type="text" inputMode="decimal" pattern="[0-9.]*" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter net amount credited" />
                                </div>
+                               <div className="space-y-2">
+                                   <Label htmlFor="mou_discount">MOU Discount</Label>
+                                   <Input id="mou_discount" name="mou_discount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter MOU discount" />
+                               </div>
+                                <div className="space-y-2">
+                                   <Label htmlFor="utr_no">UTR No</Label>
+                                   <Input id="utr_no" name="utr_no" placeholder="Enter UTR No" />
+                               </div>
+                                <div className="space-y-2">
+                                   <Label htmlFor="date_settlement">Date of Settlement</Label>
+                                   <Input id="date_settlement" name="date_settlement" type="date" />
+                               </div>
                            </div>
                         )}
 
@@ -566,3 +578,5 @@ export default function EditPreAuthPage() {
         </div>
     );
 }
+
+    
