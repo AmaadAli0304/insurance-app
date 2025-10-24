@@ -28,7 +28,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format, formatDistanceToNow } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { AddPodDetailsDialog } from "@/components/pre-auths/pod-details-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 
@@ -194,12 +193,10 @@ export default function PreAuthsPage() {
                                       <Edit className="h-4 w-4" /> Edit Status
                                    </Link>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                  <AddPodDetailsDialog requestId={r.id}>
-                                      <div className="flex items-center gap-2 cursor-pointer w-full">
-                                         <FileText className="h-4 w-4" /> POD Details
-                                      </div>
-                                  </AddPodDetailsDialog>
+                                <DropdownMenuItem asChild>
+                                  <Link href={`/dashboard/pre-auths/${r.id}/pod-details`} className="flex items-center gap-2 cursor-pointer">
+                                     <FileText className="h-4 w-4" /> POD Details
+                                  </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                  <AlertDialogTrigger asChild>

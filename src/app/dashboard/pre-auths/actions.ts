@@ -1,5 +1,4 @@
 
-
 "use server";
 
 import { redirect } from 'next/navigation';
@@ -962,8 +961,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     }
 
     revalidatePath('/dashboard/pre-auths');
-    revalidatePath('/dashboard/claims');
-    return { message: 'Status updated and claim history recorded successfully.', type: 'success' };
+    redirect('/dashboard/pre-auths');
 }
 
 export async function handleSavePodDetails(prevState: { message: string, type?: string }, formData: FormData) {
@@ -1023,16 +1021,14 @@ export async function handleSavePodDetails(prevState: { message: string, type?: 
     await request.query(query + values);
 
     await transaction.commit();
-    return { message: "POD details saved successfully.", type: "success" };
-
+    
   } catch (error) {
     if (transaction) await transaction.rollback();
     console.error("Error saving POD details:", error);
     const dbError = error as Error;
     return { message: `Database Error: ${dbError.message}`, type: 'error' };
   }
+
+  revalidatePath('/dashboard/pre-auths');
+  redirect('/dashboard/pre-auths');
 }
-    
-
-
-    

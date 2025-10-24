@@ -21,6 +21,7 @@ const breadcrumbNameMap: Record<string, string> = {
   "profile": "Profile",
   "doctors": "Doctor",
   "invoices": "Invoice",
+  "pod-details": "POD Details",
 };
 
 const isIdSegment = (segment: string) => {
@@ -59,7 +60,7 @@ export function Breadcrumb() {
             label = `${singularParentLabel} Details`;
             // If the next segment is 'view' or 'edit', the ID segment should not be clickable itself,
             // as the final breadcrumb will be "View" or "Edit".
-            if (segments[index + 1] === 'view' || segments[index + 1] === 'edit') {
+            if (segments[index + 1] === 'view' || segments[index + 1] === 'edit' || segments[index+1] === 'pod-details') {
                  isClickable = false;
             }
         }
