@@ -761,54 +761,6 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         const parsedAttachments = emailAttachmentsData
             .map(att => typeof att === 'string' ? JSON.parse(att) : att);
 
-        if (status === 'Final Approval') {
-            const admissionId = preAuthDetails.admission_id;
-            if (admissionId) {
-                await new sql.Request(transaction)
-                    .input('admission_id', sql.NVarChar, admissionId)
-                    .input('status', sql.NVarChar, 'Inactive')
-                    .query('UPDATE admissions SET status = @status WHERE admission_id = @admission_id');
-            }
-            
-            const final_hospital_bill = formData.get('final_hospital_bill') as string;
-            const hospital_discount = formData.get('hospital_discount') as string;
-            const nm_deductions = formData.get('nm_deductions') as string;
-            const co_pay = formData.get('co_pay') as string;
-            const final_amount_str = formData.get('final_amount') as string; // Final Authorised Amount
-            const amount_paid_by_insured_str = formData.get('amount_sanctioned') as string; // Amount Paid by insured
-            const mou_discount = formData.get('mou_discount') as string;
-            
-            const claimInsertRequest = new sql.Request(transaction);
-            await claimInsertRequest
-                .input('Patient_id', sql.Int, preAuthDetails.patient_id)
-                .input('Patient_name', sql.NVarChar, fullName)
-                .input('admission_id', sql.NVarChar, preAuthDetails.admission_id)
-                .input('status', sql.NVarChar, status)
-                .input('created_by', sql.NVarChar, userId || 'System Update')
-                .input('amount', sql.Decimal(18, 2), final_amount_str ? parseFloat(final_amount_str) : null) // Final Authorised Amount
-                .input('final_bill', sql.Decimal(18, 2), final_hospital_bill ? parseFloat(final_hospital_bill) : null)
-                .input('hospital_discount', sql.Decimal(18, 2), hospital_discount ? parseFloat(hospital_discount) : null)
-                .input('mou_discount', sql.Decimal(18, 2), mou_discount ? parseFloat(mou_discount) : null)
-                .input('nm_deductions', sql.Decimal(18, 2), nm_deductions ? parseFloat(nm_deductions) : null)
-                .input('co_pay', sql.Decimal(18, 2), co_pay ? parseFloat(co_pay) : null)
-                .input('final_amount', sql.Decimal(18, 2), amount_paid_by_insured_str ? parseFloat(amount_paid_by_insured_str) : null) // Amount Paid by Insured
-                .input('hospital_id', sql.NVarChar, preAuthDetails.hospital_id)
-                .input('tpa_id', sql.Int, preAuthDetails.tpa_id)
-                .input('claim_id', sql.NVarChar, claim_id || preAuthDetails.claim_id)
-                .input('created_at', sql.DateTime, now)
-                .input('updated_at', sql.DateTime, now)
-                .query(`INSERT INTO claims (
-                    Patient_id, Patient_name, admission_id, status, created_by, amount, final_bill, hospital_discount, nm_deductions, co_pay, final_amount, mou_discount, hospital_id, tpa_id, claim_id, created_at, updated_at
-                ) VALUES (
-                    @Patient_id, @Patient_name, @admission_id, @status, @created_by, @amount, @final_bill, @hospital_discount, @nm_deductions, @co_pay, @final_amount, @mou_discount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at
-                )`);
-
-        }
-
-
-        const shouldSendEmail = statusesThatSendEmail.includes(status);
-        const shouldLogTpaResponse = statusesThatLogTpaResponse.includes(status);
-        
         if (shouldSendEmail) {
             const fetchedAttachments = await Promise.all(
                 parsedAttachments.map(async (att: { name: string, url: string }) => {
@@ -973,7 +925,6 @@ export async function handleSavePodDetails(prevState: { message: string, type?: 
   const courierName = formData.get('courierName') as string;
   const date = formData.get('date') as string;
   
-  const screenshot = formData.get('screenshot') as string;
   const refNo = formData.get('refNo') as string;
   
   const emailBody = formData.get('emailBody') as string;
@@ -1001,11 +952,9 @@ export async function handleSavePodDetails(prevState: { message: string, type?: 
       request.input('ref_no', sql.NVarChar, refNo);
 
     } else if (podType === 'Portal') {
-      query += ', date_of_sent, screenshot_url, ref_no';
-      values += ', @date_of_sent, @screenshot_url, @ref_no';
+      query += ', date_of_sent';
+      values += ', @date_of_sent';
       request.input('date_of_sent', sql.Date, date ? new Date(date) : null);
-      request.input('screenshot_url', sql.NVarChar, screenshot);
-      request.input('ref_no', sql.NVarChar, refNo);
     } else if (podType === 'Email') {
       query += ', date_of_sent, email_body';
       values += ', @date_of_sent, @email_body';
@@ -1030,4 +979,5 @@ export async function handleSavePodDetails(prevState: { message: string, type?: 
   revalidatePath('/dashboard/pre-auths');
   return { message: "POD details saved successfully.", type: 'success' };
 }
- 
+
+    

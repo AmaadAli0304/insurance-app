@@ -186,7 +186,7 @@ export default function PodDetailsPage() {
                                     <Input id="refNo" name="refNo" />
                                 </div>
                             </div>
-                            <div className="space-y-2">
+                             <div className="space-y-2">
                                 <Label>Date of Sent</Label>
                                 <input type="hidden" name="date" value={date?.toISOString() ?? ''} />
                                 <Popover>
@@ -216,12 +216,6 @@ export default function PodDetailsPage() {
                                     </PopoverTrigger>
                                     <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={date} onSelect={setDate} initialFocus /></PopoverContent>
                                 </Popover>
-                            </div>
-                            <input type="hidden" name="screenshot" value={screenshotUrl} />
-                            <FileUpload label="Screenshot Upload" name="screenshotFile" onUploadComplete={setScreenshotUrl} isRequired={true} />
-                            <div className="space-y-2">
-                                <Label htmlFor="refNo">Reference Number</Label>
-                                <Input id="refNo" name="refNo" />
                             </div>
                         </div>
                     )}
@@ -267,4 +261,5 @@ export default function PodDetailsPage() {
     </div>
   );
 }
- 
+
+    
