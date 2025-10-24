@@ -120,7 +120,6 @@ export default function PodDetailsPage() {
   const requestId = params.id as string;
   const [podType, setPodType] = useState<PodType>("Courier");
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [podCopyUrl, setPodCopyUrl] = useState<string>('');
   const [screenshotUrl, setScreenshotUrl] = useState<string>('');
   const [editorState, setEditorState] = useState(() => EditorState.createEmpty());
   const [state, formAction] = useActionState(handleSavePodDetails, { message: "", type: "initial" });
@@ -179,12 +178,12 @@ export default function PodDetailsPage() {
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="podNumber">POD Number</Label>
-                                    <Input id="podNumber" name="podNumber" />
-                                </div>
-                                <div className="space-y-2">
                                     <Label htmlFor="courierName">Courier Name</Label>
                                     <Input id="courierName" name="courierName" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="refNo">Ref No</Label>
+                                    <Input id="refNo" name="refNo" />
                                 </div>
                             </div>
                             <div className="space-y-2">
@@ -200,8 +199,6 @@ export default function PodDetailsPage() {
                                     <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={date} onSelect={setDate} initialFocus /></PopoverContent>
                                 </Popover>
                             </div>
-                            <input type="hidden" name="podCopy" value={podCopyUrl} />
-                            <FileUpload label="POD Copy" name="podCopyFile" onUploadComplete={setPodCopyUrl} />
                         </div>
                     )}
 
@@ -270,3 +267,4 @@ export default function PodDetailsPage() {
     </div>
   );
 }
+ 

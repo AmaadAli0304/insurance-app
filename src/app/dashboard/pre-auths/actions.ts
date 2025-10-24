@@ -970,10 +970,8 @@ export async function handleSavePodDetails(prevState: { message: string, type?: 
   const userId = formData.get('userId') as string;
   const userName = formData.get('userName') as string;
 
-  const podNumber = formData.get('podNumber') as string;
   const courierName = formData.get('courierName') as string;
   const date = formData.get('date') as string;
-  const podCopy = formData.get('podCopy') as string;
   
   const screenshot = formData.get('screenshot') as string;
   const refNo = formData.get('refNo') as string;
@@ -996,12 +994,12 @@ export async function handleSavePodDetails(prevState: { message: string, type?: 
     let values = ' VALUES (@preauth_id, @pod_type, @created_by';
 
     if (podType === 'Courier') {
-      query += ', pod_number, courier_name, date_of_sent, pod_copy_url';
-      values += ', @pod_number, @courier_name, @date_of_sent, @pod_copy_url';
-      request.input('pod_number', sql.NVarChar, podNumber);
+      query += ', courier_name, date_of_sent, ref_no';
+      values += ', @courier_name, @date_of_sent, @ref_no';
       request.input('courier_name', sql.NVarChar, courierName);
       request.input('date_of_sent', sql.Date, date ? new Date(date) : null);
-      request.input('pod_copy_url', sql.NVarChar, podCopy);
+      request.input('ref_no', sql.NVarChar, refNo);
+
     } else if (podType === 'Portal') {
       query += ', date_of_sent, screenshot_url, ref_no';
       values += ', @date_of_sent, @screenshot_url, @ref_no';
@@ -1030,5 +1028,6 @@ export async function handleSavePodDetails(prevState: { message: string, type?: 
   }
 
   revalidatePath('/dashboard/pre-auths');
-  redirect('/dashboard/pre-auths');
+  return { message: "POD details saved successfully.", type: 'success' };
 }
+ 
