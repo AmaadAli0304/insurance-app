@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import type { Claim, ClaimStatus } from "@/lib/types";
 import { getClaimById } from "../../actions";
 import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const DetailItem = ({ label, value, className, isCurrency = false }: { label: string, value?: string | number | null, className?: string, isCurrency?: boolean }) => {
     let displayValue: React.ReactNode = "N/A";
@@ -45,7 +46,7 @@ const getStatusVariant = (status: ClaimStatus) => {
        case 'Amount Sanctioned':
        case 'Initial Approval':
        case 'Final Approval':
-        return 'default'
+        return 'badge-green';
       default:
         return 'secondary';
     }
@@ -87,7 +88,7 @@ export default function ViewClaimPage() {
                             <CardTitle>Claim Details</CardTitle>
                             <CardDescription>Viewing claim <span className="font-mono">{claim.claim_id || claim.id}</span></CardDescription>
                         </div>
-                        <Badge variant={getStatusVariant(claim.status)} className={`text-lg px-4 py-1`}>{claim.status}</Badge>
+                        <Badge variant={getStatusVariant(claim.status)} className={cn('text-lg px-4 py-1', getStatusVariant(claim.status))}>{claim.status}</Badge>
                     </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -96,7 +97,7 @@ export default function ViewClaimPage() {
                             <CardTitle className="text-xl">Financial Summary</CardTitle>
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-3 gap-4">
-                             <DetailItem label="Sanctioned Amount" value={claim.paidAmount} isCurrency />
+                             <DetailItem label="Billed Amount" value={claim.amount} isCurrency />
                              <DetailItem label="Last Updated" value={new Date(claim.updated_at).toLocaleDateString()} />
                         </CardContent>
                     </Card>
