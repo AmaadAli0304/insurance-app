@@ -118,7 +118,8 @@ export async function getClaimById(id: string): Promise<Claim | null> {
                     pr.natureOfIllness,
                     p.first_name + ' ' + p.last_name as PatientFullName,
                     pr.id as preauthId,
-                    pr.totalExpectedCost
+                    pr.totalExpectedCost,
+                    cl.amount as netAmountCredited  -- Explicitly alias for clarity
                 FROM claims cl
                 LEFT JOIN patients p ON cl.Patient_id = p.id
                 LEFT JOIN hospitals h ON cl.hospital_id = h.id
@@ -135,6 +136,9 @@ export async function getClaimById(id: string): Promise<Claim | null> {
 
         const record = claimResult.recordset[0];
         
+        // Preserve the net amount credited for settled claims
+        const netAmountCredited = record.netAmountCredited;
+
         // Get the initial "Pre auth Sent" amount
         const preAuthSentResult = await pool.request()
             .input('admission_id', sql.NVarChar, record.admission_id)
@@ -144,8 +148,13 @@ export async function getClaimById(id: string): Promise<Claim | null> {
                 WHERE admission_id = @admission_id AND status = 'Pre auth Sent'
                 ORDER BY created_at ASC
             `);
-
+        
+        // This is the billed amount, not the net credited amount for settled claims
         record.amount = preAuthSentResult.recordset[0]?.amount ?? record.totalExpectedCost;
+
+        if (record.status === 'Settled') {
+            record.amount = netAmountCredited; // Restore the correct amount for settled claims
+        }
 
         // Backward compatibility for patient name
         record.Patient_name = record.PatientFullName || record.Patient_name;
