@@ -114,8 +114,9 @@ export async function getClaimById(id: string): Promise<Claim | null> {
                     h.name as hospitalName,
                     COALESCE(co_pr.name, co_adm.name) as companyName,
                     pr.natureOfIllness,
-                    p.first_name + ' ' + p.last_name as Patient_name,
-                    pr.id as preauthId
+                    p.first_name + ' ' + p.last_name as PatientFullName,
+                    pr.id as preauthId,
+                    pr.totalExpectedCost as BilledAmount
                 FROM claims cl
                 LEFT JOIN patients p ON cl.Patient_id = p.id
                 LEFT JOIN hospitals h ON cl.hospital_id = h.id
@@ -130,7 +131,10 @@ export async function getClaimById(id: string): Promise<Claim | null> {
             return null;
         }
 
-        return result.recordset[0] as Claim;
+        const record = result.recordset[0];
+        record.Patient_name = record.PatientFullName; // Use the correct full name
+
+        return record as Claim;
     } catch (error) {
         console.error("Error fetching claim by ID:", error);
         throw new Error("Failed to fetch claim details from database.");
