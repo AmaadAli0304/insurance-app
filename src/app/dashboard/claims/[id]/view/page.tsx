@@ -76,8 +76,11 @@ export default function ViewClaimPage() {
             .finally(() => setIsLoading(false));
     }, [id]);
     
-    const formatDate = (dateString?: string | null) => {
-        if (!dateString) return "N/A";
+    const formatDate = (dateInput?: string | null | Date) => {
+        if (!dateInput) return "N/A";
+        
+        const dateString = typeof dateInput === 'string' ? dateInput : dateInput.toISOString();
+        
         // The DB returns a string with timezone info, which JS Date constructor handles.
         // But for dates without time, it might assume UTC. Adding 'T00:00:00' helps.
         const date = new Date(dateString.includes('T') ? dateString : dateString + 'T00:00:00');
