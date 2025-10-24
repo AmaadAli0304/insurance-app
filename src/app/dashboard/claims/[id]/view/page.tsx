@@ -115,15 +115,17 @@ export default function ViewClaimPage() {
                     </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-xl">Financial Summary</CardTitle>
-                        </CardHeader>
-                        <CardContent className="grid md:grid-cols-3 gap-4">
-                             <DetailItem label="Billed Amount" value={claim.amount} isCurrency />
-                             <DetailItem label="Last Updated" value={new Date(claim.updated_at).toLocaleDateString()} />
-                        </CardContent>
-                    </Card>
+                    {claim.status !== 'Settled' && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-xl">Financial Summary</CardTitle>
+                            </CardHeader>
+                            <CardContent className="grid md:grid-cols-3 gap-4">
+                                <DetailItem label="Billed Amount" value={claim.amount} isCurrency />
+                                <DetailItem label="Last Updated" value={new Date(claim.updated_at).toLocaleDateString()} />
+                            </CardContent>
+                        </Card>
+                    )}
 
                     {claim.status === 'Final Discharge sent' && (
                         <Card>
@@ -203,5 +205,3 @@ export default function ViewClaimPage() {
         </div>
     );
 }
-
-    
