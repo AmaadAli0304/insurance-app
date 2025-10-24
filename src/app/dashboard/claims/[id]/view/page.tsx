@@ -96,7 +96,6 @@ export default function ViewClaimPage() {
                             <CardTitle className="text-xl">Financial Summary</CardTitle>
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-3 gap-4">
-                             <DetailItem label="Billed Amount" value={claim.amount} isCurrency />
                              <DetailItem label="Sanctioned Amount" value={claim.paidAmount} isCurrency />
                              <DetailItem label="Last Updated" value={new Date(claim.updated_at).toLocaleDateString()} />
                         </CardContent>
