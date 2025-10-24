@@ -966,4 +966,73 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     return { message: 'Status updated and claim history recorded successfully.', type: 'success' };
 }
 
+export async function handleSavePodDetails(prevState: { message: string, type?: string }, formData: FormData) {
+  const requestId = formData.get('requestId') as string;
+  const podType = formData.get('podType') as string;
+  const userId = formData.get('userId') as string;
+  const userName = formData.get('userName') as string;
+
+  const podNumber = formData.get('podNumber') as string;
+  const courierName = formData.get('courierName') as string;
+  const date = formData.get('date') as string;
+  const podCopy = formData.get('podCopy') as string;
+  
+  const screenshot = formData.get('screenshot') as string;
+  const refNo = formData.get('refNo') as string;
+  
+  const emailBody = formData.get('emailBody') as string;
+
+  let transaction;
+  try {
+    const pool = await getDbPool();
+    transaction = new sql.Transaction(pool);
+    await transaction.begin();
+
+    const request = new sql.Request(transaction);
+    request
+      .input('preauth_id', sql.Int, Number(requestId))
+      .input('pod_type', sql.NVarChar, podType)
+      .input('created_by', sql.NVarChar, userName);
+
+    let query = 'INSERT INTO pod_details (preauth_id, pod_type, created_by';
+    let values = ' VALUES (@preauth_id, @pod_type, @created_by';
+
+    if (podType === 'Courier') {
+      query += ', pod_number, courier_name, date_of_sent, pod_copy_url';
+      values += ', @pod_number, @courier_name, @date_of_sent, @pod_copy_url';
+      request.input('pod_number', sql.NVarChar, podNumber);
+      request.input('courier_name', sql.NVarChar, courierName);
+      request.input('date_of_sent', sql.Date, date ? new Date(date) : null);
+      request.input('pod_copy_url', sql.NVarChar, podCopy);
+    } else if (podType === 'Portal') {
+      query += ', date_of_sent, screenshot_url, ref_no';
+      values += ', @date_of_sent, @screenshot_url, @ref_no';
+      request.input('date_of_sent', sql.Date, date ? new Date(date) : null);
+      request.input('screenshot_url', sql.NVarChar, screenshot);
+      request.input('ref_no', sql.NVarChar, refNo);
+    } else if (podType === 'Email') {
+      query += ', date_of_sent, email_body';
+      values += ', @date_of_sent, @email_body';
+      request.input('date_of_sent', sql.Date, date ? new Date(date) : null);
+      request.input('email_body', sql.NVarChar, emailBody);
+    }
+    
+    query += ')';
+    values += ')';
+    
+    await request.query(query + values);
+
+    await transaction.commit();
+    return { message: "POD details saved successfully.", type: "success" };
+
+  } catch (error) {
+    if (transaction) await transaction.rollback();
+    console.error("Error saving POD details:", error);
+    const dbError = error as Error;
+    return { message: `Database Error: ${dbError.message}`, type: 'error' };
+  }
+}
+    
+
+
     

@@ -185,7 +185,8 @@ export async function handleCreateHospitalTable(prevState: { message: string, ty
           email NVARCHAR(255),
           phone NVARCHAR(50),
           photo NVARCHAR(MAX),
-          archived BIT DEFAULT 0
+          archived BIT DEFAULT 0,
+          mailtrap_token NVARCHAR(255)
         );
       END
       ELSE
@@ -197,6 +198,10 @@ export async function handleCreateHospitalTable(prevState: { message: string, ty
         IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'archived' AND Object_ID = Object_ID(N'hospitals'))
         BEGIN
             ALTER TABLE hospitals ADD archived BIT DEFAULT 0;
+        END
+        IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'mailtrap_token' AND Object_ID = Object_ID(N'hospitals'))
+        BEGIN
+            ALTER TABLE hospitals ADD mailtrap_token NVARCHAR(255);
         END
       END
     `;
@@ -815,7 +820,24 @@ export async function handleCreateClaimsTable(prevState: { message: string, type
           paidAmount DECIMAL(18, 2),
           hospital_id NVARCHAR(255),
           amount DECIMAL(18, 2),
-          tpa_id INT
+          tpa_id INT,
+          final_bill DECIMAL(18,2),
+          hospital_discount DECIMAL(18,2),
+          nm_deductions DECIMAL(18,2),
+          co_pay DECIMAL(18,2),
+          final_amount DECIMAL(18,2),
+          final_settle_amount DECIMAL(18,2),
+          tds DECIMAL(18,2),
+          pharmacy_bill DECIMAL(18,2),
+          lab_bill DECIMAL(18,2),
+          ct_scan_charges DECIMAL(18,2),
+          mri_charges DECIMAL(18,2),
+          usg_charges DECIMAL(18,2),
+          other_charges DECIMAL(18,2),
+          xray_charges DECIMAL(18,2),
+          mou_discount DECIMAL(18,2),
+          utr_no NVARCHAR(255),
+          date_settlement DATE
         );
       END
       ELSE
@@ -1005,8 +1027,16 @@ export async function handleCreateAttendanceTable(prevState: { message: string, 
           staff_id NVARCHAR(255) NOT NULL,
           date DATE NOT NULL,
           status NVARCHAR(50) NOT NULL,
+          hospital_id NVARCHAR(255),
           CONSTRAINT UQ_staff_date UNIQUE (staff_id, date)
         );
+      END
+      ELSE
+      BEGIN
+        IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'hospital_id' AND Object_ID = Object_ID(N'attendance'))
+        BEGIN
+          ALTER TABLE attendance ADD hospital_id NVARCHAR(255);
+        END
       END
     `;
     await request.query(createAttendanceTableQuery);
@@ -1075,3 +1105,5 @@ export async function handleCreateActivityLogTable(prevState: { message: string,
     return { message: `Error creating Activity Log table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
 }
+
+    

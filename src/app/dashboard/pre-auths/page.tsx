@@ -193,7 +193,7 @@ export default function PreAuthsPage() {
                                       <Edit className="h-4 w-4" /> Edit Status
                                    </Link>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem asChild>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                                   <AddPodDetailsDialog requestId={r.id}>
                                       <div className="flex items-center gap-2 cursor-pointer w-full">
                                          <FileText className="h-4 w-4" /> POD Details
@@ -269,3 +269,5 @@ export default function PreAuthsPage() {
     </div>
   )
 }
+
+    
