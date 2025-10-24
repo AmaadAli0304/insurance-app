@@ -395,7 +395,7 @@ export interface StaffingRequest {
   proposedTreatment?: string;
 }
 
-export type ClaimStatus = 'Processing' | 'Approved' | 'Paid' | 'Rejected' | 'Appealed' | 'Pending' | 'Query Raised' | 'Query Answered' | 'Initial Approval Amount' | 'Amount Sanctioned' | 'Initial Approval' | 'Settlement Done' | 'Pre auth Sent';
+export type ClaimStatus = 'Processing' | 'Approved' | 'Paid' | 'Rejected' | 'Appealed' | 'Pending' | 'Query Raised' | 'Query Answered' | 'Initial Approval Amount' | 'Amount Sanctioned' | 'Initial Approval' | 'Settlement Done' | 'Pre auth Sent' | 'Final Discharge sent' | 'Final Approval' | 'Settled';
 export interface Claim {
   id: number;
   claim_id?: string | null;
@@ -413,13 +413,23 @@ export interface Claim {
   hospital_discount?: number;
   nm_deductions?: number;
   co_pay?: number;
+  final_amount?: number;
+  final_settle_amount?: number;
+  tds?: number;
+  pharmacy_bill?: number;
+  lab_bill?: number;
+  ct_scan_charges?: number;
+  mri_charges?: number;
+  usg_charges?: number;
+  other_charges?: number;
+  xray_charges?: number;
+  mou_discount?: number;
   preauthId?: number;
   
   // Joined properties
   hospitalName?: string;
   claimAmount?: number;
   paidAmount?: number;
-  policyNumber?: string;
   companyName?: string;
 }
 

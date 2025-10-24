@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -10,12 +9,25 @@ import type { Claim, ClaimStatus } from "@/lib/types";
 import { getClaimById } from "../../actions";
 import { Loader2 } from "lucide-react";
 
-const DetailItem = ({ label, value, className }: { label: string, value?: string | number | null, className?: string }) => (
-    <div className={className}>
-        <p className="text-sm font-medium text-muted-foreground">{label}</p>
-        <p className="text-base">{value || "N/A"}</p>
-    </div>
-);
+const DetailItem = ({ label, value, className, isCurrency = false }: { label: string, value?: string | number | null, className?: string, isCurrency?: boolean }) => {
+    let displayValue: React.ReactNode = "N/A";
+
+    if (value !== null && value !== undefined && value !== '') {
+        if (isCurrency && typeof value === 'number') {
+            displayValue = value.toLocaleString('en-IN');
+        } else {
+            displayValue = String(value);
+        }
+    }
+    
+    return (
+        <div className={className}>
+            <p className="text-sm font-medium text-muted-foreground">{label}</p>
+            <p className="text-base">{displayValue}</p>
+        </div>
+    );
+};
+
 
 const getStatusVariant = (status: ClaimStatus) => {
     switch (status) {
@@ -32,6 +44,7 @@ const getStatusVariant = (status: ClaimStatus) => {
        case 'Approval':
        case 'Amount Sanctioned':
        case 'Initial Approval':
+       case 'Final Approval':
         return 'default'
       default:
         return 'secondary';
@@ -74,7 +87,7 @@ export default function ViewClaimPage() {
                             <CardTitle>Claim Details</CardTitle>
                             <CardDescription>Viewing claim <span className="font-mono">{claim.claim_id || claim.id}</span></CardDescription>
                         </div>
-                        <Badge variant={getStatusVariant(claim.status)} className={`text-lg px-4 py-1 ${claim.status === 'Paid' || claim.status === 'Approved' ? 'bg-accent text-accent-foreground' : ''}`}>{claim.status}</Badge>
+                        <Badge variant={getStatusVariant(claim.status)} className={`text-lg px-4 py-1`}>{claim.status}</Badge>
                     </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -83,15 +96,55 @@ export default function ViewClaimPage() {
                             <CardTitle className="text-xl">Financial Summary</CardTitle>
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-3 gap-4">
-                             <DetailItem label="Billed Amount" value={claim.amount ? claim.amount.toLocaleString() : "N/A"} />
-                             <DetailItem label="Sanctioned Amount" value={claim.paidAmount ? claim.paidAmount.toLocaleString(): "N/A"} />
-                             <DetailItem label="Final Hospital Bill" value={claim.final_bill ? claim.final_bill.toLocaleString() : "N/A"} />
-                             <DetailItem label="Hospital Discount" value={claim.hospital_discount ? claim.hospital_discount.toLocaleString() : "N/A"} />
-                             <DetailItem label="NM Deductions" value={claim.nm_deductions ? claim.nm_deductions.toLocaleString() : "N/A"} />
-                             <DetailItem label="Co-Pay" value={claim.co_pay ? claim.co_pay.toLocaleString() : "N/A"} />
+                             <DetailItem label="Billed Amount" value={claim.amount} isCurrency />
+                             <DetailItem label="Sanctioned Amount" value={claim.paidAmount} isCurrency />
                              <DetailItem label="Last Updated" value={new Date(claim.updated_at).toLocaleDateString()} />
                         </CardContent>
                     </Card>
+
+                    {claim.status === 'Final Discharge sent' && (
+                        <Card>
+                            <CardHeader><CardTitle className="text-xl">Discharge Bill Details</CardTitle></CardHeader>
+                            <CardContent className="grid md:grid-cols-3 gap-4">
+                                <DetailItem label="Pharmacy Bill" value={claim.pharmacy_bill} isCurrency />
+                                <DetailItem label="Lab Bill" value={claim.lab_bill} isCurrency />
+                                <DetailItem label="CT Scan Charges" value={claim.ct_scan_charges} isCurrency />
+                                <DetailItem label="MRI Charges" value={claim.mri_charges} isCurrency />
+                                <DetailItem label="USG Charges" value={claim.usg_charges} isCurrency />
+                                <DetailItem label="X-Ray Charges" value={claim.xray_charges} isCurrency />
+                                <DetailItem label="Other Charges" value={claim.other_charges} isCurrency />
+                                <DetailItem label="MOU Discount" value={claim.mou_discount} isCurrency />
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {claim.status === 'Final Approval' && (
+                         <Card>
+                            <CardHeader><CardTitle className="text-xl">Final Approval Details</CardTitle></CardHeader>
+                            <CardContent className="grid md:grid-cols-3 gap-4">
+                                <DetailItem label="Final Hospital Bill" value={claim.final_bill} isCurrency />
+                                <DetailItem label="Hospital Discount" value={claim.hospital_discount} isCurrency />
+                                <DetailItem label="NM Deductions" value={claim.nm_deductions} isCurrency />
+                                <DetailItem label="Co-Pay" value={claim.co_pay} isCurrency />
+                                <DetailItem label="Final Authorised Amount" value={claim.amount} isCurrency />
+                                <DetailItem label="Amount Paid by Insured" value={claim.final_amount} isCurrency />
+                            </CardContent>
+                        </Card>
+                    )}
+                    
+                    {claim.status === 'Settled' && (
+                         <Card>
+                            <CardHeader><CardTitle className="text-xl">Settlement Details</CardTitle></CardHeader>
+                            <CardContent className="grid md:grid-cols-3 gap-4">
+                                <DetailItem label="Final Authorised Amount" value={claim.final_amount} isCurrency />
+                                <DetailItem label="Deduction" value={claim.nm_deductions} isCurrency />
+                                <DetailItem label="TDS" value={claim.tds} isCurrency />
+                                <DetailItem label="Final Settlement Amount" value={claim.final_settle_amount} isCurrency />
+                                <DetailItem label="Net Amount Credited" value={claim.amount} isCurrency />
+                            </CardContent>
+                        </Card>
+                    )}
+
 
                     <Card>
                         <CardHeader>
