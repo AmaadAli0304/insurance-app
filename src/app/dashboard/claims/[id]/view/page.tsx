@@ -115,13 +115,13 @@ export default function ViewClaimPage() {
                     </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    {claim.status !== 'Settled' && (
+                    {claim.status !== 'Settled' && claim.status !== 'Final Approval' && (
                         <Card>
                             <CardHeader>
                                 <CardTitle className="text-xl">Financial Summary</CardTitle>
                             </CardHeader>
                             <CardContent className="grid md:grid-cols-3 gap-4">
-                                {claim.status !== 'Final Approval' && <DetailItem label="Billed Amount" value={claim.amount} isCurrency />}
+                                <DetailItem label="Billed Amount" value={claim.amount} isCurrency />
                                 <DetailItem label="Last Updated" value={new Date(claim.updated_at).toLocaleDateString()} />
                             </CardContent>
                         </Card>
@@ -151,7 +151,9 @@ export default function ViewClaimPage() {
                                 <DetailItem label="Hospital Discount" value={claim.hospital_discount} isCurrency />
                                 <DetailItem label="NM Deductions" value={claim.nm_deductions} isCurrency />
                                 <DetailItem label="Co-Pay" value={claim.co_pay} isCurrency />
+                                <DetailItem label="MOU Discount" value={claim.mou_discount} isCurrency />
                                 <DetailItem label="Final Authorised Amount" value={claim.final_amount} isCurrency />
+                                <DetailItem label="Amount Paid by Insured" value={claim.amountPaidByInsured} isCurrency />
                             </CardContent>
                         </Card>
                     )}

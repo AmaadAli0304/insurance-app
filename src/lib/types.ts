@@ -425,6 +425,7 @@ export interface Claim {
   xray_charges?: number;
   mou_discount?: number;
   preauthId?: number;
+  amountPaidByInsured?: number;
   
   // Joined properties
   hospitalName?: string;
