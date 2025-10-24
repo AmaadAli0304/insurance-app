@@ -29,6 +29,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { AddPodDetailsDialog } from "@/components/pre-auths/pod-details-dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 
 export default function PreAuthsPage() {
@@ -269,5 +270,3 @@ export default function PreAuthsPage() {
     </div>
   )
 }
-
-    
