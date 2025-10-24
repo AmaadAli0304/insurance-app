@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -34,19 +35,23 @@ const getStatusVariant = (status: ClaimStatus) => {
     switch (status) {
       case 'Paid':
       case 'Settlement Done':
-        return 'default';
+        return 'badge-purple';
       case 'Rejected':
         return 'destructive';
       case 'Processing':
       case 'Pending':
       case 'Query Answered':
-        return 'secondary';
+        return 'badge-yellow';
        case 'Approved':
        case 'Approval':
        case 'Amount Sanctioned':
        case 'Initial Approval':
        case 'Final Approval':
         return 'badge-green';
+       case 'Query Raised':
+        return 'badge-orange';
+       case 'Pre auth Sent':
+        return 'badge-light-blue';
       default:
         return 'secondary';
     }
@@ -70,6 +75,21 @@ export default function ViewClaimPage() {
             .catch(console.error)
             .finally(() => setIsLoading(false));
     }, [id]);
+    
+    const formatDate = (dateString?: string | null) => {
+        if (!dateString) return "N/A";
+        // The DB returns a string with timezone info, which JS Date constructor handles.
+        // But for dates without time, it might assume UTC. Adding 'T00:00:00' helps.
+        const date = new Date(dateString.includes('T') ? dateString : dateString + 'T00:00:00');
+        if (isNaN(date.getTime())) {
+            return "Invalid Date";
+        }
+        return new Intl.DateTimeFormat('en-IN', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        }).format(date);
+    };
 
     if (isLoading) {
         return <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin" /></div>;
@@ -88,7 +108,7 @@ export default function ViewClaimPage() {
                             <CardTitle>Claim Details</CardTitle>
                             <CardDescription>Viewing claim <span className="font-mono">{claim.claim_id || claim.id}</span></CardDescription>
                         </div>
-                        <Badge variant={getStatusVariant(claim.status)} className={cn('text-lg px-4 py-1', getStatusVariant(claim.status))}>{claim.status}</Badge>
+                        <Badge variant={getStatusVariant(claim.status)} className={cn('text-lg px-4 py-1')}>{claim.status}</Badge>
                     </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -138,8 +158,11 @@ export default function ViewClaimPage() {
                                 <DetailItem label="Final Authorised Amount" value={claim.final_amount} isCurrency />
                                 <DetailItem label="Deduction" value={claim.nm_deductions} isCurrency />
                                 <DetailItem label="TDS" value={claim.tds} isCurrency />
+                                <DetailItem label="MOU Discount" value={claim.mou_discount} isCurrency />
                                 <DetailItem label="Final Settlement Amount" value={claim.final_settle_amount} isCurrency />
                                 <DetailItem label="Net Amount Credited" value={claim.amount} isCurrency />
+                                <DetailItem label="UTR No" value={claim.utr_no} />
+                                <DetailItem label="Date of Settlement" value={formatDate(claim.date_settlement)} />
                             </CardContent>
                         </Card>
                     )}
