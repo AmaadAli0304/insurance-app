@@ -3,7 +3,6 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal, PlusCircle, Trash, Eye, Edit, AlertTriangle, ChevronLeft, ChevronRight, FileText } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
@@ -29,6 +28,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format, formatDistanceToNow } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { AddPodDetailsDialog } from "@/components/pre-auths/pod-details-dialog";
 
 
 export default function PreAuthsPage() {
@@ -194,9 +194,11 @@ export default function PreAuthsPage() {
                                    </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>
-                                   <Link href={`#`} className="flex items-center gap-2 cursor-pointer">
-                                      <FileText className="h-4 w-4" /> POD Details
-                                   </Link>
+                                  <AddPodDetailsDialog requestId={r.id}>
+                                      <div className="flex items-center gap-2 cursor-pointer w-full">
+                                         <FileText className="h-4 w-4" /> POD Details
+                                      </div>
+                                  </AddPodDetailsDialog>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                  <AlertDialogTrigger asChild>

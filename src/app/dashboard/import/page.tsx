@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
@@ -6,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useFormStatus } from "react-dom";
-import { handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable, handleCreateDoctorsTable, handleCreateChiefComplaintsTable, handleCreatePreAuthTable, handleCreateMedicalTable, handleCreateChatTable, handleAlterPreAuthTable, handleCreateClaimsTable, handleDeleteClaimsTable, handleDeletePreAuthRequestTable, handleUpdatePatientsTable, handleSendEmail, handleCreateChatFilesTable, handleCreateInvoicesTable, handleCreateInvoiceStaffTable, handleCreateAttendanceTable, handleCreateStaffSalaryTable, handleCreateActivityLogTable } from "./actions";
+import { handleCreateTable, handleCreateRelationshipTables, handleCreateHospitalTable, handleCreatePatientsTable, handleCreateFieldsTable, handleCreateFieldOptionsTable, handleCreateAdmissionsTable, handleCreateIctCodeTable, handleCreateDoctorsTable, handleCreateChiefComplaintsTable, handleCreatePreAuthTable, handleCreateMedicalTable, handleCreateChatTable, handleAlterPreAuthTable, handleCreateClaimsTable, handleDeleteClaimsTable, handleDeletePreAuthRequestTable, handleUpdatePatientsTable, handleSendEmail, handleCreateChatFilesTable, handleCreateInvoicesTable, handleCreateInvoiceStaffTable, handleCreateAttendanceTable, handleCreateStaffSalaryTable, handleCreateActivityLogTable, handleCreatePodDetailsTable } from "./actions";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Database, GitMerge, UserPlus, Building, Users, FilePlus2, ListPlus, BedDouble, Info, Stethoscope, FileHeart, Shield, MessageSquare, Pill, AlertTriangle, HandCoins, Trash2, RefreshCcw, Send, FileCode, FileSpreadsheet, CalendarCheck, Wallet, Activity } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
@@ -80,6 +81,7 @@ export default function ImportPage() {
     const [createAttendanceTableState, createAttendanceTableAction] = useActionState(handleCreateAttendanceTable, { message: "", type: undefined });
     const [createStaffSalaryTableState, createStaffSalaryTableAction] = useActionState(handleCreateStaffSalaryTable, { message: "", type: undefined });
     const [createActivityLogTableState, createActivityLogTableAction] = useActionState(handleCreateActivityLogTable, { message: "", type: undefined });
+    const [createPodDetailsTableState, createPodDetailsTableAction] = useActionState(handleCreatePodDetailsTable, { message: "", type: undefined });
     
     const useToastEffect = (state: { type?: string; message: string; }, title: string) => {
         useEffect(() => {
@@ -116,6 +118,7 @@ export default function ImportPage() {
     useToastEffect(createAttendanceTableState, "Database Action");
     useToastEffect(createStaffSalaryTableState, "Database Action");
     useToastEffect(createActivityLogTableState, "Database Action");
+    useToastEffect(createPodDetailsTableState, "Database Action");
     
 
     return (
@@ -139,6 +142,7 @@ export default function ImportPage() {
                     <SubmitActionButton action={createDoctorsTableAction} icon={Stethoscope}>Create Doctors Table</SubmitActionButton>
                     <SubmitActionButton action={createChiefComplaintsTableAction} icon={FileHeart}>Create Chief Complaints Table</SubmitActionButton>
                     <SubmitActionButton action={createPreAuthTableAction} icon={Shield}>Create Pre-Auth Request Table</SubmitActionButton>
+                    <SubmitActionButton action={createPodDetailsTableAction} icon={FilePlus2}>Create POD Details Table</SubmitActionButton>
                     <SubmitActionButton action={createMedicalTableAction} icon={Pill}>Create Medical Table</SubmitActionButton>
                     <SubmitActionButton action={createChatTableAction} icon={MessageSquare}>Create Chat Table</SubmitActionButton>
                     <SubmitActionButton action={createChatFilesTableAction} icon={FileCode}>Create Chat Files Table</SubmitActionButton>

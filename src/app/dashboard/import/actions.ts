@@ -1,4 +1,5 @@
 
+
 "use server";
 
 import * as XLSX from 'xlsx';
@@ -84,6 +85,39 @@ export async function handleCreateTable(prevState: { message: string, type?: str
     console.error('Error creating TPA table:', dbError);
     return { message: `Error creating TPA table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
   }
+}
+
+export async function handleCreatePodDetailsTable(prevState: { message: string, type?: string }, formData: FormData) {
+    try {
+        const pool = await getDbPool();
+        const request = pool.request();
+        const query = `
+            IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='pod_details' and xtype='U')
+            BEGIN
+                CREATE TABLE pod_details (
+                    id INT IDENTITY(1,1) PRIMARY KEY,
+                    preauth_id INT,
+                    pod_type NVARCHAR(50),
+                    pod_number NVARCHAR(255),
+                    courier_name NVARCHAR(255),
+                    date_of_sent DATE,
+                    pod_copy_url NVARCHAR(MAX),
+                    screenshot_url NVARCHAR(MAX),
+                    ref_no NVARCHAR(255),
+                    email_body NVARCHAR(MAX),
+                    created_at DATETIME DEFAULT GETDATE(),
+                    created_by NVARCHAR(255),
+                    CONSTRAINT FK_pod_details_preauth FOREIGN KEY (preauth_id) REFERENCES preauth_request(id) ON DELETE CASCADE
+                );
+            END
+        `;
+        await request.query(query);
+        return { message: "POD Details table created successfully or already exists.", type: "success" };
+    } catch (error) {
+        const dbError = error as { message?: string };
+        console.error('Error creating POD Details table:', dbError);
+        return { message: `Error creating POD Details table: ${dbError.message || 'An unknown error occurred.'}`, type: "error" };
+    }
 }
 
 export async function handleCreateRelationshipTables(prevState: { message: string, type?: string }, formData: FormData) {
