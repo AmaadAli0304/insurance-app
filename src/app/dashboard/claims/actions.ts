@@ -118,8 +118,7 @@ export async function getClaimById(id: string): Promise<Claim | null> {
                     pr.natureOfIllness,
                     p.first_name + ' ' + p.last_name as PatientFullName,
                     pr.id as preauthId,
-                    pr.totalExpectedCost,
-                    cl.amount as amountPaidByInsured
+                    pr.totalExpectedCost
                 FROM claims cl
                 LEFT JOIN patients p ON cl.Patient_id = p.id
                 LEFT JOIN hospitals h ON cl.hospital_id = h.id
@@ -136,27 +135,22 @@ export async function getClaimById(id: string): Promise<Claim | null> {
 
         const record = claimResult.recordset[0];
         
-        const netAmountCredited = record.amountPaidByInsured;
-
-        // Get the initial "Pre auth Sent" amount
-        const preAuthSentResult = await pool.request()
-            .input('admission_id', sql.NVarChar, record.admission_id)
-            .query(`
-                SELECT TOP 1 amount 
-                FROM claims 
-                WHERE admission_id = @admission_id AND status = 'Pre auth Sent'
-                ORDER BY created_at ASC
-            `);
-        
-        record.amount = preAuthSentResult.recordset[0]?.amount ?? record.totalExpectedCost;
-
         if (record.status === 'Settled') {
-            record.amount = netAmountCredited; 
-        }
-
-        if (record.status === 'Final Approval') {
-             // For final approval, `amountPaidByInsured` is stored in the `amount` column, and final_amount is the sanctioned amount.
-            record.amountPaidByInsured = record.amount;
+            // No changes needed, 'amount' is already Net Amount Credited
+        } else if (record.status === 'Final Approval') {
+            record.amountPaidByInsured = record.final_amount;
+            record.final_amount = record.amount; 
+        } else {
+             // Get the initial "Pre auth Sent" amount
+            const preAuthSentResult = await pool.request()
+                .input('admission_id', sql.NVarChar, record.admission_id)
+                .query(`
+                    SELECT TOP 1 amount 
+                    FROM claims 
+                    WHERE admission_id = @admission_id AND status = 'Pre auth Sent'
+                    ORDER BY created_at ASC
+                `);
+            record.amount = preAuthSentResult.recordset[0]?.amount ?? record.totalExpectedCost;
         }
 
 
@@ -292,5 +286,4 @@ export async function handleDeleteClaim(formData: FormData) {
     }
     revalidatePath('/dashboard/claims');
 }
-
     

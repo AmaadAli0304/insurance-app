@@ -83,7 +83,8 @@ export default function ViewClaimPage() {
         
         // The DB returns a string with timezone info, which JS Date constructor handles.
         // But for dates without time, it might assume UTC. Adding 'T00:00:00' helps.
-        const date = new Date(dateString.includes('T') ? dateString : dateString + 'T00:00:00');
+        const date = new Date(dateString.includes('T') ? dateString : dateString.split(' ')[0] + 'T00:00:00');
+
         if (isNaN(date.getTime())) {
             return "Invalid Date";
         }
