@@ -5,7 +5,7 @@ import { useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal, PlusCircle, Trash, Eye, Edit, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Trash, Eye, Edit, AlertTriangle, ChevronLeft, ChevronRight, FileText } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
 import { handleDeleteRequest, getPreAuthRequests } from "./actions"
@@ -191,6 +191,11 @@ export default function PreAuthsPage() {
                                 <DropdownMenuItem asChild>
                                    <Link href={`/dashboard/pre-auths/${r.id}/edit`} className="flex items-center gap-2 cursor-pointer">
                                       <Edit className="h-4 w-4" /> Edit Status
+                                   </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                   <Link href={`#`} className="flex items-center gap-2 cursor-pointer">
+                                      <FileText className="h-4 w-4" /> POD Details
                                    </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
