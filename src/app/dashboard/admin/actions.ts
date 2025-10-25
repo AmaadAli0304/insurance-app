@@ -535,6 +535,7 @@ export type NewReportStat = {
   insuranceDeduction: number | null;
   actualSettlementDate: string | null;
   utrNumber: string | null;
+  podDetails: string | null;
 };
 
 export async function getNewReportStats(
@@ -597,6 +598,7 @@ export async function getNewReportStats(
                     pr.admissionDate,
                     pr.policy_number as policyNumber,
                     pr.claim_id as claimNumber,
+                    (SELECT TOP 1 pod.ref_no FROM pod_details pod WHERE pod.preauth_id = pr.id ORDER BY pod.created_at DESC) as podDetails,
                     (
                         SELECT TOP 1 c.final_bill 
                         FROM claims c 
