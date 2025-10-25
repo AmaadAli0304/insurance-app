@@ -58,7 +58,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
     }
 
     const handleExport = () => {
-        const headers = ["Patient Name", "DOA", "TPA / Insurance", "Billed Amount", "Sanctioned Amount"];
+        const headers = ["Patient Name", "DOA", "TPA / Insurance"];
         const csvRows = [headers.join(",")];
 
         stats.forEach((stat) => {
@@ -66,8 +66,6 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                 `"${stat.patientName}"`,
                 stat.admissionDate ? format(new Date(stat.admissionDate), 'yyyy-MM-dd') : 'N/A',
                 `"${stat.tpaName}"`,
-                stat.billedAmount,
-                stat.sanctionedAmount,
             ];
             csvRows.push(row.join(","));
         });
@@ -128,8 +126,6 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                     <TableHead>Patient Name</TableHead>
                                     <TableHead>DOA</TableHead>
                                     <TableHead>TPA / Insurance</TableHead>
-                                    <TableHead className="text-right">Billed Amount</TableHead>
-                                    <TableHead className="text-right">Sanctioned Amount</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -145,13 +141,11 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                             </TableCell>
                                             <TableCell>{stat.admissionDate ? format(new Date(stat.admissionDate), 'MMM dd, yyyy') : 'N/A'}</TableCell>
                                             <TableCell>{stat.tpaName}</TableCell>
-                                            <TableCell className="text-right font-mono">{stat.billedAmount.toLocaleString('en-IN')}</TableCell>
-                                            <TableCell className="text-right font-mono">{stat.sanctionedAmount.toLocaleString('en-IN')}</TableCell>
                                         </TableRow>
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="h-24 text-center">
+                                        <TableCell colSpan={3} className="h-24 text-center">
                                             No data available for this report.
                                         </TableCell>
                                     </TableRow>

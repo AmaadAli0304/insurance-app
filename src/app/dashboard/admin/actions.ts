@@ -521,8 +521,6 @@ export type NewReportStat = {
   patientPhoto: string | null;
   tpaName: string;
   admissionDate: string | null;
-  billedAmount: number;
-  sanctionedAmount: number;
 };
 
 export async function getNewReportStats(
@@ -581,19 +579,7 @@ export async function getNewReportStats(
                 p.first_name + ' ' + p.last_name AS patientName,
                 p.photo AS patientPhoto,
                 COALESCE(t.name, co.name, 'N/A') as tpaName,
-                pr.admissionDate,
-                (
-                    SELECT ISNULL(SUM(c_inner.amount), 0)
-                    FROM claims c_inner
-                    WHERE c_inner.Patient_id = p.id AND c_inner.status = 'Pre auth Sent'
-                    ${dateRange?.from ? 'AND c_inner.created_at BETWEEN @dateFrom AND @dateTo' : ''}
-                ) as billedAmount,
-                (
-                    SELECT ISNULL(SUM(c_inner.paidAmount), 0)
-                    FROM claims c_inner
-                    WHERE c_inner.Patient_id = p.id AND c_inner.status = 'Final Approval'
-                    ${dateRange?.from ? 'AND c_inner.created_at BETWEEN @dateFrom AND @dateTo' : ''}
-                ) as sanctionedAmount
+                pr.admissionDate
             FROM patients p
             LEFT JOIN claims c ON p.id = c.Patient_id
             LEFT JOIN preauth_request pr ON c.admission_id = pr.admission_id
