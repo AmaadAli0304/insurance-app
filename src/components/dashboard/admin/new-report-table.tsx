@@ -58,7 +58,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
     }
 
     const handleExport = () => {
-        const headers = ["Patient Name", "DOA", "Policy Number", "Claim Number", "TPA / Insurance", "Total Bill Amt", "TPA Approved Amt", "Discount Amt", "Tariff Excess", "Deductions", "TDS", "Amount Before TDS", "Amount After TDS", "Deduction by Insurance Co.", "Actual Settlement Date", "BRN / UTR No."];
+        const headers = ["Patient Name", "DOA", "Policy Number", "Claim Number", "TPA / Insurance", "Total Bill Amt", "TPA Approved Amt", "Discount Amt", "Co-Pay", "Tariff Excess", "Deductions", "TDS", "Amount Before TDS", "Amount After TDS", "Deduction by Insurance Co.", "Actual Settlement Date", "BRN / UTR No."];
         const csvRows = [headers.join(",")];
 
         stats.forEach((stat) => {
@@ -71,6 +71,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                 stat.totalBillAmount || 0,
                 stat.tpaApprovedAmount || 0,
                 stat.discountAmount || 0,
+                stat.coPay || 0,
                 stat.tariffExcess || 0,
                 stat.deductions || 0,
                 stat.tds || 0,
@@ -145,6 +146,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                         <TableHead className="text-right">Total Bill Amt</TableHead>
                                         <TableHead className="text-right">TPA Approved Amt</TableHead>
                                         <TableHead className="text-right">Discount Amt</TableHead>
+                                        <TableHead className="text-right">Co-Pay</TableHead>
                                         <TableHead className="text-right">Tariff Excess</TableHead>
                                         <TableHead className="text-right">Deductions</TableHead>
                                         <TableHead className="text-right">TDS</TableHead>
@@ -173,6 +175,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                                 <TableCell className="text-right font-mono">{stat.totalBillAmount?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.tpaApprovedAmount?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.discountAmount?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                                <TableCell className="text-right font-mono">{stat.coPay?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.tariffExcess?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.deductions?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.tds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
@@ -185,7 +188,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                         ))
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={15} className="h-24 text-center">
+                                            <TableCell colSpan={17} className="h-24 text-center">
                                                 No data available for this report.
                                             </TableCell>
                                         </TableRow>

@@ -528,6 +528,7 @@ export type NewReportStat = {
   tariffExcess: number | null;
   deductions: number | null;
   discountAmount: number | null;
+  coPay: number | null;
   tds: number | null;
   amountBeforeTds: number | null;
   amountAfterTds: number | null;
@@ -626,6 +627,12 @@ export async function getNewReportStats(
                         WHERE c.Patient_id = p.id AND c.status = 'Final Approval'
                         ORDER BY c.created_at DESC
                     ) as discountAmount,
+                    (
+                        SELECT TOP 1 c.co_pay
+                        FROM claims c
+                        WHERE c.Patient_id = p.id AND c.status = 'Final Approval'
+                        ORDER BY c.created_at DESC
+                    ) as coPay,
                     (
                         SELECT TOP 1 c.final_settle_amount
                         FROM claims c 
