@@ -528,6 +528,7 @@ export type NewReportStat = {
   mriCharges: number | null;
   labCharges: number | null;
   pharmacyCharges: number | null;
+  implantCharges: number | null;
   totalBillAmount: number | null;
   tpaApprovedAmount: number | null;
   tariffExcess: number | null;
@@ -634,6 +635,12 @@ export async function getNewReportStats(
                         WHERE c.Patient_id = p.id AND c.status = 'Final Discharge sent'
                         ORDER BY c.created_at DESC
                     ) as pharmacyCharges,
+                     (
+                        SELECT TOP 1 c.implant_charges
+                        FROM claims c
+                        WHERE c.Patient_id = p.id AND c.status = 'Final Discharge sent'
+                        ORDER BY c.created_at DESC
+                    ) as implantCharges,
                     (
                         SELECT TOP 1 c.final_bill 
                         FROM claims c 
@@ -827,3 +834,5 @@ export async function getComprehensiveClaimDetails(
         throw new Error('Failed to fetch comprehensive claim details.');
     }
 }
+
+    
