@@ -69,7 +69,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
     }
 
     const handleExport = () => {
-        const headers = ["Patient Name", "DOA", "Policy Number", "Claim Number", "TPA / Insurance", "Hospital Exp", "USG/2DECHO/EEG", "X-Ray", "MRI/CT Scan", "Lab Exp", "Pharmacy Ex", "Implant Charges", "Total Bill Amt", "TPA Approved Amt", "Discount Amt", "Co-Pay", "Deductions", "Tariff Excess", "Amount Before TDS", "TDS", "Amount After TDS", "Deduction by Insurance Co.", "Actual Settlement Date", "BRN / UTR No.", "POD DETAILS"];
+        const headers = ["Patient Name", "DOA", "DOD", "Policy Number", "Claim Number", "TPA / Insurance", "Hospital Exp", "USG/2DECHO/EEG", "X-Ray", "MRI/CT Scan", "Lab Exp", "Pharmacy Ex", "Implant Charges", "Total Bill Amt", "TPA Approved Amt", "Discount Amt", "Co-Pay", "Deductions", "Tariff Excess", "Amount Before TDS", "TDS", "Amount After TDS", "Deduction by Insurance Co.", "Actual Settlement Date", "BRN / UTR No.", "POD DETAILS"];
         const csvRows = [headers.join(",")];
 
         stats.forEach((stat) => {
@@ -77,6 +77,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
             const row = [
                 `"${stat.patientName}"`,
                 stat.admissionDate ? format(new Date(stat.admissionDate), 'yyyy-MM-dd') : 'N/A',
+                stat.dischargeDate ? format(new Date(stat.dischargeDate), 'yyyy-MM-dd') : 'N/A',
                 `"${stat.policyNumber || 'N/A'}"`,
                 `"${stat.claimNumber || 'N/A'}"`,
                 `"${stat.tpaName}"`,
@@ -160,6 +161,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                     <TableRow>
                                         <TableHead>Patient Name</TableHead>
                                         <TableHead>DOA</TableHead>
+                                        <TableHead>DOD</TableHead>
                                         <TableHead>Policy Number</TableHead>
                                         <TableHead>Claim Number</TableHead>
                                         <TableHead>TPA / Insurance</TableHead>
@@ -197,6 +199,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                                 {stat.patientName}
                                                 </TableCell>
                                                 <TableCell>{stat.admissionDate ? format(new Date(stat.admissionDate), 'MMM dd, yyyy') : 'N/A'}</TableCell>
+                                                <TableCell>{stat.dischargeDate ? format(new Date(stat.dischargeDate), 'MMM dd, yyyy') : 'N/A'}</TableCell>
                                                 <TableCell>{stat.policyNumber || 'N/A'}</TableCell>
                                                 <TableCell>{stat.claimNumber || 'N/A'}</TableCell>
                                                 <TableCell>{stat.tpaName}</TableCell>
@@ -224,7 +227,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                         ))
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={25} className="h-24 text-center">
+                                            <TableCell colSpan={26} className="h-24 text-center">
                                                 No data available for this report.
                                             </TableCell>
                                         </TableRow>

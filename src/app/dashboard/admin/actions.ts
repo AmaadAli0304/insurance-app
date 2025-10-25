@@ -521,6 +521,7 @@ export type NewReportStat = {
   patientPhoto: string | null;
   tpaName: string;
   admissionDate: string | null;
+  dischargeDate: string | null;
   policyNumber: string | null;
   claimNumber: string | null;
   usgCharges: number | null;
@@ -602,6 +603,7 @@ export async function getNewReportStats(
                     p.photo AS patientPhoto,
                     COALESCE(t.name, co.name, 'N/A') as tpaName,
                     pr.admissionDate,
+                    (SELECT TOP 1 c.created_at FROM claims c WHERE c.Patient_id = p.id AND c.status = 'Final Discharge sent' ORDER BY c.created_at DESC) as dischargeDate,
                     pr.policy_number as policyNumber,
                     pr.claim_id as claimNumber,
                     (SELECT TOP 1 pod.ref_no FROM pod_details pod WHERE pod.preauth_id = pr.id ORDER BY pod.created_at DESC) as podDetails,
