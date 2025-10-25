@@ -524,7 +524,6 @@ export type NewReportStat = {
   admissionDate: string | null;
   policyNumber: string | null;
   claimNumber: string | null;
-  implantCharges: number | null;
   totalBillAmount: number | null;
   tariffExcess: number | null;
   deductions: number | null;
@@ -596,12 +595,6 @@ export async function getNewReportStats(
                     pr.admissionDate,
                     pr.policy_number as policyNumber,
                     pr.claim_id as claimNumber,
-                    (
-                        SELECT TOP 1 c.implant_charges
-                        FROM claims c 
-                        WHERE c.Patient_id = p.id AND c.status = 'Final Approval'
-                        ORDER BY c.created_at DESC
-                    ) as implantCharges,
                     (
                         SELECT TOP 1 c.final_bill 
                         FROM claims c 
