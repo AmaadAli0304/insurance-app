@@ -529,6 +529,9 @@ export type NewReportStat = {
   tds: number | null;
   amountBeforeTds: number | null;
   amountAfterTds: number | null;
+  insuranceDeduction: number | null;
+  actualSettlementDate: string | null;
+  utrNumber: string | null;
 };
 
 export async function getNewReportStats(
@@ -621,6 +624,24 @@ export async function getNewReportStats(
                         WHERE c.Patient_id = p.id AND c.status = 'Settled'
                         ORDER BY c.created_at DESC
                     ) as tds,
+                     (
+                        SELECT TOP 1 c.nm_deductions
+                        FROM claims c 
+                        WHERE c.Patient_id = p.id AND c.status = 'Settled'
+                        ORDER BY c.created_at DESC
+                    ) as insuranceDeduction,
+                    (
+                        SELECT TOP 1 c.date_settlement
+                        FROM claims c 
+                        WHERE c.Patient_id = p.id AND c.status = 'Settled'
+                        ORDER BY c.created_at DESC
+                    ) as actualSettlementDate,
+                    (
+                        SELECT TOP 1 c.utr_no
+                        FROM claims c 
+                        WHERE c.Patient_id = p.id AND c.status = 'Settled'
+                        ORDER BY c.created_at DESC
+                    ) as utrNumber,
                     ROW_NUMBER() OVER(PARTITION BY p.id ORDER BY pr.created_at DESC) as rn
                 FROM patients p
                 LEFT JOIN preauth_request pr ON p.id = pr.patient_id

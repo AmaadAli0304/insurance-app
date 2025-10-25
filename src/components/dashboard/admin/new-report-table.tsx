@@ -59,7 +59,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
     }
 
     const handleExport = () => {
-        const headers = ["Patient Name", "DOA", "TPA / Insurance", "Policy Number", "Claim Number", "Tariff Excess", "Deductions", "TDS", "Amount Before TDS", "Amount After TDS"];
+        const headers = ["Patient Name", "DOA", "TPA / Insurance", "Policy Number", "Claim Number", "Tariff Excess", "Deductions", "TDS", "Amount Before TDS", "Amount After TDS", "Deduction by Insurance Co.", "Actual Settlement Date", "BRN / UTR No."];
         const csvRows = [headers.join(",")];
 
         stats.forEach((stat) => {
@@ -74,6 +74,9 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                 stat.tds || 0,
                 stat.amountBeforeTds || 0,
                 stat.amountAfterTds || 0,
+                stat.insuranceDeduction || 0,
+                stat.actualSettlementDate ? format(new Date(stat.actualSettlementDate), 'yyyy-MM-dd') : 'N/A',
+                `"${stat.utrNumber || 'N/A'}"`,
             ];
             csvRows.push(row.join(","));
         });
@@ -141,6 +144,9 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                     <TableHead className="text-right">TDS</TableHead>
                                     <TableHead className="text-right">Amount Before TDS</TableHead>
                                     <TableHead className="text-right">Amount After TDS</TableHead>
+                                    <TableHead className="text-right">Deduction by Insurance Co.</TableHead>
+                                    <TableHead>Actual Settlement Date</TableHead>
+                                    <TableHead>BRN / UTR No.</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -163,11 +169,14 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                             <TableCell className="text-right font-mono">{stat.tds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                             <TableCell className="text-right font-mono">{stat.amountBeforeTds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                             <TableCell className="text-right font-mono">{stat.amountAfterTds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                            <TableCell className="text-right font-mono">{stat.insuranceDeduction?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                            <TableCell>{stat.actualSettlementDate ? format(new Date(stat.actualSettlementDate), 'MMM dd, yyyy') : 'N/A'}</TableCell>
+                                            <TableCell>{stat.utrNumber || 'N/A'}</TableCell>
                                         </TableRow>
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={10} className="h-24 text-center">
+                                        <TableCell colSpan={13} className="h-24 text-center">
                                             No data available for this report.
                                         </TableCell>
                                     </TableRow>
