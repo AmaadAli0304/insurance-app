@@ -69,7 +69,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
     }
 
     const handleExport = () => {
-        const headers = ["Patient Name", "DOA", "DOD", "Policy Number", "Claim Number", "TPA / Insurance", "Hospital Exp", "USG/2DECHO/EEG", "X-Ray", "MRI/CT Scan", "Lab Exp", "Pharmacy Ex", "Implant Charges", "Total Bill Amt", "TPA Approved Amt", "Discount Amt", "Co-Pay", "Deductions", "Tariff Excess", "Amount Before TDS", "TDS", "Amount After TDS", "Deduction by Insurance Co.", "Actual Settlement Date", "BRN / UTR No.", "POD DETAILS"];
+        const headers = ["Patient Name", "DOA", "DOD", "Policy Number", "Claim Number", "TPA / Insurance", "Hospital Exp", "USG/2DECHO/EEG", "X-Ray", "MRI/CT Scan", "Lab Exp", "Pharmacy Ex", "Implant Charges", "Total Bill Amt", "TPA Approved Amt", "Co-Pay", "Tariff Excess", "Deductions", "Discount Amt", "Amount Before TDS", "TDS", "Amount After TDS", "Deduction by Insurance Co.", "Actual Settlement Date", "BRN / UTR No.", "POD DETAILS"];
         const csvRows = [headers.join(",")];
 
         stats.forEach((stat) => {
@@ -90,10 +90,10 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                 stat.implantCharges || 0,
                 stat.totalBillAmount || 0,
                 stat.tpaApprovedAmount || 0,
-                stat.discountAmount || 0,
                 stat.coPay || 0,
-                stat.deductions || 0,
                 stat.tariffExcess || 0,
+                stat.deductions || 0,
+                stat.discountAmount || 0,
                 stat.amountBeforeTds || 0,
                 stat.tds || 0,
                 stat.amountAfterTds || 0,
@@ -174,10 +174,10 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                         <TableHead className="text-right">Implant Charges</TableHead>
                                         <TableHead className="text-right">Total Bill Amt</TableHead>
                                         <TableHead className="text-right">TPA Approved Amt</TableHead>
-                                        <TableHead className="text-right">Discount Amt</TableHead>
                                         <TableHead className="text-right">Co-Pay</TableHead>
-                                        <TableHead className="text-right">Deductions</TableHead>
                                         <TableHead className="text-right">Tariff Excess</TableHead>
+                                        <TableHead className="text-right">Deductions</TableHead>
+                                        <TableHead className="text-right">Discount Amt</TableHead>
                                         <TableHead className="text-right">Amount Before TDS</TableHead>
                                         <TableHead className="text-right">TDS</TableHead>
                                         <TableHead className="text-right">Amount After TDS</TableHead>
@@ -212,10 +212,10 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                                 <TableCell className="text-right font-mono">{stat.implantCharges?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.totalBillAmount?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.tpaApprovedAmount?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                                <TableCell className="text-right font-mono">{stat.discountAmount?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.coPay?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                                <TableCell className="text-right font-mono">{stat.deductions?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.tariffExcess?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                                <TableCell className="text-right font-mono">{stat.deductions?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                                <TableCell className="text-right font-mono">{stat.discountAmount?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.amountBeforeTds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.tds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.amountAfterTds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
@@ -227,7 +227,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                         ))
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={26} className="h-24 text-center">
+                                            <TableCell colSpan={27} className="h-24 text-center">
                                                 No data available for this report.
                                             </TableCell>
                                         </TableRow>
@@ -264,6 +264,8 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
         </Card>
     );
 }
+
+    
 
     
 
