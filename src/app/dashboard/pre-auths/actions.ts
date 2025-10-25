@@ -699,6 +699,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     const other_charges = formData.get('other_charges') as string;
     const xray_charges = formData.get('xray_charges') as string;
     const mou_discount = formData.get('mou_discount') as string;
+    const implant_charges = formData.get('implant_charges') as string;
 
 
     // Handle new uploads
@@ -888,14 +889,15 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
                     .input('usg_charges', sql.Decimal(18,2), usg_charges ? parseFloat(usg_charges) : null)
                     .input('other_charges', sql.Decimal(18,2), other_charges ? parseFloat(other_charges) : null)
                     .input('xray_charges', sql.Decimal(18,2), xray_charges ? parseFloat(xray_charges) : null)
-                    .input('mou_discount', sql.Decimal(18,2), mou_discount ? parseFloat(mou_discount) : null);
+                    .input('mou_discount', sql.Decimal(18,2), mou_discount ? parseFloat(mou_discount) : null)
+                    .input('implant_charges', sql.Decimal(18,2), implant_charges ? parseFloat(implant_charges) : null);
 
                 await claimInsertRequest.query(`INSERT INTO claims ( 
                     Patient_id, Patient_name, admission_id, status, reason, created_by, amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at,
-                    pharmacy_bill, lab_bill, ct_scan_charges, mri_charges, usg_charges, other_charges, xray_charges, mou_discount
+                    pharmacy_bill, lab_bill, ct_scan_charges, mri_charges, usg_charges, other_charges, xray_charges, mou_discount, implant_charges
                 ) VALUES ( 
                     @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at,
-                    @pharmacy_bill, @lab_bill, @ct_scan_charges, @mri_charges, @usg_charges, @other_charges, @xray_charges, @mou_discount
+                    @pharmacy_bill, @lab_bill, @ct_scan_charges, @mri_charges, @usg_charges, @other_charges, @xray_charges, @mou_discount, @implant_charges
                 )`);
 
             } else {

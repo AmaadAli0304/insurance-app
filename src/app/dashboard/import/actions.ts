@@ -837,7 +837,8 @@ export async function handleCreateClaimsTable(prevState: { message: string, type
           xray_charges DECIMAL(18,2),
           mou_discount DECIMAL(18,2),
           utr_no NVARCHAR(255),
-          date_settlement DATE
+          date_settlement DATE,
+          implant_charges DECIMAL(18,2)
         );
       END
       ELSE
@@ -845,6 +846,10 @@ export async function handleCreateClaimsTable(prevState: { message: string, type
           IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'paidAmount' AND Object_ID = Object_ID(N'claims'))
           BEGIN
               ALTER TABLE claims ADD paidAmount DECIMAL(18, 2);
+          END
+          IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'implant_charges' AND Object_ID = Object_ID(N'claims'))
+          BEGIN
+              ALTER TABLE claims ADD implant_charges DECIMAL(18, 2);
           END
       END
     `;
