@@ -1,4 +1,3 @@
-
 "use server";
 
 import { getDbPool, sql } from '@/lib/db';
@@ -523,6 +522,7 @@ export type NewReportStat = {
   admissionDate: string | null;
   policyNumber: string | null;
   claimNumber: string | null;
+  usgCharges: number | null;
   totalBillAmount: number | null;
   tpaApprovedAmount: number | null;
   tariffExcess: number | null;
@@ -599,6 +599,12 @@ export async function getNewReportStats(
                     pr.policy_number as policyNumber,
                     pr.claim_id as claimNumber,
                     (SELECT TOP 1 pod.ref_no FROM pod_details pod WHERE pod.preauth_id = pr.id ORDER BY pod.created_at DESC) as podDetails,
+                    (
+                        SELECT TOP 1 c.usg_charges
+                        FROM claims c
+                        WHERE c.Patient_id = p.id AND c.status = 'Final Discharge sent'
+                        ORDER BY c.created_at DESC
+                    ) as usgCharges,
                     (
                         SELECT TOP 1 c.final_bill 
                         FROM claims c 
