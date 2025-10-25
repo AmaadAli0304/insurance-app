@@ -58,7 +58,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
     }
 
     const handleExport = () => {
-        const headers = ["Patient Name", "DOA", "Policy Number", "Claim Number", "TPA / Insurance", "USG/2DECHO/EEG", "X-Ray", "MRI/CT Scan", "Lab Exp", "Total Bill Amt", "TPA Approved Amt", "Discount Amt", "Co-Pay", "Deductions", "Tariff Excess", "Amount Before TDS", "TDS", "Amount After TDS", "Deduction by Insurance Co.", "Actual Settlement Date", "BRN / UTR No.", "POD DETAILS"];
+        const headers = ["Patient Name", "DOA", "Policy Number", "Claim Number", "TPA / Insurance", "USG/2DECHO/EEG", "X-Ray", "MRI/CT Scan", "Lab Exp", "Pharmacy Ex", "Total Bill Amt", "TPA Approved Amt", "Discount Amt", "Co-Pay", "Deductions", "Tariff Excess", "Amount Before TDS", "TDS", "Amount After TDS", "Deduction by Insurance Co.", "Actual Settlement Date", "BRN / UTR No.", "POD DETAILS"];
         const csvRows = [headers.join(",")];
 
         stats.forEach((stat) => {
@@ -72,6 +72,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                 stat.xrayCharges || 0,
                 stat.mriCharges || 0,
                 stat.labCharges || 0,
+                stat.pharmacyCharges || 0,
                 stat.totalBillAmount || 0,
                 stat.tpaApprovedAmount || 0,
                 stat.discountAmount || 0,
@@ -152,6 +153,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                         <TableHead className="text-right">X-Ray</TableHead>
                                         <TableHead className="text-right">MRI/CT Scan</TableHead>
                                         <TableHead className="text-right">Lab Exp</TableHead>
+                                        <TableHead className="text-right">Pharmacy Ex</TableHead>
                                         <TableHead className="text-right">Total Bill Amt</TableHead>
                                         <TableHead className="text-right">TPA Approved Amt</TableHead>
                                         <TableHead className="text-right">Discount Amt</TableHead>
@@ -186,6 +188,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                                 <TableCell className="text-right font-mono">{stat.xrayCharges?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.mriCharges?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.labCharges?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                                <TableCell className="text-right font-mono">{stat.pharmacyCharges?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.totalBillAmount?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.tpaApprovedAmount?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.discountAmount?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
@@ -203,7 +206,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                         ))
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={22} className="h-24 text-center">
+                                            <TableCell colSpan={23} className="h-24 text-center">
                                                 No data available for this report.
                                             </TableCell>
                                         </TableRow>

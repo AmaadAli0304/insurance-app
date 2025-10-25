@@ -527,6 +527,7 @@ export type NewReportStat = {
   xrayCharges: number | null;
   mriCharges: number | null;
   labCharges: number | null;
+  pharmacyCharges: number | null;
   totalBillAmount: number | null;
   tpaApprovedAmount: number | null;
   tariffExcess: number | null;
@@ -627,6 +628,12 @@ export async function getNewReportStats(
                         WHERE c.Patient_id = p.id AND c.status = 'Final Discharge sent'
                         ORDER BY c.created_at DESC
                     ) as labCharges,
+                     (
+                        SELECT TOP 1 c.pharmacy_bill
+                        FROM claims c
+                        WHERE c.Patient_id = p.id AND c.status = 'Final Discharge sent'
+                        ORDER BY c.created_at DESC
+                    ) as pharmacyCharges,
                     (
                         SELECT TOP 1 c.final_bill 
                         FROM claims c 
