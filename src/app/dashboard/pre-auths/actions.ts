@@ -1,10 +1,11 @@
 
+
 "use server";
 
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { getDbPool, sql } from "@/lib/db";
-import type { StaffingRequest, PreAuthStatus, ChatMessage, Claim } from "@/lib/types";
+import type { StaffingRequest, PreAuthStatus, ChatMessage, Claim, PodDetails } from "@/lib/types";
 import { z } from 'zod';
 import nodemailer from "nodemailer";
 
@@ -582,13 +583,16 @@ export async function getPreAuthRequestById(id: string): Promise<StaffingRequest
         request.policyNumber = requestResult.recordset[0].policy_number;
 
 
-        const [chatResult, claimsResult] = await Promise.all([
+        const [chatResult, claimsResult, podResult] = await Promise.all([
              pool.request()
                 .input('id', sql.Int, Number(id))
                 .query('SELECT * FROM chat WHERE preauth_id = @id ORDER BY created_at DESC'),
             pool.request()
                 .input('patient_id', sql.Int, request.patientId)
-                .query(`SELECT id, status, reason, amount as claimAmount, paidAmount, updated_at FROM claims WHERE Patient_id = @patient_id ORDER BY updated_at DESC`)
+                .query(`SELECT id, status, reason, amount as claimAmount, paidAmount, updated_at FROM claims WHERE Patient_id = @patient_id ORDER BY updated_at DESC`),
+            pool.request()
+                .input('preauth_id', sql.Int, Number(id))
+                .query('SELECT * FROM pod_details WHERE preauth_id = @preauth_id')
         ]);
 
         const chatHistory = chatResult.recordset as ChatMessage[];
@@ -609,6 +613,7 @@ export async function getPreAuthRequestById(id: string): Promise<StaffingRequest
         
         request.chatHistory = chatHistory;
         request.claimsHistory = claimsResult.recordset as Claim[];
+        request.podDetails = podResult.recordset.length > 0 ? (podResult.recordset[0] as PodDetails) : null;
         
         const latestClaimWithSanctionedAmount = (claimsResult.recordset as Claim[]).find(c => c.paidAmount != null);
         request.latestSanctionedAmount = latestClaimWithSanctionedAmount?.paidAmount ?? null;
@@ -921,13 +926,15 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
 
 export async function handleSavePodDetails(prevState: { message: string, type?: string }, formData: FormData) {
   const requestId = formData.get('requestId') as string;
+  const patientId = formData.get('patientId') as string;
   const podType = formData.get('podType') as string;
   const userId = formData.get('userId') as string;
   const userName = formData.get('userName') as string;
 
   const courierName = formData.get('courierName') as string;
-  const date = formData.get('date_of_sent') as string;
+  const podNumber = formData.get('podNumber') as string;
   const refNo = formData.get('ref_no') as string;
+  const date = formData.get('date_of_sent') as string;
   
   const from = formData.get('from') as string;
   const to = formData.get('to') as string;
@@ -953,19 +960,21 @@ export async function handleSavePodDetails(prevState: { message: string, type?: 
     const request = new sql.Request(transaction);
     request
       .input('preauth_id', sql.Int, Number(requestId))
+      .input('patient_id', sql.Int, Number(patientId))
       .input('pod_type', sql.NVarChar, podType)
       .input('created_by', sql.NVarChar, userName)
       .input('tpa_id', sql.Int, tpa_id)
       .input('hospital_id', sql.NVarChar, hospital_id)
       .input('date_of_sent', sql.Date, date ? new Date(date) : null);
 
-    let query = 'INSERT INTO pod_details (preauth_id, pod_type, created_by, tpa_id, hospital_id, date_of_sent';
-    let values = ') VALUES (@preauth_id, @pod_type, @created_by, @tpa_id, @hospital_id, @date_of_sent';
+    let query = 'INSERT INTO pod_details (preauth_id, patient_id, pod_type, created_by, tpa_id, hospital_id, date_of_sent';
+    let values = ') VALUES (@preauth_id, @patient_id, @pod_type, @created_by, @tpa_id, @hospital_id, @date_of_sent';
 
     if (podType === 'Courier') {
-      query += ', courier_name, ref_no';
-      values += ', @courier_name, @ref_no';
+      query += ', courier_name, pod_number, ref_no';
+      values += ', @courier_name, @pod_number, @ref_no';
       request.input('courier_name', sql.NVarChar, courierName);
+      request.input('pod_number', sql.NVarChar, podNumber);
       request.input('ref_no', sql.NVarChar, refNo);
 
     } else if (podType === 'Portal') {

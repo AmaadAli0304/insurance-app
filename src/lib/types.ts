@@ -238,6 +238,21 @@ export interface ChatMessage {
   attachments?: { name: string, url: string }[];
 }
 
+export interface PodDetails {
+  id: number;
+  preauth_id: number;
+  pod_type: string;
+  pod_number: string;
+  courier_name: string;
+  date_of_sent: string;
+  pod_copy_url: string;
+  screenshot_url: string;
+  ref_no: string;
+  email_body: string;
+  created_at: string;
+  created_by: string;
+}
+
 export interface StaffingRequest {
   id: string;
   patientId: string;
@@ -257,6 +272,7 @@ export interface StaffingRequest {
   patientPhoto?: string | null;
   chatHistory?: ChatMessage[];
   claimsHistory?: Claim[];
+  podDetails?: PodDetails | null;
   
   // Patient and admission details snapshot
   fullName?: string;

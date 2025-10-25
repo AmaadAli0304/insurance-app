@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useRef, useEffect, useActionState, ChangeEvent } from "react";
@@ -23,8 +24,8 @@ import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { getPresignedUrl } from "@/app/dashboard/staff/actions";
 import { useParams, useRouter, notFound } from "next/navigation";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { StaffingRequest } from "@/lib/types";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import { StaffingRequest, PodDetails } from "@/lib/types";
 
 
 const Editor = dynamic(
@@ -105,6 +106,31 @@ const FileUpload = ({ label, name, onUploadComplete, isRequired }: { label: stri
     );
 };
 
+const DetailItem = ({ label, value, isFile = false }: { label: string; value?: string | null; isFile?: boolean }) => {
+    if (!value) return null;
+
+    let displayValue: React.ReactNode = value;
+    if (isFile) {
+        try {
+            const fileData = JSON.parse(value);
+            displayValue = (
+                <a href={fileData.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                    {fileData.name || 'View File'}
+                </a>
+            );
+        } catch (e) {
+            displayValue = <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">View File</a>;
+        }
+    }
+
+    return (
+        <div>
+            <p className="text-sm font-medium text-muted-foreground">{label}</p>
+            <p className="text-base">{displayValue}</p>
+        </div>
+    );
+};
+
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
@@ -160,6 +186,10 @@ export default function PodDetailsPage() {
   if (isLoading) {
     return <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin" /></div>;
   }
+  
+  if (!request) {
+    return notFound();
+  }
 
   return (
     <div className="space-y-6">
@@ -175,141 +205,170 @@ export default function PodDetailsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Proof of Delivery</CardTitle>
+           <CardDescription>For Pre-Auth Request ID: {request.id}</CardDescription>
         </CardHeader>
         <CardContent>
-            <form action={formAction}>
-                <input type="hidden" name="requestId" value={requestId} />
-                <input type="hidden" name="podType" value={podType} />
-                <input type="hidden" name="userId" value={user?.uid ?? ''} />
-                <input type="hidden" name="userName" value={user?.name ?? ''} />
-                {Object.entries(documentUrls).map(([key, value]) => 
-                    value ? (
-                        <React.Fragment key={key}>
-                            <input type="hidden" name={`${key}_url`} value={value.url} />
-                            <input type="hidden" name={`${key}_name`} value={value.name} />
-                        </React.Fragment>
-                    ) : null
-                 )}
+            {request.podDetails ? (
+                 <div>
+                    <h3 className="text-lg font-semibold mb-4">Saved POD Details</h3>
+                    <div className="grid md:grid-cols-2 gap-4 text-sm">
+                        <DetailItem label="POD Type" value={request.podDetails.pod_type} />
+                        <DetailItem label="Date of Sent" value={request.podDetails.date_of_sent ? format(new Date(request.podDetails.date_of_sent), "PPP") : null} />
+                        <DetailItem label="Courier Name" value={request.podDetails.courier_name} />
+                        <DetailItem label="POD Number" value={request.podDetails.pod_number} />
+                        <DetailItem label="Reference No" value={request.podDetails.ref_no} />
+                        <DetailItem label="Created By" value={request.podDetails.created_by} />
+                        <DetailItem label="POD Copy" value={request.podDetails.pod_copy_url} isFile />
+                        <DetailItem label="Screenshot" value={request.podDetails.screenshot_url} isFile />
+                        {request.podDetails.email_body && (
+                            <div className="col-span-2">
+                                <p className="text-sm font-medium text-muted-foreground">Email Body</p>
+                                <div className="mt-1 p-2 border rounded-md bg-muted/50 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: request.podDetails.email_body }} />
+                            </div>
+                        )}
+                    </div>
+                </div>
+            ) : (
+                <form action={formAction}>
+                    <input type="hidden" name="requestId" value={requestId} />
+                    <input type="hidden" name="patientId" value={request.patientId} />
+                    <input type="hidden" name="podType" value={podType} />
+                    <input type="hidden" name="userId" value={user?.uid ?? ''} />
+                    <input type="hidden" name="userName" value={user?.name ?? ''} />
+                    {Object.entries(documentUrls).map(([key, value]) => 
+                        value ? (
+                            <React.Fragment key={key}>
+                                <input type="hidden" name={`${key}_url`} value={value.url} />
+                                <input type="hidden" name={`${key}_name`} value={value.name} />
+                            </React.Fragment>
+                        ) : null
+                    )}
 
-                <div className="space-y-6">
-                    <RadioGroup defaultValue="Courier" onValueChange={(value: PodType) => setPodType(value)}>
-                        <div className="flex items-center space-x-4">
-                            <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="Courier" id="r1" />
-                            <Label htmlFor="r1">Courier</Label>
+                    <div className="space-y-6">
+                        <RadioGroup defaultValue="Courier" onValueChange={(value: PodType) => setPodType(value)}>
+                            <div className="flex items-center space-x-4">
+                                <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="Courier" id="r1" />
+                                <Label htmlFor="r1">Courier</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="Portal" id="r2" />
+                                <Label htmlFor="r2">Portal</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="Email" id="r3" />
+                                <Label htmlFor="r3">Email</Label>
+                                </div>
                             </div>
-                            <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="Portal" id="r2" />
-                            <Label htmlFor="r2">Portal</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="Email" id="r3" />
-                            <Label htmlFor="r3">Email</Label>
-                            </div>
-                        </div>
-                    </RadioGroup>
+                        </RadioGroup>
 
-                    {podType === 'Courier' && (
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="courierName">Courier Name</Label>
-                                    <Input id="courierName" name="courierName" />
+                        {podType === 'Courier' && (
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="courierName">Courier Name</Label>
+                                        <Input id="courierName" name="courierName" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="podNumber">POD Number</Label>
+                                        <Input id="podNumber" name="podNumber" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="refNo">Ref No</Label>
+                                        <Input id="refNo" name="ref_no" />
+                                    </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="refNo">Ref No</Label>
-                                    <Input id="refNo" name="ref_no" />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Date of Sent</Label>
+                                        <input type="hidden" name="date_of_sent" value={date?.toISOString() ?? ''} />
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}>
+                                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                                    {date ? format(date, "PPP") : <span>Pick a date</span>}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={date} onSelect={setDate} initialFocus /></PopoverContent>
+                                        </Popover>
+                                    </div>
+                                    <FileUpload label="POD Copy" name="pod_copy" onUploadComplete={handleDocumentUploadComplete} />
                                 </div>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                 <div className="space-y-2">
-                                    <Label>Date of Sent</Label>
+                        )}
+
+                        {podType === 'Portal' && (
+                             <div className="space-y-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>Date</Label>
                                     <input type="hidden" name="date_of_sent" value={date?.toISOString() ?? ''} />
                                     <Popover>
                                         <PopoverTrigger asChild>
-                                            <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}>
-                                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                                {date ? format(date, "PPP") : <span>Pick a date</span>}
-                                            </Button>
+                                        <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}>
+                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            {date ? format(date, "PPP") : <span>Pick a date</span>}
+                                        </Button>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={date} onSelect={setDate} initialFocus /></PopoverContent>
                                     </Popover>
                                 </div>
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    {podType === 'Portal' && (
-                        <div className="space-y-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label>Date</Label>
-                                <input type="hidden" name="date_of_sent" value={date?.toISOString() ?? ''} />
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                    <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}>
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {date ? format(date, "PPP") : <span>Pick a date</span>}
-                                    </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={date} onSelect={setDate} initialFocus /></PopoverContent>
-                                </Popover>
-                            </div>
-                        </div>
-                    )}
-
-                    {podType === 'Email' && (
-                        <div className="space-y-4">
-                             <div className="grid md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="from">From</Label>
-                                    <Input id="from" name="from" value={request?.fromEmail || user?.email || ''} readOnly />
+                        {podType === 'Email' && (
+                            <div className="space-y-4">
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="from">From</Label>
+                                        <Input id="from" name="from" value={request?.fromEmail || user?.email || ''} readOnly />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="to">To</Label>
+                                        <Input id="to" name="to" value={request?.tpaEmail || ''} readOnly />
+                                    </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="to">To</Label>
-                                    <Input id="to" name="to" value={request?.tpaEmail || ''} readOnly />
+                                    <Label htmlFor="cc">CC</Label>
+                                    <Input id="cc" name="cc" placeholder="recipient1@example.com, recipient2@example.com" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Date</Label>
+                                    <input type="hidden" name="date_of_sent" value={date?.toISOString() ?? ''} />
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                        <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}>
+                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            {date ? format(date, "PPP") : <span>Pick a date</span>}
+                                        </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={date} onSelect={setDate} initialFocus /></PopoverContent>
+                                    </Popover>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Email Content</Label>
+                                    <input type="hidden" name="email_body" value={draftToHtml(convertToRaw(editorState.getCurrentContent()))} />
+                                    <Editor
+                                        editorState={editorState}
+                                        onEditorStateChange={setEditorState}
+                                        wrapperClassName="rounded-md border border-input bg-background"
+                                        editorClassName="px-4 py-2 min-h-[150px]"
+                                        toolbarClassName="border-b border-input"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <FileUpload label="Attach File" name="attachment_1" onUploadComplete={handleDocumentUploadComplete} />
                                 </div>
                             </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="cc">CC</Label>
-                                <Input id="cc" name="cc" placeholder="recipient1@example.com, recipient2@example.com" />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Date</Label>
-                                <input type="hidden" name="date_of_sent" value={date?.toISOString() ?? ''} />
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                    <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}>
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {date ? format(date, "PPP") : <span>Pick a date</span>}
-                                    </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={date} onSelect={setDate} initialFocus /></PopoverContent>
-                                </Popover>
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Email Content</Label>
-                                <input type="hidden" name="email_body" value={draftToHtml(convertToRaw(editorState.getCurrentContent()))} />
-                                <Editor
-                                    editorState={editorState}
-                                    onEditorStateChange={setEditorState}
-                                    wrapperClassName="rounded-md border border-input bg-background"
-                                    editorClassName="px-4 py-2 min-h-[150px]"
-                                    toolbarClassName="border-b border-input"
-                                />
-                            </div>
-                             <div className="space-y-2">
-                                <FileUpload label="Attach File" name="attachment_1" onUploadComplete={handleDocumentUploadComplete} />
-                            </div>
-                        </div>
-                    )}
-                </div>
-                <div className="flex justify-end gap-2 mt-6 pt-6 border-t">
-                    <Button type="button" variant="outline" asChild>
-                        <Link href="/dashboard/pre-auths">Cancel</Link>
-                    </Button>
-                    <SubmitButton />
-                </div>
-            </form>
+                        )}
+                    </div>
+                    <div className="flex justify-end gap-2 mt-6 pt-6 border-t">
+                        <Button type="button" variant="outline" asChild>
+                            <Link href="/dashboard/pre-auths">Cancel</Link>
+                        </Button>
+                        <SubmitButton />
+                    </div>
+                </form>
+            )}
         </CardContent>
       </Card>
     </div>
