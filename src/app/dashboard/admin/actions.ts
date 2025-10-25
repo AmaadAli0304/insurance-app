@@ -515,19 +515,115 @@ export async function getPreAuthSummaryStats(
     }
 }
     
+export type NewReportStat = {
+  patientId: number;
+  patientName: string;
+  patientPhoto: string | null;
+  tpaName: string;
+  billedAmount: number;
+  sanctionedAmount: number;
+};
 
+export async function getNewReportStats(
+    dateRange?: DateRange, 
+    hospitalId?: string | null, 
+    tpaId?: string | null,
+    page: number = 1,
+    limit: number = 10
+): Promise<{ stats: NewReportStat[], total: number }> {
+    try {
+        const pool = await getDbPool();
+        const request = pool.request();
+        const countRequest = pool.request();
+        
+        let whereClauses: string[] = [];
+        
+        if (dateRange?.from) {
+            const toDate = dateRange.to || new Date(); 
+            request.input('dateFrom', sql.DateTime, dateRange.from);
+            countRequest.input('dateFrom', sql.DateTime, dateRange.from);
+            request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+            countRequest.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+            whereClauses.push('c.created_at BETWEEN @dateFrom AND @dateTo');
+        }
+
+        if (hospitalId) {
+            request.input('hospitalId', sql.NVarChar, hospitalId);
+            countRequest.input('hospitalId', sql.NVarChar, hospitalId);
+            whereClauses.push('c.hospital_id = @hospitalId');
+        }
+        
+        if (tpaId) {
+            request.input('tpaId', sql.Int, Number(tpaId));
+            countRequest.input('tpaId', sql.Int, Number(tpaId));
+            whereClauses.push('c.tpa_id = @tpaId');
+        }
+
+        const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
+        const countQuery = `
+            SELECT COUNT(DISTINCT p.id) as total
+            FROM patients p
+            LEFT JOIN claims c ON p.id = c.Patient_id
+            ${whereClause};
+        `;
+        const totalResult = await countRequest.query(countQuery);
+        const total = totalResult.recordset[0].total;
+
+        const offset = (page - 1) * limit;
+        request.input('offset', sql.Int, offset);
+        request.input('limit', sql.Int, limit);
+
+        const query = `
+            SELECT DISTINCT
+                p.id AS patientId,
+                p.first_name + ' ' + p.last_name AS patientName,
+                p.photo AS patientPhoto,
+                COALESCE(t.name, co.name, 'N/A') as tpaName,
+                (
+                    SELECT ISNULL(SUM(c_inner.amount), 0)
+                    FROM claims c_inner
+                    WHERE c_inner.Patient_id = p.id AND c_inner.status = 'Pre auth Sent'
+                    ${dateRange?.from ? 'AND c_inner.created_at BETWEEN @dateFrom AND @dateTo' : ''}
+                ) as billedAmount,
+                (
+                    SELECT ISNULL(SUM(c_inner.paidAmount), 0)
+                    FROM claims c_inner
+                    WHERE c_inner.Patient_id = p.id AND c_inner.status = 'Final Approval'
+                    ${dateRange?.from ? 'AND c_inner.created_at BETWEEN @dateFrom AND @dateTo' : ''}
+                ) as sanctionedAmount
+            FROM patients p
+            LEFT JOIN claims c ON p.id = c.Patient_id
+            LEFT JOIN preauth_request pr ON c.admission_id = pr.admission_id
+            LEFT JOIN companies co ON pr.company_id = co.id
+            LEFT JOIN tpas t ON c.tpa_id = t.id
+            ${whereClause}
+            ORDER BY patientName
+            OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
+        `;
+
+        const result = await request.query(query);
+        
+        const stats = result.recordset.map(row => {
+            let photoUrl = null;
+            if (row.patientPhoto) {
+                try {
+                    const parsed = JSON.parse(row.patientPhoto);
+                    photoUrl = parsed.url;
+                } catch {
+                    photoUrl = typeof row.patientPhoto === 'string' && row.patientPhoto.startsWith('http') ? row.patientPhoto : null;
+                }
+            }
+            return { ...row, patientPhoto: photoUrl };
+        });
+
+        return { stats: stats as NewReportStat[], total };
+
+    } catch (error) {
+        console.error('Error fetching new report stats:', error);
+        throw new Error('Failed to fetch new report statistics.');
+    }
+}
     
 
-    
-
-
-
-
-
-
-
-
-
-
-
-    
+```

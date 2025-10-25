@@ -18,6 +18,7 @@ import { RejectedCasesTable } from "./rejected-cases-table";
 import { FinalApprovalDetailsTable } from "./final-approval-details-table";
 import { SettledStatusDetailsTable } from "./settled-status-details-table";
 import { PreAuthSummaryTable } from "./pre-auth-summary-table";
+import { NewReportTable } from "./new-report-table";
 
 
 export function AdminDashboard() {
@@ -78,6 +79,7 @@ export function AdminDashboard() {
           </Popover>
       </div>
       <AdminPatientBillingTable dateRange={date} />
+      <NewReportTable dateRange={date} />
       <PreAuthSummaryTable dateRange={date} />
       <TpaCollectionTable dateRange={date} />
       <RejectedCasesTable dateRange={date} />
