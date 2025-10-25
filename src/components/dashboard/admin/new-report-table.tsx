@@ -158,7 +158,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                 ) : (
                     <>
                         <div className="overflow-x-auto">
-                            <Table>
+                            <Table className="min-w-[2000px]">
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Patient Name</TableHead>
