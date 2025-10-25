@@ -270,15 +270,9 @@ export default function PodDetailsPage() {
                                         <Input id="courierName" name="courierName" />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="podNumber">POD Number</Label>
-                                        <Input id="podNumber" name="podNumber" />
-                                    </div>
-                                    <div className="space-y-2">
                                         <Label htmlFor="refNo">Ref No</Label>
                                         <Input id="refNo" name="ref_no" />
                                     </div>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label>Date of Sent</Label>
                                         <input type="hidden" name="date_of_sent" value={date?.toISOString() ?? ''} />
@@ -292,7 +286,6 @@ export default function PodDetailsPage() {
                                             <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={date} onSelect={setDate} initialFocus /></PopoverContent>
                                         </Popover>
                                     </div>
-                                    <FileUpload label="POD Copy" name="pod_copy" onUploadComplete={handleDocumentUploadComplete} />
                                 </div>
                             </div>
                         )}

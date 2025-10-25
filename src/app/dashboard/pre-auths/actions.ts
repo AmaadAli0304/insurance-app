@@ -932,7 +932,6 @@ export async function handleSavePodDetails(prevState: { message: string, type?: 
   const userName = formData.get('userName') as string;
 
   const courierName = formData.get('courierName') as string;
-  const podNumber = formData.get('podNumber') as string;
   const refNo = formData.get('ref_no') as string;
   const date = formData.get('date_of_sent') as string;
   
@@ -971,10 +970,9 @@ export async function handleSavePodDetails(prevState: { message: string, type?: 
     let values = ') VALUES (@preauth_id, @patient_id, @pod_type, @created_by, @tpa_id, @hospital_id, @date_of_sent';
 
     if (podType === 'Courier') {
-      query += ', courier_name, pod_number, ref_no';
-      values += ', @courier_name, @pod_number, @ref_no';
+      query += ', courier_name, ref_no';
+      values += ', @courier_name, @ref_no';
       request.input('courier_name', sql.NVarChar, courierName);
-      request.input('pod_number', sql.NVarChar, podNumber);
       request.input('ref_no', sql.NVarChar, refNo);
 
     } else if (podType === 'Portal') {
