@@ -15,8 +15,6 @@ export function MainNav() {
   const routes = {
     'Admin': [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-      { href: '/dashboard/activity-log', label: 'Activity Log', icon: Activity },
-      { href: '/dashboard/import', label: 'Import', icon: Upload },
     ],
     'Hospital Staff': [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
