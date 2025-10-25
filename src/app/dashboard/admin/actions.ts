@@ -1,5 +1,4 @@
 
-
 "use server";
 
 import { getDbPool, sql } from '@/lib/db';
@@ -525,6 +524,7 @@ export type NewReportStat = {
   policyNumber: string | null;
   claimNumber: string | null;
   totalBillAmount: number | null;
+  tpaApprovedAmount: number | null;
   tariffExcess: number | null;
   deductions: number | null;
   tds: number | null;
@@ -601,6 +601,12 @@ export async function getNewReportStats(
                         WHERE c.Patient_id = p.id AND c.status = 'Final Approval'
                         ORDER BY c.created_at DESC
                     ) as totalBillAmount,
+                    (
+                        SELECT TOP 1 c.final_amount
+                        FROM claims c
+                        WHERE c.Patient_id = p.id AND c.status = 'Final Approval'
+                        ORDER BY c.created_at DESC
+                    ) as tpaApprovedAmount,
                     (
                         SELECT TOP 1 c.amount 
                         FROM claims c 
