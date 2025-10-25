@@ -431,6 +431,7 @@ export type PreAuthSummaryStat = {
   doctorInCharge: string | null;
   roomCategory: string | null;
   budget: number | null;
+  planOfManagement: string | null;
 };
 
 export async function getPreAuthSummaryStats(
@@ -482,7 +483,14 @@ export async function getPreAuthSummaryStats(
                 pr.corporate_policy_number as corporatePolicyNumber,
                 pr.treat_doc_name as doctorInCharge,
                 pr.roomCategory,
-                pr.totalExpectedCost as budget
+                pr.totalExpectedCost as budget,
+                CONCAT_WS(', ', 
+                    NULLIF(pr.treatmentMedical, ''), 
+                    NULLIF(pr.treatmentSurgical, ''), 
+                    NULLIF(pr.treatmentIntensiveCare, ''), 
+                    NULLIF(pr.treatmentInvestigation, ''), 
+                    NULLIF(pr.treatmentNonAllopathic, '')
+                ) as planOfManagement
             FROM preauth_request pr
             LEFT JOIN patients p ON pr.patient_id = p.id
             LEFT JOIN companies c ON pr.company_id = c.id
