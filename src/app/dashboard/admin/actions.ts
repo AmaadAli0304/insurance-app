@@ -520,6 +520,7 @@ export type NewReportStat = {
   patientName: string;
   patientPhoto: string | null;
   tpaName: string;
+  admissionDate: string | null;
   billedAmount: number;
   sanctionedAmount: number;
 };
@@ -580,6 +581,7 @@ export async function getNewReportStats(
                 p.first_name + ' ' + p.last_name AS patientName,
                 p.photo AS patientPhoto,
                 COALESCE(t.name, co.name, 'N/A') as tpaName,
+                pr.admissionDate,
                 (
                     SELECT ISNULL(SUM(c_inner.amount), 0)
                     FROM claims c_inner
@@ -693,41 +695,11 @@ export async function getComprehensiveClaimDetails(
                 pr.policy_number AS policyNumber,
                 pr.claim_id AS claimNumber,
                 tpa.name AS tpaName,
-                cmp.name AS insuranceCo,
-                
-                -- Aggregated expenses
-                (pr.roomNursingDietCost + pr.otCost + pr.professionalFees + pr.otherHospitalExpenses) as hospitalExp,
-                pr.medicineCost AS pharmacyExp,
-                (SELECT SUM(c.lab_bill) FROM claims c WHERE c.admission_id = pr.admission_id) as labExp,
-                (SELECT SUM(c.mri_charges + c.ct_scan_charges) FROM claims c WHERE c.admission_id = pr.admission_id) as imagingExp,
-                (SELECT SUM(c.implant_bill) FROM claims c WHERE c.admission_id = pr.admission_id) as implantCharges,
-                
-                -- Amounts from 'Final Approval'
-                fa.final_bill AS totalBillAmt,
-                fa.final_amount AS tpaApprovedAmt,
-                fa.hospital_discount AS discountAmt,
-                fa.co_pay AS coPay,
-                fa.amount as tariffExcess,
-                fa.nm_deductions AS deductions,
-                
-                pr.status,
-                
-                -- Amounts from 'Settled'
-                s.final_settle_amount AS amountBeforeTDS,
-                s.amount AS amountAfterTDS,
-                s.tds,
-                s.nm_deductions AS deductionByInsuranceCo,
-                s.date_settlement AS actualSettlementDate,
-                s.utr_no AS utrNo,
-                
-                pod.ref_no AS podDetails
+                cmp.name AS insuranceCo
             FROM preauth_request pr
             LEFT JOIN patients p ON pr.patient_id = p.id
             LEFT JOIN tpas tpa ON pr.tpa_id = tpa.id
             LEFT JOIN companies cmp ON pr.company_id = cmp.id
-            LEFT JOIN claims fa ON pr.admission_id = fa.admission_id AND fa.status = 'Final Approval'
-            LEFT JOIN claims s ON pr.admission_id = s.admission_id AND s.status = 'Settled'
-            LEFT JOIN pod_details pod ON pr.id = pod.preauth_id
             ${whereClause}
             ORDER BY pr.created_at DESC
             OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;

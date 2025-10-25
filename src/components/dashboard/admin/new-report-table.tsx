@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { TPA } from "@/lib/types";
 import { DateRange } from "react-day-picker";
 import { useAuth } from "@/components/auth-provider";
+import { format } from "date-fns";
 
 interface NewReportTableProps {
   dateRange?: DateRange;
@@ -57,12 +58,13 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
     }
 
     const handleExport = () => {
-        const headers = ["Patient Name", "TPA / Insurance", "Billed Amount", "Sanctioned Amount"];
+        const headers = ["Patient Name", "DOA", "TPA / Insurance", "Billed Amount", "Sanctioned Amount"];
         const csvRows = [headers.join(",")];
 
         stats.forEach((stat) => {
             const row = [
                 `"${stat.patientName}"`,
+                stat.admissionDate ? format(new Date(stat.admissionDate), 'yyyy-MM-dd') : 'N/A',
                 `"${stat.tpaName}"`,
                 stat.billedAmount,
                 stat.sanctionedAmount,
@@ -124,6 +126,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Patient Name</TableHead>
+                                    <TableHead>DOA</TableHead>
                                     <TableHead>TPA / Insurance</TableHead>
                                     <TableHead className="text-right">Billed Amount</TableHead>
                                     <TableHead className="text-right">Sanctioned Amount</TableHead>
@@ -140,6 +143,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                             </Avatar>
                                             {stat.patientName}
                                             </TableCell>
+                                            <TableCell>{stat.admissionDate ? format(new Date(stat.admissionDate), 'MMM dd, yyyy') : 'N/A'}</TableCell>
                                             <TableCell>{stat.tpaName}</TableCell>
                                             <TableCell className="text-right font-mono">{stat.billedAmount.toLocaleString('en-IN')}</TableCell>
                                             <TableCell className="text-right font-mono">{stat.sanctionedAmount.toLocaleString('en-IN')}</TableCell>
@@ -147,7 +151,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={4} className="h-24 text-center">
+                                        <TableCell colSpan={5} className="h-24 text-center">
                                             No data available for this report.
                                         </TableCell>
                                     </TableRow>
