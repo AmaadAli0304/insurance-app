@@ -468,6 +468,10 @@ export default function EditPreAuthPage() {
                                     <Label htmlFor="mou_discount">MOU Discount <span className="text-destructive">*</span></Label>
                                     <Input id="mou_discount" name="mou_discount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter MOU Discount" required />
                                 </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="implant_charges">Implant Charges</Label>
+                                    <Input id="implant_charges" name="implant_charges" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter Implant Charges" />
+                                </div>
                                  <div className="space-y-2">
                                     <Label htmlFor="amount_sanctioned">Amount Sanctioned</Label>
                                     <Input id="amount_sanctioned" name="amount_sanctioned" type="text" inputMode="decimal" pattern="[0-9.]*" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount sanctioned" />
