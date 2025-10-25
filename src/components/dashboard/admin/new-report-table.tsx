@@ -59,16 +59,16 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
     }
 
     const handleExport = () => {
-        const headers = ["Patient Name", "DOA", "TPA / Insurance", "Policy Number", "Claim Number", "Tariff Excess", "Deductions", "TDS", "Amount Before TDS", "Amount After TDS", "Deduction by Insurance Co.", "Actual Settlement Date", "BRN / UTR No."];
+        const headers = ["Patient Name", "DOA", "Policy Number", "Claim Number", "TPA / Insurance", "Tariff Excess", "Deductions", "TDS", "Amount Before TDS", "Amount After TDS", "Deduction by Insurance Co.", "Actual Settlement Date", "BRN / UTR No."];
         const csvRows = [headers.join(",")];
 
         stats.forEach((stat) => {
             const row = [
                 `"${stat.patientName}"`,
                 stat.admissionDate ? format(new Date(stat.admissionDate), 'yyyy-MM-dd') : 'N/A',
-                `"${stat.tpaName}"`,
                 `"${stat.policyNumber || 'N/A'}"`,
                 `"${stat.claimNumber || 'N/A'}"`,
+                `"${stat.tpaName}"`,
                 stat.tariffExcess || 0,
                 stat.deductions || 0,
                 stat.tds || 0,
@@ -131,58 +131,60 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                     </div>
                 ) : (
                     <>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Patient Name</TableHead>
-                                    <TableHead>DOA</TableHead>
-                                    <TableHead>Policy Number</TableHead>
-                                    <TableHead>Claim Number</TableHead>
-                                    <TableHead>TPA / Insurance</TableHead>
-                                    <TableHead className="text-right">Tariff Excess</TableHead>
-                                    <TableHead className="text-right">Deductions</TableHead>
-                                    <TableHead className="text-right">TDS</TableHead>
-                                    <TableHead className="text-right">Amount Before TDS</TableHead>
-                                    <TableHead className="text-right">Amount After TDS</TableHead>
-                                    <TableHead className="text-right">Deduction by Insurance Co.</TableHead>
-                                    <TableHead>Actual Settlement Date</TableHead>
-                                    <TableHead>BRN / UTR No.</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {stats && stats.length > 0 ? (
-                                    stats.map((stat, index) => (
-                                        <TableRow key={`${stat.patientId}-${stat.tpaName}-${index}`}>
-                                            <TableCell className="font-medium flex items-center gap-3">
-                                            <Avatar className="h-10 w-10">
-                                                <AvatarImage src={stat.patientPhoto ?? undefined} alt={stat.patientName} />
-                                                <AvatarFallback>{getInitials(stat.patientName)}</AvatarFallback>
-                                            </Avatar>
-                                            {stat.patientName}
-                                            </TableCell>
-                                            <TableCell>{stat.admissionDate ? format(new Date(stat.admissionDate), 'MMM dd, yyyy') : 'N/A'}</TableCell>
-                                            <TableCell>{stat.policyNumber || 'N/A'}</TableCell>
-                                            <TableCell>{stat.claimNumber || 'N/A'}</TableCell>
-                                            <TableCell>{stat.tpaName}</TableCell>
-                                            <TableCell className="text-right font-mono">{stat.tariffExcess?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                            <TableCell className="text-right font-mono">{stat.deductions?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                            <TableCell className="text-right font-mono">{stat.tds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                            <TableCell className="text-right font-mono">{stat.amountBeforeTds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                            <TableCell className="text-right font-mono">{stat.amountAfterTds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                            <TableCell className="text-right font-mono">{stat.insuranceDeduction?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                            <TableCell>{stat.actualSettlementDate ? format(new Date(stat.actualSettlementDate), 'MMM dd, yyyy') : 'N/A'}</TableCell>
-                                            <TableCell>{stat.utrNumber || 'N/A'}</TableCell>
-                                        </TableRow>
-                                    ))
-                                ) : (
+                        <div className="overflow-x-auto">
+                            <Table>
+                                <TableHeader>
                                     <TableRow>
-                                        <TableCell colSpan={13} className="h-24 text-center">
-                                            No data available for this report.
-                                        </TableCell>
+                                        <TableHead>Patient Name</TableHead>
+                                        <TableHead>DOA</TableHead>
+                                        <TableHead>Policy Number</TableHead>
+                                        <TableHead>Claim Number</TableHead>
+                                        <TableHead>TPA / Insurance</TableHead>
+                                        <TableHead className="text-right">Tariff Excess</TableHead>
+                                        <TableHead className="text-right">Deductions</TableHead>
+                                        <TableHead className="text-right">TDS</TableHead>
+                                        <TableHead className="text-right">Amount Before TDS</TableHead>
+                                        <TableHead className="text-right">Amount After TDS</TableHead>
+                                        <TableHead className="text-right">Deduction by Insurance Co.</TableHead>
+                                        <TableHead>Actual Settlement Date</TableHead>
+                                        <TableHead>BRN / UTR No.</TableHead>
                                     </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
+                                </TableHeader>
+                                <TableBody>
+                                    {stats && stats.length > 0 ? (
+                                        stats.map((stat, index) => (
+                                            <TableRow key={`${stat.patientId}-${stat.tpaName}-${index}`}>
+                                                <TableCell className="font-medium flex items-center gap-3">
+                                                <Avatar className="h-10 w-10">
+                                                    <AvatarImage src={stat.patientPhoto ?? undefined} alt={stat.patientName} />
+                                                    <AvatarFallback>{getInitials(stat.patientName)}</AvatarFallback>
+                                                </Avatar>
+                                                {stat.patientName}
+                                                </TableCell>
+                                                <TableCell>{stat.admissionDate ? format(new Date(stat.admissionDate), 'MMM dd, yyyy') : 'N/A'}</TableCell>
+                                                <TableCell>{stat.policyNumber || 'N/A'}</TableCell>
+                                                <TableCell>{stat.claimNumber || 'N/A'}</TableCell>
+                                                <TableCell>{stat.tpaName}</TableCell>
+                                                <TableCell className="text-right font-mono">{stat.tariffExcess?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                                <TableCell className="text-right font-mono">{stat.deductions?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                                <TableCell className="text-right font-mono">{stat.tds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                                <TableCell className="text-right font-mono">{stat.amountBeforeTds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                                <TableCell className="text-right font-mono">{stat.amountAfterTds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                                <TableCell className="text-right font-mono">{stat.insuranceDeduction?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                                <TableCell>{stat.actualSettlementDate ? format(new Date(stat.actualSettlementDate), 'MMM dd, yyyy') : 'N/A'}</TableCell>
+                                                <TableCell>{stat.utrNumber || 'N/A'}</TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={13} className="h-24 text-center">
+                                                No data available for this report.
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
                          <div className="flex items-center justify-end space-x-2 py-4">
                             <Button
                             variant="outline"
