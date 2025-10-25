@@ -3,13 +3,20 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { FileText, Users, Clock, AlertTriangle, Loader2 } from "lucide-react"
+import { FileText, Users, Clock, AlertTriangle, Loader2, Calendar as CalendarIcon } from "lucide-react"
 import { useAuth } from "@/components/auth-provider"
 import { StatCard } from "@/components/dashboard/stat-card"
 import { getDashboardData, DashboardData } from "./actions";
 import { PendingPreAuthsTable } from "./pending-preauths-table";
 import { RejectedPreAuthsTable } from "./rejected-preauths-table";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { NewReportTable } from "@/components/dashboard/admin/new-report-table";
+import { DateRange } from "react-day-picker";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { format, subDays } from "date-fns";
+import { cn } from "@/lib/utils";
 
 export function HospitalStaffDashboard() {
   const { user } = useAuth();
@@ -18,6 +25,11 @@ export function HospitalStaffDashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: subDays(new Date(), 29),
+    to: new Date(),
+  });
   
   const loadDashboardData = useCallback(async () => {
     if (!hospitalId) {
@@ -64,6 +76,42 @@ export function HospitalStaffDashboard() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h1 className="text-3xl font-bold">Staff Dashboard</h1>
+         <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                id="date"
+                variant={"outline"}
+                className={cn(
+                  "w-[300px] justify-start text-left font-normal",
+                  !date && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date?.from ? (
+                  date.to ? (
+                    <>
+                      {format(date.from, "LLL dd, y")} -{" "}
+                      {format(date.to, "LLL dd, y")}
+                    </>
+                  ) : (
+                    format(date.from, "LLL dd, y")
+                  )
+                ) : (
+                  <span>Pick a date</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                initialFocus
+                mode="range"
+                defaultMonth={date?.from}
+                selected={date}
+                onSelect={setDate}
+                numberOfMonths={2}
+              />
+            </PopoverContent>
+          </Popover>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -88,6 +136,7 @@ export function HospitalStaffDashboard() {
         />
       </div>
 
+      <NewReportTable dateRange={date} />
       <PendingPreAuthsTable requests={data?.pendingPreAuths ?? []} title="Pending Pre-Auths" description="These pre-authorization requests are awaiting action from the TPA/Insurer." filename="pending_pre_auths.csv" />
       <PendingPreAuthsTable requests={data?.queryRaisedPreAuths ?? []} title="Query Raised Pre-Auths" description="These requests have queries raised by the TPA/Insurer and require your action." filename="query_raised_pre_auths.csv" />
       <RejectedPreAuthsTable requests={data?.rejectedPreAuths ?? []} />
