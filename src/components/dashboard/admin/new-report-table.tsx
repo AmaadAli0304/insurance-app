@@ -13,6 +13,7 @@ import type { TPA } from "@/lib/types";
 import { DateRange } from "react-day-picker";
 import { useAuth } from "@/components/auth-provider";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface NewReportTableProps {
   dateRange?: DateRange;
