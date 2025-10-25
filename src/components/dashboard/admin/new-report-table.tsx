@@ -150,95 +150,93 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                     </Button>
                 </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="max-w-full overflow-x-auto">
                 {isLoading ? (
                     <div className="flex items-center justify-center h-64">
                         <Loader2 className="h-8 w-8 animate-spin" />
                     </div>
                 ) : (
                     <>
-                        <div className="overflow-x-auto">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Patient Name</TableHead>
-                                        <TableHead>DOA</TableHead>
-                                        <TableHead>DOD</TableHead>
-                                        <TableHead>Policy Number</TableHead>
-                                        <TableHead>Claim Number</TableHead>
-                                        <TableHead>TPA / Insurance</TableHead>
-                                        <TableHead>Insurance Co</TableHead>
-                                        <TableHead className="text-right">Hospital Exp</TableHead>
-                                        <TableHead className="text-right">USG/2DECHO/EEG</TableHead>
-                                        <TableHead className="text-right">X-Ray</TableHead>
-                                        <TableHead className="text-right">MRI/CT Scan</TableHead>
-                                        <TableHead className="text-right">Lab Exp</TableHead>
-                                        <TableHead className="text-right">Pharmacy Ex</TableHead>
-                                        <TableHead className="text-right">Implant Charges</TableHead>
-                                        <TableHead className="text-right">Total Bill Amt</TableHead>
-                                        <TableHead className="text-right">TPA Approved Amt</TableHead>
-                                        <TableHead className="text-right">Co-Pay</TableHead>
-                                        <TableHead className="text-right">Tariff Excess</TableHead>
-                                        <TableHead className="text-right">Deductions</TableHead>
-                                        <TableHead className="text-right">Discount Amt</TableHead>
-                                        <TableHead className="text-right">Amount Before TDS</TableHead>
-                                        <TableHead className="text-right">TDS</TableHead>
-                                        <TableHead className="text-right">Amount After TDS</TableHead>
-                                        <TableHead className="text-right">Deduction by Insurance Co.</TableHead>
-                                        <TableHead>Actual Settlement Date</TableHead>
-                                        <TableHead>BRN / UTR No.</TableHead>
-                                        <TableHead>POD DETAILS</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {stats && stats.length > 0 ? (
-                                        stats.map((stat, index) => (
-                                            <TableRow key={`${stat.patientId}-${stat.tpaName}-${index}`}>
-                                                <TableCell className="font-medium flex items-center gap-3">
-                                                <Avatar className="h-10 w-10">
-                                                    <AvatarImage src={stat.patientPhoto ?? undefined} alt={stat.patientName} />
-                                                    <AvatarFallback>{getInitials(stat.patientName)}</AvatarFallback>
-                                                </Avatar>
-                                                {stat.patientName}
-                                                </TableCell>
-                                                <TableCell>{stat.admissionDate ? format(new Date(stat.admissionDate), 'yyyy-MM-dd') : 'N/A'}</TableCell>
-                                                <TableCell>{stat.dischargeDate ? format(new Date(stat.dischargeDate), 'yyyy-MM-dd') : 'N/A'}</TableCell>
-                                                <TableCell>{stat.policyNumber || 'N/A'}</TableCell>
-                                                <TableCell>{stat.claimNumber || 'N/A'}</TableCell>
-                                                <TableCell>{stat.tpaName}</TableCell>
-                                                <TableCell>{stat.insuranceCoName || 'N/A'}</TableCell>
-                                                <TableCell className="text-right font-mono">{calculateHospitalExp(stat).toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                                <TableCell className="text-right font-mono">{stat.usgCharges?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                                <TableCell className="text-right font-mono">{stat.xrayCharges?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                                <TableCell className="text-right font-mono">{stat.mriCharges?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                                <TableCell className="text-right font-mono">{stat.labCharges?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                                <TableCell className="text-right font-mono">{stat.pharmacyCharges?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                                <TableCell className="text-right font-mono">{stat.implantCharges?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                                <TableCell className="text-right font-mono">{stat.totalBillAmount?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                                <TableCell className="text-right font-mono">{stat.tpaApprovedAmount?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                                <TableCell className="text-right font-mono">{stat.coPay?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                                <TableCell className="text-right font-mono">{stat.tariffExcess?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                                <TableCell className="text-right font-mono">{stat.deductions?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                                <TableCell className="text-right font-mono">{stat.discountAmount?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                                <TableCell className="text-right font-mono">{stat.amountBeforeTds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                                <TableCell className="text-right font-mono">{stat.tds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                                <TableCell className="text-right font-mono">{stat.amountAfterTds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                                <TableCell className="text-right font-mono">{stat.insuranceDeduction?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                                <TableCell>{stat.actualSettlementDate ? format(new Date(stat.actualSettlementDate), 'yyyy-MM-dd') : 'N/A'}</TableCell>
-                                                <TableCell>{stat.utrNumber || 'N/A'}</TableCell>
-                                                <TableCell>{stat.podDetails || 'N/A'}</TableCell>
-                                            </TableRow>
-                                        ))
-                                    ) : (
-                                        <TableRow>
-                                            <TableCell colSpan={27} className="h-24 text-center">
-                                                No data available for this report.
+                        <Table className="min-w-[2000px]">
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Patient Name</TableHead>
+                                    <TableHead>DOA</TableHead>
+                                    <TableHead>DOD</TableHead>
+                                    <TableHead>Policy Number</TableHead>
+                                    <TableHead>Claim Number</TableHead>
+                                    <TableHead>TPA / Insurance</TableHead>
+                                    <TableHead>Insurance Co</TableHead>
+                                    <TableHead className="text-right">Hospital Exp</TableHead>
+                                    <TableHead className="text-right">USG/2DECHO/EEG</TableHead>
+                                    <TableHead className="text-right">X-Ray</TableHead>
+                                    <TableHead className="text-right">MRI/CT Scan</TableHead>
+                                    <TableHead className="text-right">Lab Exp</TableHead>
+                                    <TableHead className="text-right">Pharmacy Ex</TableHead>
+                                    <TableHead className="text-right">Implant Charges</TableHead>
+                                    <TableHead className="text-right">Total Bill Amt</TableHead>
+                                    <TableHead className="text-right">TPA Approved Amt</TableHead>
+                                    <TableHead className="text-right">Co-Pay</TableHead>
+                                    <TableHead className="text-right">Tariff Excess</TableHead>
+                                    <TableHead className="text-right">Deductions</TableHead>
+                                    <TableHead className="text-right">Discount Amt</TableHead>
+                                    <TableHead className="text-right">Amount Before TDS</TableHead>
+                                    <TableHead className="text-right">TDS</TableHead>
+                                    <TableHead className="text-right">Amount After TDS</TableHead>
+                                    <TableHead className="text-right">Deduction by Insurance Co.</TableHead>
+                                    <TableHead>Actual Settlement Date</TableHead>
+                                    <TableHead>BRN / UTR No.</TableHead>
+                                    <TableHead>POD DETAILS</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {stats && stats.length > 0 ? (
+                                    stats.map((stat, index) => (
+                                        <TableRow key={`${stat.patientId}-${stat.tpaName}-${index}`}>
+                                            <TableCell className="font-medium flex items-center gap-3">
+                                            <Avatar className="h-10 w-10">
+                                                <AvatarImage src={stat.patientPhoto ?? undefined} alt={stat.patientName} />
+                                                <AvatarFallback>{getInitials(stat.patientName)}</AvatarFallback>
+                                            </Avatar>
+                                            {stat.patientName}
                                             </TableCell>
+                                            <TableCell>{stat.admissionDate ? format(new Date(stat.admissionDate), 'yyyy-MM-dd') : 'N/A'}</TableCell>
+                                            <TableCell>{stat.dischargeDate ? format(new Date(stat.dischargeDate), 'yyyy-MM-dd') : 'N/A'}</TableCell>
+                                            <TableCell>{stat.policyNumber || 'N/A'}</TableCell>
+                                            <TableCell>{stat.claimNumber || 'N/A'}</TableCell>
+                                            <TableCell>{stat.tpaName}</TableCell>
+                                            <TableCell>{stat.insuranceCoName || 'N/A'}</TableCell>
+                                            <TableCell className="text-right font-mono">{calculateHospitalExp(stat).toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                            <TableCell className="text-right font-mono">{stat.usgCharges?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                            <TableCell className="text-right font-mono">{stat.xrayCharges?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                            <TableCell className="text-right font-mono">{stat.mriCharges?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                            <TableCell className="text-right font-mono">{stat.labCharges?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                            <TableCell className="text-right font-mono">{stat.pharmacyCharges?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                            <TableCell className="text-right font-mono">{stat.implantCharges?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                            <TableCell className="text-right font-mono">{stat.totalBillAmount?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                            <TableCell className="text-right font-mono">{stat.tpaApprovedAmount?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                            <TableCell className="text-right font-mono">{stat.coPay?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                            <TableCell className="text-right font-mono">{stat.tariffExcess?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                            <TableCell className="text-right font-mono">{stat.deductions?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                            <TableCell className="text-right font-mono">{stat.discountAmount?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                            <TableCell className="text-right font-mono">{stat.amountBeforeTds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                            <TableCell className="text-right font-mono">{stat.tds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                            <TableCell className="text-right font-mono">{stat.amountAfterTds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                            <TableCell className="text-right font-mono">{stat.insuranceDeduction?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                            <TableCell>{stat.actualSettlementDate ? format(new Date(stat.actualSettlementDate), 'yyyy-MM-dd') : 'N/A'}</TableCell>
+                                            <TableCell>{stat.utrNumber || 'N/A'}</TableCell>
+                                            <TableCell>{stat.podDetails || 'N/A'}</TableCell>
                                         </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </div>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={27} className="h-24 text-center">
+                                            No data available for this report.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
                         <div className="flex items-center justify-end space-x-2 py-4">
                             <Button
                             variant="outline"
