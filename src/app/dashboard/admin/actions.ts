@@ -521,6 +521,7 @@ export type NewReportStat = {
   patientPhoto: string | null;
   tpaName: string;
   admissionDate: string | null;
+  policyNumber: string | null;
 };
 
 export async function getNewReportStats(
@@ -579,7 +580,8 @@ export async function getNewReportStats(
                 p.first_name + ' ' + p.last_name AS patientName,
                 p.photo AS patientPhoto,
                 COALESCE(t.name, co.name, 'N/A') as tpaName,
-                pr.admissionDate
+                pr.admissionDate,
+                pr.policy_number as policyNumber
             FROM patients p
             LEFT JOIN claims c ON p.id = c.Patient_id
             LEFT JOIN preauth_request pr ON c.admission_id = pr.admission_id
