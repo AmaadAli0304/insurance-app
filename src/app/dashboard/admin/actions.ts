@@ -522,6 +522,7 @@ export type NewReportStat = {
   tpaName: string;
   admissionDate: string | null;
   policyNumber: string | null;
+  claimNumber: string | null;
 };
 
 export async function getNewReportStats(
@@ -583,6 +584,7 @@ export async function getNewReportStats(
                     COALESCE(t.name, co.name, 'N/A') as tpaName,
                     pr.admissionDate,
                     pr.policy_number as policyNumber,
+                    pr.claim_id as claimNumber,
                     ROW_NUMBER() OVER(PARTITION BY p.id ORDER BY pr.created_at DESC) as rn
                 FROM patients p
                 LEFT JOIN preauth_request pr ON p.id = pr.patient_id
@@ -628,25 +630,6 @@ export type ComprehensiveClaimDetail = {
     claimNumber: string | null;
     tpaName: string | null;
     insuranceCo: string | null;
-    hospitalExp: number | null;
-    pharmacyExp: number | null;
-    labExp: number | null;
-    imagingExp: number | null;
-    implantCharges: number | null;
-    totalBillAmt: number | null;
-    tpaApprovedAmt: number | null;
-    discountAmt: number | null;
-    coPay: number | null;
-    tariffExcess: number | null;
-    deductions: number | null;
-    status: string | null;
-    amountBeforeTDS: number | null;
-    amountAfterTDS: number | null;
-    tds: number | null;
-    deductionByInsuranceCo: number | null;
-    actualSettlementDate: string | null;
-    utrNo: string | null;
-    podDetails: string | null;
 };
 
 export async function getComprehensiveClaimDetails(

@@ -58,7 +58,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
     }
 
     const handleExport = () => {
-        const headers = ["Patient Name", "DOA", "TPA / Insurance", "Policy Number"];
+        const headers = ["Patient Name", "DOA", "TPA / Insurance", "Policy Number", "Claim Number"];
         const csvRows = [headers.join(",")];
 
         stats.forEach((stat) => {
@@ -66,7 +66,8 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                 `"${stat.patientName}"`,
                 stat.admissionDate ? format(new Date(stat.admissionDate), 'yyyy-MM-dd') : 'N/A',
                 `"${stat.tpaName}"`,
-                `"${stat.policyNumber || 'N/A'}"`
+                `"${stat.policyNumber || 'N/A'}"`,
+                `"${stat.claimNumber || 'N/A'}"`
             ];
             csvRows.push(row.join(","));
         });
@@ -127,6 +128,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                     <TableHead>Patient Name</TableHead>
                                     <TableHead>DOA</TableHead>
                                     <TableHead>Policy Number</TableHead>
+                                    <TableHead>Claim Number</TableHead>
                                     <TableHead>TPA / Insurance</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -143,12 +145,13 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                             </TableCell>
                                             <TableCell>{stat.admissionDate ? format(new Date(stat.admissionDate), 'MMM dd, yyyy') : 'N/A'}</TableCell>
                                             <TableCell>{stat.policyNumber || 'N/A'}</TableCell>
+                                            <TableCell>{stat.claimNumber || 'N/A'}</TableCell>
                                             <TableCell>{stat.tpaName}</TableCell>
                                         </TableRow>
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={4} className="h-24 text-center">
+                                        <TableCell colSpan={5} className="h-24 text-center">
                                             No data available for this report.
                                         </TableCell>
                                     </TableRow>
