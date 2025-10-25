@@ -925,7 +925,6 @@ export async function handleSavePodDetails(prevState: { message: string, type?: 
   const userId = formData.get('userId') as string;
   const userName = formData.get('userName') as string;
 
-  const pod_number = formData.get('pod_number') as string;
   const courierName = formData.get('courierName') as string;
   const date = formData.get('date_of_sent') as string;
   const refNo = formData.get('ref_no') as string;
@@ -933,10 +932,7 @@ export async function handleSavePodDetails(prevState: { message: string, type?: 
   const from = formData.get('from') as string;
   const to = formData.get('to') as string;
   const cc = formData.get('cc') as string;
-  const emailBody = formData.get('emailBody') as string;
-
-  const screenshotUrl = formData.get('screenshot_url_url') as string | null;
-  const podCopyUrl = formData.get('pod_copy_url_url') as string | null;
+  const emailBody = formData.get('email_body') as string;
 
   let transaction;
   try {
@@ -967,24 +963,17 @@ export async function handleSavePodDetails(prevState: { message: string, type?: 
     let values = ') VALUES (@preauth_id, @pod_type, @created_by, @tpa_id, @hospital_id, @date_of_sent';
 
     if (podType === 'Courier') {
-      query += ', courier_name, pod_number, pod_copy_url, ref_no';
-      values += ', @courier_name, @pod_number, @pod_copy_url, @ref_no';
+      query += ', courier_name, ref_no';
+      values += ', @courier_name, @ref_no';
       request.input('courier_name', sql.NVarChar, courierName);
-      request.input('pod_number', sql.NVarChar, pod_number);
-      request.input('pod_copy_url', sql.NVarChar, podCopyUrl);
       request.input('ref_no', sql.NVarChar, refNo);
 
     } else if (podType === 'Portal') {
-      query += ', screenshot_url, ref_no';
-      values += ', @screenshot_url, @ref_no';
-      request.input('screenshot_url', sql.NVarChar, screenshotUrl);
-      request.input('ref_no', sql.NVarChar, refNo);
-
+      // No specific fields to add for Portal anymore based on user request
     } else if (podType === 'Email') {
-      query += ', email_body, ref_no'; // Assuming ref_no might be used for email reference as well
-      values += ', @email_body, @ref_no';
+      query += ', email_body';
+      values += ', @email_body';
       request.input('email_body', sql.NVarChar, emailBody);
-      request.input('ref_no', sql.NVarChar, refNo); // Or maybe another field
     }
     
     await request.query(query + values + ')');

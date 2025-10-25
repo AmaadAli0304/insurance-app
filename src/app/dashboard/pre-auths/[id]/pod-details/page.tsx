@@ -217,10 +217,6 @@ export default function PodDetailsPage() {
                                     <Input id="courierName" name="courierName" />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="pod_number">POD Number</Label>
-                                    <Input id="pod_number" name="pod_number" />
-                                </div>
-                                <div className="space-y-2">
                                     <Label htmlFor="refNo">Ref No</Label>
                                     <Input id="refNo" name="ref_no" />
                                 </div>
@@ -239,7 +235,6 @@ export default function PodDetailsPage() {
                                         <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={date} onSelect={setDate} initialFocus /></PopoverContent>
                                     </Popover>
                                 </div>
-                                <FileUpload label="POD Copy" name="pod_copy_url" onUploadComplete={handleDocumentUploadComplete} />
                             </div>
                         </div>
                     )}
@@ -259,11 +254,6 @@ export default function PodDetailsPage() {
                                     <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={date} onSelect={setDate} initialFocus /></PopoverContent>
                                 </Popover>
                             </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="refNo">Reference Number</Label>
-                                <Input id="refNo" name="ref_no" />
-                            </div>
-                             <FileUpload label="Screenshot Upload" name="screenshot_url" onUploadComplete={handleDocumentUploadComplete} isRequired />
                         </div>
                     )}
 
