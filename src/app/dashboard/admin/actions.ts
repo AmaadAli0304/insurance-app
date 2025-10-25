@@ -625,5 +625,136 @@ export async function getNewReportStats(
     }
 }
     
+export type ComprehensiveClaimDetail = {
+    patientName: string;
+    patientPhoto: string | null;
+    admissionDate: string | null;
+    policyNumber: string | null;
+    claimNumber: string | null;
+    tpaName: string | null;
+    insuranceCo: string | null;
+    hospitalExp: number | null;
+    pharmacyExp: number | null;
+    labExp: number | null;
+    imagingExp: number | null;
+    implantCharges: number | null;
+    totalBillAmt: number | null;
+    tpaApprovedAmt: number | null;
+    discountAmt: number | null;
+    coPay: number | null;
+    tariffExcess: number | null;
+    deductions: number | null;
+    status: string | null;
+    amountBeforeTDS: number | null;
+    amountAfterTDS: number | null;
+    tds: number | null;
+    deductionByInsuranceCo: number | null;
+    actualSettlementDate: string | null;
+    utrNo: string | null;
+    podDetails: string | null;
+};
 
-```
+export async function getComprehensiveClaimDetails(
+  dateRange?: DateRange,
+  page: number = 1,
+  limit: number = 10
+): Promise<{ stats: ComprehensiveClaimDetail[]; total: number }> {
+    try {
+        const pool = await getDbPool();
+        const request = pool.request();
+        const countRequest = pool.request();
+
+        let whereClauses: string[] = [];
+
+        if (dateRange?.from) {
+            const toDate = dateRange.to || new Date();
+            request.input('dateFrom', sql.DateTime, dateRange.from);
+            countRequest.input('dateFrom', sql.DateTime, dateRange.from);
+            request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+            countRequest.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+            whereClauses.push("pr.created_at BETWEEN @dateFrom AND @dateTo");
+        }
+
+        const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
+        const countQuery = `SELECT COUNT(*) as total FROM preauth_request pr ${whereClause}`;
+        const totalResult = await countRequest.query(countQuery);
+        const total = totalResult.recordset[0].total;
+
+        const offset = (page - 1) * limit;
+        request.input('offset', sql.Int, offset);
+        request.input('limit', sql.Int, limit);
+
+        const query = `
+            SELECT
+                p.first_name + ' ' + p.last_name AS patientName,
+                p.photo AS patientPhoto,
+                pr.admissionDate,
+                pr.policy_number AS policyNumber,
+                pr.claim_id AS claimNumber,
+                tpa.name AS tpaName,
+                cmp.name AS insuranceCo,
+                
+                -- Aggregated expenses
+                (pr.roomNursingDietCost + pr.otCost + pr.professionalFees + pr.otherHospitalExpenses) as hospitalExp,
+                pr.medicineCost AS pharmacyExp,
+                (SELECT SUM(c.lab_bill) FROM claims c WHERE c.admission_id = pr.admission_id) as labExp,
+                (SELECT SUM(c.mri_charges + c.ct_scan_charges) FROM claims c WHERE c.admission_id = pr.admission_id) as imagingExp,
+                (SELECT SUM(c.implant_bill) FROM claims c WHERE c.admission_id = pr.admission_id) as implantCharges,
+                
+                -- Amounts from 'Final Approval'
+                fa.final_bill AS totalBillAmt,
+                fa.final_amount AS tpaApprovedAmt,
+                fa.hospital_discount AS discountAmt,
+                fa.co_pay AS coPay,
+                fa.amount as tariffExcess,
+                fa.nm_deductions AS deductions,
+                
+                pr.status,
+                
+                -- Amounts from 'Settled'
+                s.final_settle_amount AS amountBeforeTDS,
+                s.amount AS amountAfterTDS,
+                s.tds,
+                s.nm_deductions AS deductionByInsuranceCo,
+                s.date_settlement AS actualSettlementDate,
+                s.utr_no AS utrNo,
+                
+                pod.ref_no AS podDetails
+            FROM preauth_request pr
+            LEFT JOIN patients p ON pr.patient_id = p.id
+            LEFT JOIN tpas tpa ON pr.tpa_id = tpa.id
+            LEFT JOIN companies cmp ON pr.company_id = cmp.id
+            LEFT JOIN claims fa ON pr.admission_id = fa.admission_id AND fa.status = 'Final Approval'
+            LEFT JOIN claims s ON pr.admission_id = s.admission_id AND s.status = 'Settled'
+            LEFT JOIN pod_details pod ON pr.id = pod.preauth_id
+            ${whereClause}
+            ORDER BY pr.created_at DESC
+            OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
+        `;
+        
+        const result = await request.query(query);
+
+        const stats = result.recordset.map(row => {
+            let photoUrl = null;
+            if (row.patientPhoto) {
+                try {
+                    const parsed = JSON.parse(row.patientPhoto);
+                    photoUrl = parsed.url;
+                } catch {
+                    photoUrl = typeof row.patientPhoto === 'string' && row.patientPhoto.startsWith('http') ? row.patientPhoto : null;
+                }
+            }
+            return {
+                ...row,
+                patientPhoto: photoUrl
+            };
+        });
+
+        return { stats, total };
+
+    } catch (error) {
+        console.error('Error fetching comprehensive claim details:', error);
+        throw new Error('Failed to fetch comprehensive claim details.');
+    }
+}
