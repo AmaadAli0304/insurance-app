@@ -59,7 +59,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
     }
 
     const handleExport = () => {
-        const headers = ["Patient Name", "DOA", "TPA / Insurance", "Policy Number", "Claim Number", "Tariff Excess", "Deductions"];
+        const headers = ["Patient Name", "DOA", "TPA / Insurance", "Policy Number", "Claim Number", "Tariff Excess", "Deductions", "Amount Before TDS"];
         const csvRows = [headers.join(",")];
 
         stats.forEach((stat) => {
@@ -71,6 +71,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                 `"${stat.claimNumber || 'N/A'}"`,
                 stat.tariffExcess || 0,
                 stat.deductions || 0,
+                stat.amountBeforeTds || 0,
             ];
             csvRows.push(row.join(","));
         });
@@ -135,6 +136,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                     <TableHead>TPA / Insurance</TableHead>
                                     <TableHead className="text-right">Tariff Excess</TableHead>
                                     <TableHead className="text-right">Deductions</TableHead>
+                                    <TableHead className="text-right">Amount Before TDS</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -154,11 +156,12 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                             <TableCell>{stat.tpaName}</TableCell>
                                             <TableCell className="text-right font-mono">{stat.tariffExcess?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                             <TableCell className="text-right font-mono">{stat.deductions?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                            <TableCell className="text-right font-mono">{stat.amountBeforeTds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                         </TableRow>
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={7} className="h-24 text-center">
+                                        <TableCell colSpan={8} className="h-24 text-center">
                                             No data available for this report.
                                         </TableCell>
                                     </TableRow>
