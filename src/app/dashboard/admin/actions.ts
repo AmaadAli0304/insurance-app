@@ -544,19 +544,19 @@ export async function getNewReportStats(
             countRequest.input('dateFrom', sql.DateTime, dateRange.from);
             request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
             countRequest.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-            whereClauses.push('c.created_at BETWEEN @dateFrom AND @dateTo');
+            whereClauses.push('p.created_at BETWEEN @dateFrom AND @dateTo');
         }
 
         if (hospitalId) {
             request.input('hospitalId', sql.NVarChar, hospitalId);
             countRequest.input('hospitalId', sql.NVarChar, hospitalId);
-            whereClauses.push('c.hospital_id = @hospitalId');
+            whereClauses.push('p.hospital_id = @hospitalId');
         }
         
         if (tpaId) {
             request.input('tpaId', sql.Int, Number(tpaId));
             countRequest.input('tpaId', sql.Int, Number(tpaId));
-            whereClauses.push('c.tpa_id = @tpaId');
+            whereClauses.push('pr.tpa_id = @tpaId');
         }
 
         const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
@@ -564,7 +564,7 @@ export async function getNewReportStats(
         const countQuery = `
             SELECT COUNT(DISTINCT p.id) as total
             FROM patients p
-            LEFT JOIN claims c ON p.id = c.Patient_id
+            LEFT JOIN preauth_request pr ON p.id = pr.patient_id
             ${whereClause};
         `;
         const totalResult = await countRequest.query(countQuery);
@@ -575,19 +575,24 @@ export async function getNewReportStats(
         request.input('limit', sql.Int, limit);
 
         const query = `
-            SELECT DISTINCT
-                p.id AS patientId,
-                p.first_name + ' ' + p.last_name AS patientName,
-                p.photo AS patientPhoto,
-                COALESCE(t.name, co.name, 'N/A') as tpaName,
-                pr.admissionDate,
-                pr.policy_number as policyNumber
-            FROM patients p
-            LEFT JOIN claims c ON p.id = c.Patient_id
-            LEFT JOIN preauth_request pr ON c.admission_id = pr.admission_id
-            LEFT JOIN companies co ON pr.company_id = co.id
-            LEFT JOIN tpas t ON c.tpa_id = t.id
-            ${whereClause}
+            WITH RankedData AS (
+                SELECT
+                    p.id AS patientId,
+                    p.first_name + ' ' + p.last_name AS patientName,
+                    p.photo AS patientPhoto,
+                    COALESCE(t.name, co.name, 'N/A') as tpaName,
+                    pr.admissionDate,
+                    pr.policy_number as policyNumber,
+                    ROW_NUMBER() OVER(PARTITION BY p.id ORDER BY pr.created_at DESC) as rn
+                FROM patients p
+                LEFT JOIN preauth_request pr ON p.id = pr.patient_id
+                LEFT JOIN companies co ON pr.company_id = co.id
+                LEFT JOIN tpas t ON pr.tpa_id = t.id
+                ${whereClause}
+            )
+            SELECT *
+            FROM RankedData
+            WHERE rn = 1
             ORDER BY patientName
             OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
         `;
@@ -718,5 +723,7 @@ export async function getComprehensiveClaimDetails(
         throw new Error('Failed to fetch comprehensive claim details.');
     }
 }
+
+    
 
     
