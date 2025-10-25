@@ -143,7 +143,6 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                         <TableHead>DOA</TableHead>
                                         <TableHead>Policy Number</TableHead>
                                         <TableHead>Claim Number</TableHead>
-                                        <TableHead>POD DETAILS</TableHead>
                                         <TableHead>TPA / Insurance</TableHead>
                                         <TableHead className="text-right">Total Bill Amt</TableHead>
                                         <TableHead className="text-right">TPA Approved Amt</TableHead>
@@ -157,6 +156,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                         <TableHead className="text-right">Deduction by Insurance Co.</TableHead>
                                         <TableHead>Actual Settlement Date</TableHead>
                                         <TableHead>BRN / UTR No.</TableHead>
+                                        <TableHead>POD DETAILS</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -173,7 +173,6 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                                 <TableCell>{stat.admissionDate ? format(new Date(stat.admissionDate), 'MMM dd, yyyy') : 'N/A'}</TableCell>
                                                 <TableCell>{stat.policyNumber || 'N/A'}</TableCell>
                                                 <TableCell>{stat.claimNumber || 'N/A'}</TableCell>
-                                                <TableCell>{stat.podDetails || 'N/A'}</TableCell>
                                                 <TableCell>{stat.tpaName}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.totalBillAmount?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.tpaApprovedAmount?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
@@ -187,6 +186,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                                 <TableCell className="text-right font-mono">{stat.insuranceDeduction?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell>{stat.actualSettlementDate ? format(new Date(stat.actualSettlementDate), 'MMM dd, yyyy') : 'N/A'}</TableCell>
                                                 <TableCell>{stat.utrNumber || 'N/A'}</TableCell>
+                                                <TableCell>{stat.podDetails || 'N/A'}</TableCell>
                                             </TableRow>
                                         ))
                                     ) : (
