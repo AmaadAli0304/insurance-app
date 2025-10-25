@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -58,7 +59,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
     }
 
     const handleExport = () => {
-        const headers = ["Patient Name", "DOA", "TPA / Insurance", "Policy Number", "Claim Number"];
+        const headers = ["Patient Name", "DOA", "TPA / Insurance", "Policy Number", "Claim Number", "Tariff Excess"];
         const csvRows = [headers.join(",")];
 
         stats.forEach((stat) => {
@@ -67,7 +68,8 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                 stat.admissionDate ? format(new Date(stat.admissionDate), 'yyyy-MM-dd') : 'N/A',
                 `"${stat.tpaName}"`,
                 `"${stat.policyNumber || 'N/A'}"`,
-                `"${stat.claimNumber || 'N/A'}"`
+                `"${stat.claimNumber || 'N/A'}"`,
+                stat.tariffExcess || 0
             ];
             csvRows.push(row.join(","));
         });
@@ -130,6 +132,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                     <TableHead>Policy Number</TableHead>
                                     <TableHead>Claim Number</TableHead>
                                     <TableHead>TPA / Insurance</TableHead>
+                                    <TableHead className="text-right">Tariff Excess</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -147,11 +150,12 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                             <TableCell>{stat.policyNumber || 'N/A'}</TableCell>
                                             <TableCell>{stat.claimNumber || 'N/A'}</TableCell>
                                             <TableCell>{stat.tpaName}</TableCell>
+                                            <TableCell className="text-right font-mono">{stat.tariffExcess?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                         </TableRow>
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="h-24 text-center">
+                                        <TableCell colSpan={6} className="h-24 text-center">
                                             No data available for this report.
                                         </TableCell>
                                     </TableRow>

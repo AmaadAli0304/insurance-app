@@ -1,4 +1,5 @@
 
+
 "use server";
 
 import { getDbPool, sql } from '@/lib/db';
@@ -523,6 +524,7 @@ export type NewReportStat = {
   admissionDate: string | null;
   policyNumber: string | null;
   claimNumber: string | null;
+  tariffExcess: number | null;
 };
 
 export async function getNewReportStats(
@@ -585,6 +587,12 @@ export async function getNewReportStats(
                     pr.admissionDate,
                     pr.policy_number as policyNumber,
                     pr.claim_id as claimNumber,
+                    (
+                        SELECT TOP 1 c.amount 
+                        FROM claims c 
+                        WHERE c.Patient_id = p.id AND c.status = 'Final Approval'
+                        ORDER BY c.created_at DESC
+                    ) as tariffExcess,
                     ROW_NUMBER() OVER(PARTITION BY p.id ORDER BY pr.created_at DESC) as rn
                 FROM patients p
                 LEFT JOIN preauth_request pr ON p.id = pr.patient_id
@@ -665,7 +673,7 @@ export async function getComprehensiveClaimDetails(
 
         const query = `
             SELECT
-                p.first_name + ' ' + p.last_name AS patientName,
+                pr.first_name + ' ' + pr.last_name AS patientName,
                 p.photo AS patientPhoto,
                 pr.admissionDate,
                 pr.policy_number AS policyNumber,
@@ -706,7 +714,3 @@ export async function getComprehensiveClaimDetails(
         throw new Error('Failed to fetch comprehensive claim details.');
     }
 }
-
-    
-
-    
