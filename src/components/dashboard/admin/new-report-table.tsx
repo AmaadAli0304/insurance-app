@@ -59,7 +59,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
     }
 
     const handleExport = () => {
-        const headers = ["Patient Name", "DOA", "TPA / Insurance", "Policy Number", "Claim Number", "Tariff Excess", "Deductions", "Amount Before TDS", "Amount After TDS"];
+        const headers = ["Patient Name", "DOA", "TPA / Insurance", "Policy Number", "Claim Number", "Tariff Excess", "Deductions", "TDS", "Amount Before TDS", "Amount After TDS"];
         const csvRows = [headers.join(",")];
 
         stats.forEach((stat) => {
@@ -71,6 +71,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                 `"${stat.claimNumber || 'N/A'}"`,
                 stat.tariffExcess || 0,
                 stat.deductions || 0,
+                stat.tds || 0,
                 stat.amountBeforeTds || 0,
                 stat.amountAfterTds || 0,
             ];
@@ -137,6 +138,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                     <TableHead>TPA / Insurance</TableHead>
                                     <TableHead className="text-right">Tariff Excess</TableHead>
                                     <TableHead className="text-right">Deductions</TableHead>
+                                    <TableHead className="text-right">TDS</TableHead>
                                     <TableHead className="text-right">Amount Before TDS</TableHead>
                                     <TableHead className="text-right">Amount After TDS</TableHead>
                                 </TableRow>
@@ -158,13 +160,14 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                             <TableCell>{stat.tpaName}</TableCell>
                                             <TableCell className="text-right font-mono">{stat.tariffExcess?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                             <TableCell className="text-right font-mono">{stat.deductions?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                            <TableCell className="text-right font-mono">{stat.tds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                             <TableCell className="text-right font-mono">{stat.amountBeforeTds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                             <TableCell className="text-right font-mono">{stat.amountAfterTds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                         </TableRow>
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={9} className="h-24 text-center">
+                                        <TableCell colSpan={10} className="h-24 text-center">
                                             No data available for this report.
                                         </TableCell>
                                     </TableRow>

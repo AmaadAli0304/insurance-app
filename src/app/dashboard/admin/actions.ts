@@ -526,6 +526,7 @@ export type NewReportStat = {
   claimNumber: string | null;
   tariffExcess: number | null;
   deductions: number | null;
+  tds: number | null;
   amountBeforeTds: number | null;
   amountAfterTds: number | null;
 };
@@ -614,6 +615,12 @@ export async function getNewReportStats(
                         WHERE c.Patient_id = p.id AND c.status = 'Settled'
                         ORDER BY c.created_at DESC
                     ) as amountAfterTds,
+                    (
+                        SELECT TOP 1 c.tds
+                        FROM claims c 
+                        WHERE c.Patient_id = p.id AND c.status = 'Settled'
+                        ORDER BY c.created_at DESC
+                    ) as tds,
                     ROW_NUMBER() OVER(PARTITION BY p.id ORDER BY pr.created_at DESC) as rn
                 FROM patients p
                 LEFT JOIN preauth_request pr ON p.id = pr.patient_id
