@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -73,7 +74,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
     }, [loadData, user]);
     
     const handleExport = () => {
-        const headers = ["Patient Name", "Status", "DOA", "Dr in Charge", "Room Category", "Budget", "TPA", "Insurance", "Plan of Management", "Year/Corporate"];
+        const headers = ["Patient Name", "Status", "DOA", "Dr in Charge", "Room Category", "Budget", "TPA", "Insurance", "Plan of Management", "Sum Insured", "Year/Corporate"];
         const csvRows = [headers.join(",")];
 
         stats.forEach((stat) => {
@@ -87,6 +88,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                 `"${stat.tpaName}"`,
                 `"${stat.insuranceName}"`,
                 `"${stat.planOfManagement || 'N/A'}"`,
+                stat.sumInsured || 0,
                 `"${stat.corporatePolicyNumber || 'N/A'}"`,
             ];
             csvRows.push(row.join(","));
@@ -144,6 +146,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                                 <TableHead>TPA</TableHead>
                                 <TableHead>Insurance</TableHead>
                                 <TableHead>Plan of Management</TableHead>
+                                <TableHead>Sum Insured</TableHead>
                                 <TableHead>Year/Corporate</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Dr in Charge</TableHead>
@@ -166,6 +169,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                                         <TableCell>{stat.tpaName}</TableCell>
                                         <TableCell>{stat.insuranceName}</TableCell>
                                         <TableCell>{stat.planOfManagement || 'N/A'}</TableCell>
+                                        <TableCell className="text-right font-mono">{stat.sumInsured?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                         <TableCell>{stat.corporatePolicyNumber || 'N/A'}</TableCell>
                                         <TableCell>
                                             <Badge className={cn(getStatusVariant(stat.status as PreAuthStatus), 'border-transparent')}>
@@ -179,7 +183,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={10} className="h-24 text-center">
+                                    <TableCell colSpan={11} className="h-24 text-center">
                                         No pre-authorization data available for the selected period.
                                     </TableCell>
                                 </TableRow>

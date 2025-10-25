@@ -1,4 +1,5 @@
 
+
 "use server";
 
 import { getDbPool, sql } from '@/lib/db';
@@ -432,6 +433,7 @@ export type PreAuthSummaryStat = {
   roomCategory: string | null;
   budget: number | null;
   planOfManagement: string | null;
+  sumInsured: number | null;
 };
 
 export async function getPreAuthSummaryStats(
@@ -484,6 +486,7 @@ export async function getPreAuthSummaryStats(
                 pr.treat_doc_name as doctorInCharge,
                 pr.roomCategory,
                 pr.totalExpectedCost as budget,
+                pr.sum_insured as sumInsured,
                 CONCAT_WS(', ', 
                     NULLIF(pr.treatmentMedical, ''), 
                     NULLIF(pr.treatmentSurgical, ''), 
