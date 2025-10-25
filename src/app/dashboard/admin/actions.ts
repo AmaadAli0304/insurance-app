@@ -427,6 +427,7 @@ export type PreAuthSummaryStat = {
   admissionDate: string | null;
   tpaName: string;
   insuranceName: string;
+  corporatePolicyNumber: string | null;
   doctorInCharge: string | null;
   roomCategory: string | null;
   budget: number | null;
@@ -478,6 +479,7 @@ export async function getPreAuthSummaryStats(
                 pr.admissionDate,
                 COALESCE(t.name, 'N/A') as tpaName,
                 COALESCE(c.name, 'N/A') as insuranceName,
+                pr.corporate_policy_number as corporatePolicyNumber,
                 pr.treat_doc_name as doctorInCharge,
                 pr.roomCategory,
                 pr.totalExpectedCost as budget

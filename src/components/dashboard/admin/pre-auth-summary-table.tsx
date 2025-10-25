@@ -73,7 +73,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
     }, [loadData, user]);
     
     const handleExport = () => {
-        const headers = ["Patient Name", "Status", "DOA", "Dr in Charge", "Room Category", "Budget", "TPA", "Insurance"];
+        const headers = ["Patient Name", "Status", "DOA", "Dr in Charge", "Room Category", "Budget", "TPA", "Insurance", "Year/Corporate"];
         const csvRows = [headers.join(",")];
 
         stats.forEach((stat) => {
@@ -86,6 +86,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                 stat.budget || 0,
                 `"${stat.tpaName}"`,
                 `"${stat.insuranceName}"`,
+                `"${stat.corporatePolicyNumber || 'N/A'}"`,
             ];
             csvRows.push(row.join(","));
         });
@@ -141,6 +142,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                                 <TableHead>DOA</TableHead>
                                 <TableHead>TPA</TableHead>
                                 <TableHead>Insurance</TableHead>
+                                <TableHead>Year/Corporate</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Dr in Charge</TableHead>
                                 <TableHead>Room Category</TableHead>
@@ -161,6 +163,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                                         <TableCell>{stat.admissionDate ? format(new Date(stat.admissionDate), 'MMM dd, yyyy') : 'N/A'}</TableCell>
                                         <TableCell>{stat.tpaName}</TableCell>
                                         <TableCell>{stat.insuranceName}</TableCell>
+                                        <TableCell>{stat.corporatePolicyNumber || 'N/A'}</TableCell>
                                         <TableCell>
                                             <Badge className={cn(getStatusVariant(stat.status as PreAuthStatus), 'border-transparent')}>
                                                 {stat.status}
@@ -173,7 +176,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={8} className="h-24 text-center">
+                                    <TableCell colSpan={9} className="h-24 text-center">
                                         No pre-authorization data available for the selected period.
                                     </TableCell>
                                 </TableRow>
