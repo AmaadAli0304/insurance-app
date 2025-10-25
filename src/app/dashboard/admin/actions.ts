@@ -520,6 +520,7 @@ export type NewReportStat = {
   patientName: string;
   patientPhoto: string | null;
   tpaName: string;
+  insuranceCoName: string | null;
   admissionDate: string | null;
   dischargeDate: string | null;
   policyNumber: string | null;
@@ -602,6 +603,7 @@ export async function getNewReportStats(
                     p.first_name + ' ' + p.last_name AS patientName,
                     p.photo AS patientPhoto,
                     COALESCE(t.name, co.name, 'N/A') as tpaName,
+                    co.name as insuranceCoName,
                     pr.admissionDate,
                     (SELECT TOP 1 c.created_at FROM claims c WHERE c.Patient_id = p.id AND c.status = 'Final Discharge sent' ORDER BY c.created_at DESC) as dischargeDate,
                     pr.policy_number as policyNumber,
@@ -836,7 +838,3 @@ export async function getComprehensiveClaimDetails(
         throw new Error('Failed to fetch comprehensive claim details.');
     }
 }
-
-    
-
-    

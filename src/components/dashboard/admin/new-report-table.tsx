@@ -69,7 +69,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
     }
 
     const handleExport = () => {
-        const headers = ["Patient Name", "DOA", "DOD", "Policy Number", "Claim Number", "TPA / Insurance", "Hospital Exp", "USG/2DECHO/EEG", "X-Ray", "MRI/CT Scan", "Lab Exp", "Pharmacy Ex", "Implant Charges", "Total Bill Amt", "TPA Approved Amt", "Co-Pay", "Tariff Excess", "Deductions", "Discount Amt", "Amount Before TDS", "TDS", "Amount After TDS", "Deduction by Insurance Co.", "Actual Settlement Date", "BRN / UTR No.", "POD DETAILS"];
+        const headers = ["Patient Name", "DOA", "DOD", "Policy Number", "Claim Number", "TPA / Insurance", "Insurance Co", "Hospital Exp", "USG/2DECHO/EEG", "X-Ray", "MRI/CT Scan", "Lab Exp", "Pharmacy Ex", "Implant Charges", "Total Bill Amt", "TPA Approved Amt", "Co-Pay", "Tariff Excess", "Deductions", "Discount Amt", "Amount Before TDS", "TDS", "Amount After TDS", "Deduction by Insurance Co.", "Actual Settlement Date", "BRN / UTR No.", "POD DETAILS"];
         const csvRows = [headers.join(",")];
 
         stats.forEach((stat) => {
@@ -81,6 +81,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                 `"${stat.policyNumber || 'N/A'}"`,
                 `"${stat.claimNumber || 'N/A'}"`,
                 `"${stat.tpaName}"`,
+                `"${stat.insuranceCoName || 'N/A'}"`,
                 hospitalExp,
                 stat.usgCharges || 0,
                 stat.xrayCharges || 0,
@@ -165,6 +166,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                         <TableHead>Policy Number</TableHead>
                                         <TableHead>Claim Number</TableHead>
                                         <TableHead>TPA / Insurance</TableHead>
+                                        <TableHead>Insurance Co</TableHead>
                                         <TableHead className="text-right">Hospital Exp</TableHead>
                                         <TableHead className="text-right">USG/2DECHO/EEG</TableHead>
                                         <TableHead className="text-right">X-Ray</TableHead>
@@ -203,6 +205,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                                 <TableCell>{stat.policyNumber || 'N/A'}</TableCell>
                                                 <TableCell>{stat.claimNumber || 'N/A'}</TableCell>
                                                 <TableCell>{stat.tpaName}</TableCell>
+                                                <TableCell>{stat.insuranceCoName || 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{calculateHospitalExp(stat).toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.usgCharges?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.xrayCharges?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
@@ -264,9 +267,3 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
         </Card>
     );
 }
-
-    
-
-    
-
-    
