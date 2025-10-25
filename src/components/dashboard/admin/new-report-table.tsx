@@ -156,7 +156,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                     </div>
                 ) : (
                     <>
-                        <Table className="min-w-[2000px]">
+                        <Table className="min-w-[3000px]">
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Patient Name</TableHead>
