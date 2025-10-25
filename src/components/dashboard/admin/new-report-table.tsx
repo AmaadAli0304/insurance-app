@@ -198,8 +198,8 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                                 </Avatar>
                                                 {stat.patientName}
                                                 </TableCell>
-                                                <TableCell>{stat.admissionDate ? format(new Date(stat.admissionDate), 'MMM dd, yyyy') : 'N/A'}</TableCell>
-                                                <TableCell>{stat.dischargeDate ? format(new Date(stat.dischargeDate), 'MMM dd, yyyy') : 'N/A'}</TableCell>
+                                                <TableCell>{stat.admissionDate ? format(new Date(stat.admissionDate), 'yyyy-MM-dd') : 'N/A'}</TableCell>
+                                                <TableCell>{stat.dischargeDate ? format(new Date(stat.dischargeDate), 'yyyy-MM-dd') : 'N/A'}</TableCell>
                                                 <TableCell>{stat.policyNumber || 'N/A'}</TableCell>
                                                 <TableCell>{stat.claimNumber || 'N/A'}</TableCell>
                                                 <TableCell>{stat.tpaName}</TableCell>
@@ -220,7 +220,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                                 <TableCell className="text-right font-mono">{stat.tds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.amountAfterTds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.insuranceDeduction?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                                <TableCell>{stat.actualSettlementDate ? format(new Date(stat.actualSettlementDate), 'MMM dd, yyyy') : 'N/A'}</TableCell>
+                                                <TableCell>{stat.actualSettlementDate ? format(new Date(stat.actualSettlementDate), 'yyyy-MM-dd') : 'N/A'}</TableCell>
                                                 <TableCell>{stat.utrNumber || 'N/A'}</TableCell>
                                                 <TableCell>{stat.podDetails || 'N/A'}</TableCell>
                                             </TableRow>
