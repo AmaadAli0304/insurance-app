@@ -138,6 +138,7 @@ export default function ViewClaimPage() {
                                 <DetailItem label="MRI Charges" value={claim.mri_charges} isCurrency />
                                 <DetailItem label="USG Charges" value={claim.usg_charges} isCurrency />
                                 <DetailItem label="X-Ray Charges" value={claim.xray_charges} isCurrency />
+                                <DetailItem label="Implant Charges" value={claim.implant_charges} isCurrency />
                                 <DetailItem label="Other Charges" value={claim.other_charges} isCurrency />
                                 <DetailItem label="MOU Discount" value={claim.mou_discount} isCurrency />
                             </CardContent>
