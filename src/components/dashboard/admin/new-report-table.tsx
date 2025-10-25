@@ -57,17 +57,30 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
         return name.split(' ').map(n => n[0]).join('').toUpperCase();
     }
 
+    const calculateHospitalExp = (stat: NewReportStat) => {
+        const totalBill = stat.totalBillAmount || 0;
+        const usg = stat.usgCharges || 0;
+        const xray = stat.xrayCharges || 0;
+        const mri = stat.mriCharges || 0;
+        const lab = stat.labCharges || 0;
+        const pharmacy = stat.pharmacyCharges || 0;
+        const implant = stat.implantCharges || 0;
+        return totalBill - usg - xray - mri - lab - pharmacy - implant;
+    }
+
     const handleExport = () => {
-        const headers = ["Patient Name", "DOA", "Policy Number", "Claim Number", "TPA / Insurance", "USG/2DECHO/EEG", "X-Ray", "MRI/CT Scan", "Lab Exp", "Pharmacy Ex", "Implant Charges", "Total Bill Amt", "TPA Approved Amt", "Discount Amt", "Co-Pay", "Deductions", "Tariff Excess", "Amount Before TDS", "TDS", "Amount After TDS", "Deduction by Insurance Co.", "Actual Settlement Date", "BRN / UTR No.", "POD DETAILS"];
+        const headers = ["Patient Name", "DOA", "Policy Number", "Claim Number", "TPA / Insurance", "Hospital Exp", "USG/2DECHO/EEG", "X-Ray", "MRI/CT Scan", "Lab Exp", "Pharmacy Ex", "Implant Charges", "Total Bill Amt", "TPA Approved Amt", "Discount Amt", "Co-Pay", "Deductions", "Tariff Excess", "Amount Before TDS", "TDS", "Amount After TDS", "Deduction by Insurance Co.", "Actual Settlement Date", "BRN / UTR No.", "POD DETAILS"];
         const csvRows = [headers.join(",")];
 
         stats.forEach((stat) => {
+            const hospitalExp = calculateHospitalExp(stat);
             const row = [
                 `"${stat.patientName}"`,
                 stat.admissionDate ? format(new Date(stat.admissionDate), 'yyyy-MM-dd') : 'N/A',
                 `"${stat.policyNumber || 'N/A'}"`,
                 `"${stat.claimNumber || 'N/A'}"`,
                 `"${stat.tpaName}"`,
+                hospitalExp,
                 stat.usgCharges || 0,
                 stat.xrayCharges || 0,
                 stat.mriCharges || 0,
@@ -150,6 +163,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                         <TableHead>Policy Number</TableHead>
                                         <TableHead>Claim Number</TableHead>
                                         <TableHead>TPA / Insurance</TableHead>
+                                        <TableHead className="text-right">Hospital Exp</TableHead>
                                         <TableHead className="text-right">USG/2DECHO/EEG</TableHead>
                                         <TableHead className="text-right">X-Ray</TableHead>
                                         <TableHead className="text-right">MRI/CT Scan</TableHead>
@@ -186,6 +200,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                                 <TableCell>{stat.policyNumber || 'N/A'}</TableCell>
                                                 <TableCell>{stat.claimNumber || 'N/A'}</TableCell>
                                                 <TableCell>{stat.tpaName}</TableCell>
+                                                <TableCell className="text-right font-mono">{calculateHospitalExp(stat).toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.usgCharges?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.xrayCharges?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.mriCharges?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
@@ -209,7 +224,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                         ))
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={24} className="h-24 text-center">
+                                            <TableCell colSpan={25} className="h-24 text-center">
                                                 No data available for this report.
                                             </TableCell>
                                         </TableRow>
@@ -246,5 +261,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
         </Card>
     );
 }
+
+    
 
     
