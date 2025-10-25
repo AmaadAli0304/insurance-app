@@ -527,6 +527,7 @@ export type NewReportStat = {
   tpaApprovedAmount: number | null;
   tariffExcess: number | null;
   deductions: number | null;
+  discountAmount: number | null;
   tds: number | null;
   amountBeforeTds: number | null;
   amountAfterTds: number | null;
@@ -619,6 +620,12 @@ export async function getNewReportStats(
                         WHERE c.Patient_id = p.id AND c.status = 'Final Approval'
                         ORDER BY c.created_at DESC
                     ) as deductions,
+                    (
+                        SELECT TOP 1 c.hospital_discount
+                        FROM claims c 
+                        WHERE c.Patient_id = p.id AND c.status = 'Final Approval'
+                        ORDER BY c.created_at DESC
+                    ) as discountAmount,
                     (
                         SELECT TOP 1 c.final_settle_amount
                         FROM claims c 
