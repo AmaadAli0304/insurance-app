@@ -704,7 +704,7 @@ export async function getNewReportStats(
                         ORDER BY c.created_at DESC
                     ) as insuranceDeduction,
                     (
-                        SELECT TOP 1 c.date_settlement
+                        SELECT TOP 1 c.created_at
                         FROM claims c 
                         WHERE c.Patient_id = p.id AND c.status = 'Settled'
                         ORDER BY c.created_at DESC
