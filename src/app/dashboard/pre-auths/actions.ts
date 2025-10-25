@@ -939,19 +939,38 @@ export async function handleSavePodDetails(prevState: { message: string, type?: 
   const to = formData.get('to') as string;
   const cc = formData.get('cc') as string;
   const emailBody = formData.get('email_body') as string;
+  const podNumber = formData.get('pod_number') as string;
 
+  const podCopyUrl = formData.get('pod_copy_url') as string;
+  const podCopyName = formData.get('pod_copy_name') as string;
+  const screenshotUrl = formData.get('screenshot_url') as string;
+  const screenshotName = formData.get('screenshot_name') as string;
+  
   let transaction;
   try {
     const pool = await getDbPool();
     
     const requestDetailsResult = await pool.request()
         .input('requestId', sql.Int, Number(requestId))
-        .query(`SELECT hospital_id, tpa_id FROM preauth_request WHERE id = @requestId`);
+        .query(`SELECT pr.*, h.name as hospitalName, h.mailtrap_token as mailtrapToken FROM preauth_request pr JOIN hospitals h ON pr.hospital_id = h.id WHERE pr.id = @requestId`);
 
     if (requestDetailsResult.recordset.length === 0) {
         throw new Error("Pre-auth request not found.");
     }
-    const { hospital_id, tpa_id } = requestDetailsResult.recordset[0];
+    const { hospital_id, tpa_id, hospitalName, mailtrapToken } = requestDetailsResult.recordset[0];
+    
+    if (podType === 'Email') {
+        await sendPreAuthEmail({
+            fromName: hospitalName,
+            fromEmail: from,
+            to: to,
+            cc: cc,
+            subject: 'POD Details Submission',
+            html: emailBody,
+            attachments: [], // Simplified for now, can be extended to handle file uploads
+            token: mailtrapToken
+        });
+    }
 
     transaction = new sql.Transaction(pool);
     await transaction.begin();
