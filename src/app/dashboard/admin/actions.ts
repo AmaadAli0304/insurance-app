@@ -491,7 +491,7 @@ export async function getPreAuthSummaryStats(
                 (
                     SELECT ISNULL(SUM(cl.amount), 0)
                     FROM claims cl
-                    WHERE cl.admission_id = pr.admission_id
+                    WHERE cl.patient_id= p.id
                     AND cl.status IN ('Initial Approval', 'Final Approval', 'Enhancement Approval')
                 ) as approvalAmount,
                 CONCAT_WS(', ', 
