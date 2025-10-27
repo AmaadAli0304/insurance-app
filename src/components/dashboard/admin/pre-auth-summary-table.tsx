@@ -74,7 +74,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
     }, [loadData, user]);
     
     const handleExport = () => {
-        const headers = ["Patient Name", "Status", "DOA", "Dr in Charge", "Room Category", "Budget", "TPA", "Insurance", "Plan of Management", "Sum Insured", "Year/Corporate"];
+        const headers = ["Patient Name", "Status", "DOA", "Dr in Charge", "Room Category", "Budget", "Approval Amount", "TPA", "Insurance", "Plan of Management", "Sum Insured", "Year/Corporate"];
         const csvRows = [headers.join(",")];
 
         stats.forEach((stat) => {
@@ -85,9 +85,10 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                 `"${stat.doctorInCharge || 'N/A'}"`,
                 `"${stat.roomCategory || 'N/A'}"`,
                 stat.budget || 0,
+                stat.approvalAmount || 0,
                 `"${stat.tpaName}"`,
                 `"${stat.insuranceName}"`,
-                `"${stat.planOfManagement || 'N/A'}"`,
+                `"${(stat.planOfManagement || 'N/A').replace(/"/g, '""')}"`,
                 stat.sumInsured || 0,
                 `"${stat.corporatePolicyNumber || 'N/A'}"`,
             ];
@@ -138,58 +139,62 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                     </div>
                 ) : (
                     <>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Patient Name</TableHead>
-                                <TableHead>DOA</TableHead>
-                                <TableHead>TPA</TableHead>
-                                <TableHead>Insurance</TableHead>
-                                <TableHead>Plan of Management</TableHead>
-                                <TableHead>Sum Insured</TableHead>
-                                <TableHead>Year/Corporate</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Dr in Charge</TableHead>
-                                <TableHead>Room Category</TableHead>
-                                <TableHead>Budget</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {stats && stats.length > 0 ? (
-                                stats.map((stat, index) => (
-                                    <TableRow key={index}>
-                                        <TableCell className="font-medium flex items-center gap-3">
-                                            <Avatar className="h-10 w-10">
-                                                <AvatarImage src={stat.patientPhoto ?? undefined} alt={stat.patientName} />
-                                                <AvatarFallback>{getInitials(stat.patientName)}</AvatarFallback>
-                                            </Avatar>
-                                            {stat.patientName}
-                                        </TableCell>
-                                        <TableCell>{stat.admissionDate ? format(new Date(stat.admissionDate), 'MMM dd, yyyy') : 'N/A'}</TableCell>
-                                        <TableCell>{stat.tpaName}</TableCell>
-                                        <TableCell>{stat.insuranceName}</TableCell>
-                                        <TableCell>{stat.planOfManagement || 'N/A'}</TableCell>
-                                        <TableCell className="text-right font-mono">{stat.sumInsured?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                        <TableCell>{stat.corporatePolicyNumber || 'N/A'}</TableCell>
-                                        <TableCell>
-                                            <Badge className={cn(getStatusVariant(stat.status as PreAuthStatus), 'border-transparent')}>
-                                                {stat.status}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>{stat.doctorInCharge || 'N/A'}</TableCell>
-                                        <TableCell>{stat.roomCategory || 'N/A'}</TableCell>
-                                        <TableCell className="text-right font-mono">{stat.budget?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                    </TableRow>
-                                ))
-                            ) : (
+                    <div className="overflow-x-auto">
+                        <Table className="min-w-[1200px]">
+                            <TableHeader>
                                 <TableRow>
-                                    <TableCell colSpan={11} className="h-24 text-center">
-                                        No pre-authorization data available for the selected period.
-                                    </TableCell>
+                                    <TableHead>Patient Name</TableHead>
+                                    <TableHead>DOA</TableHead>
+                                    <TableHead>TPA</TableHead>
+                                    <TableHead>Insurance</TableHead>
+                                    <TableHead>Plan of Management</TableHead>
+                                    <TableHead>Sum Insured</TableHead>
+                                    <TableHead>Year/Corporate</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Dr in Charge</TableHead>
+                                    <TableHead>Room Category</TableHead>
+                                    <TableHead>Budget</TableHead>
+                                    <TableHead>Approval Amount</TableHead>
                                 </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {stats && stats.length > 0 ? (
+                                    stats.map((stat, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell className="font-medium flex items-center gap-3">
+                                                <Avatar className="h-10 w-10">
+                                                    <AvatarImage src={stat.patientPhoto ?? undefined} alt={stat.patientName} />
+                                                    <AvatarFallback>{getInitials(stat.patientName)}</AvatarFallback>
+                                                </Avatar>
+                                                {stat.patientName}
+                                            </TableCell>
+                                            <TableCell>{stat.admissionDate ? format(new Date(stat.admissionDate), 'MMM dd, yyyy') : 'N/A'}</TableCell>
+                                            <TableCell>{stat.tpaName}</TableCell>
+                                            <TableCell>{stat.insuranceName}</TableCell>
+                                            <TableCell>{stat.planOfManagement || 'N/A'}</TableCell>
+                                            <TableCell className="text-right font-mono">{stat.sumInsured?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                            <TableCell>{stat.corporatePolicyNumber || 'N/A'}</TableCell>
+                                            <TableCell>
+                                                <Badge className={cn(getStatusVariant(stat.status as PreAuthStatus), 'border-transparent')}>
+                                                    {stat.status}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell>{stat.doctorInCharge || 'N/A'}</TableCell>
+                                            <TableCell>{stat.roomCategory || 'N/A'}</TableCell>
+                                            <TableCell className="text-right font-mono">{stat.budget?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                            <TableCell className="text-right font-mono">{stat.approvalAmount?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={12} className="h-24 text-center">
+                                            No pre-authorization data available for the selected period.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
                     <div className="flex items-center justify-end space-x-2 py-4">
                         <Button variant="outline" size="sm" onClick={handlePrevPage} disabled={currentPage === 1}>
                             <ChevronLeft className="h-4 w-4 mr-1" /> Previous

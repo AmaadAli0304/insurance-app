@@ -434,6 +434,7 @@ export type PreAuthSummaryStat = {
   budget: number | null;
   planOfManagement: string | null;
   sumInsured: number | null;
+  approvalAmount: number;
 };
 
 export async function getPreAuthSummaryStats(
@@ -487,6 +488,12 @@ export async function getPreAuthSummaryStats(
                 pr.roomCategory,
                 pr.totalExpectedCost as budget,
                 pr.sum_insured as sumInsured,
+                (
+                    SELECT ISNULL(SUM(cl.amount), 0)
+                    FROM claims cl
+                    WHERE cl.admission_id = pr.admission_id
+                    AND cl.status IN ('Initial Approval', 'Final Approval', 'Enhancement Approval')
+                ) as approvalAmount,
                 CONCAT_WS(', ', 
                     NULLIF(pr.treatmentMedical, ''), 
                     NULLIF(pr.treatmentSurgical, ''), 
