@@ -367,32 +367,32 @@ export default function EditPreAuthPage() {
                         {selectedStatus === 'Final Approval' && (
                             <div className="grid md:grid-cols-2 gap-4 pt-4 border-t">
                                 <div className="space-y-2">
-                                    <Label htmlFor="final_hospital_bill">Final Hospital Bill</Label>
-                                    <Input id="final_hospital_bill" name="final_hospital_bill" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter final bill amount" />
+                                    <Label htmlFor="final_hospital_bill">Final Hospital Bill <span className="text-destructive">*</span></Label>
+                                    <Input id="final_hospital_bill" name="final_hospital_bill" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter final bill amount" required />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="hospital_discount">Hospital Discount</Label>
-                                    <Input id="hospital_discount" name="hospital_discount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter discount amount" />
+                                    <Label htmlFor="hospital_discount">Hospital Discount <span className="text-destructive">*</span></Label>
+                                    <Input id="hospital_discount" name="hospital_discount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter discount amount" required />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="mou_discount">MOU Discount</Label>
-                                    <Input id="mou_discount" name="mou_discount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter MOU discount" />
+                                    <Label htmlFor="mou_discount">MOU Discount <span className="text-destructive">*</span></Label>
+                                    <Input id="mou_discount" name="mou_discount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter MOU discount" required />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="nm_deductions">NM Deductions</Label>
-                                    <Input id="nm_deductions" name="nm_deductions" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter NM deductions" />
+                                    <Label htmlFor="nm_deductions">NM Deductions <span className="text-destructive">*</span></Label>
+                                    <Input id="nm_deductions" name="nm_deductions" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter NM deductions" required />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="co_pay">Co-Pay</Label>
-                                    <Input id="co_pay" name="co_pay" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter Co-Pay amount" />
+                                    <Label htmlFor="co_pay">Co-Pay <span className="text-destructive">*</span></Label>
+                                    <Input id="co_pay" name="co_pay" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter Co-Pay amount" required />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="final_amount">Final Authorised Amount</Label>
-                                    <Input id="final_amount" name="final_amount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter final authorised amount" />
+                                    <Label htmlFor="final_amount">Final Authorised Amount <span className="text-destructive">*</span></Label>
+                                    <Input id="final_amount" name="final_amount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter final authorised amount" required />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="amount_sanctioned">Amount Paid by insured</Label>
-                                    <Input id="amount_sanctioned" name="amount_sanctioned" type="text" inputMode="decimal" pattern="[0-9.]*" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount paid by insured" />
+                                    <Label htmlFor="amount_sanctioned">Amount Paid by insured <span className="text-destructive">*</span></Label>
+                                    <Input id="amount_sanctioned" name="amount_sanctioned" type="text" inputMode="decimal" pattern="[0-9.]*" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount paid by insured" required />
                                 </div>
                             </div>
                         )}
@@ -582,6 +582,3 @@ export default function EditPreAuthPage() {
         </div>
     );
 }
-
-    
-    
