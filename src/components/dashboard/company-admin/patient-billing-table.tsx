@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +23,7 @@ export function PatientBillingTable({ dateRange }: PatientBillingTableProps) {
     const [selectedHospitalId, setSelectedHospitalId] = useState<string | null>(null);
     const [selectedTpaId, setSelectedTpaId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isExporting, setIsExporting] = useState(false);
 
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -57,31 +57,40 @@ export function PatientBillingTable({ dateRange }: PatientBillingTableProps) {
         return name.split(' ').map(n => n[0]).join('').toUpperCase();
     }
 
-    const handleExport = () => {
-        const headers = ["Sr No", "Patient Name", "Hospital", "TPA / Insurance", "Amount"];
-        const csvRows = [headers.join(",")];
+    const handleExport = async () => {
+        setIsExporting(true);
+        try {
+            const { stats: allStats } = await getPatientBilledStats(dateRange, selectedHospitalId, selectedTpaId, 1, 999999);
+            
+            const headers = ["Sr No", "Patient Name", "Hospital", "TPA / Insurance", "Amount"];
+            const csvRows = [headers.join(",")];
 
-        stats.forEach((stat, index) => {
-            const row = [
-                index + 1,
-                `"${stat.patientName}"`,
-                `"${stat.hospitalName}"`,
-                `"${stat.tpaName}"`,
-                stat.billedAmount,
-            ];
-            csvRows.push(row.join(","));
-        });
+            allStats.forEach((stat, index) => {
+                const row = [
+                    index + 1,
+                    `"${stat.patientName}"`,
+                    `"${stat.hospitalName}"`,
+                    `"${stat.tpaName}"`,
+                    stat.billedAmount,
+                ];
+                csvRows.push(row.join(","));
+            });
 
-        const csvContent = csvRows.join("\n");
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", "patient_billing_summary.csv");
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+            const csvContent = csvRows.join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "patient_billing_summary.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            console.error("Failed to export patient billing stats:", error);
+        } finally {
+            setIsExporting(false);
+        }
     };
 
     const handlePrevPage = () => {
@@ -118,9 +127,9 @@ export function PatientBillingTable({ dateRange }: PatientBillingTableProps) {
                             {tpaList.map(tpa => <SelectItem key={tpa.id} value={String(tpa.id)}>{tpa.name}</SelectItem>)}
                         </SelectContent>
                     </Select>
-                    <Button onClick={handleExport} variant="outline" size="sm" disabled={stats.length === 0}>
-                        <Download className="mr-2 h-4 w-4" />
-                        Export
+                    <Button onClick={handleExport} variant="outline" size="sm" disabled={isLoading || isExporting}>
+                        {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                        {isExporting ? 'Exporting...' : 'Export'}
                     </Button>
                 </div>
             </CardHeader>
