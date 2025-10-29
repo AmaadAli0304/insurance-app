@@ -31,6 +31,7 @@ import draftToHtml from 'draftjs-to-html';
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import { Complaint } from "@/components/chief-complaint-form";
 import { PreAuthMedicalHistory } from "@/components/pre-auths/preauth-medical-history";
+import { intervalToDuration } from "date-fns";
 
 
 const Editor = dynamic(
@@ -186,6 +187,10 @@ export default function NewRequestPage() {
     const [selectedAttachments, setSelectedAttachments] = useState<string[]>([]);
     const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
+    const [dateOfBirth, setDateOfBirth] = useState<string>('');
+    const [age, setAge] = useState<string>('');
+    const [totalSum, setTotalSum] = useState<number | string>('');
+
     useEffect(() => {
         setEmailBody(draftToHtml(convertToRaw(editorState.getCurrentContent())));
     }, [editorState]);
@@ -215,6 +220,35 @@ export default function NewRequestPage() {
         });
         setTotalCost(sum);
     }, []);
+
+    const calculateAge = (birthDateString: string): string => {
+        if (!birthDateString) return '';
+        const birthDate = new Date(birthDateString);
+        const today = new Date();
+
+        if (birthDate > today) return '';
+
+        const duration = intervalToDuration({ start: birthDate, end: today });
+        const years = duration.years || 0;
+        const months = duration.months || 0;
+        const days = duration.days || 0;
+
+        if (years > 0) {
+            let result = `${years} year${years > 1 ? 's' : ''}`;
+            if (months > 0) {
+                result += `, ${months} month${months > 1 ? 's' : ''}`;
+            }
+            return result;
+        }
+        if (months > 0) {
+            let result = `${months} month${months > 1 ? 's' : ''}`;
+            if (days > 0) {
+                result += `, ${days} day${days !== 1 ? 's' : ''}`;
+            }
+            return result;
+        }
+        return `${days} day${days !== 1 ? 's' : ''}`;
+    };
     
     const handleDownloadPdf = async () => {
         const formToCapture = pdfFormRef.current;
@@ -327,6 +361,7 @@ export default function NewRequestPage() {
                 setPatientDetails(null);
                 setToEmail("");
                 setTotalCost(0);
+                setDateOfBirth('');
                 return;
             }
             setIsLoadingPatient(true);
@@ -336,6 +371,11 @@ export default function NewRequestPage() {
                  if (details) {
                     if (details.tpaEmail) {
                         setToEmail(details.tpaEmail);
+                    }
+                    if (details.dateOfBirth) {
+                        setDateOfBirth(formatDateForInput(details.dateOfBirth));
+                    } else {
+                        setDateOfBirth('');
                     }
                     const costFields: (keyof Patient)[] = [
                         'roomNursingDietCost', 'investigationCost', 'icuCost',
@@ -393,6 +433,14 @@ export default function NewRequestPage() {
             return '';
         }
     };
+    
+    useEffect(() => {
+        if (dateOfBirth) {
+            setAge(calculateAge(dateOfBirth));
+        } else {
+            setAge('');
+        }
+    }, [dateOfBirth]);
     
     useEffect(() => {
         if (!patientDetails || !hospitalDetails || !htmlToDraft) return;
@@ -635,12 +683,12 @@ export default function NewRequestPage() {
                                                 </Select>
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="age">Age</Label>
-                                                <Input id="age" name="age" type="number" defaultValue={patientDetails.age ?? ''} readOnly />
+                                                <Label htmlFor="birth_date">Date of birth</Label>
+                                                <Input id="birth_date" name="birth_date" type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} max={new Date().toISOString().split('T')[0]}/>
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="birth_date">Date of birth</Label>
-                                                <Input id="birth_date" name="birth_date" type="date" defaultValue={formatDateForInput(patientDetails.dateOfBirth)} max={new Date().toISOString().split('T')[0]}/>
+                                                <Label htmlFor="age">Age</Label>
+                                                <Input id="age" name="age" type="text" value={age} readOnly />
                                             </div>
                                             <div className="md:col-span-2 space-y-2">
                                                 <Label htmlFor="address">Address</Label>
