@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { format, subDays } from "date-fns";
 import { cn } from "@/lib/utils";
+import { PreAuthSummaryTable } from "@/components/dashboard/admin/pre-auth-summary-table";
 
 export function HospitalStaffDashboard() {
   const { user } = useAuth();
@@ -137,6 +138,7 @@ export function HospitalStaffDashboard() {
       </div>
 
       <NewReportTable dateRange={date} />
+      <PreAuthSummaryTable dateRange={date} />
       <PendingPreAuthsTable requests={data?.pendingPreAuths ?? []} title="Pending Pre-Auths" description="These pre-authorization requests are awaiting action from the TPA/Insurer." filename="pending_pre_auths.csv" />
       <PendingPreAuthsTable requests={data?.queryRaisedPreAuths ?? []} title="Query Raised Pre-Auths" description="These requests have queries raised by the TPA/Insurer and require your action." filename="query_raised_pre_auths.csv" />
       <RejectedPreAuthsTable requests={data?.rejectedPreAuths ?? []} />
