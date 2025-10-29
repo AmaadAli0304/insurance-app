@@ -695,12 +695,12 @@ export async function getNewReportStats(
                         WHERE c.Patient_id = p.id AND c.status = 'Final Approval'
                         ORDER BY c.created_at DESC
                     ) as discountAmount,
-                    (
+                    ISNULL((
                         SELECT TOP 1 c.co_pay
                         FROM claims c
                         WHERE c.Patient_id = p.id AND c.status = 'Final Approval'
                         ORDER BY c.created_at DESC
-                    ) as coPay,
+                    ), 0) as coPay,
                     (
                         SELECT TOP 1 c.final_settle_amount
                         FROM claims c 
@@ -858,3 +858,5 @@ export async function getComprehensiveClaimDetails(
         throw new Error('Failed to fetch comprehensive claim details.');
     }
 }
+
+    
