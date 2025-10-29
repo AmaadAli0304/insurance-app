@@ -869,13 +869,18 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
             .input('status', sql.NVarChar, status) 
             .input('reason', sql.NVarChar, reason) 
             .input('created_by', sql.NVarChar, userId || 'System Update') 
-            .input('amount', sql.Decimal(18, 2), status === 'Initial Approval' ? amount_sanctioned : (amount || (status === 'Enhancement Request' || status === 'Enhancement Approval' ? amount_sanctioned : null) || null))
             .input('paidAmount', sql.Decimal(18, 2), amount_sanctioned) 
             .input('hospital_id', sql.NVarChar, preAuthDetails.hospital_id)
             .input('tpa_id', sql.Int, preAuthDetails.tpa_id)
             .input('claim_id', sql.NVarChar, claim_id) 
             .input('created_at', sql.DateTime, now)
             .input('updated_at', sql.DateTime, now);
+
+        if (status === 'Final Approval') {
+            claimInsertRequest.input('amount', sql.Decimal(18, 2), amount_sanctioned);
+        } else {
+            claimInsertRequest.input('amount', sql.Decimal(18, 2), status === 'Initial Approval' ? amount_sanctioned : (amount || (status === 'Enhancement Request' || status === 'Enhancement Approval' ? amount_sanctioned : null) || null));
+        }
 
         if(status === 'Settled'){
             claimInsertRequest.input('final_amount', sql.Decimal(18,2), final_authorised_amount_str ? parseFloat(final_authorised_amount_str) : null);
@@ -1042,5 +1047,6 @@ export async function handleSavePodDetails(prevState: { message: string, type?: 
   revalidatePath('/dashboard/pre-auths');
   return { message: "POD details saved successfully.", type: 'success' };
 }
+
 
 
