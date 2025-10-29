@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import * as React from "react";
@@ -29,7 +28,6 @@ let htmlToDraft: any = null;
 if (typeof window === 'object') {
   htmlToDraft = require('html-to-draftjs').default;
 }
-
 
 const Editor = dynamic(
   () => import('react-draft-wysiwyg').then(mod => mod.Editor),
@@ -197,7 +195,11 @@ export default function EditPreAuthPage() {
     const [editorState, setEditorState] = useState(() => EditorState.createEmpty());
     const [emailBody, setEmailBody] = useState("");
     const [subject, setSubject] = useState("");
+    const [isClient, setIsClient] = useState(false);
 
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     useEffect(() => {
         setEmailBody(draftToHtml(convertToRaw(editorState.getCurrentContent())));
@@ -495,7 +497,7 @@ export default function EditPreAuthPage() {
                             </div>
                         )}
 
-                        {showEmailFields && (
+                        {showEmailFields && isClient && (
                             <div className="space-y-4 pt-4 border-t">
                                 <h3 className="text-lg font-semibold">Compose Reply</h3>
                                  <div className="grid md:grid-cols-2 gap-4">

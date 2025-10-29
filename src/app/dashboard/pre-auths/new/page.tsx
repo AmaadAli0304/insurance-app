@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getPatientWithDetailsForForm, getPatientsForPreAuth } from "@/app/dashboard/patients/actions";
 import { getHospitalById } from "@/app/dashboard/company-hospitals/actions";
-import type { Patient, Hospital } from "@/lib/types";
+import type { Patient, Hospital, Doctor } from "@/lib/types";
 import { format } from "date-fns";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -191,6 +191,12 @@ export default function NewRequestPage() {
     const [age, setAge] = useState<string>('');
     const [totalSum, setTotalSum] = useState<number | string>('');
 
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
     useEffect(() => {
         setEmailBody(draftToHtml(convertToRaw(editorState.getCurrentContent())));
     }, [editorState]);
@@ -327,30 +333,37 @@ export default function NewRequestPage() {
     useEffect(() => {
         if (!user?.hospitalId) return;
 
+        let isMounted = true;
         async function loadInitialData() {
             try {
                 const [patients, hospital] = await Promise.all([
                    getPatientsForPreAuth(user!.hospitalId!),
                    getHospitalById(user!.hospitalId!)
                 ]);
+                
+                if (isMounted) {
+                    setHospitalPatients(patients);
+                    setHospitalDetails(hospital);
 
-                setHospitalPatients(patients);
-                setHospitalDetails(hospital);
-
-                const patientIdFromUrl = searchParams.get('patientId');
-                if (patientIdFromUrl) {
-                    setSelectedPatientId(patientIdFromUrl);
-                    const preselectedPatient = patients.find(p => String(p.id) === patientIdFromUrl);
-                    if (preselectedPatient) {
-                        setSearchQuery(`${preselectedPatient.fullName} - ${preselectedPatient.admission_id}`);
+                    const patientIdFromUrl = searchParams.get('patientId');
+                    if (patientIdFromUrl) {
+                        setSelectedPatientId(patientIdFromUrl);
+                        const preselectedPatient = patients.find(p => String(p.id) === patientIdFromUrl);
+                        if (preselectedPatient) {
+                            setSearchQuery(`${preselectedPatient.fullName} - ${preselectedPatient.admission_id}`);
+                        }
                     }
                 }
             } catch (error) {
-                toast({ title: "Error", description: "Failed to fetch initial data.", variant: 'destructive' });
+                if (isMounted) {
+                    toast({ title: "Error", description: "Failed to fetch initial data.", variant: 'destructive' });
+                }
             }
         }
         
         loadInitialData();
+        
+        return () => { isMounted = false; };
 
     }, [user?.hospitalId, searchParams, toast]);
 
@@ -1153,6 +1166,7 @@ export default function NewRequestPage() {
 
                             <div className="space-y-2">
                                 <Label htmlFor="details">Compose Email</Label>
+                                {isClient && (
                                 <Editor
                                   editorState={editorState}
                                   onEditorStateChange={setEditorState}
@@ -1160,6 +1174,7 @@ export default function NewRequestPage() {
                                   editorClassName="px-4 py-2 min-h-[150px]"
                                   toolbarClassName="border-b border-input"
                                 />
+                                )}
                             </div>
                             {patientDetails && (
                                 <div className="space-y-2 pt-4 border-t">
