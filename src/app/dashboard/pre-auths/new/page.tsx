@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useActionState, useEffect, useMemo, useRef } from "react";
@@ -201,7 +200,7 @@ export default function NewRequestPage() {
         "CLASSIC SUITE III", "RECOVERY", "SPECIAL", "SEMI SPECIAL","Day Care"
     ];
 
-    const calculateTotalCost = React.useCallback(() => {
+     const calculateTotalCost = React.useCallback(() => {
         if (!pdfFormRef.current) return;
         const costs = [
             'roomNursingDietCost', 'investigationCost', 'icuCost',
@@ -637,7 +636,7 @@ export default function NewRequestPage() {
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="age">Age</Label>
-                                                <Input id="age" name="age" type="number" defaultValue={patientDetails.age ?? ''} />
+                                                <Input id="age" name="age" type="number" defaultValue={patientDetails.age ?? ''} readOnly />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="birth_date">Date of birth</Label>
@@ -1165,4 +1164,3 @@ export default function NewRequestPage() {
         </div>
     );
 }
-
