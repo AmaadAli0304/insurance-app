@@ -138,8 +138,8 @@ export async function getClaimById(id: string): Promise<Claim | null> {
         if (record.status === 'Settled') {
             // No changes needed, 'amount' is already Net Amount Credited
         } else if (record.status === 'Final Approval') {
-            record.amountPaidByInsured = record.final_amount;
-            record.final_amount = record.amount; 
+            record.finalAuthorisedAmount = record.amount; 
+            record.amountPaidByInsured = record.final_amount; 
         } else {
              // Get the initial "Pre auth Sent" amount
             const preAuthSentResult = await pool.request()

@@ -25,6 +25,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
     const [tpaList, setTpaList] = useState<Pick<TPA, 'id' | 'name'>[]>([]);
     const [selectedTpaId, setSelectedTpaId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isExporting, setIsExporting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const itemsPerPage = 10;
@@ -69,54 +70,64 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
         return totalBill - usg - xray - mri - lab - pharmacy - implant;
     }
 
-    const handleExport = () => {
-        const headers = ["Patient Name", "DOA", "DOD", "Policy Number", "Claim Number", "TPA / Insurance", "Insurance Co", "Hospital Exp", "USG/2DECHO/EEG", "X-Ray", "MRI/CT Scan", "Lab Exp", "Pharmacy Ex", "Implant Charges", "Total Bill Amt", "TPA Approved Amt", "Co-Pay", "Tariff Excess", "Deductions", "Discount Amt", "Amount Before TDS", "TDS", "Amount After TDS", "Deduction by Insurance Co.", "Actual Settlement Date", "BRN / UTR No.", "POD DETAILS"];
-        const csvRows = [headers.join(",")];
+    const handleExport = async () => {
+        setIsExporting(true);
+        try {
+            const hospitalId = user?.role === 'Admin' || user?.role === 'Hospital Staff' ? user.hospitalId : null;
+            const { stats: allStats } = await getNewReportStats(dateRange, hospitalId, selectedTpaId, 1, 999999);
 
-        stats.forEach((stat) => {
-            const hospitalExp = calculateHospitalExp(stat);
-            const row = [
-                `"${stat.patientName}"`,
-                stat.admissionDate ? format(new Date(stat.admissionDate), 'yyyy-MM-dd') : 'N/A',
-                stat.dischargeDate ? format(new Date(stat.dischargeDate), 'yyyy-MM-dd') : 'N/A',
-                `"${stat.policyNumber || 'N/A'}"`,
-                `"${stat.claimNumber || 'N/A'}"`,
-                `"${stat.tpaName}"`,
-                `"${stat.insuranceCoName || 'N/A'}"`,
-                hospitalExp,
-                stat.usgCharges || 0,
-                stat.xrayCharges || 0,
-                stat.mriCharges || 0,
-                stat.labCharges || 0,
-                stat.pharmacyCharges || 0,
-                stat.implantCharges || 0,
-                stat.totalBillAmount || 0,
-                stat.tpaApprovedAmount || 0,
-                stat.coPay || 0,
-                stat.tariffExcess || 0,
-                stat.deductions || 0,
-                stat.discountAmount || 0,
-                stat.amountBeforeTds || 0,
-                stat.tds || 0,
-                stat.amountAfterTds || 0,
-                stat.insuranceDeduction || 0,
-                stat.actualSettlementDate ? format(new Date(stat.actualSettlementDate), 'yyyy-MM-dd') : 'N/A',
-                `"${stat.utrNumber || 'N/A'}"`,
-                `"${stat.podDetails || 'N/A'}"`,
-            ];
-            csvRows.push(row.join(","));
-        });
+            const headers = ["Patient Name", "DOA", "DOD", "Policy Number", "Claim Number", "TPA / Insurance", "Insurance Co", "Hospital Exp", "USG/2DECHO/EEG", "X-Ray", "MRI/CT Scan", "Lab Exp", "Pharmacy Ex", "Implant Charges", "Total Bill Amt", "TPA Approved Amt", "Co-Pay", "Tariff Excess", "Deductions", "Discount Amt", "Amount Before TDS", "TDS", "Amount After TDS", "Deduction by Insurance Co.", "Actual Settlement Date", "BRN / UTR No.", "POD DETAILS"];
+            const csvRows = [headers.join(",")];
 
-        const csvContent = csvRows.join("\n");
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", "new_report.csv");
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+            allStats.forEach((stat) => {
+                const hospitalExp = calculateHospitalExp(stat);
+                const row = [
+                    `"${stat.patientName}"`,
+                    stat.admissionDate ? format(new Date(stat.admissionDate), 'yyyy-MM-dd') : 'N/A',
+                    stat.dischargeDate ? format(new Date(stat.dischargeDate), 'yyyy-MM-dd') : 'N/A',
+                    `"${stat.policyNumber || 'N/A'}"`,
+                    `"${stat.claimNumber || 'N/A'}"`,
+                    `"${stat.tpaName}"`,
+                    `"${stat.insuranceCoName || 'N/A'}"`,
+                    hospitalExp,
+                    stat.usgCharges || 0,
+                    stat.xrayCharges || 0,
+                    stat.mriCharges || 0,
+                    stat.labCharges || 0,
+                    stat.pharmacyCharges || 0,
+                    stat.implantCharges || 0,
+                    stat.totalBillAmount || 0,
+                    stat.tpaApprovedAmount || 0,
+                    stat.coPay || 0,
+                    stat.tariffExcess || 0,
+                    stat.deductions || 0,
+                    stat.discountAmount || 0,
+                    stat.amountBeforeTds || 0,
+                    stat.tds || 0,
+                    stat.amountAfterTds || 0,
+                    stat.insuranceDeduction || 0,
+                    stat.actualSettlementDate ? format(new Date(stat.actualSettlementDate), 'yyyy-MM-dd') : 'N/A',
+                    `"${stat.utrNumber || 'N/A'}"`,
+                    `"${stat.podDetails || 'N/A'}"`,
+                ];
+                csvRows.push(row.join(","));
+            });
+
+            const csvContent = csvRows.join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "new_report.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            console.error("Failed to export new report:", error);
+        } finally {
+            setIsExporting(false);
+        }
     };
 
     const handlePrevPage = () => {
@@ -144,9 +155,9 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                             {tpaList.map(tpa => <SelectItem key={tpa.id} value={String(tpa.id)}>{tpa.name}</SelectItem>)}
                         </SelectContent>
                     </Select>
-                    <Button onClick={handleExport} variant="outline" size="sm" disabled={stats.length === 0}>
-                        <Download className="mr-2 h-4 w-4" />
-                        Export
+                    <Button onClick={handleExport} variant="outline" size="sm" disabled={stats.length === 0 || isExporting}>
+                        {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                        {isExporting ? 'Exporting...' : 'Export'}
                     </Button>
                 </div>
             </CardHeader>

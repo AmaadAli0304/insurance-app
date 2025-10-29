@@ -1,5 +1,4 @@
 
-
 "use server";
 
 import { getDbPool, sql } from '@/lib/db';
@@ -424,6 +423,7 @@ export async function getSettledStatusStats(
 export type PreAuthSummaryStat = {
   patientName: string;
   patientPhoto: string | null;
+  contactNumber: string | null;
   status: string;
   admissionDate: string | null;
   tpaName: string;
@@ -479,6 +479,7 @@ export async function getPreAuthSummaryStats(
             SELECT
                 pr.first_name + ' ' + pr.last_name AS patientName,
                 p.photo as patientPhoto,
+                p.phone_number as contactNumber,
                 pr.status,
                 pr.admissionDate,
                 COALESCE(t.name, 'N/A') as tpaName,
@@ -695,12 +696,12 @@ export async function getNewReportStats(
                         WHERE c.Patient_id = p.id AND c.status = 'Final Approval'
                         ORDER BY c.created_at DESC
                     ) as discountAmount,
-                    (
+                    ISNULL((
                         SELECT TOP 1 c.co_pay
                         FROM claims c
                         WHERE c.Patient_id = p.id AND c.status = 'Final Approval'
                         ORDER BY c.created_at DESC
-                    ) as coPay,
+                    ), 0) as coPay,
                     (
                         SELECT TOP 1 c.final_settle_amount
                         FROM claims c 
@@ -858,3 +859,5 @@ export async function getComprehensiveClaimDetails(
         throw new Error('Failed to fetch comprehensive claim details.');
     }
 }
+
+    

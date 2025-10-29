@@ -15,7 +15,7 @@ interface RejectedPreAuthsTableProps {
 export function RejectedPreAuthsTable({ requests }: RejectedPreAuthsTableProps) {
   const router = useRouter();
 
-  const handleRowClick = (claimId: string) => {
+  const handleRowClick = (claimId: number) => {
     // Note: The view page might need to be adjusted if it expects a pre-auth ID
     // For now, linking to a conceptual claim view page.
     router.push(`/dashboard/claims/${claimId}/view`);
@@ -29,7 +29,7 @@ export function RejectedPreAuthsTable({ requests }: RejectedPreAuthsTableProps) 
           const row = [
               `"${req.patientName}"`,
               `"${req.tpaOrInsurerName}"`,
-              `"${req.reason || 'N/A'}"`,
+              `"${(req.reason || 'N/A').replace(/"/g, '""')}"`,
               req.amountRequested ?? 'N/A',
           ];
           csvRows.push(row.join(","));

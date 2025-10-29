@@ -670,9 +670,8 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     const claim_id = formData.get('claim_id') as string;
     const reason = formData.get('reason') as string;
     const amount_str = formData.get('amount') as string;
-    const amount_sanctioned_str = formData.get('amount_sanctioned') as string;
-    const amount_sanctioned = amount_sanctioned_str ? parseFloat(amount_sanctioned_str) : null;
-    const amount = amount_str ? parseFloat(amount_str) : null;
+    const amount_sanctioned_from_form = formData.get('amount_sanctioned') as string;
+    
     const userId = formData.get('userId') as string;
 
     const from = formData.get('from') as string;
@@ -682,8 +681,11 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     const details = formData.get('details') as string;
     const emailAttachmentsData = formData.getAll('email_attachments');
     
+    // Fields for 'Final Approval' status
+    const final_hospital_bill = formData.get('final_hospital_bill') as string;
+    const hospital_discount = formData.get('hospital_discount') as string;
+    
     // Fields for 'Settled' status
-    const final_authorised_amount_str = formData.get('final_amount') as string;
     const deduction_str = formData.get('nm_deductions') as string; // User said deduction maps to nm_deductions
     const tds_str = formData.get('tds') as string;
     const final_settlement_amount_str = formData.get('final_settle_amount') as string;
@@ -700,6 +702,12 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     const xray_charges = formData.get('xray_charges') as string;
     const mou_discount = formData.get('mou_discount') as string;
     const implant_charges = formData.get('implant_charges') as string;
+
+    // Common fields
+    const nm_deductions = formData.get('nm_deductions') as string;
+    const co_pay = formData.get('co_pay') as string;
+    const final_amount_str = formData.get('final_amount') as string; // Represents Final Authorised Amount
+    const amountPaidByInsured_str = formData.get('amount_sanctioned') as string; // Represents Amount Paid by insured
 
 
     // Handle new uploads
@@ -851,65 +859,91 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
 
         await preAuthRequest.query(preAuthUpdateQuery);
         
-        if (status !== 'Final Approval') {
-            const claimInsertRequest = new sql.Request(transaction);
+        
+        const claimInsertRequest = new sql.Request(transaction);
+        claimInsertRequest
+            .input('Patient_id', sql.Int, preAuthDetails.patient_id)
+            .input('Patient_name', sql.NVarChar, fullName)
+            .input('admission_id', sql.NVarChar, preAuthDetails.admission_id)
+            .input('status', sql.NVarChar, status) 
+            .input('reason', sql.NVarChar, reason) 
+            .input('created_by', sql.NVarChar, userId || 'System Update') 
+            .input('paidAmount', sql.Decimal(18, 2), amount_sanctioned_from_form ? parseFloat(amount_sanctioned_from_form) : null) 
+            .input('hospital_id', sql.NVarChar, preAuthDetails.hospital_id)
+            .input('tpa_id', sql.Int, preAuthDetails.tpa_id)
+            .input('claim_id', sql.NVarChar, claim_id) 
+            .input('created_at', sql.DateTime, now)
+            .input('updated_at', sql.DateTime, now);
+
+        if (status === 'Final Approval') {
+            const finalAuthorisedAmount = final_amount_str ? parseFloat(final_amount_str) : null;
+            const amountPaidByInsured = amountPaidByInsured_str ? parseFloat(amountPaidByInsured_str) : null;
+
             claimInsertRequest
-                .input('Patient_id', sql.Int, preAuthDetails.patient_id)
-                .input('Patient_name', sql.NVarChar, fullName)
-                .input('admission_id', sql.NVarChar, preAuthDetails.admission_id)
-                .input('status', sql.NVarChar, status) 
-                .input('reason', sql.NVarChar, reason) 
-                .input('created_by', sql.NVarChar, userId || 'System Update') 
-                .input('amount', sql.Decimal(18, 2), status === 'Initial Approval' ? amount_sanctioned : (amount || (status === 'Enhancement Request' || status === 'Enhancement Approval' ? amount_sanctioned : null) || null))
-                .input('paidAmount', sql.Decimal(18, 2), amount_sanctioned) 
-                .input('hospital_id', sql.NVarChar, preAuthDetails.hospital_id)
-                .input('tpa_id', sql.Int, preAuthDetails.tpa_id)
-                .input('claim_id', sql.NVarChar, claim_id) 
-                .input('created_at', sql.DateTime, now)
-                .input('updated_at', sql.DateTime, now);
+                .input('final_bill', sql.Decimal(18, 2), final_hospital_bill ? parseFloat(final_hospital_bill) : null)
+                .input('hospital_discount', sql.Decimal(18, 2), hospital_discount ? parseFloat(hospital_discount) : null)
+                .input('nm_deductions', sql.Decimal(18, 2), nm_deductions ? parseFloat(nm_deductions) : null)
+                .input('co_pay', sql.Decimal(18, 2), co_pay ? parseFloat(co_pay) : null)
+                .input('final_amount', sql.Decimal(18, 2), amountPaidByInsured)
+                .input('amount', sql.Decimal(18, 2), finalAuthorisedAmount)
+                .input('mou_discount', sql.Decimal(18, 2), mou_discount ? parseFloat(mou_discount) : null);
 
-            if(status === 'Settled'){
-                claimInsertRequest.input('final_amount', sql.Decimal(18,2), final_authorised_amount_str ? parseFloat(final_authorised_amount_str) : null);
-                claimInsertRequest.input('nm_deductions', sql.Decimal(18,2), deduction_str ? parseFloat(deduction_str) : null);
-                claimInsertRequest.input('tds', sql.Decimal(18,2), tds_str ? parseFloat(tds_str) : null);
-                claimInsertRequest.input('final_settle_amount', sql.Decimal(18,2), final_settlement_amount_str ? parseFloat(final_settlement_amount_str) : null);
-                claimInsertRequest.input('mou_discount', sql.Decimal(18,2), mou_discount ? parseFloat(mou_discount) : null);
-                claimInsertRequest.input('utr_no', sql.NVarChar, utr_no);
-                claimInsertRequest.input('date_settlement', sql.Date, date_settlement_str ? new Date(date_settlement_str) : null);
-
-                
-                 await claimInsertRequest.query(`INSERT INTO claims ( Patient_id, Patient_name, admission_id, status, reason, created_by, amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at, final_amount, nm_deductions, tds, final_settle_amount, mou_discount, utr_no, date_settlement ) VALUES ( @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at, @final_amount, @nm_deductions, @tds, @final_settle_amount, @mou_discount, @utr_no, @date_settlement )`);
-
-            } else if (status === 'Final Discharge sent') {
-                 claimInsertRequest
-                    .input('pharmacy_bill', sql.Decimal(18,2), pharmacy_bill ? parseFloat(pharmacy_bill) : null)
-                    .input('lab_bill', sql.Decimal(18,2), lab_bill ? parseFloat(lab_bill) : null)
-                    .input('ct_scan_charges', sql.Decimal(18,2), ct_scan_charges ? parseFloat(ct_scan_charges) : null)
-                    .input('mri_charges', sql.Decimal(18,2), mri_charges ? parseFloat(mri_charges) : null)
-                    .input('usg_charges', sql.Decimal(18,2), usg_charges ? parseFloat(usg_charges) : null)
-                    .input('other_charges', sql.Decimal(18,2), other_charges ? parseFloat(other_charges) : null)
-                    .input('xray_charges', sql.Decimal(18,2), xray_charges ? parseFloat(xray_charges) : null)
-                    .input('mou_discount', sql.Decimal(18,2), mou_discount ? parseFloat(mou_discount) : null)
-                    .input('implant_charges', sql.Decimal(18,2), implant_charges ? parseFloat(implant_charges) : null);
-
-                await claimInsertRequest.query(`INSERT INTO claims ( 
+            await claimInsertRequest.query(`
+                INSERT INTO claims ( 
                     Patient_id, Patient_name, admission_id, status, reason, created_by, amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at,
-                    pharmacy_bill, lab_bill, ct_scan_charges, mri_charges, usg_charges, other_charges, xray_charges, mou_discount, implant_charges
+                    final_bill, hospital_discount, nm_deductions, co_pay, final_amount, mou_discount
                 ) VALUES ( 
                     @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at,
-                    @pharmacy_bill, @lab_bill, @ct_scan_charges, @mri_charges, @usg_charges, @other_charges, @xray_charges, @mou_discount, @implant_charges
-                )`);
+                    @final_bill, @hospital_discount, @nm_deductions, @co_pay, @final_amount, @mou_discount
+                )
+            `);
+        } else if (status === 'Settled'){
+            const amount = amount_str ? parseFloat(amount_str) : null;
+            claimInsertRequest.input('final_amount', sql.Decimal(18,2), final_amount_str ? parseFloat(final_amount_str) : null);
+            claimInsertRequest.input('nm_deductions', sql.Decimal(18,2), deduction_str ? parseFloat(deduction_str) : null);
+            claimInsertRequest.input('tds', sql.Decimal(18,2), tds_str ? parseFloat(tds_str) : null);
+            claimInsertRequest.input('final_settle_amount', sql.Decimal(18,2), final_settlement_amount_str ? parseFloat(final_settlement_amount_str) : null);
+            claimInsertRequest.input('mou_discount', sql.Decimal(18,2), mou_discount ? parseFloat(mou_discount) : null);
+            claimInsertRequest.input('utr_no', sql.NVarChar, utr_no);
+            claimInsertRequest.input('date_settlement', sql.Date, date_settlement_str ? new Date(date_settlement_str) : null);
+            claimInsertRequest.input('amount', sql.Decimal(18,2), amount ? amount : null);
 
-            } else {
-                 await claimInsertRequest.query('INSERT INTO claims ( Patient_id, Patient_name, admission_id, status, reason, created_by, amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at ) VALUES ( @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at )');
-            }
+            
+             await claimInsertRequest.query(`INSERT INTO claims ( Patient_id, Patient_name, admission_id, status, reason, created_by, amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at, final_amount, nm_deductions, tds, final_settle_amount, mou_discount, utr_no, date_settlement ) VALUES ( @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at, @final_amount, @nm_deductions, @tds, @final_settle_amount, @mou_discount, @utr_no, @date_settlement )`);
+
+        } else if (status === 'Final Discharge sent') { // Corrected the typo here from 'FinalDischarge sent'
+            const amount = amount_str ? parseFloat(amount_str) : null;
+             claimInsertRequest
+                .input('pharmacy_bill', sql.Decimal(18,2), pharmacy_bill ? parseFloat(pharmacy_bill) : null)
+                .input('lab_bill', sql.Decimal(18,2), lab_bill ? parseFloat(lab_bill) : null)
+                .input('ct_scan_charges', sql.Decimal(18,2), ct_scan_charges ? parseFloat(ct_scan_charges) : null)
+                .input('mri_charges', sql.Decimal(18,2), mri_charges ? parseFloat(mri_charges) : null)
+                .input('usg_charges', sql.Decimal(18,2), usg_charges ? parseFloat(usg_charges) : null)
+                .input('other_charges', sql.Decimal(18,2), other_charges ? parseFloat(other_charges) : null)
+                .input('xray_charges', sql.Decimal(18,2), xray_charges ? parseFloat(xray_charges) : null)
+                .input('mou_discount', sql.Decimal(18,2), mou_discount ? parseFloat(mou_discount) : null)
+                .input('implant_charges', sql.Decimal(18,2), implant_charges ? parseFloat(implant_charges) : null)
+                .input('amount', sql.Decimal(18, 2), amount ? amount : null);
+
+
+            await claimInsertRequest.query(`INSERT INTO claims ( 
+                Patient_id, Patient_name, admission_id, status, reason, created_by, amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at,
+                pharmacy_bill, lab_bill, ct_scan_charges, mri_charges, usg_charges, other_charges, xray_charges, mou_discount, implant_charges
+            ) VALUES ( 
+                @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at,
+                @pharmacy_bill, @lab_bill, @ct_scan_charges, @mri_charges, @usg_charges, @other_charges, @xray_charges, @mou_discount, @implant_charges
+            )`);
+
+        } else {
+             claimInsertRequest.input('amount', sql.Decimal(18, 2), status === 'Initial Approval' ? (amount_sanctioned_from_form ? parseFloat(amount_sanctioned_from_form) : null) : (amount_str ? parseFloat(amount_str) : null));
+             await claimInsertRequest.query('INSERT INTO claims ( Patient_id, Patient_name, admission_id, status, reason, created_by, amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at ) VALUES ( @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at )');
         }
         
         if (status === 'Initial Approval') {
             const updatePreAuthRequest = new sql.Request(transaction)
                 .input('id', sql.Int, Number(id))
                 .input('status', sql.NVarChar, status)
-                .input('amount_sanctioned', sql.Decimal(18, 2), amount_sanctioned)
+                .input('amount_sanctioned', sql.Decimal(18, 2), amount_sanctioned_from_form ? parseFloat(amount_sanctioned_from_form) : null)
                 .query('UPDATE preauth_request SET status = @status, amount_sanctioned = @amount_sanctioned WHERE id = @id');
         }
         
@@ -1018,3 +1052,9 @@ export async function handleSavePodDetails(prevState: { message: string, type?: 
   revalidatePath('/dashboard/pre-auths');
   return { message: "POD details saved successfully.", type: 'success' };
 }
+
+
+
+
+
+

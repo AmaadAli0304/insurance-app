@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -20,6 +19,7 @@ export function FinalApprovalDetailsTable({ dateRange }: FinalApprovalDetailsTab
     const { user } = useAuth();
     const [stats, setStats] = useState<FinalApprovalStat[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isExporting, setIsExporting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const itemsPerPage = 10;
@@ -53,45 +53,56 @@ export function FinalApprovalDetailsTable({ dateRange }: FinalApprovalDetailsTab
         return acc;
     }, { final_bill: 0, hospital_discount: 0, nm_deductions: 0, co_pay: 0, finalAuthorisedAmount: 0, amountPaidByInsured: 0 });
 
-    const handleExport = () => {
-        const headers = ["Patient Name", "TPA Name", "Final Hospital Bill", "Hospital Discount", "NM Deductions", "Co-Pay", "Final Authorised Amount", "Amount Paid by insured"];
-        const csvRows = [headers.join(",")];
+    const handleExport = async () => {
+        setIsExporting(true);
+        try {
+            const hospitalId = user?.role === 'Admin' ? user.hospitalId : null;
+            const { stats: allStats } = await getFinalApprovalStats(dateRange, hospitalId, 1, 999999);
+            
+            const headers = ["Patient Name", "TPA Name", "Final Hospital Bill", "Hospital Discount", "NM Deductions", "Co-Pay", "Final Authorised Amount", "Amount Paid by insured"];
+            const csvRows = [headers.join(",")];
 
-        stats.forEach((stat) => {
-            const row = [
-                `"${stat.patientName}"`,
-                `"${stat.tpaName}"`,
-                stat.final_bill || 0,
-                stat.hospital_discount || 0,
-                stat.nm_deductions || 0,
-                stat.co_pay || 0,
-                stat.finalAuthorisedAmount || 0,
-                stat.amountPaidByInsured || 0,
-            ];
-            csvRows.push(row.join(","));
-        });
-        
-        csvRows.push([
-            "TOTAL",
-            "",
-            totals.final_bill,
-            totals.hospital_discount,
-            totals.nm_deductions,
-            totals.co_pay,
-            totals.finalAuthorisedAmount,
-            totals.amountPaidByInsured,
-        ].join(","));
+            allStats.forEach((stat) => {
+                const row = [
+                    `"${stat.patientName}"`,
+                    `"${stat.tpaName}"`,
+                    stat.final_bill || 0,
+                    stat.hospital_discount || 0,
+                    stat.nm_deductions || 0,
+                    stat.co_pay || 0,
+                    stat.finalAuthorisedAmount || 0,
+                    stat.amountPaidByInsured || 0,
+                ];
+                csvRows.push(row.join(","));
+            });
+            
+            const totalRow = [
+                "TOTAL",
+                "",
+                allStats.reduce((acc, s) => acc + (Number(s.final_bill) || 0), 0),
+                allStats.reduce((acc, s) => acc + (Number(s.hospital_discount) || 0), 0),
+                allStats.reduce((acc, s) => acc + (Number(s.nm_deductions) || 0), 0),
+                allStats.reduce((acc, s) => acc + (Number(s.co_pay) || 0), 0),
+                allStats.reduce((acc, s) => acc + (Number(s.finalAuthorisedAmount) || 0), 0),
+                allStats.reduce((acc, s) => acc + (Number(s.amountPaidByInsured) || 0), 0),
+            ].join(",");
+            csvRows.push(totalRow);
 
-        const csvContent = csvRows.join("\n");
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", "final_approval_details.csv");
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+            const csvContent = csvRows.join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "final_approval_details.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            console.error("Failed to export final approval stats:", error);
+        } finally {
+            setIsExporting(false);
+        }
     };
 
     const formatValue = (value: number) => {
@@ -119,9 +130,9 @@ export function FinalApprovalDetailsTable({ dateRange }: FinalApprovalDetailsTab
                     <CardTitle>Final Approval Details</CardTitle>
                     <CardDescription>Details of all claims that have reached final approval.</CardDescription>
                 </div>
-                <Button onClick={handleExport} variant="outline" size="sm" disabled={stats.length === 0}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Export
+                <Button onClick={handleExport} variant="outline" size="sm" disabled={isLoading || isExporting}>
+                    {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                    {isExporting ? 'Exporting...' : 'Export'}
                 </Button>
             </CardHeader>
             <CardContent>

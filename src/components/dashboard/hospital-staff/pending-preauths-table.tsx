@@ -18,8 +18,8 @@ interface PendingPreAuthsTableProps {
 export function PendingPreAuthsTable({ requests, title, description, filename }: PendingPreAuthsTableProps) {
   const router = useRouter();
 
-  const handleRowClick = (requestId: string) => {
-    router.push(`/dashboard/pre-auths/${requestId}/view`);
+  const handleRowClick = (patientId: number) => {
+    router.push(`/dashboard/patients/${patientId}/view`);
   };
 
   const handleExport = () => {
@@ -71,7 +71,7 @@ export function PendingPreAuthsTable({ requests, title, description, filename }:
           <TableBody>
             {requests.length > 0 ? (
               requests.map((req) => (
-                <TableRow key={req.id} onClick={() => handleRowClick(req.id)} className="cursor-pointer">
+                <TableRow key={req.id} onClick={() => handleRowClick(req.patientId)} className="cursor-pointer">
                   <TableCell className="font-medium">{req.patientName}</TableCell>
                   <TableCell>{req.tpaOrInsurerName}</TableCell>
                   <TableCell className="text-right font-mono">

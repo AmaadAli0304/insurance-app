@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useActionState, useEffect, useMemo, useRef } from "react";
@@ -17,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getPatientWithDetailsForForm, getPatientsForPreAuth } from "@/app/dashboard/patients/actions";
 import { getHospitalById } from "@/app/dashboard/company-hospitals/actions";
-import type { Patient, Hospital } from "@/lib/types";
+import type { Patient, Hospital, Doctor } from "@/lib/types";
 import { format } from "date-fns";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -32,6 +31,7 @@ import draftToHtml from 'draftjs-to-html';
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import { Complaint } from "@/components/chief-complaint-form";
 import { PreAuthMedicalHistory } from "@/components/pre-auths/preauth-medical-history";
+import { intervalToDuration } from "date-fns";
 
 
 const Editor = dynamic(
@@ -187,6 +187,16 @@ export default function NewRequestPage() {
     const [selectedAttachments, setSelectedAttachments] = useState<string[]>([]);
     const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
+    const [dateOfBirth, setDateOfBirth] = useState<string>('');
+    const [age, setAge] = useState<string>('');
+    const [totalSum, setTotalSum] = useState<number | string>('');
+
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
     useEffect(() => {
         setEmailBody(draftToHtml(convertToRaw(editorState.getCurrentContent())));
     }, [editorState]);
@@ -201,7 +211,7 @@ export default function NewRequestPage() {
         "CLASSIC SUITE III", "RECOVERY", "SPECIAL", "SEMI SPECIAL","Day Care"
     ];
 
-    const calculateTotalCost = React.useCallback(() => {
+     const calculateTotalCost = React.useCallback(() => {
         if (!pdfFormRef.current) return;
         const costs = [
             'roomNursingDietCost', 'investigationCost', 'icuCost',
@@ -216,6 +226,35 @@ export default function NewRequestPage() {
         });
         setTotalCost(sum);
     }, []);
+
+    const calculateAge = (birthDateString: string): string => {
+        if (!birthDateString) return '';
+        const birthDate = new Date(birthDateString);
+        const today = new Date();
+
+        if (birthDate > today) return '';
+
+        const duration = intervalToDuration({ start: birthDate, end: today });
+        const years = duration.years || 0;
+        const months = duration.months || 0;
+        const days = duration.days || 0;
+
+        if (years > 0) {
+            let result = `${years} year${years > 1 ? 's' : ''}`;
+            if (months > 0) {
+                result += `, ${months} month${months > 1 ? 's' : ''}`;
+            }
+            return result;
+        }
+        if (months > 0) {
+            let result = `${months} month${months > 1 ? 's' : ''}`;
+            if (days > 0) {
+                result += `, ${days} day${days !== 1 ? 's' : ''}`;
+            }
+            return result;
+        }
+        return `${days} day${days !== 1 ? 's' : ''}`;
+    };
     
     const handleDownloadPdf = async () => {
         const formToCapture = pdfFormRef.current;
@@ -294,30 +333,37 @@ export default function NewRequestPage() {
     useEffect(() => {
         if (!user?.hospitalId) return;
 
+        let isMounted = true;
         async function loadInitialData() {
             try {
                 const [patients, hospital] = await Promise.all([
                    getPatientsForPreAuth(user!.hospitalId!),
                    getHospitalById(user!.hospitalId!)
                 ]);
+                
+                if (isMounted) {
+                    setHospitalPatients(patients);
+                    setHospitalDetails(hospital);
 
-                setHospitalPatients(patients);
-                setHospitalDetails(hospital);
-
-                const patientIdFromUrl = searchParams.get('patientId');
-                if (patientIdFromUrl) {
-                    setSelectedPatientId(patientIdFromUrl);
-                    const preselectedPatient = patients.find(p => String(p.id) === patientIdFromUrl);
-                    if (preselectedPatient) {
-                        setSearchQuery(`${preselectedPatient.fullName} - ${preselectedPatient.admission_id}`);
+                    const patientIdFromUrl = searchParams.get('patientId');
+                    if (patientIdFromUrl) {
+                        setSelectedPatientId(patientIdFromUrl);
+                        const preselectedPatient = patients.find(p => String(p.id) === patientIdFromUrl);
+                        if (preselectedPatient) {
+                            setSearchQuery(`${preselectedPatient.fullName} - ${preselectedPatient.admission_id}`);
+                        }
                     }
                 }
             } catch (error) {
-                toast({ title: "Error", description: "Failed to fetch initial data.", variant: 'destructive' });
+                if (isMounted) {
+                    toast({ title: "Error", description: "Failed to fetch initial data.", variant: 'destructive' });
+                }
             }
         }
         
         loadInitialData();
+        
+        return () => { isMounted = false; };
 
     }, [user?.hospitalId, searchParams, toast]);
 
@@ -328,6 +374,7 @@ export default function NewRequestPage() {
                 setPatientDetails(null);
                 setToEmail("");
                 setTotalCost(0);
+                setDateOfBirth('');
                 return;
             }
             setIsLoadingPatient(true);
@@ -337,6 +384,11 @@ export default function NewRequestPage() {
                  if (details) {
                     if (details.tpaEmail) {
                         setToEmail(details.tpaEmail);
+                    }
+                    if (details.dateOfBirth) {
+                        setDateOfBirth(formatDateForInput(details.dateOfBirth));
+                    } else {
+                        setDateOfBirth('');
                     }
                     const costFields: (keyof Patient)[] = [
                         'roomNursingDietCost', 'investigationCost', 'icuCost',
@@ -394,6 +446,14 @@ export default function NewRequestPage() {
             return '';
         }
     };
+    
+    useEffect(() => {
+        if (dateOfBirth) {
+            setAge(calculateAge(dateOfBirth));
+        } else {
+            setAge('');
+        }
+    }, [dateOfBirth]);
     
     useEffect(() => {
         if (!patientDetails || !hospitalDetails || !htmlToDraft) return;
@@ -636,12 +696,12 @@ export default function NewRequestPage() {
                                                 </Select>
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="age">Age</Label>
-                                                <Input id="age" name="age" type="number" defaultValue={patientDetails.age ?? ''} />
+                                                <Label htmlFor="birth_date">Date of birth</Label>
+                                                <Input id="birth_date" name="birth_date" type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} max={new Date().toISOString().split('T')[0]}/>
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="birth_date">Date of birth</Label>
-                                                <Input id="birth_date" name="birth_date" type="date" defaultValue={formatDateForInput(patientDetails.dateOfBirth)} max={new Date().toISOString().split('T')[0]}/>
+                                                <Label htmlFor="age">Age</Label>
+                                                <Input id="age" name="age" type="text" value={age} readOnly />
                                             </div>
                                             <div className="md:col-span-2 space-y-2">
                                                 <Label htmlFor="address">Address</Label>
@@ -1106,6 +1166,7 @@ export default function NewRequestPage() {
 
                             <div className="space-y-2">
                                 <Label htmlFor="details">Compose Email</Label>
+                                {isClient && (
                                 <Editor
                                   editorState={editorState}
                                   onEditorStateChange={setEditorState}
@@ -1113,6 +1174,7 @@ export default function NewRequestPage() {
                                   editorClassName="px-4 py-2 min-h-[150px]"
                                   toolbarClassName="border-b border-input"
                                 />
+                                )}
                             </div>
                             {patientDetails && (
                                 <div className="space-y-2 pt-4 border-t">
@@ -1165,4 +1227,3 @@ export default function NewRequestPage() {
         </div>
     );
 }
-

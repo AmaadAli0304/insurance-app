@@ -49,6 +49,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
     const { user } = useAuth();
     const [stats, setStats] = useState<PreAuthSummaryStat[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isExporting, setIsExporting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const itemsPerPage = 10;
@@ -56,7 +57,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const hospitalId = user?.role === 'Admin' ? user.hospitalId : null;
+            const hospitalId = user?.role === 'Admin' || user?.role === 'Hospital Staff' ? user.hospitalId : null;
             const { stats: data, total } = await getPreAuthSummaryStats(dateRange, hospitalId, currentPage, itemsPerPage);
             setStats(data);
             setTotalPages(Math.ceil(total / itemsPerPage));
@@ -73,38 +74,50 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
         }
     }, [loadData, user]);
     
-    const handleExport = () => {
-        const headers = ["Patient Name", "Status", "DOA", "Dr in Charge", "Room Category", "Budget", "Approval Amount", "TPA", "Insurance", "Plan of Management", "Sum Insured", "Year/Corporate"];
-        const csvRows = [headers.join(",")];
+    const handleExport = async () => {
+        setIsExporting(true);
+        try {
+            const hospitalId = user?.role === 'Admin' || user?.role === 'Hospital Staff' ? user.hospitalId : null;
+            // Fetch all data for export
+            const { stats: allStats } = await getPreAuthSummaryStats(dateRange, hospitalId, 1, 999999);
 
-        stats.forEach((stat) => {
-            const row = [
-                `"${stat.patientName}"`,
-                `"${stat.status}"`,
-                stat.admissionDate ? format(new Date(stat.admissionDate), 'yyyy-MM-dd') : 'N/A',
-                `"${stat.doctorInCharge || 'N/A'}"`,
-                `"${stat.roomCategory || 'N/A'}"`,
-                stat.budget || 0,
-                stat.approvalAmount || 0,
-                `"${stat.tpaName}"`,
-                `"${stat.insuranceName}"`,
-                `"${(stat.planOfManagement || 'N/A').replace(/"/g, '""')}"`,
-                stat.sumInsured || 0,
-                `"${stat.corporatePolicyNumber || 'N/A'}"`,
-            ];
-            csvRows.push(row.join(","));
-        });
+            const headers = ["Patient Name", "Contact No", "Status", "DOA", "Dr in Charge", "Room Category", "Budget", "Approval Amount", "TPA", "Insurance", "Plan of Management", "Sum Insured", "Year/Corporate"];
+            const csvRows = [headers.join(",")];
 
-        const csvContent = csvRows.join("\n");
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", "pre_auth_summary.csv");
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+            allStats.forEach((stat) => {
+                const row = [
+                    `"${stat.patientName}"`,
+                    `"${stat.contactNumber || 'N/A'}"`,
+                    `"${stat.status}"`,
+                    stat.admissionDate ? format(new Date(stat.admissionDate), 'yyyy-MM-dd') : 'N/A',
+                    `"${stat.doctorInCharge || 'N/A'}"`,
+                    `"${stat.roomCategory || 'N/A'}"`,
+                    stat.budget || 0,
+                    stat.approvalAmount || 0,
+                    `"${stat.tpaName}"`,
+                    `"${stat.insuranceName}"`,
+                    `"${(stat.planOfManagement || 'N/A').replace(/"/g, '""')}"`,
+                    stat.sumInsured || 0,
+                    `"${stat.corporatePolicyNumber || 'N/A'}"`,
+                ];
+                csvRows.push(row.join(","));
+            });
+
+            const csvContent = csvRows.join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "pre_auth_summary.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            console.error("Failed to export data:", error);
+        } finally {
+            setIsExporting(false);
+        }
     };
 
     const handlePrevPage = () => {
@@ -127,9 +140,9 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                     <CardTitle>Pre-Authorization Summary</CardTitle>
                     <CardDescription>A summary of pre-authorization requests.</CardDescription>
                 </div>
-                <Button onClick={handleExport} variant="outline" size="sm" disabled={stats.length === 0}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Export
+                <Button onClick={handleExport} variant="outline" size="sm" disabled={isExporting}>
+                    {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                    {isExporting ? 'Exporting...' : 'Export'}
                 </Button>
             </CardHeader>
             <CardContent>
@@ -144,6 +157,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Patient Name</TableHead>
+                                    <TableHead>Contact No</TableHead>
                                     <TableHead>DOA</TableHead>
                                     <TableHead>TPA</TableHead>
                                     <TableHead>Insurance</TableHead>
@@ -168,6 +182,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                                                 </Avatar>
                                                 {stat.patientName}
                                             </TableCell>
+                                            <TableCell>{stat.contactNumber || 'N/A'}</TableCell>
                                             <TableCell>{stat.admissionDate ? format(new Date(stat.admissionDate), 'MMM dd, yyyy') : 'N/A'}</TableCell>
                                             <TableCell>{stat.tpaName}</TableCell>
                                             <TableCell>{stat.insuranceName}</TableCell>
@@ -187,7 +202,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={12} className="h-24 text-center">
+                                        <TableCell colSpan={13} className="h-24 text-center">
                                             No pre-authorization data available for the selected period.
                                         </TableCell>
                                     </TableRow>

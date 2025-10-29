@@ -44,22 +44,27 @@ export async function getDashboardData(hospitalId: string): Promise<DashboardDat
             .input('hospitalId', sql.NVarChar, hospitalId)
             .query("SELECT status FROM preauth_request WHERE hospital_id = @hospitalId");
 
-        // Pending Pre-Auths query
+        // Pending Pre-Auths query (patients for whom pre-auth has not been sent)
         const pendingPreAuthsQuery = pool.request()
             .input('hospitalId', sql.NVarChar, hospitalId)
             .query(`
                 SELECT 
-                    pr.id,
-                    pr.patient_id as patientId,
+                    p.id as patientId,
                     p.first_name + ' ' + p.last_name as patientName,
                     COALESCE(tpa.name, comp.name, 'N/A') as tpaOrInsurerName,
-                    pr.totalExpectedCost as amountRequested
-                FROM preauth_request pr
-                JOIN patients p ON pr.patient_id = p.id
-                LEFT JOIN companies comp ON pr.company_id = comp.id
-                LEFT JOIN tpas tpa ON pr.tpa_id = tpa.id
-                WHERE pr.hospital_id = @hospitalId AND pr.status = 'Pre auth Sent'
-                ORDER BY pr.created_at DESC
+                    adm.totalExpectedCost as amountRequested,
+                    p.id as id -- Using patient ID as a unique key for the row
+                FROM patients p
+                LEFT JOIN admissions adm ON p.id = adm.patient_id
+                LEFT JOIN companies comp ON adm.insurance_company = comp.id
+                LEFT JOIN tpas tpa ON adm.tpa_id = tpa.id
+                WHERE p.hospital_id = @hospitalId
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM claims c
+                    WHERE c.Patient_id = p.id AND c.status = 'Pre auth Sent'
+                )
+                ORDER BY p.created_at DESC
             `);
         
         // Query Raised Pre-Auths query

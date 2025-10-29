@@ -23,6 +23,7 @@ export function AdminPatientBillingTable({ dateRange }: AdminPatientBillingTable
     const [tpaList, setTpaList] = useState<Pick<TPA, 'id' | 'name'>[]>([]);
     const [selectedTpaId, setSelectedTpaId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isExporting, setIsExporting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const itemsPerPage = 10;
@@ -56,30 +57,40 @@ export function AdminPatientBillingTable({ dateRange }: AdminPatientBillingTable
         return name.split(' ').map(n => n[0]).join('').toUpperCase();
     }
 
-    const handleExport = () => {
-        const headers = ["Patient Name", "TPA / Insurance", "Billed Amount", "Sanctioned Amount"];
-        const csvRows = [headers.join(",")];
+    const handleExport = async () => {
+        setIsExporting(true);
+        try {
+            const hospitalId = user?.role === 'Admin' ? user.hospitalId : null;
+            const { stats: allStats } = await getPatientBilledStatsForAdmin(dateRange, hospitalId, selectedTpaId, 1, 999999);
 
-        stats.forEach((stat) => {
-            const row = [
-                `"${stat.patientName}"`,
-                `"${stat.tpaName}"`,
-                stat.billedAmount,
-                stat.sanctionedAmount,
-            ];
-            csvRows.push(row.join(","));
-        });
+            const headers = ["Patient Name", "TPA / Insurance", "Billed Amount", "Sanctioned Amount"];
+            const csvRows = [headers.join(",")];
 
-        const csvContent = csvRows.join("\n");
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", "patient_billing_summary.csv");
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+            allStats.forEach((stat) => {
+                const row = [
+                    `"${stat.patientName}"`,
+                    `"${stat.tpaName}"`,
+                    stat.billedAmount,
+                    stat.sanctionedAmount,
+                ];
+                csvRows.push(row.join(","));
+            });
+
+            const csvContent = csvRows.join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "patient_billing_summary.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+             console.error("Failed to export patient billing stats:", error);
+        } finally {
+            setIsExporting(false);
+        }
     };
 
     const handlePrevPage = () => {
@@ -107,9 +118,9 @@ export function AdminPatientBillingTable({ dateRange }: AdminPatientBillingTable
                             {tpaList.map(tpa => <SelectItem key={tpa.id} value={String(tpa.id)}>{tpa.name}</SelectItem>)}
                         </SelectContent>
                     </Select>
-                    <Button onClick={handleExport} variant="outline" size="sm" disabled={stats.length === 0}>
-                        <Download className="mr-2 h-4 w-4" />
-                        Export
+                    <Button onClick={handleExport} variant="outline" size="sm" disabled={isLoading || isExporting}>
+                        {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                        {isExporting ? 'Exporting...' : 'Export'}
                     </Button>
                 </div>
             </CardHeader>

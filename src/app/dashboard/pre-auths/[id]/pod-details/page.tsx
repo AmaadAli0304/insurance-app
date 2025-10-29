@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useRef, useEffect, useActionState, ChangeEvent } from "react";
@@ -154,8 +153,13 @@ export default function PodDetailsPage() {
   const [state, formAction] = useActionState(handleSavePodDetails, { message: "", type: "initial" });
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
+  const [isClient, setIsClient] = useState(false);
 
   const [documentUrls, setDocumentUrls] = useState<Record<string, { url: string; name: string; } | null>>({});
+  
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     if (state.type === "success") {
@@ -340,13 +344,13 @@ export default function PodDetailsPage() {
                                 <div className="space-y-2">
                                     <Label>Email Content</Label>
                                     <input type="hidden" name="email_body" value={draftToHtml(convertToRaw(editorState.getCurrentContent()))} />
-                                    <Editor
+                                    {isClient && <Editor
                                         editorState={editorState}
                                         onEditorStateChange={setEditorState}
                                         wrapperClassName="rounded-md border border-input bg-background"
                                         editorClassName="px-4 py-2 min-h-[150px]"
                                         toolbarClassName="border-b border-input"
-                                    />
+                                    />}
                                 </div>
                                 <div className="space-y-2">
                                     <FileUpload label="Attach File" name="attachment_1" onUploadComplete={handleDocumentUploadComplete} />

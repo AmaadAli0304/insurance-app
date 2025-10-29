@@ -17,6 +17,7 @@ interface SettledStatusDetailsTableProps {
 export function SettledStatusDetailsTable({ dateRange }: SettledStatusDetailsTableProps) {
     const [stats, setStats] = useState<SettledStatusStat[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isExporting, setIsExporting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const itemsPerPage = 10;
@@ -47,43 +48,61 @@ export function SettledStatusDetailsTable({ dateRange }: SettledStatusDetailsTab
         return acc;
     }, { finalAuthorisedAmount: 0, deduction: 0, tds: 0, finalSettlementAmount: 0, netAmountCredited: 0 });
 
-    const handleExport = () => {
-        const headers = ["Patient Name", "TPA", "Final Authorised Amount", "Deduction", "TDS", "Final Settlement Amount", "Net Amount Credited"];
-        const csvRows = [headers.join(",")];
+    const handleExport = async () => {
+        setIsExporting(true);
+        try {
+            const { stats: allStats } = await getSettledStatusStats(dateRange, 1, 999999);
 
-        stats.forEach((stat) => {
-            const row = [
-                `"${stat.patientName}"`,
-                `"${stat.tpaName}"`,
-                stat.finalAuthorisedAmount || 0,
-                stat.deduction || 0,
-                stat.tds || 0,
-                stat.finalSettlementAmount || 0,
-                stat.netAmountCredited || 0,
-            ];
-            csvRows.push(row.join(","));
-        });
-        
-        csvRows.push([
-            "TOTAL",
-            "",
-            totals.finalAuthorisedAmount,
-            totals.deduction,
-            totals.tds,
-            totals.finalSettlementAmount,
-            totals.netAmountCredited,
-        ].join(","));
+            const headers = ["Patient Name", "TPA", "Final Authorised Amount", "Deduction", "TDS", "Final Settlement Amount", "Net Amount Credited"];
+            const csvRows = [headers.join(",")];
 
-        const csvContent = csvRows.join("\n");
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", "settled_status_details.csv");
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+            allStats.forEach((stat) => {
+                const row = [
+                    `"${stat.patientName}"`,
+                    `"${stat.tpaName}"`,
+                    stat.finalAuthorisedAmount || 0,
+                    stat.deduction || 0,
+                    stat.tds || 0,
+                    stat.finalSettlementAmount || 0,
+                    stat.netAmountCredited || 0,
+                ];
+                csvRows.push(row.join(","));
+            });
+            
+            const allTotals = allStats.reduce((acc, stat) => {
+                acc.finalAuthorisedAmount += Number(stat.finalAuthorisedAmount) || 0;
+                acc.deduction += Number(stat.deduction) || 0;
+                acc.tds += Number(stat.tds) || 0;
+                acc.finalSettlementAmount += Number(stat.finalSettlementAmount) || 0;
+                acc.netAmountCredited += Number(stat.netAmountCredited) || 0;
+                return acc;
+            }, { finalAuthorisedAmount: 0, deduction: 0, tds: 0, finalSettlementAmount: 0, netAmountCredited: 0 });
+
+            csvRows.push([
+                "TOTAL",
+                "",
+                allTotals.finalAuthorisedAmount,
+                allTotals.deduction,
+                allTotals.tds,
+                allTotals.finalSettlementAmount,
+                allTotals.netAmountCredited,
+            ].join(","));
+
+            const csvContent = csvRows.join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "settled_status_details.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch(error) {
+            console.error("Failed to export settled status stats:", error);
+        } finally {
+            setIsExporting(false);
+        }
     };
     
     const formatValue = (value: number) => {
@@ -111,9 +130,9 @@ export function SettledStatusDetailsTable({ dateRange }: SettledStatusDetailsTab
                     <CardTitle>Settled Status Details</CardTitle>
                     <CardDescription>Details of all claims that have been settled.</CardDescription>
                 </div>
-                <Button onClick={handleExport} variant="outline" size="sm" disabled={stats.length === 0}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Export
+                <Button onClick={handleExport} variant="outline" size="sm" disabled={isLoading || isExporting}>
+                    {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                    {isExporting ? 'Exporting...' : 'Export'}
                 </Button>
             </CardHeader>
             <CardContent>
