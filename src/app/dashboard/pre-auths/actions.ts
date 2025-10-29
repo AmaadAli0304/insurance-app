@@ -670,7 +670,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     const claim_id = formData.get('claim_id') as string;
     const reason = formData.get('reason') as string;
     const amount_str = formData.get('amount') as string;
-    const amount_sanctioned_str = formData.get('amount_sanctioned') as string;
+    const amount_sanctioned_from_form = formData.get('amount_sanctioned') as string;
     
     const userId = formData.get('userId') as string;
 
@@ -684,10 +684,8 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     // Fields for 'Final Approval' status
     const final_hospital_bill = formData.get('final_hospital_bill') as string;
     const hospital_discount = formData.get('hospital_discount') as string;
-    const final_amount_str = formData.get('final_amount') as string;
     
     // Fields for 'Settled' status
-    const final_authorised_amount_str = formData.get('final_amount') as string;
     const deduction_str = formData.get('nm_deductions') as string; // User said deduction maps to nm_deductions
     const tds_str = formData.get('tds') as string;
     const final_settlement_amount_str = formData.get('final_settle_amount') as string;
@@ -708,6 +706,8 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     // Common fields
     const nm_deductions = formData.get('nm_deductions') as string;
     const co_pay = formData.get('co_pay') as string;
+    const final_amount_str = formData.get('final_amount') as string; // Represents Final Authorised Amount
+    const amountPaidByInsured_str = formData.get('amount_sanctioned') as string; // Represents Amount Paid by insured
 
 
     // Handle new uploads
@@ -868,7 +868,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
             .input('status', sql.NVarChar, status) 
             .input('reason', sql.NVarChar, reason) 
             .input('created_by', sql.NVarChar, userId || 'System Update') 
-            .input('paidAmount', sql.Decimal(18, 2), amount_sanctioned ? parseFloat(amount_sanctioned) : null) 
+            .input('paidAmount', sql.Decimal(18, 2), amount_sanctioned_from_form ? parseFloat(amount_sanctioned_from_form) : null) 
             .input('hospital_id', sql.NVarChar, preAuthDetails.hospital_id)
             .input('tpa_id', sql.Int, preAuthDetails.tpa_id)
             .input('claim_id', sql.NVarChar, claim_id) 
@@ -876,16 +876,16 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
             .input('updated_at', sql.DateTime, now);
 
         if (status === 'Final Approval') {
-            const finalAmount = final_amount_str ? parseFloat(final_amount_str) : null;
-            const amountPaidByInsured = amount_sanctioned_str ? parseFloat(amount_sanctioned_str) : null;
+            const finalAuthorisedAmount = final_amount_str ? parseFloat(final_amount_str) : null;
+            const amountPaidByInsured = amountPaidByInsured_str ? parseFloat(amountPaidByInsured_str) : null;
 
             claimInsertRequest
                 .input('final_bill', sql.Decimal(18, 2), final_hospital_bill ? parseFloat(final_hospital_bill) : null)
                 .input('hospital_discount', sql.Decimal(18, 2), hospital_discount ? parseFloat(hospital_discount) : null)
                 .input('nm_deductions', sql.Decimal(18, 2), nm_deductions ? parseFloat(nm_deductions) : null)
                 .input('co_pay', sql.Decimal(18, 2), co_pay ? parseFloat(co_pay) : null)
-                .input('final_amount', sql.Decimal(18, 2), amountPaidByInsured) // Amount Paid by Insured -> final_amount
-                .input('amount', sql.Decimal(18, 2), finalAmount) // Final Authorised Amount -> amount
+                .input('final_amount', sql.Decimal(18, 2), amountPaidByInsured)
+                .input('amount', sql.Decimal(18, 2), finalAuthorisedAmount)
                 .input('mou_discount', sql.Decimal(18, 2), mou_discount ? parseFloat(mou_discount) : null);
 
             await claimInsertRequest.query(`
@@ -899,7 +899,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
             `);
         } else if (status === 'Settled'){
             const amount = amount_str ? parseFloat(amount_str) : null;
-            claimInsertRequest.input('final_amount', sql.Decimal(18,2), final_authorised_amount_str ? parseFloat(final_authorised_amount_str) : null);
+            claimInsertRequest.input('final_amount', sql.Decimal(18,2), final_amount_str ? parseFloat(final_amount_str) : null);
             claimInsertRequest.input('nm_deductions', sql.Decimal(18,2), deduction_str ? parseFloat(deduction_str) : null);
             claimInsertRequest.input('tds', sql.Decimal(18,2), tds_str ? parseFloat(tds_str) : null);
             claimInsertRequest.input('final_settle_amount', sql.Decimal(18,2), final_settlement_amount_str ? parseFloat(final_settlement_amount_str) : null);
@@ -935,7 +935,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
             )`);
 
         } else {
-             claimInsertRequest.input('amount', sql.Decimal(18, 2), status === 'Initial Approval' ? amount_sanctioned : (amount || (status === 'Enhancement Request' || status === 'Enhancement Approval' ? amount_sanctioned : null) || null));
+             claimInsertRequest.input('amount', sql.Decimal(18, 2), status === 'Initial Approval' ? (amount_sanctioned_from_form ? parseFloat(amount_sanctioned_from_form) : null) : (amount_str ? parseFloat(amount_str) : null));
              await claimInsertRequest.query('INSERT INTO claims ( Patient_id, Patient_name, admission_id, status, reason, created_by, amount, paidAmount, hospital_id, tpa_id, claim_id, created_at, updated_at ) VALUES ( @Patient_id, @Patient_name, @admission_id, @status, @reason, @created_by, @amount, @paidAmount, @hospital_id, @tpa_id, @claim_id, @created_at, @updated_at )');
         }
         
@@ -943,7 +943,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
             const updatePreAuthRequest = new sql.Request(transaction)
                 .input('id', sql.Int, Number(id))
                 .input('status', sql.NVarChar, status)
-                .input('amount_sanctioned', sql.Decimal(18, 2), amount_sanctioned)
+                .input('amount_sanctioned', sql.Decimal(18, 2), amount_sanctioned_from_form ? parseFloat(amount_sanctioned_from_form) : null)
                 .query('UPDATE preauth_request SET status = @status, amount_sanctioned = @amount_sanctioned WHERE id = @id');
         }
         
@@ -1052,6 +1052,7 @@ export async function handleSavePodDetails(prevState: { message: string, type?: 
   revalidatePath('/dashboard/pre-auths');
   return { message: "POD details saved successfully.", type: 'success' };
 }
+
 
 
 
