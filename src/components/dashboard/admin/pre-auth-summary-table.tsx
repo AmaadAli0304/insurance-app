@@ -81,12 +81,13 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
             // Fetch all data for export
             const { stats: allStats } = await getPreAuthSummaryStats(dateRange, hospitalId, 1, 999999);
 
-            const headers = ["Patient Name", "Status", "DOA", "Dr in Charge", "Room Category", "Budget", "Approval Amount", "TPA", "Insurance", "Plan of Management", "Sum Insured", "Year/Corporate"];
+            const headers = ["Patient Name", "Contact No", "Status", "DOA", "Dr in Charge", "Room Category", "Budget", "Approval Amount", "TPA", "Insurance", "Plan of Management", "Sum Insured", "Year/Corporate"];
             const csvRows = [headers.join(",")];
 
             allStats.forEach((stat) => {
                 const row = [
                     `"${stat.patientName}"`,
+                    `"${stat.contactNumber || 'N/A'}"`,
                     `"${stat.status}"`,
                     stat.admissionDate ? format(new Date(stat.admissionDate), 'yyyy-MM-dd') : 'N/A',
                     `"${stat.doctorInCharge || 'N/A'}"`,
@@ -156,6 +157,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Patient Name</TableHead>
+                                    <TableHead>Contact No</TableHead>
                                     <TableHead>DOA</TableHead>
                                     <TableHead>TPA</TableHead>
                                     <TableHead>Insurance</TableHead>
@@ -180,6 +182,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                                                 </Avatar>
                                                 {stat.patientName}
                                             </TableCell>
+                                            <TableCell>{stat.contactNumber || 'N/A'}</TableCell>
                                             <TableCell>{stat.admissionDate ? format(new Date(stat.admissionDate), 'MMM dd, yyyy') : 'N/A'}</TableCell>
                                             <TableCell>{stat.tpaName}</TableCell>
                                             <TableCell>{stat.insuranceName}</TableCell>
@@ -199,7 +202,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={12} className="h-24 text-center">
+                                        <TableCell colSpan={13} className="h-24 text-center">
                                             No pre-authorization data available for the selected period.
                                         </TableCell>
                                     </TableRow>

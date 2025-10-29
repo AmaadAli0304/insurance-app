@@ -424,6 +424,7 @@ export async function getSettledStatusStats(
 export type PreAuthSummaryStat = {
   patientName: string;
   patientPhoto: string | null;
+  contactNumber: string | null;
   status: string;
   admissionDate: string | null;
   tpaName: string;
@@ -479,6 +480,7 @@ export async function getPreAuthSummaryStats(
             SELECT
                 pr.first_name + ' ' + pr.last_name AS patientName,
                 p.photo as patientPhoto,
+                p.phone_number as contactNumber,
                 pr.status,
                 pr.admissionDate,
                 COALESCE(t.name, 'N/A') as tpaName,
