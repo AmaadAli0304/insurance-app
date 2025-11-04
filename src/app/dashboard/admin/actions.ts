@@ -1,4 +1,5 @@
 
+
 "use server";
 
 import { getDbPool, sql } from '@/lib/db';
@@ -426,6 +427,7 @@ export type PreAuthSummaryStat = {
   contactNumber: string | null;
   status: string;
   admissionDate: string | null;
+  admissionType: string | null;
   tpaName: string;
   insuranceName: string;
   corporatePolicyNumber: string | null;
@@ -482,6 +484,7 @@ export async function getPreAuthSummaryStats(
                 p.phone_number as contactNumber,
                 pr.status,
                 pr.admissionDate,
+                pr.admissionType,
                 COALESCE(t.name, 'N/A') as tpaName,
                 COALESCE(c.name, 'N/A') as insuranceName,
                 pr.corporate_policy_number as corporatePolicyNumber,
