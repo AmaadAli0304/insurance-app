@@ -138,8 +138,8 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                    <CardTitle>Pre-Authorization Summary</CardTitle>
-                    <CardDescription>A summary of pre-authorization requests.</CardDescription>
+                    <CardTitle>Bed Chart Report</CardTitle>
+                    <CardDescription>A summary of bed chart.</CardDescription>
                 </div>
                 <Button onClick={handleExport} variant="outline" size="sm" disabled={isExporting}>
                     {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
