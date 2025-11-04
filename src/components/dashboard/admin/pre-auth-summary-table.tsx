@@ -81,25 +81,25 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
             // Fetch all data for export
             const { stats: allStats } = await getPreAuthSummaryStats(dateRange, hospitalId, 1, 999999);
 
-            const headers = ["Patient Name", "Contact No", "Status", "DOA", "Dr in Charge", "Room Category", "Budget", "Approval Amount", "TPA", "Insurance", "Plan of Management", "Type of admission", "Sum Insured", "Year/Corporate"];
+            const headers = ["Patient Name", "Contact No", "DOA", "TPA", "Insurance", "Plan of Management", "Type of admission", "Sum Insured", "Year/Corporate", "Status", "Dr in Charge", "Room Category", "Budget", "Approval Amount"];
             const csvRows = [headers.join(",")];
 
             allStats.forEach((stat) => {
                 const row = [
                     `"${stat.patientName}"`,
                     `"${stat.contactNumber || 'N/A'}"`,
-                    `"${stat.status}"`,
                     stat.admissionDate ? format(new Date(stat.admissionDate), 'yyyy-MM-dd') : 'N/A',
-                    `"${stat.doctorInCharge || 'N/A'}"`,
-                    `"${stat.roomCategory || 'N/A'}"`,
-                    stat.budget || 0,
-                    stat.approvalAmount || 0,
                     `"${stat.tpaName}"`,
                     `"${stat.insuranceName}"`,
                     `"${(stat.planOfManagement || 'N/A').replace(/"/g, '""')}"`,
                     `"${stat.admissionType || 'N/A'}"`,
                     stat.sumInsured || 0,
                     `"${stat.corporatePolicyNumber || 'N/A'}"`,
+                    `"${stat.status}"`,
+                    `"${stat.doctorInCharge || 'N/A'}"`,
+                    `"${stat.roomCategory || 'N/A'}"`,
+                    stat.budget || 0,
+                    stat.approvalAmount || 0,
                 ];
                 csvRows.push(row.join(","));
             });
