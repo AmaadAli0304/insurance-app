@@ -442,6 +442,7 @@ export type PreAuthSummaryStat = {
 export async function getPreAuthSummaryStats(
   dateRange?: DateRange,
   hospitalId?: string | null,
+  filter: 'Active' | 'Completed' | 'All' = 'Active',
   page: number = 1,
   limit: number = 10
 ): Promise<{ stats: PreAuthSummaryStat[]; total: number }> {
@@ -465,6 +466,12 @@ export async function getPreAuthSummaryStats(
             request.input('hospitalId', sql.NVarChar, hospitalId);
             countRequest.input('hospitalId', sql.NVarChar, hospitalId);
             whereClauses.push('pr.hospital_id = @hospitalId');
+        }
+
+        if (filter === 'Active') {
+            whereClauses.push("pr.status NOT IN ('Settled', 'Final Approval', 'Rejected')");
+        } else if (filter === 'Completed') {
+            whereClauses.push("pr.status IN ('Settled', 'Final Approval', 'Rejected')");
         }
         
         const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
@@ -862,7 +869,6 @@ export async function getComprehensiveClaimDetails(
         throw new Error('Failed to fetch comprehensive claim details.');
     }
 }
-
     
 
 

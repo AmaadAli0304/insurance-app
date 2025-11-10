@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { PreAuthStatus } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
 interface PreAuthSummaryTableProps {
@@ -53,12 +54,13 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const itemsPerPage = 10;
+    const [statusFilter, setStatusFilter] = useState<'Active' | 'Completed' | 'All'>('Active');
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
             const hospitalId = user?.role === 'Admin' || user?.role === 'Hospital Staff' ? user.hospitalId : null;
-            const { stats: data, total } = await getPreAuthSummaryStats(dateRange, hospitalId, currentPage, itemsPerPage);
+            const { stats: data, total } = await getPreAuthSummaryStats(dateRange, hospitalId, statusFilter, currentPage, itemsPerPage);
             setStats(data);
             setTotalPages(Math.ceil(total / itemsPerPage));
         } catch (error) {
@@ -66,7 +68,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
         } finally {
             setIsLoading(false);
         }
-    }, [dateRange, user, currentPage, itemsPerPage]);
+    }, [dateRange, user, statusFilter, currentPage, itemsPerPage]);
 
     useEffect(() => {
         if(user) {
@@ -79,7 +81,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
         try {
             const hospitalId = user?.role === 'Admin' || user?.role === 'Hospital Staff' ? user.hospitalId : null;
             // Fetch all data for export
-            const { stats: allStats } = await getPreAuthSummaryStats(dateRange, hospitalId, 1, 999999);
+            const { stats: allStats } = await getPreAuthSummaryStats(dateRange, hospitalId, statusFilter, 1, 999999);
 
             const headers = ["Patient Name", "Contact No", "DOA", "TPA", "Insurance", "Plan of Management", "Type of admission", "Sum Insured", "Year/Corporate", "Status", "Dr in Charge", "Room Category", "Budget", "Approval Amount"];
             const csvRows = [headers.join(",")];
@@ -141,10 +143,22 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                     <CardTitle>Bed Chart Report</CardTitle>
                     <CardDescription>A summary of bed chart.</CardDescription>
                 </div>
-                <Button onClick={handleExport} variant="outline" size="sm" disabled={isExporting}>
-                    {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-                    {isExporting ? 'Exporting...' : 'Export'}
-                </Button>
+                 <div className="flex items-center gap-2">
+                    <Select value={statusFilter} onValueChange={(value: 'Active' | 'Completed' | 'All') => setStatusFilter(value)}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Filter by status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="All">All</SelectItem>
+                            <SelectItem value="Active">Active</SelectItem>
+                            <SelectItem value="Completed">Completed</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Button onClick={handleExport} variant="outline" size="sm" disabled={isExporting}>
+                        {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                        {isExporting ? 'Exporting...' : 'Export'}
+                    </Button>
+                </div>
             </CardHeader>
             <CardContent>
                 {isLoading ? (
@@ -230,3 +244,4 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
         </Card>
     );
 }
+
