@@ -76,7 +76,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
             const hospitalId = user?.role === 'Admin' || user?.role === 'Hospital Staff' ? user.hospitalId : null;
             const { stats: allStats } = await getNewReportStats(dateRange, hospitalId, selectedTpaId, 1, 999999);
 
-            const headers = ["Patient Name", "DOA", "DOD", "Policy Number", "Claim Number", "TPA / Insurance", "Insurance Co", "Hospital Exp", "USG/2DECHO/EEG", "X-Ray", "MRI/CT Scan", "Lab Exp", "Pharmacy Ex", "Implant Charges", "Total Bill Amt", "TPA Approved Amt", "Co-Pay", "Tariff Excess", "Deductions", "Discount Amt", "Amount Before TDS", "TDS", "Amount After TDS", "Deduction by Insurance Co.", "Actual Settlement Date", "BRN / UTR No.", "POD DETAILS"];
+            const headers = ["Patient Name", "DOA", "DOD", "Policy Number", "Claim Number", "TPA / Insurance", "Insurance Co", "Hospital Exp", "USG/2DECHO/EEG", "X-Ray", "MRI/CT Scan", "Lab Exp", "Pharmacy Ex", "Implant Charges", "Total Bill Amt", "TPA Approved Amt", "Co-Pay", "Amount paid by insured", "Deductions", "Discount Amt", "Amount Before TDS", "TDS", "Amount After TDS", "Deduction by Insurance Co.", "Actual Settlement Date", "BRN / UTR No.", "POD DETAILS"];
             const csvRows = [headers.join(",")];
 
             allStats.forEach((stat) => {
@@ -189,7 +189,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                         <TableHead className="text-right">Total Bill Amt</TableHead>
                                         <TableHead className="text-right">TPA Approved Amt</TableHead>
                                         <TableHead className="text-right">Co-Pay</TableHead>
-                                        <TableHead className="text-right">Tariff Excess</TableHead>
+                                        <TableHead className="text-right">Amount paid by insured</TableHead>
                                         <TableHead className="text-right">Deductions</TableHead>
                                         <TableHead className="text-right">Discount Amt</TableHead>
                                         <TableHead className="text-right">Amount Before TDS</TableHead>
@@ -226,9 +226,9 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                                 <TableCell className="text-right font-mono">{stat.pharmacyCharges?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.implantCharges?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.totalBillAmount?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                                <TableCell className="text-right font-mono">{stat.tariffExcess?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                                <TableCell className="text-right font-mono">{stat.coPay?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.tpaApprovedAmount?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                                <TableCell className="text-right font-mono">{stat.coPay?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                                <TableCell className="text-right font-mono">{stat.tariffExcess?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.deductions?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.discountAmount?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.amountBeforeTds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
@@ -279,3 +279,5 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
         </Card>
     );
 }
+
+    
