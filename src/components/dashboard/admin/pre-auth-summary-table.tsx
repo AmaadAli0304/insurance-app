@@ -5,7 +5,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getPreAuthSummaryStats, PreAuthSummaryStat } from "@/app/dashboard/admin/actions";
+import { getPreAuthSummaryStats, PreAuthSummaryStat, getAdmissionTypes } from "@/app/dashboard/admin/actions";
 import { Button } from "@/components/ui/button";
 import { Download, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { DateRange } from "react-day-picker";
@@ -49,26 +49,32 @@ const getStatusVariant = (status: PreAuthStatus) => {
 export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
     const { user } = useAuth();
     const [stats, setStats] = useState<PreAuthSummaryStat[]>([]);
+    const [admissionTypes, setAdmissionTypes] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isExporting, setIsExporting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const itemsPerPage = 10;
     const [statusFilter, setStatusFilter] = useState<'Active' | 'Completed' | 'All'>('Active');
+    const [admissionTypeFilter, setAdmissionTypeFilter] = useState<string | null>(null);
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
             const hospitalId = user?.role === 'Admin' || user?.role === 'Hospital Staff' ? user.hospitalId : null;
-            const { stats: data, total } = await getPreAuthSummaryStats(dateRange, hospitalId, statusFilter, currentPage, itemsPerPage);
+            const [{ stats: data, total }, types] = await Promise.all([
+                getPreAuthSummaryStats(dateRange, hospitalId, statusFilter, admissionTypeFilter, currentPage, itemsPerPage),
+                getAdmissionTypes(),
+            ]);
             setStats(data);
             setTotalPages(Math.ceil(total / itemsPerPage));
+            setAdmissionTypes(types);
         } catch (error) {
             console.error("Failed to load pre-auth summary stats:", error);
         } finally {
             setIsLoading(false);
         }
-    }, [dateRange, user, statusFilter, currentPage, itemsPerPage]);
+    }, [dateRange, user, statusFilter, admissionTypeFilter, currentPage, itemsPerPage]);
 
     useEffect(() => {
         if(user) {
@@ -81,7 +87,7 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
         try {
             const hospitalId = user?.role === 'Admin' || user?.role === 'Hospital Staff' ? user.hospitalId : null;
             // Fetch all data for export
-            const { stats: allStats } = await getPreAuthSummaryStats(dateRange, hospitalId, statusFilter, 1, 999999);
+            const { stats: allStats } = await getPreAuthSummaryStats(dateRange, hospitalId, statusFilter, admissionTypeFilter, 1, 999999);
 
             const headers = ["Patient Name", "Contact No", "DOA", "TPA", "Insurance", "Plan of Management", "Type of admission", "Sum Insured", "Year/Corporate", "Status", "Dr in Charge", "Room Category", "Budget", "Approval Amount"];
             const csvRows = [headers.join(",")];
@@ -144,6 +150,15 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
                     <CardDescription>A summary of bed chart.</CardDescription>
                 </div>
                  <div className="flex items-center gap-2">
+                    <Select onValueChange={(value) => setAdmissionTypeFilter(value === 'all' ? null : value)}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Filter by Admission Type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Types</SelectItem>
+                            {admissionTypes.map((type, index) => <SelectItem key={index} value={type}>{type}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
                     <Select value={statusFilter} onValueChange={(value: 'Active' | 'Completed' | 'All') => setStatusFilter(value)}>
                         <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder="Filter by status" />
@@ -244,4 +259,3 @@ export function PreAuthSummaryTable({ dateRange }: PreAuthSummaryTableProps) {
         </Card>
     );
 }
-
