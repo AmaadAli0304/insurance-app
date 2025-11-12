@@ -424,7 +424,7 @@ export async function getSettledStatusStats(
 export async function getAdmissionTypes(): Promise<string[]> {
   try {
     const pool = await getDbPool();
-    const result = await pool.request().query('SELECT DISTINCT admissionType FROM preauth_request WHERE admissionType IS NOT NULL');
+    const result = await pool.request().query("SELECT DISTINCT admissionType FROM preauth_request WHERE admissionType IS NOT NULL AND admissionType <> ''");
     return result.recordset.map(row => row.admissionType);
   } catch (error) {
     console.error('Error fetching admission types:', error);
