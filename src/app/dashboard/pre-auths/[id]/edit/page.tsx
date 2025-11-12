@@ -188,6 +188,8 @@ export default function EditPreAuthPage() {
     const [state, formAction] = useActionState(handleUpdateRequest, { message: "", type: 'initial' });
     const [selectedStatus, setSelectedStatus] = useState<PreAuthStatus | null>(null);
     const [showEmailFields, setShowEmailFields] = useState(false);
+    const [totalDischargeCharges, setTotalDischargeCharges] = useState(0);
+    const formRef = useRef<HTMLFormElement>(null);
     
     const [documentUrls, setDocumentUrls] = useState<Record<string, { url: string; name: string; } | null>>({});
     const [selectedAttachments, setSelectedAttachments] = useState<string[]>([]);
@@ -250,6 +252,19 @@ export default function EditPreAuthPage() {
         }
     }, [selectedStatus, request]);
 
+    const calculateTotalCharges = React.useCallback(() => {
+        if (!formRef.current) return;
+        const formData = new FormData(formRef.current);
+        const chargeFields = [
+            'pharmacy_bill', 'lab_bill', 'ct_scan_charges', 'mri_charges',
+            'usg_charges', 'other_charges', 'xray_charges', 'mou_discount', 'implant_charges'
+        ];
+        const total = chargeFields.reduce((sum, field) => {
+            const value = parseFloat(formData.get(field) as string);
+            return sum + (isNaN(value) ? 0 : value);
+        }, 0);
+        setTotalDischargeCharges(total);
+    }, []);
 
     if (isLoading) {
         return <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin" /></div>;
@@ -317,7 +332,7 @@ export default function EditPreAuthPage() {
                     <CardTitle>Request Details</CardTitle>
                     <CardDescription>Update the status for request <span className="font-mono">{request.id}</span>.</CardDescription>
                 </CardHeader>
-                <form action={formAction}>
+                <form action={formAction} ref={formRef} onChange={calculateTotalCharges}>
                     <CardContent className="space-y-4">
                         <input type="hidden" name="id" value={request.id} />
                         <input type="hidden" name="patientId" value={request.patientId} />
@@ -478,6 +493,10 @@ export default function EditPreAuthPage() {
                                  <div className="space-y-2">
                                     <Label htmlFor="amount_sanctioned">Amount Sanctioned</Label>
                                     <Input id="amount_sanctioned" name="amount_sanctioned" type="text" inputMode="decimal" pattern="[0-9.]*" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount sanctioned" />
+                                </div>
+                                <div className="space-y-2 md:col-span-2">
+                                    <Label htmlFor="total_charges">Total Charges</Label>
+                                    <Input id="total_charges" name="total_charges" type="text" value={totalDischargeCharges.toLocaleString('en-IN')} readOnly className="font-bold bg-muted" />
                                 </div>
                             </div>
                         )}
