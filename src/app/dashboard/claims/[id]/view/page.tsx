@@ -103,6 +103,18 @@ export default function ViewClaimPage() {
         notFound();
     }
 
+    const dischargeTotal = (claim?.status === 'Final Discharge sent')
+        ? (Number(claim.pharmacy_bill) || 0) +
+          (Number(claim.lab_bill) || 0) +
+          (Number(claim.ct_scan_charges) || 0) +
+          (Number(claim.mri_charges) || 0) +
+          (Number(claim.usg_charges) || 0) +
+          (Number(claim.xray_charges) || 0) +
+          (Number(claim.implant_charges) || 0) +
+          (Number(claim.other_charges) || 0) +
+          (Number(claim.mou_discount) || 0)
+        : 0;
+
     return (
         <div className="space-y-6">
             <Card>
@@ -131,16 +143,21 @@ export default function ViewClaimPage() {
                     {claim.status === 'Final Discharge sent' && (
                         <Card>
                             <CardHeader><CardTitle className="text-xl">Discharge Bill Details</CardTitle></CardHeader>
-                            <CardContent className="grid md:grid-cols-3 gap-4">
-                                <DetailItem label="Pharmacy Bill" value={claim.pharmacy_bill} isCurrency />
-                                <DetailItem label="Lab Bill" value={claim.lab_bill} isCurrency />
-                                <DetailItem label="CT Scan Charges" value={claim.ct_scan_charges} isCurrency />
-                                <DetailItem label="MRI Charges" value={claim.mri_charges} isCurrency />
-                                <DetailItem label="USG Charges" value={claim.usg_charges} isCurrency />
-                                <DetailItem label="X-Ray Charges" value={claim.xray_charges} isCurrency />
-                                <DetailItem label="Implant Charges" value={claim.implant_charges} isCurrency />
-                                <DetailItem label="Other Charges" value={claim.other_charges} isCurrency />
-                                <DetailItem label="MOU Discount" value={claim.mou_discount} isCurrency />
+                            <CardContent className="space-y-4">
+                                <div className="grid md:grid-cols-3 gap-4">
+                                    <DetailItem label="Pharmacy Bill" value={claim.pharmacy_bill} isCurrency />
+                                    <DetailItem label="Lab Bill" value={claim.lab_bill} isCurrency />
+                                    <DetailItem label="CT Scan Charges" value={claim.ct_scan_charges} isCurrency />
+                                    <DetailItem label="MRI Charges" value={claim.mri_charges} isCurrency />
+                                    <DetailItem label="USG Charges" value={claim.usg_charges} isCurrency />
+                                    <DetailItem label="X-Ray Charges" value={claim.xray_charges} isCurrency />
+                                    <DetailItem label="Implant Charges" value={claim.implant_charges} isCurrency />
+                                    <DetailItem label="Other Charges" value={claim.other_charges} isCurrency />
+                                    <DetailItem label="MOU Discount" value={claim.mou_discount} isCurrency />
+                                </div>
+                                <div className="border-t pt-4 mt-4">
+                                     <DetailItem label="Total Charges" value={dischargeTotal} isCurrency className="font-bold text-lg" />
+                                </div>
                             </CardContent>
                         </Card>
                     )}
