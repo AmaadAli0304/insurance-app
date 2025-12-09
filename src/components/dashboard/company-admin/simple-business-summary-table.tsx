@@ -3,16 +3,38 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
-import type { SimpleHospitalStat } from "./actions";
+import { getSimpleHospitalBusinessStats, SimpleHospitalStat } from "./actions";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
+import { DateRange } from "react-day-picker";
+import { useState, useEffect, useCallback } from "react";
 
 interface SimpleBusinessSummaryTableProps {
-  stats: SimpleHospitalStat[];
+  dateRange?: DateRange;
 }
 
-export function SimpleBusinessSummaryTable({ stats }: SimpleBusinessSummaryTableProps) {
+export function SimpleBusinessSummaryTable({ dateRange }: SimpleBusinessSummaryTableProps) {
     
+    const [stats, setStats] = useState<SimpleHospitalStat[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const loadData = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const data = await getSimpleHospitalBusinessStats(dateRange);
+            setStats(data);
+        } catch (error) {
+            console.error("Failed to load simplified hospital stats:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [dateRange]);
+
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
+
+
     const totals = stats.reduce(
         (acc, curr) => {
             acc.numOfPatients += curr.numOfPatients;
@@ -69,31 +91,37 @@ export function SimpleBusinessSummaryTable({ stats }: SimpleBusinessSummaryTable
                 </Button>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="w-[350px]">Hospital Name</TableHead>
-                            <TableHead className="text-right">No. of Patients</TableHead>
-                            <TableHead className="text-right">Amount (Billed)</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {stats.map((stat) => (
-                            <TableRow key={stat.hospitalId}>
-                                <TableCell className="font-medium">{stat.hospitalName}</TableCell>
-                                <TableCell className="text-right">{stat.numOfPatients}</TableCell>
-                                <TableCell className="text-right">{stat.amount.toLocaleString()}</TableCell>
+                {isLoading ? (
+                    <div className="flex items-center justify-center h-64">
+                        <Loader2 className="h-8 w-8 animate-spin" />
+                    </div>
+                ) : (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="w-[350px]">Hospital Name</TableHead>
+                                <TableHead className="text-right">No. of Patients</TableHead>
+                                <TableHead className="text-right">Amount (Billed)</TableHead>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                    <TableFooter>
-                        <TableRow>
-                            <TableHead>TOTAL</TableHead>
-                            <TableHead className="text-right">{totals.numOfPatients}</TableHead>
-                            <TableHead className="text-right">{totals.amount.toLocaleString()}</TableHead>
-                        </TableRow>
-                    </TableFooter>
-                </Table>
+                        </TableHeader>
+                        <TableBody>
+                            {stats.map((stat) => (
+                                <TableRow key={stat.hospitalId}>
+                                    <TableCell className="font-medium">{stat.hospitalName}</TableCell>
+                                    <TableCell className="text-right">{stat.numOfPatients}</TableCell>
+                                    <TableCell className="text-right">{stat.amount.toLocaleString()}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                        <TableFooter>
+                            <TableRow>
+                                <TableHead>TOTAL</TableHead>
+                                <TableHead className="text-right">{totals.numOfPatients}</TableHead>
+                                <TableHead className="text-right">{totals.amount.toLocaleString()}</TableHead>
+                            </TableRow>
+                        </TableFooter>
+                    </Table>
+                )}
             </CardContent>
         </Card>
     );

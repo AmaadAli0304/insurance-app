@@ -37,7 +37,6 @@ export function CompanyAdminDashboard() {
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [businessStats, setBusinessStats] = useState<HospitalBusinessStats[]>([]);
-  const [simpleBusinessStats, setSimpleBusinessStats] = useState<SimpleHospitalStat[]>([]);
   const [staffPerformanceStats, setStaffPerformanceStats] = useState<StaffPerformanceStat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingStaff, setIsLoadingStaff] = useState(true);
@@ -58,14 +57,12 @@ export function CompanyAdminDashboard() {
     try {
       setIsLoading(true);
       setError(null);
-      const [dashboardData, businessData, simpleBusinessData] = await Promise.all([
+      const [dashboardData, businessData] = await Promise.all([
           getCompanyAdminDashboardStats(companyId, date),
           getHospitalBusinessStats(date),
-          getSimpleHospitalBusinessStats(date),
       ]);
       setStats(dashboardData);
       setBusinessStats(businessData);
-      setSimpleBusinessStats(simpleBusinessData);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -194,7 +191,7 @@ export function CompanyAdminDashboard() {
           
           <NewReportTable dateRange={date} />
 
-          <SimpleBusinessSummaryTable stats={simpleBusinessStats} />
+          <SimpleBusinessSummaryTable dateRange={date} />
 
           <PatientBillingTable dateRange={date} />
           
