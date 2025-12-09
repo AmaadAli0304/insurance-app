@@ -79,7 +79,7 @@ export function AdminDashboard() {
           </Popover>
       </div>
       <AdminPatientBillingTable dateRange={date} />
-      <NewReportTable dateRange={date} />
+      <NewReportTable />
       <PreAuthSummaryTable dateRange={date} />
       <TpaCollectionTable dateRange={date} />
       <RejectedCasesTable dateRange={date} />
@@ -88,3 +88,5 @@ export function AdminDashboard() {
     </div>
   )
 }
+
+    

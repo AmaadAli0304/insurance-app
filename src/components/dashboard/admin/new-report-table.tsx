@@ -5,30 +5,35 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getNewReportStats, getTpaList, NewReportStat } from "@/app/dashboard/admin/actions";
+import { getNewReportStats, getTpaList, getAdmissionTypes, NewReportStat } from "@/app/dashboard/admin/actions";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Download, Loader2, ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { TPA } from "@/lib/types";
 import { DateRange } from "react-day-picker";
 import { useAuth } from "@/components/auth-provider";
-import { format } from "date-fns";
+import { format, subDays } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 
-interface NewReportTableProps {
-  dateRange?: DateRange;
-}
-
-export function NewReportTable({ dateRange }: NewReportTableProps) {
+export function NewReportTable() {
     const { user } = useAuth();
     const [stats, setStats] = useState<NewReportStat[]>([]);
     const [tpaList, setTpaList] = useState<Pick<TPA, 'id' | 'name'>[]>([]);
+    const [admissionTypes, setAdmissionTypes] = useState<string[]>([]);
     const [selectedTpaId, setSelectedTpaId] = useState<string | null>(null);
+    const [selectedAdmissionType, setSelectedAdmissionType] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isExporting, setIsExporting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const itemsPerPage = 10;
+    
+    const [date, setDate] = useState<DateRange | undefined>({
+      from: subDays(new Date(), 29),
+      to: new Date(),
+    });
 
 
     const loadData = useCallback(async () => {
@@ -36,19 +41,21 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
         setIsLoading(true);
         try {
             const hospitalId = user.role === 'Admin' || user.role === 'Hospital Staff' ? user.hospitalId : null;
-            const [{ stats: reportData, total }, tpas] = await Promise.all([
-                getNewReportStats(dateRange, hospitalId, selectedTpaId, currentPage, itemsPerPage),
+            const [{ stats: reportData, total }, tpas, admissionTypesData] = await Promise.all([
+                getNewReportStats(date, hospitalId, selectedTpaId, currentPage, itemsPerPage, selectedAdmissionType),
                 getTpaList(),
+                getAdmissionTypes(),
             ]);
             setStats(reportData);
             setTotalPages(Math.ceil(total / itemsPerPage));
             setTpaList(tpas);
+            setAdmissionTypes(admissionTypesData);
         } catch (error) {
             console.error("Failed to load new report stats:", error);
         } finally {
             setIsLoading(false);
         }
-    }, [dateRange, user, selectedTpaId, currentPage, itemsPerPage]);
+    }, [date, user, selectedTpaId, currentPage, itemsPerPage, selectedAdmissionType]);
 
     useEffect(() => {
         loadData();
@@ -74,9 +81,9 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
         setIsExporting(true);
         try {
             const hospitalId = user?.role === 'Admin' || user?.role === 'Hospital Staff' ? user.hospitalId : null;
-            const { stats: allStats } = await getNewReportStats(dateRange, hospitalId, selectedTpaId, 1, 999999);
+            const { stats: allStats } = await getNewReportStats(date, hospitalId, selectedTpaId, 1, 999999, selectedAdmissionType);
 
-            const headers = ["Patient Name", "DOA", "DOD", "Policy Number", "Claim Number", "TPA / Insurance", "Insurance Co", "Hospital Exp", "USG/2DECHO/EEG", "X-Ray", "MRI/CT Scan", "Lab Exp", "Pharmacy Ex", "Implant Charges", "Total Bill Amt", "TPA Approved Amt", "Co-Pay", "Amount paid by insured", "Deductions", "Discount Amt", "Amount Before TDS", "TDS", "Amount After TDS", "Deduction by Insurance Co.", "Actual Settlement Date", "BRN / UTR No.", "POD DETAILS"];
+            const headers = ["Patient Name", "DOA", "DOD", "Policy Number", "Claim Number", "TPA / Insurance", "Insurance Co", "Hospital Exp", "USG/2DECHO/EEG", "X-Ray", "MRI/CT Scan", "Lab Exp", "Pharmacy Ex", "Implant Charges", "Total Bill Amt", "TPA Approved Amt", "Amount paid by insured", "Deductions", "Discount Amt", "Co-Pay", "Amount Before TDS", "TDS", "Amount After TDS", "Deduction by Insurance Co.", "Actual Settlement Date", "BRN / UTR No.", "POD DETAILS"];
             const csvRows = [headers.join(",")];
 
             allStats.forEach((stat) => {
@@ -98,10 +105,10 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                     stat.implantCharges || 0,
                     stat.totalBillAmount || 0,
                     stat.tpaApprovedAmount || 0,
-                    stat.coPay || 0,
                     stat.tariffExcess || 0,
                     stat.deductions || 0,
                     stat.discountAmount || 0,
+                    stat.coPay || 0,
                     stat.amountBeforeTds || 0,
                     stat.tds || 0,
                     stat.amountAfterTds || 0,
@@ -146,6 +153,55 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                     <CardDescription>This is a new report with data.</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          id="date"
+                          variant={"outline"}
+                          className={cn(
+                            "w-[300px] justify-start text-left font-normal",
+                            !date && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {date?.from ? (
+                            date.to ? (
+                              <>
+                                {format(date.from, "LLL dd, y")} -{" "}
+                                {format(date.to, "LLL dd, y")}
+                              </>
+                            ) : (
+                              format(date.from, "LLL dd, y")
+                            )
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="end">
+                        <Calendar
+                          initialFocus
+                          mode="range"
+                          defaultMonth={date?.from}
+                          selected={date}
+                          onSelect={setDate}
+                          numberOfMonths={2}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <Select onValueChange={(value) => setSelectedAdmissionType(value === 'all' ? null : value)}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Admission Type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Types</SelectItem>
+                            {admissionTypes.map((type, index) => (
+                                <SelectItem key={index} value={type}>
+                                    {type}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                     <Select onValueChange={(value) => setSelectedTpaId(value === 'all' ? null : value)}>
                         <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder="Filter by TPA" />
@@ -188,10 +244,10 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                         <TableHead className="text-right">Implant Charges</TableHead>
                                         <TableHead className="text-right">Total Bill Amt</TableHead>
                                         <TableHead className="text-right">TPA Approved Amt</TableHead>
-                                        <TableHead className="text-right">Co-Pay</TableHead>
                                         <TableHead className="text-right">Amount paid by insured</TableHead>
                                         <TableHead className="text-right">Deductions</TableHead>
                                         <TableHead className="text-right">Discount Amt</TableHead>
+                                        <TableHead className="text-right">Co-Pay</TableHead>
                                         <TableHead className="text-right">Amount Before TDS</TableHead>
                                         <TableHead className="text-right">TDS</TableHead>
                                         <TableHead className="text-right">Amount After TDS</TableHead>
@@ -227,10 +283,10 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
                                                 <TableCell className="text-right font-mono">{stat.implantCharges?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.totalBillAmount?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.tpaApprovedAmount?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
-                                                <TableCell className="text-right font-mono">{stat.coPay?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.tariffExcess?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.deductions?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.discountAmount?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
+                                                <TableCell className="text-right font-mono">{stat.coPay?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.amountBeforeTds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.tds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{stat.amountAfterTds?.toLocaleString('en-IN') ?? 'N/A'}</TableCell>
@@ -279,5 +335,7 @@ export function NewReportTable({ dateRange }: NewReportTableProps) {
         </Card>
     );
 }
+
+    
 
     
