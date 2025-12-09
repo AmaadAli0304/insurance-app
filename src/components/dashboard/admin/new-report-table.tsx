@@ -24,6 +24,7 @@ export function NewReportTable() {
     const [admissionTypes, setAdmissionTypes] = useState<string[]>([]);
     const [selectedTpaId, setSelectedTpaId] = useState<string | null>(null);
     const [selectedAdmissionType, setSelectedAdmissionType] = useState<string | null>(null);
+    const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isExporting, setIsExporting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
@@ -42,7 +43,7 @@ export function NewReportTable() {
         try {
             const hospitalId = user.role === 'Admin' || user.role === 'Hospital Staff' ? user.hospitalId : null;
             const [{ stats: reportData, total }, tpas, admissionTypesData] = await Promise.all([
-                getNewReportStats(date, hospitalId, selectedTpaId, currentPage, itemsPerPage, selectedAdmissionType),
+                getNewReportStats(date, hospitalId, selectedTpaId, currentPage, itemsPerPage, selectedAdmissionType, selectedStatus),
                 getTpaList(),
                 getAdmissionTypes(),
             ]);
@@ -55,7 +56,7 @@ export function NewReportTable() {
         } finally {
             setIsLoading(false);
         }
-    }, [date, user, selectedTpaId, currentPage, itemsPerPage, selectedAdmissionType]);
+    }, [date, user, selectedTpaId, currentPage, itemsPerPage, selectedAdmissionType, selectedStatus]);
 
     useEffect(() => {
         loadData();
@@ -81,7 +82,7 @@ export function NewReportTable() {
         setIsExporting(true);
         try {
             const hospitalId = user?.role === 'Admin' || user?.role === 'Hospital Staff' ? user.hospitalId : null;
-            const { stats: allStats } = await getNewReportStats(date, hospitalId, selectedTpaId, 1, 999999, selectedAdmissionType);
+            const { stats: allStats } = await getNewReportStats(date, hospitalId, selectedTpaId, 1, 999999, selectedAdmissionType, selectedStatus);
 
             const headers = ["Patient Name", "DOA", "DOD", "Policy Number", "Claim Number", "TPA / Insurance", "Insurance Co", "Hospital Exp", "USG/2DECHO/EEG", "X-Ray", "MRI/CT Scan", "Lab Exp", "Pharmacy Ex", "Implant Charges", "Total Bill Amt", "TPA Approved Amt", "Amount paid by insured", "Deductions", "Discount Amt", "Co-Pay", "Amount Before TDS", "TDS", "Amount After TDS", "Deduction by Insurance Co.", "Actual Settlement Date", "BRN / UTR No.", "POD DETAILS"];
             const csvRows = [headers.join(",")];
@@ -200,6 +201,17 @@ export function NewReportTable() {
                                     {type}
                                 </SelectItem>
                             ))}
+                        </SelectContent>
+                    </Select>
+                     <Select onValueChange={(value) => setSelectedStatus(value === 'all' ? null : value)}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Filter by Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Statuses</SelectItem>
+                            <SelectItem value="Settlement Pending">Settlement Pending</SelectItem>
+                            <SelectItem value="Settlement Query">Settlement Query</SelectItem>
+                            <SelectItem value="Settlement Answered">Settlement Answered</SelectItem>
                         </SelectContent>
                     </Select>
                     <Select onValueChange={(value) => setSelectedTpaId(value === 'all' ? null : value)}>

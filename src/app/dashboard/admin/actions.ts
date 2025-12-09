@@ -600,7 +600,9 @@ export async function getNewReportStats(
     hospitalId?: string | null, 
     tpaId?: string | null,
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
+    admissionType?: string | null,
+    status?: string | null
 ): Promise<{ stats: NewReportStat[], total: number }> {
     try {
         const pool = await getDbPool();
@@ -628,6 +630,18 @@ export async function getNewReportStats(
             request.input('tpaId', sql.Int, Number(tpaId));
             countRequest.input('tpaId', sql.Int, Number(tpaId));
             whereClauses.push('pr.tpa_id = @tpaId');
+        }
+
+        if (admissionType) {
+            request.input('admissionType', sql.NVarChar, admissionType);
+            countRequest.input('admissionType', sql.NVarChar, admissionType);
+            whereClauses.push('pr.admissionType = @admissionType');
+        }
+        
+        if (status) {
+            request.input('status', sql.NVarChar, status);
+            countRequest.input('status', sql.NVarChar, status);
+            whereClauses.push('pr.status = @status');
         }
 
         const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
@@ -895,3 +909,4 @@ export async function getComprehensiveClaimDetails(
 
 
     
+
