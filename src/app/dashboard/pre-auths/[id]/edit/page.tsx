@@ -167,7 +167,8 @@ const preAuthStatuses: PreAuthStatus[] = [
     'Final Approval', 
     'Initial Approval',
     'Settled',
-    'Rejected'
+    'Rejected',
+    'Settlement Pending'
 ];
 
 const statusesThatRequireEmail: PreAuthStatus[] = [
@@ -377,227 +378,244 @@ export default function EditPreAuthPage() {
                             </Select>
                         </div>
                         
-                        <div className="space-y-2">
-                            <Label htmlFor="claim_id">Official Claim ID</Label>
-                            <Input id="claim_id" name="claim_id" defaultValue={request.claim_id ?? ''} placeholder="Enter official claim ID from TPA/Insurer" />
-                        </div>
-                        
-                        {selectedStatus === 'Final Approval' && (
-                            <div className="grid md:grid-cols-2 gap-4 pt-4 border-t">
+                        {selectedStatus !== 'Settlement Pending' && (
+                            <>
                                 <div className="space-y-2">
-                                    <Label htmlFor="final_hospital_bill">Final Hospital Bill <span className="text-destructive">*</span></Label>
-                                    <Input id="final_hospital_bill" name="final_hospital_bill" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter final bill amount" required />
+                                    <Label htmlFor="claim_id">Official Claim ID</Label>
+                                    <Input id="claim_id" name="claim_id" defaultValue={request.claim_id ?? ''} placeholder="Enter official claim ID from TPA/Insurer" />
                                 </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="hospital_discount">Hospital Discount <span className="text-destructive">*</span></Label>
-                                    <Input id="hospital_discount" name="hospital_discount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter discount amount" required />
+                                
+                                {selectedStatus === 'Final Approval' && (
+                                    <div className="grid md:grid-cols-2 gap-4 pt-4 border-t">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="final_hospital_bill">Final Hospital Bill <span className="text-destructive">*</span></Label>
+                                            <Input id="final_hospital_bill" name="final_hospital_bill" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter final bill amount" required />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="hospital_discount">Hospital Discount <span className="text-destructive">*</span></Label>
+                                            <Input id="hospital_discount" name="hospital_discount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter discount amount" required />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="mou_discount">MOU Discount <span className="text-destructive">*</span></Label>
+                                            <Input id="mou_discount" name="mou_discount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter MOU discount" required />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="nm_deductions">NM Deductions <span className="text-destructive">*</span></Label>
+                                            <Input id="nm_deductions" name="nm_deductions" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter NM deductions" required />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="co_pay">Co-Pay <span className="text-destructive">*</span></Label>
+                                            <Input id="co_pay" name="co_pay" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter Co-Pay amount" required />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="final_amount">Final Authorised Amount <span className="text-destructive">*</span></Label>
+                                            <Input id="final_amount" name="final_amount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter final authorised amount" required />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="amount_sanctioned">Amount Paid by insured <span className="text-destructive">*</span></Label>
+                                            <Input id="amount_sanctioned" name="amount_sanctioned" type="text" inputMode="decimal" pattern="[0-9.]*" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount paid by insured" required />
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {selectedStatus === 'Settled' && (
+                                <div className="grid md:grid-cols-2 gap-4 pt-4 border-t">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="final_amount">Final Authorised Amount <span className="text-destructive">*</span></Label>
+                                            <Input id="final_amount" name="final_amount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter final authorised amount" required />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="nm_deductions">Deduction <span className="text-destructive">*</span></Label>
+                                            <Input id="nm_deductions" name="nm_deductions" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter deduction amount" required />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="tds">TDS <span className="text-destructive">*</span></Label>
+                                            <Input id="tds" name="tds" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter TDS amount" required />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="final_settle_amount">Final Settlement Amount <span className="text-destructive">*</span></Label>
+                                            <Input id="final_settle_amount" name="final_settle_amount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter final settlement amount" required />
+                                        </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="amount">Net Amount Credited <span className="text-destructive">*</span></Label>
+                                        <Input id="amount" name="amount" type="text" inputMode="decimal" pattern="[0-9.]*" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter net amount credited" required />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="mou_discount">MOU Discount <span className="text-destructive">*</span></Label>
+                                        <Input id="mou_discount" name="mou_discount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter MOU discount" required />
+                                    </div>
+                                        <div className="space-y-2">
+                                        <Label htmlFor="utr_no">UTR No <span className="text-destructive">*</span></Label>
+                                        <Input id="utr_no" name="utr_no" placeholder="Enter UTR No" required />
+                                    </div>
+                                        <div className="space-y-2">
+                                        <Label htmlFor="date_settlement">Date of Settlement <span className="text-destructive">*</span></Label>
+                                        <Input id="date_settlement" name="date_settlement" type="date" required />
+                                    </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="mou_discount">MOU Discount <span className="text-destructive">*</span></Label>
-                                    <Input id="mou_discount" name="mou_discount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter MOU discount" required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="nm_deductions">NM Deductions <span className="text-destructive">*</span></Label>
-                                    <Input id="nm_deductions" name="nm_deductions" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter NM deductions" required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="co_pay">Co-Pay <span className="text-destructive">*</span></Label>
-                                    <Input id="co_pay" name="co_pay" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter Co-Pay amount" required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="final_amount">Final Authorised Amount <span className="text-destructive">*</span></Label>
-                                    <Input id="final_amount" name="final_amount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter final authorised amount" required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="amount_sanctioned">Amount Paid by insured <span className="text-destructive">*</span></Label>
-                                    <Input id="amount_sanctioned" name="amount_sanctioned" type="text" inputMode="decimal" pattern="[0-9.]*" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount paid by insured" required />
-                                </div>
-                            </div>
-                        )}
-                        
-                        {selectedStatus === 'Settled' && (
-                           <div className="grid md:grid-cols-2 gap-4 pt-4 border-t">
-                                <div className="space-y-2">
-                                    <Label htmlFor="final_amount">Final Authorised Amount <span className="text-destructive">*</span></Label>
-                                    <Input id="final_amount" name="final_amount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter final authorised amount" required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="nm_deductions">Deduction <span className="text-destructive">*</span></Label>
-                                    <Input id="nm_deductions" name="nm_deductions" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter deduction amount" required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="tds">TDS <span className="text-destructive">*</span></Label>
-                                    <Input id="tds" name="tds" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter TDS amount" required />
-                                </div>
-                                 <div className="space-y-2">
-                                    <Label htmlFor="final_settle_amount">Final Settlement Amount <span className="text-destructive">*</span></Label>
-                                    <Input id="final_settle_amount" name="final_settle_amount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter final settlement amount" required />
-                                </div>
-                               <div className="space-y-2">
-                                   <Label htmlFor="amount">Net Amount Credited <span className="text-destructive">*</span></Label>
-                                   <Input id="amount" name="amount" type="text" inputMode="decimal" pattern="[0-9.]*" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter net amount credited" required />
-                               </div>
-                               <div className="space-y-2">
-                                   <Label htmlFor="mou_discount">MOU Discount <span className="text-destructive">*</span></Label>
-                                   <Input id="mou_discount" name="mou_discount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter MOU discount" required />
-                               </div>
-                                <div className="space-y-2">
-                                   <Label htmlFor="utr_no">UTR No <span className="text-destructive">*</span></Label>
-                                   <Input id="utr_no" name="utr_no" placeholder="Enter UTR No" required />
-                               </div>
-                                <div className="space-y-2">
-                                   <Label htmlFor="date_settlement">Date of Settlement <span className="text-destructive">*</span></Label>
-                                   <Input id="date_settlement" name="date_settlement" type="date" required />
-                               </div>
-                           </div>
-                        )}
+                                )}
 
-                        {selectedStatus === 'Final Discharge sent' && (
-                            <div className="grid md:grid-cols-2 gap-4 pt-4 border-t">
+                                {selectedStatus === 'Final Discharge sent' && (
+                                    <div className="grid md:grid-cols-2 gap-4 pt-4 border-t">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="pharmacy_bill">Pharmacy Bill <span className="text-destructive">*</span></Label>
+                                            <Input id="pharmacy_bill" name="pharmacy_bill" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter Pharmacy Bill" required />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="lab_bill">Lab Bill <span className="text-destructive">*</span></Label>
+                                            <Input id="lab_bill" name="lab_bill" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter Lab Bill" required />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="ct_scan_charges">CT Scan Charges <span className="text-destructive">*</span></Label>
+                                            <Input id="ct_scan_charges" name="ct_scan_charges" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter CT Scan Charges" required />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="mri_charges">MRI Charges <span className="text-destructive">*</span></Label>
+                                            <Input id="mri_charges" name="mri_charges" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter MRI Charges" required />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="usg_charges">USG Charge <span className="text-destructive">*</span></Label>
+                                            <Input id="usg_charges" name="usg_charges" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter USG Charge" required />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="other_charges">Other Charges <span className="text-destructive">*</span></Label>
+                                            <Input id="other_charges" name="other_charges" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter Other Charges" required />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="xray_charges">X-ray Charges <span className="text-destructive">*</span></Label>
+                                            <Input id="xray_charges" name="xray_charges" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter X-ray Charges" required />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="mou_discount">MOU Discount <span className="text-destructive">*</span></Label>
+                                            <Input id="mou_discount" name="mou_discount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter MOU Discount" required />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="implant_charges">Implant Charges</Label>
+                                            <Input id="implant_charges" name="implant_charges" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter Implant Charges" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="amount_sanctioned">Amount Sanctioned</Label>
+                                            <Input id="amount_sanctioned" name="amount_sanctioned" type="text" inputMode="decimal" pattern="[0-9.]*" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount sanctioned" />
+                                        </div>
+                                        <div className="space-y-2 md:col-span-2">
+                                            <Label htmlFor="total_charges">Total Charges</Label>
+                                            <Input id="total_charges" name="total_charges" type="text" value={totalDischargeCharges.toLocaleString('en-IN')} readOnly className="font-bold bg-muted" />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {selectedStatus !== 'Final Approval' && selectedStatus !== 'Settled' && selectedStatus !== 'Final Discharge sent' && (
                                 <div className="space-y-2">
-                                    <Label htmlFor="pharmacy_bill">Pharmacy Bill <span className="text-destructive">*</span></Label>
-                                    <Input id="pharmacy_bill" name="pharmacy_bill" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter Pharmacy Bill" required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="lab_bill">Lab Bill <span className="text-destructive">*</span></Label>
-                                    <Input id="lab_bill" name="lab_bill" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter Lab Bill" required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="ct_scan_charges">CT Scan Charges <span className="text-destructive">*</span></Label>
-                                    <Input id="ct_scan_charges" name="ct_scan_charges" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter CT Scan Charges" required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="mri_charges">MRI Charges <span className="text-destructive">*</span></Label>
-                                    <Input id="mri_charges" name="mri_charges" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter MRI Charges" required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="usg_charges">USG Charge <span className="text-destructive">*</span></Label>
-                                    <Input id="usg_charges" name="usg_charges" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter USG Charge" required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="other_charges">Other Charges <span className="text-destructive">*</span></Label>
-                                    <Input id="other_charges" name="other_charges" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter Other Charges" required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="xray_charges">X-ray Charges <span className="text-destructive">*</span></Label>
-                                    <Input id="xray_charges" name="xray_charges" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter X-ray Charges" required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="mou_discount">MOU Discount <span className="text-destructive">*</span></Label>
-                                    <Input id="mou_discount" name="mou_discount" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter MOU Discount" required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="implant_charges">Implant Charges</Label>
-                                    <Input id="implant_charges" name="implant_charges" type="text" inputMode="decimal" pattern="[0-9.]*" placeholder="Enter Implant Charges" />
-                                </div>
-                                 <div className="space-y-2">
                                     <Label htmlFor="amount_sanctioned">Amount Sanctioned</Label>
                                     <Input id="amount_sanctioned" name="amount_sanctioned" type="text" inputMode="decimal" pattern="[0-9.]*" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount sanctioned" />
                                 </div>
-                                <div className="space-y-2 md:col-span-2">
-                                    <Label htmlFor="total_charges">Total Charges</Label>
-                                    <Input id="total_charges" name="total_charges" type="text" value={totalDischargeCharges.toLocaleString('en-IN')} readOnly className="font-bold bg-muted" />
-                                </div>
-                            </div>
+                                )}
+
+
+                                {selectedStatus !== 'Final Approval' && (
+                                    <div className="space-y-2">
+                                        <Label htmlFor="reason">Notes / Reason</Label>
+                                        <Textarea id="reason" name="reason" defaultValue={request.reason ?? ""} placeholder="Add any relevant notes for this status update." />
+                                    </div>
+                                )}
+
+                                {showEmailFields && isClient && (
+                                    <div className="space-y-4 pt-4 border-t">
+                                        <h3 className="text-lg font-semibold">Compose Reply</h3>
+                                        <div className="grid md:grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="to">To <span className="text-destructive">*</span></Label>
+                                                <Input id="to" name="to" value={request.tpaEmail || ''} required={showEmailFields} readOnly />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="from">From</Label>
+                                                <Input id="from" name="from" value={request.fromEmail || user?.email || ''} readOnly />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="cc">CC</Label>
+                                            <Input id="cc" name="cc" placeholder="recipient1@example.com, recipient2@example.com" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="subject">Subject <span className="text-destructive">*</span></Label>
+                                            <Input id="subject" name="subject" value={subject} onChange={(e) => setSubject(e.target.value)} required={showEmailFields} />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="details-editor">Compose Email <span className="text-destructive">*</span></Label>
+                                            <Editor
+                                                editorState={editorState}
+                                                onEditorStateChange={setEditorState}
+                                                wrapperClassName="rounded-md border border-input bg-background"
+                                                editorClassName="px-4 py-2 min-h-[150px]"
+                                                toolbarClassName="border-b border-input"
+                                            />
+                                        </div>
+                                        
+                                        <div className="space-y-2 pt-4 border-t">
+                                            <Label>Documents</Label>
+                                            <p className="text-sm text-muted-foreground">Attach existing documents or upload new ones.</p>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {documentFields.map(({ key, label }) => {
+                                                    const doc = request[key as keyof StaffingRequest] || documentUrls[key];
+                                                    const docUrl = doc && typeof doc === 'object' && 'url' in doc ? (doc as {url:string}).url : null;
+                                                    const docName = doc && typeof doc === 'object' && 'name' in doc ? (doc as {name:string}).name : label;
+
+                                                    return (
+                                                        <div key={key}>
+                                                        {docUrl ? (
+                                                            <div className="flex items-center gap-2">
+                                                            <Checkbox
+                                                                id={`attach-${key}`}
+                                                                value={JSON.stringify({ name: docName, url: docUrl })}
+                                                                checked={selectedAttachments.includes(JSON.stringify({ name: docName, url: docUrl }))}
+                                                                onCheckedChange={(checked) => {
+                                                                const attachmentString = JSON.stringify({ name: docName, url: docUrl });
+                                                                setSelectedAttachments(prev => 
+                                                                    checked 
+                                                                    ? [...prev, attachmentString]
+                                                                    : prev.filter(item => item !== attachmentString)
+                                                                );
+                                                                }}
+                                                            />
+                                                            <Label htmlFor={`attach-${key}`} className="font-normal flex items-center gap-1 cursor-pointer text-green-600">
+                                                                <FileIcon className="h-4 w-4" />
+                                                                {label} (Attached)
+                                                            </Label>
+                                                            </div>
+                                                        ) : (
+                                                            <FileUploadField 
+                                                                label={label} 
+                                                                name={key} 
+                                                                onUploadComplete={handleDocumentUploadComplete} 
+                                                                onFileRemove={handleFileRemove}
+                                                            />
+                                                        )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </>
                         )}
 
-                        {selectedStatus !== 'Final Approval' && selectedStatus !== 'Settled' && selectedStatus !== 'Final Discharge sent' && (
-                           <div className="space-y-2">
-                               <Label htmlFor="amount_sanctioned">Amount Sanctioned</Label>
-                               <Input id="amount_sanctioned" name="amount_sanctioned" type="text" inputMode="decimal" pattern="[0-9.]*" defaultValue={request.amount_sanctioned ?? undefined} placeholder="Enter amount sanctioned" />
-                           </div>
-                        )}
-
-
-                        {selectedStatus !== 'Final Approval' && (
-                            <div className="space-y-2">
-                                <Label htmlFor="reason">Notes / Reason</Label>
-                                <Textarea id="reason" name="reason" defaultValue={request.reason ?? ""} placeholder="Add any relevant notes for this status update." />
-                            </div>
-                        )}
-
-                        {showEmailFields && isClient && (
+                        {selectedStatus === 'Settlement Pending' && (
                             <div className="space-y-4 pt-4 border-t">
-                                <h3 className="text-lg font-semibold">Compose Reply</h3>
-                                 <div className="grid md:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="to">To <span className="text-destructive">*</span></Label>
-                                        <Input id="to" name="to" value={request.tpaEmail || ''} required={showEmailFields} readOnly />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="from">From</Label>
-                                        <Input id="from" name="from" value={request.fromEmail || user?.email || ''} readOnly />
-                                    </div>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox id="settlement-pending-checkbox" checked disabled />
+                                    <Label htmlFor="settlement-pending-checkbox">Confirm Settlement Pending</Label>
                                 </div>
-                                 <div className="space-y-2">
-                                    <Label htmlFor="cc">CC</Label>
-                                    <Input id="cc" name="cc" placeholder="recipient1@example.com, recipient2@example.com" />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="subject">Subject <span className="text-destructive">*</span></Label>
-                                    <Input id="subject" name="subject" value={subject} onChange={(e) => setSubject(e.target.value)} required={showEmailFields} />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="details-editor">Compose Email <span className="text-destructive">*</span></Label>
-                                    <Editor
-                                        editorState={editorState}
-                                        onEditorStateChange={setEditorState}
-                                        wrapperClassName="rounded-md border border-input bg-background"
-                                        editorClassName="px-4 py-2 min-h-[150px]"
-                                        toolbarClassName="border-b border-input"
-                                    />
-                                </div>
-                                
-                                <div className="space-y-2 pt-4 border-t">
-                                    <Label>Documents</Label>
-                                    <p className="text-sm text-muted-foreground">Attach existing documents or upload new ones.</p>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {documentFields.map(({ key, label }) => {
-                                            const doc = request[key as keyof StaffingRequest] || documentUrls[key];
-                                            const docUrl = doc && typeof doc === 'object' && 'url' in doc ? (doc as {url:string}).url : null;
-                                            const docName = doc && typeof doc === 'object' && 'name' in doc ? (doc as {name:string}).name : label;
-
-                                            return (
-                                                <div key={key}>
-                                                  {docUrl ? (
-                                                    <div className="flex items-center gap-2">
-                                                      <Checkbox
-                                                        id={`attach-${key}`}
-                                                        value={JSON.stringify({ name: docName, url: docUrl })}
-                                                        checked={selectedAttachments.includes(JSON.stringify({ name: docName, url: docUrl }))}
-                                                        onCheckedChange={(checked) => {
-                                                          const attachmentString = JSON.stringify({ name: docName, url: docUrl });
-                                                          setSelectedAttachments(prev => 
-                                                              checked 
-                                                              ? [...prev, attachmentString]
-                                                              : prev.filter(item => item !== attachmentString)
-                                                          );
-                                                        }}
-                                                      />
-                                                      <Label htmlFor={`attach-${key}`} className="font-normal flex items-center gap-1 cursor-pointer text-green-600">
-                                                        <FileIcon className="h-4 w-4" />
-                                                        {label} (Attached)
-                                                      </Label>
-                                                    </div>
-                                                  ) : (
-                                                    <FileUploadField 
-                                                        label={label} 
-                                                        name={key} 
-                                                        onUploadComplete={handleDocumentUploadComplete} 
-                                                        onFileRemove={handleFileRemove}
-                                                    />
-                                                  )}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
+                                <Button type="submit" onClick={handleSubmit}>Submit</Button>
                             </div>
                         )}
-                        
+
                         {state.message && state.type === 'error' && <p className="text-sm text-destructive">{state.message}</p>}
-                        <SubmitButton onClick={handleSubmit} />
+                        
+                        {selectedStatus !== 'Settlement Pending' && (
+                            <SubmitButton onClick={handleSubmit} />
+                        )}
                     </CardContent>
                 </form>
             </Card>
