@@ -227,6 +227,15 @@ export function NewReportTable() {
                             <SelectItem value="Settlement Pending">Settlement Pending</SelectItem>
                             <SelectItem value="Settlement Query">Settlement Query</SelectItem>
                             <SelectItem value="Settlement Answered">Settlement Answered</SelectItem>
+                            <SelectItem value="Query Raised">Query Raised</SelectItem>
+                            <SelectItem value="Query Answered">Query Answered</SelectItem>
+                            <SelectItem value="Enhancement Request">Enhancement Request</SelectItem>
+                            <SelectItem value="Enhancement Approval">Enhancement Approval</SelectItem>
+                            <SelectItem value="Final Discharge sent">Final Discharge sent</SelectItem>
+                            <SelectItem value="Final Approval">Final Approval</SelectItem>
+                            <SelectItem value="Initial Approval">Initial Approval</SelectItem>
+                            <SelectItem value="Settled">Settled</SelectItem>
+                            <SelectItem value="Rejected">Rejected</SelectItem>
                         </SelectContent>
                     </Select>
                     <Select onValueChange={(value) => setSelectedTpaId(value === 'all' ? null : value)}>
