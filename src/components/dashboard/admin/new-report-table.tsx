@@ -5,11 +5,11 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getNewReportStats, getTpaList, getAdmissionTypes, NewReportStat } from "@/app/dashboard/admin/actions";
+import { getNewReportStats, getTpaList, getAdmissionTypes, getHospitalList, NewReportStat } from "@/app/dashboard/admin/actions";
 import { Button } from "@/components/ui/button";
 import { Download, Loader2, ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { TPA } from "@/lib/types";
+import type { TPA, Hospital } from "@/lib/types";
 import { DateRange } from "react-day-picker";
 import { useAuth } from "@/components/auth-provider";
 import { format, subDays } from "date-fns";
@@ -18,10 +18,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 
 export function NewReportTable() {
-    const { user } = useAuth();
+    const { user, role } = useAuth();
     const [stats, setStats] = useState<NewReportStat[]>([]);
     const [tpaList, setTpaList] = useState<Pick<TPA, 'id' | 'name'>[]>([]);
+    const [hospitalList, setHospitalList] = useState<Pick<Hospital, 'id' | 'name'>[]>([]);
     const [admissionTypes, setAdmissionTypes] = useState<string[]>([]);
+    const [selectedHospitalId, setSelectedHospitalId] = useState<string | null>(null);
     const [selectedTpaId, setSelectedTpaId] = useState<string | null>(null);
     const [selectedAdmissionType, setSelectedAdmissionType] = useState<string | null>(null);
     const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
@@ -41,22 +43,24 @@ export function NewReportTable() {
         if (!user) return;
         setIsLoading(true);
         try {
-            const hospitalId = user.role === 'Admin' || user.role === 'Hospital Staff' ? user.hospitalId : null;
-            const [{ stats: reportData, total }, tpas, admissionTypesData] = await Promise.all([
+            const hospitalId = user.role === 'Admin' || user.role === 'Hospital Staff' ? user.hospitalId : selectedHospitalId;
+            const [{ stats: reportData, total }, tpas, admissionTypesData, hospitals] = await Promise.all([
                 getNewReportStats(date, hospitalId, selectedTpaId, currentPage, itemsPerPage, selectedAdmissionType, selectedStatus),
                 getTpaList(),
                 getAdmissionTypes(),
+                getHospitalList(),
             ]);
             setStats(reportData);
             setTotalPages(Math.ceil(total / itemsPerPage));
             setTpaList(tpas);
             setAdmissionTypes(admissionTypesData);
+            setHospitalList(hospitals);
         } catch (error) {
             console.error("Failed to load new report stats:", error);
         } finally {
             setIsLoading(false);
         }
-    }, [date, user, selectedTpaId, currentPage, itemsPerPage, selectedAdmissionType, selectedStatus]);
+    }, [date, user, selectedHospitalId, selectedTpaId, currentPage, itemsPerPage, selectedAdmissionType, selectedStatus]);
 
     useEffect(() => {
         loadData();
@@ -81,7 +85,7 @@ export function NewReportTable() {
     const handleExport = async () => {
         setIsExporting(true);
         try {
-            const hospitalId = user?.role === 'Admin' || user?.role === 'Hospital Staff' ? user.hospitalId : null;
+            const hospitalId = user?.role === 'Admin' || user?.role === 'Hospital Staff' ? user.hospitalId : selectedHospitalId;
             const { stats: allStats } = await getNewReportStats(date, hospitalId, selectedTpaId, 1, 999999, selectedAdmissionType, selectedStatus);
 
             const headers = ["Patient Name", "DOA", "DOD", "Policy Number", "Claim Number", "TPA / Insurance", "Insurance Co", "Hospital Exp", "USG/2DECHO/EEG", "X-Ray", "MRI/CT Scan", "Lab Exp", "Pharmacy Ex", "Implant Charges", "Total Bill Amt", "TPA Approved Amt", "Amount paid by insured", "Deductions", "Discount Amt", "Co-Pay", "Amount Before TDS", "TDS", "Amount After TDS", "Deduction by Insurance Co.", "Actual Settlement Date", "BRN / UTR No.", "POD DETAILS"];
@@ -190,6 +194,17 @@ export function NewReportTable() {
                         />
                       </PopoverContent>
                     </Popover>
+                    {role === 'Company Admin' && (
+                        <Select onValueChange={(value) => setSelectedHospitalId(value === 'all' ? null : value)}>
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Filter by Hospital" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Hospitals</SelectItem>
+                                {hospitalList.map(h => <SelectItem key={h.id} value={h.id}>{h.name}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    )}
                     <Select onValueChange={(value) => setSelectedAdmissionType(value === 'all' ? null : value)}>
                         <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder="Admission Type" />
