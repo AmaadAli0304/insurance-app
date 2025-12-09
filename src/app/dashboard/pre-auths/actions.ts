@@ -668,7 +668,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     const patientId = formData.get('patientId') as string;
     const status = formData.get('status') as PreAuthStatus;
     const claim_id = formData.get('claim_id') as string;
-    const reason = formData.get('reason') as string;
+    let reason = formData.get('reason') as string;
     const amount_str = formData.get('amount') as string;
     const amount_sanctioned_from_form = formData.get('amount_sanctioned') as string;
     
@@ -680,6 +680,13 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
     const subject = formData.get('subject') as string;
     const details = formData.get('details') as string;
     const emailAttachmentsData = formData.getAll('email_attachments');
+    
+    const settlement_query_date = formData.get('settlement_query_date') as string;
+    const settlement_query_remarks = formData.get('settlement_query_remarks') as string;
+
+    if (status === 'Settlement Query') {
+        reason = settlement_query_remarks;
+    }
     
     // Fields for 'Final Approval' status
     const final_hospital_bill = formData.get('final_hospital_bill') as string;
@@ -1052,6 +1059,7 @@ export async function handleSavePodDetails(prevState: { message: string, type?: 
   revalidatePath('/dashboard/pre-auths');
   return { message: "POD details saved successfully.", type: 'success' };
 }
+
 
 
 
