@@ -10,7 +10,7 @@ import { useFormStatus } from "react-dom";
 import { handleUpdateRequest, getPreAuthRequestById } from "../../actions";
 import { getPresignedUrl } from "@/app/dashboard/staff/actions";
 import Link from "next/link";
-import { ArrowLeft, Loader2, File as FileIcon, Upload, Eye, XCircle } from "lucide-react";
+import { ArrowLeft, Loader2, File as FileIcon, Upload, Eye, XCircle, Calendar as CalendarIcon } from "lucide-react";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import type { StaffingRequest, PreAuthStatus } from "@/lib/types";
@@ -23,6 +23,10 @@ import { EditorState, convertToRaw, ContentState } from 'draft-js';
 import draftToHtml from 'draftjs-to-html';
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 let htmlToDraft: any = null;
 if (typeof window === 'object') {
@@ -168,7 +172,8 @@ const preAuthStatuses: PreAuthStatus[] = [
     'Initial Approval',
     'Settled',
     'Rejected',
-    'Settlement Pending'
+    'Settlement Pending',
+    'Settlement Query'
 ];
 
 const statusesThatRequireEmail: PreAuthStatus[] = [
@@ -191,6 +196,7 @@ export default function EditPreAuthPage() {
     const [showEmailFields, setShowEmailFields] = useState(false);
     const [totalDischargeCharges, setTotalDischargeCharges] = useState(0);
     const formRef = useRef<HTMLFormElement>(null);
+    const [settlementQueryDate, setSettlementQueryDate] = useState<Date | undefined>(new Date());
     
     const [documentUrls, setDocumentUrls] = useState<Record<string, { url: string; name: string; } | null>>({});
     const [selectedAttachments, setSelectedAttachments] = useState<string[]>([]);
@@ -378,7 +384,7 @@ export default function EditPreAuthPage() {
                             </Select>
                         </div>
                         
-                        {selectedStatus !== 'Settlement Pending' && (
+                        {selectedStatus !== 'Settlement Pending' && selectedStatus !== 'Settlement Query' && (
                             <>
                                 <div className="space-y-2">
                                     <Label htmlFor="claim_id">Official Claim ID</Label>
@@ -600,6 +606,29 @@ export default function EditPreAuthPage() {
                                 )}
                             </>
                         )}
+                        
+                        {selectedStatus === 'Settlement Query' && (
+                             <div className="space-y-4 pt-4 border-t">
+                                <div className="space-y-2">
+                                     <Label>Date</Label>
+                                      <input type="hidden" name="settlement_query_date" value={settlementQueryDate?.toISOString() ?? ''} />
+                                     <Popover>
+                                         <PopoverTrigger asChild>
+                                             <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !settlementQueryDate && "text-muted-foreground")}>
+                                                 <CalendarIcon className="mr-2 h-4 w-4" />
+                                                 {settlementQueryDate ? format(settlementQueryDate, "PPP") : <span>Pick a date</span>}
+                                             </Button>
+                                         </PopoverTrigger>
+                                         <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={settlementQueryDate} onSelect={setSettlementQueryDate} initialFocus /></PopoverContent>
+                                     </Popover>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="settlement-query-remarks">Remarks</Label>
+                                    <Textarea id="settlement-query-remarks" name="settlement_query_remarks" placeholder="Enter remarks for the settlement query." />
+                                </div>
+                                 <Button type="submit" onClick={handleSubmit}>Submit</Button>
+                            </div>
+                        )}
 
                         {selectedStatus === 'Settlement Pending' && (
                             <div className="space-y-4 pt-4 border-t">
@@ -613,7 +642,7 @@ export default function EditPreAuthPage() {
 
                         {state.message && state.type === 'error' && <p className="text-sm text-destructive">{state.message}</p>}
                         
-                        {selectedStatus !== 'Settlement Pending' && (
+                        {selectedStatus !== 'Settlement Pending' && selectedStatus !== 'Settlement Query' && (
                             <SubmitButton onClick={handleSubmit} />
                         )}
                     </CardContent>
@@ -622,3 +651,5 @@ export default function EditPreAuthPage() {
         </div>
     );
 }
+
+    
