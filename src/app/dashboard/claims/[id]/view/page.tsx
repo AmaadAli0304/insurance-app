@@ -128,7 +128,7 @@ export default function ViewClaimPage() {
                     </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    {claim.status !== 'Settled' && (
+                    {claim.status !== 'Settled' && claim.status !== 'Settlement Query' && (
                         <Card>
                             <CardHeader>
                                 <CardTitle className="text-xl">Financial Summary</CardTitle>
@@ -192,6 +192,16 @@ export default function ViewClaimPage() {
                             </CardContent>
                         </Card>
                     )}
+                    
+                    {claim.status === 'Settlement Query' && (
+                        <Card>
+                            <CardHeader><CardTitle className="text-xl">Settlement Query Details</CardTitle></CardHeader>
+                            <CardContent className="grid md:grid-cols-2 gap-4">
+                                <DetailItem label="Query Date" value={formatDate(claim.updated_at)} />
+                                <DetailItem label="Remarks" value={claim.reason} className="md:col-span-2"/>
+                            </CardContent>
+                        </Card>
+                    )}
 
 
                     <Card>
@@ -215,7 +225,7 @@ export default function ViewClaimPage() {
                         </CardContent>
                     </Card>
 
-                    {claim.reason && (
+                    {claim.reason && claim.status !== 'Settlement Query' && (
                         <Card>
                             <CardHeader><CardTitle className="text-xl">Notes</CardTitle></CardHeader>
                             <CardContent><p className="text-muted-foreground">{claim.reason}</p></CardContent>
