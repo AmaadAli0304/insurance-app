@@ -5,30 +5,35 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
 import { getSimpleHospitalBusinessStats, SimpleHospitalStat } from "./actions";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2 } from "lucide-react";
+import { Download, Loader2, Calendar as CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { useState, useEffect, useCallback } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { format, subDays } from "date-fns";
 
-interface SimpleBusinessSummaryTableProps {
-  dateRange?: DateRange;
-}
 
-export function SimpleBusinessSummaryTable({ dateRange }: SimpleBusinessSummaryTableProps) {
+export function SimpleBusinessSummaryTable() {
     
     const [stats, setStats] = useState<SimpleHospitalStat[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [date, setDate] = useState<DateRange | undefined>({
+      from: subDays(new Date(), 29),
+      to: new Date(),
+    });
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const data = await getSimpleHospitalBusinessStats(dateRange);
+            const data = await getSimpleHospitalBusinessStats(date);
             setStats(data);
         } catch (error) {
             console.error("Failed to load simplified hospital stats:", error);
         } finally {
             setIsLoading(false);
         }
-    }, [dateRange]);
+    }, [date]);
 
     useEffect(() => {
         loadData();
@@ -85,10 +90,48 @@ export function SimpleBusinessSummaryTable({ dateRange }: SimpleBusinessSummaryT
                     <CardTitle>Simplified Hospital Summary</CardTitle>
                     <CardDescription>A summary of patients and billed amounts for each hospital.</CardDescription>
                 </div>
-                 <Button onClick={handleExport} variant="outline" size="sm" disabled={stats.length === 0}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Export
-                </Button>
+                 <div className="flex items-center gap-2">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            id="date"
+                            variant={"outline"}
+                            className={cn(
+                              "w-[300px] justify-start text-left font-normal",
+                              !date && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {date?.from ? (
+                              date.to ? (
+                                <>
+                                  {format(date.from, "LLL dd, y")} -{" "}
+                                  {format(date.to, "LLL dd, y")}
+                                </>
+                              ) : (
+                                format(date.from, "LLL dd, y")
+                              )
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                          <Calendar
+                            initialFocus
+                            mode="range"
+                            defaultMonth={date?.from}
+                            selected={date}
+                            onSelect={setDate}
+                            numberOfMonths={2}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    <Button onClick={handleExport} variant="outline" size="sm" disabled={stats.length === 0}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Export
+                    </Button>
+                </div>
             </CardHeader>
             <CardContent>
                 {isLoading ? (

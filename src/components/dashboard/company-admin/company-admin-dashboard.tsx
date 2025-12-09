@@ -191,7 +191,7 @@ export function CompanyAdminDashboard() {
           
           <NewReportTable dateRange={date} />
 
-          <SimpleBusinessSummaryTable dateRange={date} />
+          <SimpleBusinessSummaryTable />
 
           <PatientBillingTable dateRange={date} />
           
