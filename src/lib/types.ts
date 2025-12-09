@@ -224,7 +224,10 @@ export type PreAuthStatus =
   | 'Final Approval'
   | 'Initial Approval'
   | 'Pre auth Sent'
-  | 'Settled';
+  | 'Settled'
+  | 'Settlement Pending'
+  | 'Settlement Query'
+  | 'Settlement Answered';
 
 export interface ChatMessage {
   id: number;

@@ -173,13 +173,15 @@ const preAuthStatuses: PreAuthStatus[] = [
     'Settled',
     'Rejected',
     'Settlement Pending',
-    'Settlement Query'
+    'Settlement Query',
+    'Settlement Answered'
 ];
 
 const statusesThatRequireEmail: PreAuthStatus[] = [
     'Query Answered', 
     'Enhancement Request', 
-    'Final Discharge sent'
+    'Final Discharge sent',
+    'Settlement Answered'
 ];
 
 export default function EditPreAuthPage() {
@@ -254,6 +256,8 @@ export default function EditPreAuthPage() {
                 newSubject = `Enhancement Request – Claim No. ${claimNo} | ${hospitalName}`;
             } else if (selectedStatus === 'Final Discharge sent') {
                  newSubject = `Final Bill & Discharge Summary – Claim No. ${claimNo} | ${hospitalName}`;
+            } else if (selectedStatus === 'Settlement Answered') {
+                newSubject = `Re: Settlement Query for Claim No. ${claimNo} | ${hospitalName}`;
             }
             setSubject(newSubject);
         }

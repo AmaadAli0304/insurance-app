@@ -724,7 +724,7 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         'pharmacy_bill_path', 'implant_bill_stickers_path', 'lab_bill_path', 'ot_anesthesia_notes_path'
     ];
 
-    const statusesThatSendEmail = ['Query Answered', 'Enhancement Request', 'Final Discharge sent'];
+    const statusesThatSendEmail = ['Query Answered', 'Enhancement Request', 'Final Discharge sent', 'Settlement Answered'];
     const statusesThatLogTpaResponse = ['Query Raised', 'Enhancement Approval'];
     
     let transaction;
@@ -1059,6 +1059,7 @@ export async function handleSavePodDetails(prevState: { message: string, type?: 
   revalidatePath('/dashboard/pre-auths');
   return { message: "POD details saved successfully.", type: 'success' };
 }
+
 
 
 
