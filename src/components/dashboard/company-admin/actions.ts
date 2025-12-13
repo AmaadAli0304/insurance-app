@@ -681,29 +681,32 @@ export async function getMonthlySummaryReport(year: number): Promise<MonthlySumm
         
         const query = `
             SELECT 
-                MONTH(c.created_at) as month,
-                
-                ISNULL(SUM(CASE WHEN c.status = 'Pre auth Sent' THEN c.amount ELSE 0 END), 0) as totalBillAmt,
-                
-                ISNULL(SUM(CASE WHEN c.status = 'Final Approval' THEN c.final_amount ELSE 0 END), 0) as tpaApprovedAmt,
-                
-                ISNULL(SUM(CASE WHEN c.status = 'Settled' THEN c.final_settle_amount ELSE 0 END), 0) as amountBeforeTds,
-                
-                ISNULL(SUM(CASE WHEN c.status = 'Settled' THEN c.amount ELSE 0 END), 0) as amountAfterTds,
-
-                ISNULL(SUM(CASE WHEN c.status = 'Settled' THEN c.tds ELSE 0 END), 0) as tds,
-                
-                COUNT(DISTINCT c.Patient_id) as totalPatient,
-                
-                COUNT(DISTINCT CASE WHEN c.status = 'Settled' THEN c.id END) as totalSettlementCase,
-
-                COUNT(DISTINCT CASE WHEN c.status IN ('Pre auth Sent', 'Query Raised', 'Query Answered', 'Enhancement Request', 'Final Discharge sent', 'Initial Approval', 'Settlement Pending', 'Settlement Query', 'Settlement Answered') THEN c.id END) as totalPendingCase,
-
-                COUNT(DISTINCT CASE WHEN c.status = 'Rejected' THEN c.id END) as cancelledCases
-                
-            FROM claims c
-            WHERE YEAR(c.created_at) = @year
-            GROUP BY MONTH(c.created_at)
+                MONTH(created_at) as month,
+                SUM(ISNULL(totalBillAmt, 0)) as totalBillAmt,
+                SUM(ISNULL(tpaApprovedAmt, 0)) as tpaApprovedAmt,
+                SUM(ISNULL(amountBeforeTds, 0)) as amountBeforeTds,
+                SUM(ISNULL(amountAfterTds, 0)) as amountAfterTds,
+                SUM(ISNULL(tds, 0)) as tds,
+                SUM(ISNULL(totalPatient, 0)) as totalPatient,
+                SUM(ISNULL(totalSettlementCase, 0)) as totalSettlementCase,
+                SUM(ISNULL(totalPendingCase, 0)) as totalPendingCase,
+                SUM(ISNULL(cancelledCases, 0)) as cancelledCases
+            FROM (
+                SELECT 
+                    created_at,
+                    CASE WHEN status = 'Pre auth Sent' THEN amount ELSE 0 END as totalBillAmt,
+                    CASE WHEN status = 'Final Approval' THEN final_amount ELSE 0 END as tpaApprovedAmt,
+                    CASE WHEN status = 'Settled' THEN final_settle_amount ELSE 0 END as amountBeforeTds,
+                    CASE WHEN status = 'Settled' THEN amount ELSE 0 END as amountAfterTds,
+                    CASE WHEN status = 'Settled' THEN tds ELSE 0 END as tds,
+                    1 as totalPatient,
+                    CASE WHEN status = 'Settled' THEN 1 ELSE 0 END as totalSettlementCase,
+                    CASE WHEN status IN ('Pre auth Sent', 'Query Raised', 'Query Answered', 'Enhancement Request', 'Final Discharge sent', 'Initial Approval', 'Settlement Pending', 'Settlement Query', 'Settlement Answered') THEN 1 ELSE 0 END as totalPendingCase,
+                    CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END as cancelledCases
+                FROM claims
+                WHERE YEAR(created_at) = @year
+            ) as MonthlyData
+            GROUP BY MONTH(created_at)
             ORDER BY month;
         `;
         
