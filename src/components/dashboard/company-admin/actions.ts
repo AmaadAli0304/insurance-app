@@ -696,7 +696,7 @@ export async function getMonthlySummaryReport(year: number): Promise<MonthlySumm
             LEFT JOIN (
                 SELECT 
                     MONTH(created_at) as month,
-                    SUM(CASE WHEN status = 'Pre auth Sent' THEN amount ELSE 0 END) as totalBillAmt,
+                    SUM(CASE WHEN status = 'Final Approval' THEN final_bill ELSE 0 END) as totalBillAmt,
                     SUM(CASE WHEN status = 'Final Approval' THEN final_amount ELSE 0 END) as tpaApprovedAmt,
                     SUM(CASE WHEN status = 'Settled' THEN final_settle_amount ELSE 0 END) as amountBeforeTds,
                     SUM(CASE WHEN status = 'Settled' THEN amount ELSE 0 END) as amountAfterTds,
