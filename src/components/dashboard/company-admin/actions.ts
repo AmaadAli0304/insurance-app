@@ -659,3 +659,59 @@ export async function getSettledStatusStats(
         throw new Error("Failed to fetch settled status statistics.");
     }
 }
+
+export type MonthlySummary = {
+    month: number;
+    totalBillAmt: number;
+    tpaApprovedAmt: number;
+    amountBeforeTds: number;
+    amountAfterTds: number;
+    tds: number;
+    totalPatient: number;
+    totalSettlementCase: number;
+    totalPendingCase: number;
+    cancelledCases: number;
+};
+
+export async function getMonthlySummaryReport(year: number): Promise<MonthlySummary[]> {
+    try {
+        const pool = await getDbPool();
+        const request = pool.request();
+        request.input('year', sql.Int, year);
+        
+        const query = `
+            SELECT 
+                MONTH(c.created_at) as month,
+                
+                ISNULL(SUM(CASE WHEN c.status = 'Pre auth Sent' THEN c.amount ELSE 0 END), 0) as totalBillAmt,
+                
+                ISNULL(SUM(CASE WHEN c.status = 'Final Approval' THEN c.final_amount ELSE 0 END), 0) as tpaApprovedAmt,
+                
+                ISNULL(SUM(CASE WHEN c.status = 'Settled' THEN c.final_settle_amount ELSE 0 END), 0) as amountBeforeTds,
+                
+                ISNULL(SUM(CASE WHEN c.status = 'Settled' THEN c.amount ELSE 0 END), 0) as amountAfterTds,
+
+                ISNULL(SUM(CASE WHEN c.status = 'Settled' THEN c.tds ELSE 0 END), 0) as tds,
+                
+                COUNT(DISTINCT c.Patient_id) as totalPatient,
+                
+                COUNT(DISTINCT CASE WHEN c.status = 'Settled' THEN c.id END) as totalSettlementCase,
+
+                COUNT(DISTINCT CASE WHEN c.status IN ('Pre auth Sent', 'Query Raised', 'Query Answered', 'Enhancement Request', 'Final Discharge sent', 'Initial Approval', 'Settlement Pending', 'Settlement Query', 'Settlement Answered') THEN c.id END) as totalPendingCase,
+
+                COUNT(DISTINCT CASE WHEN c.status = 'Rejected' THEN c.id END) as cancelledCases
+                
+            FROM claims c
+            WHERE YEAR(c.created_at) = @year
+            GROUP BY MONTH(c.created_at)
+            ORDER BY month;
+        `;
+        
+        const result = await request.query(query);
+        return result.recordset as MonthlySummary[];
+
+    } catch (error) {
+        console.error("Error fetching monthly summary report:", error);
+        throw new Error("Failed to fetch monthly summary report.");
+    }
+}
