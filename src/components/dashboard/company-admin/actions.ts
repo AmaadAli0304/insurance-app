@@ -278,6 +278,7 @@ export type StaffPerformanceStat = {
   totalCollection: number;
   totalFinalApproval: number;
   preAuthApprovedCases: number;
+  rejectionCount: number;
 };
 
 export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<StaffPerformanceStat[]> {
@@ -313,7 +314,8 @@ export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<S
                 COUNT(DISTINCT c.Patient_id) AS numOfCases,
                 ISNULL(SUM(CASE WHEN c.status = 'Final Approval' THEN c.paidAmount ELSE 0 END), 0) AS totalCollection,
                 ISNULL(SUM(CASE WHEN c.status = 'Final Approval' THEN 1 ELSE 0 END), 0) as totalFinalApproval,
-                ISNULL(SUM(CASE WHEN c.status = 'Final Discharge Sent' THEN 1 ELSE 0 END), 0) as preAuthApprovedCases
+                ISNULL(SUM(CASE WHEN c.status = 'Final Discharge Sent' THEN 1 ELSE 0 END), 0) as preAuthApprovedCases,
+                ISNULL(SUM(CASE WHEN c.status = 'Rejected' THEN 1 ELSE 0 END), 0) as rejectionCount
             FROM 
                 users u
             LEFT JOIN 
@@ -664,7 +666,7 @@ export async function getSettledStatusStats(
     }
 }
 
-export async function getSummaryReportStats(year: number): Promise<{ month: string, totalBillAmt: number }[]> {
+export async function getSummaryReportStats(year: number): Promise<any[]> {
     try {
         const pool = await getDbPool();
         const request = pool.request();
@@ -672,21 +674,20 @@ export async function getSummaryReportStats(year: number): Promise<{ month: stri
         
         const query = `
             WITH Months AS (
-                SELECT 1 AS MonthNumber
-                UNION SELECT 2 UNION SELECT 3 UNION SELECT 4
-                UNION SELECT 5 UNION SELECT 6 UNION SELECT 7
-                UNION SELECT 8 UNION SELECT 9 UNION SELECT 10
-                UNION SELECT 11 UNION SELECT 12
+                SELECT 1 AS MonthNumber UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+                UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8
+                UNION ALL SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12
             )
             SELECT 
+                m.MonthNumber,
                 DATENAME(month, DATEFROMPARTS(@year, m.MonthNumber, 1)) as month,
-                ISNULL(SUM(c.final_bill), 0) as totalBillAmt
+                ISNULL((SELECT SUM(c.final_bill) FROM claims c WHERE MONTH(c.created_at) = m.MonthNumber AND YEAR(c.created_at) = @year AND c.status = 'Final Approval'), 0) as totalBillAmt,
+                ISNULL((SELECT SUM(c.final_amount) FROM claims c WHERE MONTH(c.created_at) = m.MonthNumber AND YEAR(c.created_at) = @year AND c.status = 'Final Approval'), 0) as tpaApprovedAmt,
+                ISNULL((SELECT COUNT(DISTINCT c.Patient_id) FROM claims c WHERE MONTH(c.created_at) = m.MonthNumber AND YEAR(c.created_at) = @year), 0) as totalPatient,
+                ISNULL((SELECT COUNT(*) FROM claims c WHERE MONTH(c.created_at) = m.MonthNumber AND YEAR(c.created_at) = @year AND c.status = 'Settled'), 0) as totalSettlementCase,
+                ISNULL((SELECT COUNT(*) FROM claims c WHERE MONTH(c.created_at) = m.MonthNumber AND YEAR(c.created_at) = @year AND c.status = 'Rejected'), 0) as totalDeniedCase
             FROM 
                 Months m
-            LEFT JOIN 
-                claims c ON MONTH(c.created_at) = m.MonthNumber AND YEAR(c.created_at) = @year AND c.status = 'Final Approval'
-            GROUP BY 
-                m.MonthNumber
             ORDER BY
                 m.MonthNumber;
         `;
@@ -694,7 +695,11 @@ export async function getSummaryReportStats(year: number): Promise<{ month: stri
         const result = await request.query(query);
         return result.recordset.map(row => ({
             month: row.month,
-            totalBillAmt: Number(row.totalBillAmt) || 0
+            totalBillAmt: Number(row.totalBillAmt) || 0,
+            tpaApprovedAmt: Number(row.tpaApprovedAmt) || 0,
+            totalPatient: row.totalPatient,
+            totalSettlementCase: row.totalSettlementCase,
+            totalDeniedCase: row.totalDeniedCase,
         }));
 
     } catch (error) {
@@ -704,6 +709,5 @@ export async function getSummaryReportStats(year: number): Promise<{ month: stri
 }
 
 export async function getMonthlySummaryReport(year: number): Promise<any[]> {
-    // This is a placeholder. The full implementation will be done in the next step.
-    return [];
+    return getSummaryReportStats(year);
 }
