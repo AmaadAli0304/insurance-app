@@ -687,41 +687,123 @@ export async function getSummaryReportStats(year: number): Promise<any[]> {
     try {
         const pool = await getDbPool();
         const request = pool.request();
-        request.input('year', sql.Int, year);
-        
-        const query = `
-            WITH Months AS (
-                SELECT 1 AS MonthNumber UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
-                UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8
-                UNION ALL SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12
-            )
-            SELECT 
-                m.MonthNumber,
-                DATENAME(month, DATEFROMPARTS(@year, m.MonthNumber, 1)) as month,
-                ISNULL((SELECT SUM(c.final_bill) FROM claims c WHERE MONTH(c.created_at) = m.MonthNumber AND YEAR(c.created_at) = @year AND c.status = 'Final Approval'), 0) as totalBillAmt,
-                ISNULL((SELECT SUM(c.final_amount) FROM claims c WHERE MONTH(c.created_at) = m.MonthNumber AND YEAR(c.created_at) = @year AND c.status = 'Final Approval'), 0) as tpaApprovedAmt,
-                ISNULL((SELECT COUNT(DISTINCT c.Patient_id) FROM claims c WHERE MONTH(c.created_at) = m.MonthNumber AND YEAR(c.created_at) = @year), 0) as totalPatient,
-                ISNULL((SELECT COUNT(*) FROM claims c WHERE MONTH(c.created_at) = m.MonthNumber AND YEAR(c.created_at) = @year AND c.status = 'Settled'), 0) as totalSettlementCase,
-                ISNULL((SELECT COUNT(*) FROM claims c WHERE MONTH(c.created_at) = m.MonthNumber AND YEAR(c.created_at) = @year AND c.status = 'Rejected'), 0) as totalDeniedCase
-            FROM 
-                Months m
-            ORDER BY
-                m.MonthNumber;
-        `;
-        
-        const result = await request.query(query);
-        return result.recordset.map(row => ({
-            month: row.month,
-            totalBillAmt: Number(row.totalBillAmt) || 0,
-            tpaApprovedAmt: Number(row.tpaApprovedAmt) || 0,
-            totalPatient: row.totalPatient,
-            totalSettlementCase: row.totalSettlementCase,
-            totalDeniedCase: row.totalDeniedCase,
-        }));
+        request.input("year", year);
 
+        const query = `
+        -- ==========================
+        -- MONTH LIST
+        -- ==========================
+        WITH months AS (
+            SELECT 1 AS monthNo, 'Jan' AS monthName UNION ALL
+            SELECT 2, 'Feb' UNION ALL
+            SELECT 3, 'Mar' UNION ALL
+            SELECT 4, 'Apr' UNION ALL
+            SELECT 5, 'May' UNION ALL
+            SELECT 6, 'Jun' UNION ALL
+            SELECT 7, 'Jul' UNION ALL
+            SELECT 8, 'Aug' UNION ALL
+            SELECT 9, 'Sep' UNION ALL
+            SELECT 10, 'Oct' UNION ALL
+            SELECT 11, 'Nov' UNION ALL
+            SELECT 12, 'Dec'
+        ),
+
+        -- ==========================
+        -- PATIENTS REGISTERED PER MONTH
+        -- ==========================
+        patientsPerMonth AS (
+            SELECT
+                MONTH(created_at) AS monthNo,
+                COUNT(DISTINCT id) AS patientCount
+            FROM dbo.patients
+            WHERE YEAR(created_at) = @year
+            GROUP BY MONTH(created_at)
+        ),
+
+        -- ==========================
+        -- LATEST CLAIM PER PATIENT PER MONTH
+        -- ==========================
+        rankedClaims AS (
+            SELECT
+                patient_id,
+                status,
+                final_bill,
+                final_amount,
+                amount,
+                tds,
+                MONTH(created_at) AS monthNo,
+                ROW_NUMBER() OVER (
+                    PARTITION BY patient_id, MONTH(created_at)
+                    ORDER BY created_at DESC
+                ) AS rn
+            FROM dbo.claims
+            WHERE YEAR(created_at) = @year
+        ),
+
+        latestClaims AS (
+            SELECT *
+            FROM rankedClaims
+            WHERE rn = 1
+        ),
+
+        -- ==========================
+        -- MONTHLY AGGREGATION FOR CLAIMS
+        -- ==========================
+        claimsAgg AS (
+            SELECT
+                monthNo,
+
+                -- Pending (LATEST = Pre auth Sent)
+                SUM(CASE WHEN LTRIM(RTRIM(status)) = 'Pre auth Sent' THEN 1 ELSE 0 END) AS pendingCaseCount,
+
+                -- Settled / Rejected
+                SUM(CASE WHEN LTRIM(RTRIM(status)) = 'Settled' THEN 1 ELSE 0 END) AS totalSettledCase,
+                SUM(CASE WHEN LTRIM(RTRIM(status)) = 'Rejected' THEN 1 ELSE 0 END) AS totalRejectedCase,
+
+                -- Amounts
+                SUM(CASE WHEN status = 'Final Approval' THEN CAST(final_bill AS DECIMAL(18,2)) ELSE 0 END) AS totalBillAmt,
+                SUM(CASE WHEN status = 'Final Approval' THEN CAST(final_amount AS DECIMAL(18,2)) ELSE 0 END) AS tpaApprovedAmt,
+                SUM(CASE WHEN status = 'Final Approval' THEN CAST(amount AS DECIMAL(18,2)) ELSE 0 END) AS finalAuthorisedAmount,
+
+                SUM(CASE WHEN status = 'Settled' THEN CAST(final_amount AS DECIMAL(18,2)) ELSE 0 END) AS amountBeforeTds,
+                SUM(CASE WHEN status = 'Settled' THEN CAST(amount AS DECIMAL(18,2)) ELSE 0 END) AS amountAfterTds,
+                SUM(CASE WHEN status = 'Settled' THEN CAST(tds AS DECIMAL(18,2)) ELSE 0 END) AS tds
+
+            FROM latestClaims
+            GROUP BY monthNo
+        )
+
+        -- ==========================
+        -- FINAL RESULT
+        -- ==========================
+        SELECT
+            CONCAT(m.monthName, '-', RIGHT(@year, 2)) AS month,
+
+            -- Patient count from PATIENTS table (registration date)
+            ISNULL(ppm.patientCount, 0) AS patientCount,
+            
+            -- Claim-related metrics
+            ISNULL(ca.pendingCaseCount, 0) AS pendingCaseCount,
+            ISNULL(ca.totalSettledCase, 0) AS totalSettledCase,
+            ISNULL(ca.totalRejectedCase, 0) AS totalRejectedCase,
+            ISNULL(ca.totalBillAmt, 0) AS totalBillAmt,
+            ISNULL(ca.tpaApprovedAmt, 0) AS tpaApprovedAmt,
+            ISNULL(ca.finalAuthorisedAmount, 0) AS finalAuthorisedAmount,
+            ISNULL(ca.amountBeforeTds, 0) AS amountBeforeTds,
+            ISNULL(ca.amountAfterTds, 0) AS amountAfterTds,
+            ISNULL(ca.tds, 0) AS tds
+
+        FROM months m
+        LEFT JOIN patientsPerMonth ppm ON ppm.monthNo = m.monthNo
+        LEFT JOIN claimsAgg ca ON ca.monthNo = m.monthNo
+        ORDER BY m.monthNo;
+        `;
+
+        const result = await request.query(query);
+        return result.recordset;
     } catch (error) {
-        console.error('Error fetching summary report stats:', error);
-        throw new Error('Failed to fetch summary report statistics.');
+        console.error("Monthly summary report error:", error);
+        throw new Error("Failed to fetch monthly summary report");
     }
 }
 
