@@ -659,36 +659,3 @@ export async function getSettledStatusStats(
         throw new Error("Failed to fetch settled status statistics.");
     }
 }
-
-export type SummaryReportStats = {
-    totalBillAmt: number;
-};
-
-export async function getSummaryReportStats(dateRange?: DateRange): Promise<SummaryReportStats> {
-    try {
-        const pool = await getDbPool();
-        const request = pool.request();
-        
-        let dateFilter = '';
-        if (dateRange?.from) {
-            const toDate = dateRange.to || new Date(); 
-            request.input('dateFrom', sql.DateTime, dateRange.from);
-            request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-            dateFilter = 'AND created_at BETWEEN @dateFrom AND @dateTo';
-        }
-        
-        const query = `
-            SELECT 
-                ISNULL(SUM(final_bill), 0) as totalBillAmt
-            FROM claims
-            WHERE status = 'Final Approval' ${dateFilter}
-        `;
-        
-        const result = await request.query(query);
-        return result.recordset[0] as SummaryReportStats;
-
-    } catch (error) {
-        console.error("Error fetching summary report stats:", error);
-        throw new Error("Failed to fetch summary report stats.");
-    }
-}

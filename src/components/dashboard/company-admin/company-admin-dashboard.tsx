@@ -22,7 +22,6 @@ import { StaffOnDutyTable } from "./staff-on-duty-table";
 import { FinalApprovalDetailsTable } from "./final-approval-details-table";
 import { SettledStatusDetailsTable } from "./settled-status-details-table";
 import { NewReportTable } from "@/components/dashboard/admin/new-report-table";
-import { SummaryReportTable } from "./summary-report-table";
 
 
 interface DashboardStats {
@@ -150,8 +149,6 @@ export function CompanyAdminDashboard() {
                 </CardContent>
             </Card>
           </div>
-
-          <SummaryReportTable dateRange={date} />
 
           <BusinessSummaryTable stats={businessStats}>
              <Popover>
