@@ -313,7 +313,7 @@ export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<S
             ClaimCounts AS (
                 SELECT
                     created_by,
-                    ISNULL(SUM(CASE WHEN status = 'Pre auth Sent' THEN 1 ELSE 0 END), 0) as numOfCases,
+                    COUNT(DISTINCT c.Patient_id) AS numOfCases,
                     ISNULL(SUM(CASE WHEN status = 'Final Approval' THEN paidAmount ELSE 0 END), 0) AS totalCollection,
                     ISNULL(SUM(CASE WHEN status = 'Final Approval' THEN 1 ELSE 0 END), 0) as totalFinalApproval,
                     ISNULL(SUM(CASE WHEN status = 'Final Discharge sent' THEN 1 ELSE 0 END), 0) as preAuthApprovedCases,
