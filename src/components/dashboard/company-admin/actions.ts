@@ -276,6 +276,7 @@ export type StaffPerformanceStat = {
   hospitalName: string;
   numOfCases: number;
   totalCollection: number;
+  totalFinalApproval: number;
 };
 
 export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<StaffPerformanceStat[]> {
@@ -308,12 +309,13 @@ export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<S
                 u.name AS staffName,
                 u.photo as staffPhoto,
                 ISNULL(ha.hospitalName, 'N/A') AS hospitalName,
-                ISNULL(COUNT(DISTINCT c.id), 0) AS numOfCases,
-                ISNULL(SUM(c.paidAmount), 0) AS totalCollection
+                COUNT(DISTINCT c.Patient_id) AS numOfCases,
+                ISNULL(SUM(CASE WHEN c.status = 'Final Approval' THEN c.paidAmount ELSE 0 END), 0) AS totalCollection,
+                ISNULL(SUM(CASE WHEN c.status = 'Final Approval' THEN 1 ELSE 0 END), 0) as totalFinalApproval
             FROM 
                 users u
             LEFT JOIN 
-                claims c ON u.uid = c.created_by AND c.status = 'Final Approval' ${dateFilter}
+                claims c ON u.uid = c.created_by ${dateFilter}
             LEFT JOIN 
                 HospitalAssignments ha ON u.uid = ha.staff_id
             WHERE 
@@ -688,11 +690,11 @@ export async function getMonthlySummaryReport(year: number): Promise<MonthlySumm
             MonthlyData AS (
                 SELECT 
                     MONTH(created_at) as month,
-                    SUM(CASE WHEN status = 'Final Approval' THEN final_bill ELSE 0 END) as totalBillAmt,
-                    SUM(CASE WHEN status = 'Final Approval' THEN final_amount ELSE 0 END) as tpaApprovedAmt,
-                    SUM(CASE WHEN status = 'Settled' THEN final_settle_amount ELSE 0 END) as amountBeforeTds,
-                    SUM(CASE WHEN status = 'Settled' THEN amount ELSE 0 END) as amountAfterTds,
-                    SUM(CASE WHEN status = 'Settled' THEN tds ELSE 0 END) as tds,
+                    SUM(CASE WHEN status = 'Final Approval' THEN ISNULL(final_bill, 0) ELSE 0 END) as totalBillAmt,
+                    SUM(CASE WHEN status = 'Final Approval' THEN ISNULL(final_amount, 0) ELSE 0 END) as tpaApprovedAmt,
+                    SUM(CASE WHEN status = 'Settled' THEN ISNULL(final_settle_amount, 0) ELSE 0 END) as amountBeforeTds,
+                    SUM(CASE WHEN status = 'Settled' THEN ISNULL(amount, 0) ELSE 0 END) as amountAfterTds,
+                    SUM(CASE WHEN status = 'Settled' THEN ISNULL(tds, 0) ELSE 0 END) as tds,
                     COUNT(DISTINCT Patient_id) as totalPatient,
                     COUNT(DISTINCT CASE WHEN status = 'Settled' THEN Patient_id END) as totalSettlementCase,
                     COUNT(DISTINCT CASE WHEN status IN ('Pre auth Sent', 'Query Raised', 'Query Answered', 'Enhancement Request', 'Final Discharge sent', 'Initial Approval', 'Settlement Pending', 'Settlement Query', 'Settlement Answered') THEN Patient_id END) as totalPendingCase,
