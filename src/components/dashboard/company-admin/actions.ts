@@ -277,6 +277,7 @@ export type StaffPerformanceStat = {
   numOfCases: number;
   totalCollection: number;
   totalFinalApproval: number;
+  preAuthApprovedCases: number;
 };
 
 export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<StaffPerformanceStat[]> {
@@ -311,7 +312,8 @@ export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<S
                 ISNULL(ha.hospitalName, 'N/A') AS hospitalName,
                 COUNT(DISTINCT c.Patient_id) AS numOfCases,
                 ISNULL(SUM(CASE WHEN c.status = 'Final Approval' THEN c.paidAmount ELSE 0 END), 0) AS totalCollection,
-                ISNULL(SUM(CASE WHEN c.status = 'Final Approval' THEN 1 ELSE 0 END), 0) as totalFinalApproval
+                ISNULL(SUM(CASE WHEN c.status = 'Final Approval' THEN 1 ELSE 0 END), 0) as totalFinalApproval,
+                ISNULL(SUM(CASE WHEN c.status = 'Final Discharge Sent' THEN 1 ELSE 0 END), 0) as preAuthApprovedCases
             FROM 
                 users u
             LEFT JOIN 
@@ -662,26 +664,43 @@ export async function getSettledStatusStats(
     }
 }
 
-export async function getSummaryReportStats(): Promise<{ totalBillAmt: number }> {
-  try {
-    const pool = await getDbPool();
-    const request = pool.request();
-    
-    const query = `
-      SELECT 
-        SUM(final_bill) as totalBillAmt
-      FROM claims
-      WHERE status = 'Final Approval';
-    `;
-    
-    const result = await request.query(query);
-    return {
-      totalBillAmt: Number(result.recordset[0]?.totalBillAmt) || 0,
-    };
-  } catch (error) {
-    console.error('Error fetching summary report stats:', error);
-    throw new Error('Failed to fetch summary report statistics.');
-  }
+export async function getSummaryReportStats(year: number): Promise<{ month: string, totalBillAmt: number }[]> {
+    try {
+        const pool = await getDbPool();
+        const request = pool.request();
+        request.input('year', sql.Int, year);
+        
+        const query = `
+            WITH Months AS (
+                SELECT 1 AS MonthNumber
+                UNION SELECT 2 UNION SELECT 3 UNION SELECT 4
+                UNION SELECT 5 UNION SELECT 6 UNION SELECT 7
+                UNION SELECT 8 UNION SELECT 9 UNION SELECT 10
+                UNION SELECT 11 UNION SELECT 12
+            )
+            SELECT 
+                DATENAME(month, DATEFROMPARTS(@year, m.MonthNumber, 1)) as month,
+                ISNULL(SUM(c.final_bill), 0) as totalBillAmt
+            FROM 
+                Months m
+            LEFT JOIN 
+                claims c ON MONTH(c.created_at) = m.MonthNumber AND YEAR(c.created_at) = @year AND c.status = 'Final Approval'
+            GROUP BY 
+                m.MonthNumber
+            ORDER BY
+                m.MonthNumber;
+        `;
+        
+        const result = await request.query(query);
+        return result.recordset.map(row => ({
+            month: row.month,
+            totalBillAmt: Number(row.totalBillAmt) || 0
+        }));
+
+    } catch (error) {
+        console.error('Error fetching summary report stats:', error);
+        throw new Error('Failed to fetch summary report statistics.');
+    }
 }
 
 export async function getMonthlySummaryReport(year: number): Promise<any[]> {
