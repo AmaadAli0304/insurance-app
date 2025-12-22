@@ -683,50 +683,80 @@ export async function getMonthlySummaryReport(year: number): Promise<StatItem[]>
     request.input('year', sql.Int, year);
     
     const query = `
-      SELECT 
-        DATENAME(month, created_at) as month,
-        DATEPART(month, created_at) as month_num,
-        SUM(CASE WHEN status = 'Final Approval' THEN final_bill ELSE 0 END) as totalBillAmt,
-        SUM(CASE WHEN status = 'Final Approval' THEN paidAmount ELSE 0 END) as tpaApprovedAmt,
-        SUM(CASE WHEN status = 'Settled' THEN final_amount ELSE 0 END) as amountBeforeTds,
-        SUM(CASE WHEN status = 'Settled' THEN amount ELSE 0 END) as amountAfterTds,
-        SUM(CASE WHEN status = 'Settled' THEN tds ELSE 0 END) as tds,
-        SUM(CASE WHEN status = 'Final Approval' THEN final_amount ELSE 0 END) as finalAuthorisedAmount,
-        COUNT(DISTINCT Patient_id) as patientCount,
-        COUNT(CASE WHEN status = 'Settled' THEN 1 END) as totalSettledCase,
-        COUNT(CASE WHEN status IN ('Pre auth Sent', 'Query Raised', 'Query Answered', 'Enhancement Request') THEN 1 END) as pendingCaseCount,
-        COUNT(CASE WHEN status = 'Rejected' THEN 1 END) as totalRejectedCase
-      FROM claims
-      WHERE YEAR(created_at) = @year
-      GROUP BY DATENAME(month, created_at), DATEPART(month, created_at)
-      ORDER BY month_num;
+        ;WITH AllMonths AS (
+            SELECT 1 AS month_num, 'January' AS month_name UNION ALL SELECT 2, 'February' UNION ALL SELECT 3, 'March' UNION ALL
+            SELECT 4, 'April' UNION ALL SELECT 5, 'May' UNION ALL SELECT 6, 'June' UNION ALL SELECT 7, 'July' UNION ALL
+            SELECT 8, 'August' UNION ALL SELECT 9, 'September' UNION ALL SELECT 10, 'October' UNION ALL SELECT 11, 'November' UNION ALL
+            SELECT 12, 'December'
+        ),
+        ClaimData AS (
+            SELECT 
+                DATEPART(month, created_at) as month_num,
+                SUM(CASE WHEN status = 'Final Approval' THEN final_bill ELSE 0 END) as totalBillAmt,
+                SUM(CASE WHEN status = 'Final Approval' THEN paidAmount ELSE 0 END) as tpaApprovedAmt,
+                SUM(CASE WHEN status = 'Settled' THEN final_amount ELSE 0 END) as amountBeforeTds,
+                SUM(CASE WHEN status = 'Settled' THEN amount ELSE 0 END) as amountAfterTds,
+                SUM(CASE WHEN status = 'Settled' THEN tds ELSE 0 END) as tds,
+                SUM(CASE WHEN status = 'Final Approval' THEN final_amount ELSE 0 END) as finalAuthorisedAmount,
+                COUNT(DISTINCT Patient_id) as patientCount,
+                COUNT(CASE WHEN status = 'Settled' THEN 1 END) as totalSettledCase,
+                COUNT(CASE WHEN status IN ('Pre auth Sent', 'Query Raised', 'Query Answered', 'Enhancement Request') THEN 1 END) as pendingCaseCount,
+                COUNT(CASE WHEN status = 'Rejected' THEN 1 END) as totalRejectedCase
+            FROM claims
+            WHERE YEAR(created_at) = @year
+            GROUP BY DATEPART(month, created_at)
+        )
+        SELECT 
+            am.month_name as month,
+            ISNULL(cd.totalBillAmt, 0) as totalBillAmt,
+            ISNULL(cd.tpaApprovedAmt, 0) as tpaApprovedAmt,
+            ISNULL(cd.amountBeforeTds, 0) as amountBeforeTds,
+            ISNULL(cd.amountAfterTds, 0) as amountAfterTds,
+            ISNULL(cd.tds, 0) as tds,
+            ISNULL(cd.finalAuthorisedAmount, 0) as finalAuthorisedAmount,
+            ISNULL(cd.patientCount, 0) as patientCount,
+            ISNULL(cd.totalSettledCase, 0) as totalSettledCase,
+            ISNULL(cd.pendingCaseCount, 0) as pendingCaseCount,
+            ISNULL(cd.totalRejectedCase, 0) as totalRejectedCase
+        FROM AllMonths am
+        LEFT JOIN ClaimData cd ON am.month_num = cd.month_num
+        ORDER BY am.month_num;
     `;
 
     const result = await request.query(query);
-    const monthlyData = result.recordset as Array<Omit<StatItem, 'month'> & { month_num: number, month: string }>;
+    return result.recordset as StatItem[];
 
-    // Ensure all 12 months are present
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    const allMonthsStats = monthNames.map((monthName, index) => {
-      const monthNum = index + 1;
-      const data = monthlyData.find(d => d.month_num === monthNum);
-      return {
-        month: monthName,
-        totalBillAmt: Number(data?.totalBillAmt) || 0,
-        tpaApprovedAmt: Number(data?.tpaApprovedAmt) || 0,
-        amountBeforeTds: Number(data?.amountBeforeTds) || 0,
-        amountAfterTds: Number(data?.amountAfterTds) || 0,
-        tds: Number(data?.tds) || 0,
-        finalAuthorisedAmount: Number(data?.finalAuthorisedAmount) || 0,
-        patientCount: Number(data?.patientCount) || 0,
-        totalSettledCase: Number(data?.totalSettledCase) || 0,
-        pendingCaseCount: Number(data?.pendingCaseCount) || 0,
-        totalRejectedCase: Number(data?.totalRejectedCase) || 0,
-      };
-    });
+  } catch (error) {
+    console.error('Error fetching summary report stats:', error);
+    throw new Error('Failed to fetch summary report statistics.');
+  }
+}
 
-    return allMonthsStats;
 
+export async function getSummaryReportStats(dateRange?: DateRange): Promise<{ totalBillAmt: number }> {
+  try {
+    const pool = await getDbPool();
+    const request = pool.request();
+    
+    let whereClause = `WHERE status = 'Final Approval'`;
+    if (dateRange?.from) {
+      const toDate = dateRange.to || new Date(); 
+      request.input('dateFrom', sql.DateTime, dateRange.from);
+      request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+      whereClause += ' AND created_at BETWEEN @dateFrom AND @dateTo';
+    }
+
+    const query = `
+      SELECT 
+        SUM(final_bill) as totalBillAmt
+      FROM claims
+      ${whereClause};
+    `;
+    
+    const result = await request.query(query);
+    return {
+      totalBillAmt: Number(result.recordset[0]?.totalBillAmt) || 0,
+    };
   } catch (error) {
     console.error('Error fetching summary report stats:', error);
     throw new Error('Failed to fetch summary report statistics.');
