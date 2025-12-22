@@ -1,136 +1,64 @@
 
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
-import { getMonthlySummaryReport, MonthlySummary } from "./actions";
-import { Button } from "@/components/ui/button";
-import { Download, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { format } from "date-fns";
-
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-const generateYearOptions = () => {
-    const currentYear = new Date().getFullYear();
-    const years = [];
-    for (let i = currentYear; i >= currentYear - 5; i--) {
-        years.push(i);
-    }
-    return years;
-};
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { getSummaryReportStats, SummaryReportStats } from "./actions";
+import { Loader2 } from "lucide-react";
 
 export function SummaryReportTable() {
-    const [stats, setStats] = useState<MonthlySummary[]>([]);
+    const [stats, setStats] = useState<SummaryReportStats | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
-    const yearOptions = generateYearOptions();
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const data = await getMonthlySummaryReport(selectedYear);
-            const monthlyDataMap = new Map(data.map(item => [item.month, item]));
-            
-            const fullYearData: MonthlySummary[] = Array.from({ length: 12 }, (_, i) => {
-                const month = i + 1;
-                return monthlyDataMap.get(month) || {
-                    month,
-                    totalBillAmt: 0,
-                };
-            });
-            
-            setStats(fullYearData);
+            const data = await getSummaryReportStats();
+            setStats(data);
         } catch (error) {
-            console.error("Failed to load monthly summary:", error);
+            console.error("Failed to load summary report:", error);
         } finally {
             setIsLoading(false);
         }
-    }, [selectedYear]);
+    }, []);
 
     useEffect(() => {
         loadData();
     }, [loadData]);
     
-    const calculateTotal = (field: keyof Omit<MonthlySummary, 'month'>) => {
-        return stats.reduce((acc, curr) => acc + curr[field], 0);
-    };
-
-    const handleExport = () => {
-        const headers = ["Patient Monthly Data", ...MONTHS, "Grand Total"];
-        const keys: (keyof Omit<MonthlySummary, 'month'>)[] = [
-            "totalBillAmt"
-        ];
-        const labels: Record<keyof Omit<MonthlySummary, 'month'>, string> = {
-            totalBillAmt: "Total Bill Amt.",
-        };
-        
-        const csvRows = [headers.join(",")];
-        keys.forEach(key => {
-            const rowData = stats.map(monthData => monthData[key]);
-            const total = calculateTotal(key);
-            csvRows.push([`"${labels[key]}"`, ...rowData, total].join(','));
-        });
-
-        const csvContent = csvRows.join("\n");
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", `monthly_summary_report_${selectedYear}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-
-    const renderCell = (value: number) => value > 0 ? value.toLocaleString('en-IN') : '-';
+    const renderCell = (value: number | undefined | null) => {
+        if (value === undefined || value === null) return '-';
+        return value > 0 ? value.toLocaleString('en-IN') : '-';
+    }
 
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                    <CardTitle>Summary Report - {selectedYear}</CardTitle>
-                    <CardDescription>A monthly breakdown of key metrics for the selected year.</CardDescription>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Select value={String(selectedYear)} onValueChange={(value) => setSelectedYear(Number(value))}>
-                        <SelectTrigger className="w-[120px]">
-                            <SelectValue placeholder="Select Year" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {yearOptions.map(year => <SelectItem key={year} value={String(year)}>{year}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                    <Button onClick={handleExport} variant="outline" size="sm" disabled={isLoading}>
-                        <Download className="mr-2 h-4 w-4" />
-                        Export
-                    </Button>
+                    <CardTitle>Summary Report</CardTitle>
+                    <CardDescription>An all-time summary of key metrics.</CardDescription>
                 </div>
             </CardHeader>
             <CardContent>
                 {isLoading ? (
-                    <div className="flex items-center justify-center h-64">
+                    <div className="flex items-center justify-center h-24">
                         <Loader2 className="h-8 w-8 animate-spin" />
                     </div>
                 ) : (
                     <div className="relative overflow-x-auto">
-                        <Table className="min-w-full">
+                        <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="w-[200px] min-w-[200px] sticky left-0 bg-card">Patient Monthly Data</TableHead>
-                                    {MONTHS.map(month => (
-                                        <TableHead key={month} className="text-right min-w-[100px]">{`${month}-${String(selectedYear).slice(-2)}`}</TableHead>
-                                    ))}
-                                    <TableHead className="text-right font-bold min-w-[120px] sticky right-0 bg-card">Grand Total</TableHead>
+                                    <TableHead className="w-[250px]">Metric</TableHead>
+                                    <TableHead className="text-right">Total Value</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 <TableRow>
-                                    <TableCell className="font-semibold sticky left-0 bg-card">Total Bill Amt.</TableCell>
-                                    {stats.map(s => <TableCell key={s.month} className="text-right font-mono">{renderCell(s.totalBillAmt)}</TableCell>)}
-                                    <TableCell className="text-right font-bold font-mono sticky right-0 bg-card">{renderCell(calculateTotal("totalBillAmt"))}</TableCell>
+                                    <TableCell className="font-semibold">Total Bill Amt.</TableCell>
+                                    <TableCell className="text-right font-mono">{renderCell(stats?.totalBillAmt)}</TableCell>
                                 </TableRow>
                             </TableBody>
                         </Table>

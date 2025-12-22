@@ -276,7 +276,6 @@ export type StaffPerformanceStat = {
   hospitalName: string;
   numOfCases: number;
   totalCollection: number;
-  totalFinalApproval: number;
 };
 
 export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<StaffPerformanceStat[]> {
@@ -310,8 +309,7 @@ export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<S
                 u.photo as staffPhoto,
                 ISNULL(ha.hospitalName, 'N/A') AS hospitalName,
                 COUNT(DISTINCT c.Patient_id) AS numOfCases,
-                ISNULL(SUM(CASE WHEN c.status = 'Final Approval' THEN c.paidAmount ELSE 0 END), 0) AS totalCollection,
-                ISNULL(SUM(CASE WHEN c.status = 'Final Approval' THEN 1 ELSE 0 END), 0) as totalFinalApproval
+                ISNULL(SUM(CASE WHEN c.status = 'Final Approval' THEN c.paidAmount ELSE 0 END), 0) AS totalCollection
             FROM 
                 users u
             LEFT JOIN 
@@ -662,44 +660,27 @@ export async function getSettledStatusStats(
     }
 }
 
-export type MonthlySummary = {
-    month: number;
+export type SummaryReportStats = {
     totalBillAmt: number;
 };
 
-export async function getMonthlySummaryReport(year: number): Promise<MonthlySummary[]> {
+export async function getSummaryReportStats(): Promise<SummaryReportStats> {
     try {
         const pool = await getDbPool();
         const request = pool.request();
-        request.input('year', sql.Int, year);
         
         const query = `
-            WITH Months AS (
-                SELECT 1 AS month UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL
-                SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL
-                SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12
-            ),
-            MonthlyData AS (
-                SELECT 
-                    MONTH(created_at) as month,
-                    SUM(CASE WHEN status = 'Final Approval' THEN ISNULL(final_bill, 0) ELSE 0 END) as totalBillAmt
-                FROM claims
-                WHERE YEAR(created_at) = @year
-                GROUP BY MONTH(created_at)
-            )
             SELECT 
-                m.month,
-                ISNULL(d.totalBillAmt, 0) as totalBillAmt
-            FROM Months m
-            LEFT JOIN MonthlyData d ON m.month = d.month
-            ORDER BY m.month;
+                ISNULL(SUM(final_bill), 0) as totalBillAmt
+            FROM claims
+            WHERE status = 'Final Approval'
         `;
         
         const result = await request.query(query);
-        return result.recordset as MonthlySummary[];
+        return result.recordset[0] as SummaryReportStats;
 
     } catch (error) {
-        console.error("Error fetching monthly summary report:", error);
-        throw new Error("Failed to fetch monthly summary report.");
+        console.error("Error fetching summary report stats:", error);
+        throw new Error("Failed to fetch summary report stats.");
     }
 }
