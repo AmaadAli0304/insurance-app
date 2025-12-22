@@ -279,6 +279,7 @@ export type StaffPerformanceStat = {
   totalFinalApproval: number;
   preAuthApprovedCases: number;
   rejectionCount: number;
+  settledCasesCount: number;
 };
 
 export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<StaffPerformanceStat[]> {
@@ -315,7 +316,8 @@ export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<S
                 ISNULL(SUM(CASE WHEN c.status = 'Final Approval' THEN c.paidAmount ELSE 0 END), 0) AS totalCollection,
                 ISNULL(SUM(CASE WHEN c.status = 'Final Approval' THEN 1 ELSE 0 END), 0) as totalFinalApproval,
                 ISNULL(SUM(CASE WHEN c.status = 'Final Discharge Sent' THEN 1 ELSE 0 END), 0) as preAuthApprovedCases,
-                ISNULL(SUM(CASE WHEN c.status = 'Rejected' THEN 1 ELSE 0 END), 0) as rejectionCount
+                ISNULL(SUM(CASE WHEN c.status = 'Rejected' THEN 1 ELSE 0 END), 0) as rejectionCount,
+                ISNULL(SUM(CASE WHEN c.status = 'Settled' THEN 1 ELSE 0 END), 0) as settledCasesCount
             FROM 
                 users u
             LEFT JOIN 
