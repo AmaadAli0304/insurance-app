@@ -662,27 +662,71 @@ export async function getSettledStatusStats(
     }
 }
 
-export async function getSummaryReportStats(dateRange?: DateRange): Promise<{ totalBillAmt: number }> {
+export type StatItem = {
+    month: string;
+    totalBillAmt: number;
+    tpaApprovedAmt: number;
+    amountBeforeTds: number;
+    amountAfterTds: number;
+    tds: number;
+    finalAuthorisedAmount: number;
+    patientCount: number;
+    totalSettledCase: number;
+    pendingCaseCount: number;
+    totalRejectedCase: number;
+};
+
+export async function getMonthlySummaryReport(year: number): Promise<StatItem[]> {
   try {
     const pool = await getDbPool();
     const request = pool.request();
-    let query = `
-      SELECT ISNULL(SUM(CAST(final_bill AS DECIMAL(18,2))), 0) as totalBillAmt 
-      FROM claims 
-      WHERE status = 'Final Approval'
+    request.input('year', sql.Int, year);
+    
+    const query = `
+      SELECT 
+        DATENAME(month, created_at) as month,
+        DATEPART(month, created_at) as month_num,
+        SUM(CASE WHEN status = 'Final Approval' THEN final_bill ELSE 0 END) as totalBillAmt,
+        SUM(CASE WHEN status = 'Final Approval' THEN paidAmount ELSE 0 END) as tpaApprovedAmt,
+        SUM(CASE WHEN status = 'Settled' THEN final_amount ELSE 0 END) as amountBeforeTds,
+        SUM(CASE WHEN status = 'Settled' THEN amount ELSE 0 END) as amountAfterTds,
+        SUM(CASE WHEN status = 'Settled' THEN tds ELSE 0 END) as tds,
+        SUM(CASE WHEN status = 'Final Approval' THEN final_amount ELSE 0 END) as finalAuthorisedAmount,
+        COUNT(DISTINCT Patient_id) as patientCount,
+        COUNT(CASE WHEN status = 'Settled' THEN 1 END) as totalSettledCase,
+        COUNT(CASE WHEN status IN ('Pre auth Sent', 'Query Raised', 'Query Answered', 'Enhancement Request') THEN 1 END) as pendingCaseCount,
+        COUNT(CASE WHEN status = 'Rejected' THEN 1 END) as totalRejectedCase
+      FROM claims
+      WHERE YEAR(created_at) = @year
+      GROUP BY DATENAME(month, created_at), DATEPART(month, created_at)
+      ORDER BY month_num;
     `;
 
-    if (dateRange?.from) {
-      const toDate = dateRange.to || new Date();
-      request.input('dateFrom', sql.DateTime, dateRange.from);
-      request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-      query += ' AND created_at BETWEEN @dateFrom AND @dateTo';
-    }
-
     const result = await request.query(query);
-    return {
-      totalBillAmt: Number(result.recordset[0]?.totalBillAmt) || 0,
-    };
+    const monthlyData = result.recordset as Array<Omit<StatItem, 'month'> & { month_num: number, month: string }>;
+
+    // Ensure all 12 months are present
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const allMonthsStats = monthNames.map((monthName, index) => {
+      const monthNum = index + 1;
+      const data = monthlyData.find(d => d.month_num === monthNum);
+      return {
+        month: monthName,
+        totalBillAmt: Number(data?.totalBillAmt) || 0,
+        tpaApprovedAmt: Number(data?.tpaApprovedAmt) || 0,
+        amountBeforeTds: Number(data?.amountBeforeTds) || 0,
+        amountAfterTds: Number(data?.amountAfterTds) || 0,
+        tds: Number(data?.tds) || 0,
+        finalAuthorisedAmount: Number(data?.finalAuthorisedAmount) || 0,
+        patientCount: Number(data?.patientCount) || 0,
+        totalSettledCase: Number(data?.totalSettledCase) || 0,
+        pendingCaseCount: Number(data?.pendingCaseCount) || 0,
+        totalRejectedCase: Number(data?.totalRejectedCase) || 0,
+      };
+    });
+
+    return allMonthsStats;
+
   } catch (error) {
     console.error('Error fetching summary report stats:', error);
     throw new Error('Failed to fetch summary report statistics.');
