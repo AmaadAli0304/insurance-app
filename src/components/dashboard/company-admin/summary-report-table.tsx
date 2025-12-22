@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -10,14 +9,29 @@ import { Download, Loader2 } from "lucide-react";
 
 interface SummaryReportTableProps {}
 
+interface StatItem {
+  month: string;
+  totalBillAmt: number;
+  tpaApprovedAmt: number;
+  amountBeforeTds: number;
+  amountAfterTds: number;
+  tds: number;
+  finalAuthorisedAmount: number;
+  patientCount: number;
+  totalSettledCase: number;
+  pendingCaseCount: number;
+  totalRejectedCase: number;
+}
+
 export function SummaryReportTable({}: SummaryReportTableProps) {
-    const [stats, setStats] = useState({});
+    const [stats, setStats] = useState<StatItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const data = await getSummaryReportStats();
+            const data = await getSummaryReportStats(2025);
+            console.log(data)
             setStats(data);
         } catch (error) {
             console.error("Failed to load summary report stats:", error);
@@ -29,7 +43,31 @@ export function SummaryReportTable({}: SummaryReportTableProps) {
     useEffect(() => {
         loadData();
     }, [loadData]);
-    
+
+    // Function to calculate total for a specific metric
+    const calculateTotal = useCallback((key: keyof StatItem) => {
+        if (!stats.length) return 0;
+        return stats.reduce((sum, item) => {
+            const value = item[key];
+            return sum + (typeof value === 'number' ? value : 0);
+        }, 0);
+    }, [stats]);
+
+    // Function to format currency values
+    const formatCurrency = (value: number) => {
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        }).format(value);
+    };
+
+    // Function to format regular numbers
+    const formatNumber = (value: number) => {
+        return new Intl.NumberFormat('en-IN').format(value);
+    };
+
     const handleExport = () => {
         if (!stats) return;
         
@@ -51,6 +89,24 @@ export function SummaryReportTable({}: SummaryReportTableProps) {
         document.body.removeChild(link);
     };
 
+    const renderRow = (label: string, key: keyof StatItem, isCurrency: boolean = true) => {
+        const total = calculateTotal(key);
+        
+        return (
+            <TableRow>
+                <TableCell className="font-medium">{label}</TableCell>
+                {stats.map((item, index) => (
+                    <TableCell key={index} className="text-right font-mono">
+                        {item[key] }
+                    </TableCell>
+                ))}
+                <TableCell className="text-right font-mono font-bold bg-muted/50">
+                    {total}
+                </TableCell>
+            </TableRow>
+        );
+    };
+    
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
@@ -73,82 +129,28 @@ export function SummaryReportTable({}: SummaryReportTableProps) {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Metric</TableHead>
-                                <TableHead className="text-right">Value</TableHead>
+                                {stats.map((item, index) => (
+                                    <TableHead key={index} className="text-right">
+                                        {item.month}
+                                    </TableHead>
+                                ))}
+                                <TableHead className="text-right font-bold bg-muted/50">
+                                    Grand Total
+                                </TableHead>
                             </TableRow>
                         </TableHeader>
+
                         <TableBody>
-                            <TableRow>
-                                <TableCell className="font-medium">Total Bill Amt.</TableCell>
-                                <TableCell className="text-right font-mono">
-                                    {stats?.totalBillAmt}
-                                    
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell className="font-medium">TPA Approved Amt.</TableCell>
-                                <TableCell className="text-right font-mono">
-                                    {stats?.tpaApprovedAmt}
-                                    
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell className="font-medium">Amount Before TDS</TableCell>
-                                <TableCell className="text-right font-mono">
-                                    {stats?.amountBeforeTds}
-                                    
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell className="font-medium">Amount After TDS</TableCell>
-                                <TableCell className="text-right font-mono">
-                                    {stats?.amountAfterTds}
-                                    
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell className="font-medium">TDS</TableCell>
-                                <TableCell className="text-right font-mono">
-                                    {stats?.tds}
-                                    
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell className="font-medium">Final Outstanding Amount</TableCell>
-                                <TableCell className="text-right font-mono">
-                                    {stats?.finalAuthorisedAmount}
-                                    
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell className="font-medium">Total Patients</TableCell>
-                                <TableCell className="text-right font-mono">
-                                    {stats?.patientCount}
-                                    
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell className="font-medium">Total Settlement Case</TableCell>
-                                <TableCell className="text-right font-mono">
-                                    {stats?.totalSettledCase}
-                                    
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell className="font-medium">Pending Case</TableCell>
-                                <TableCell className="text-right font-mono">
-                                    {stats?.pendingCaseCount}
-                                    
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell className="font-medium">Cancelled Case</TableCell>
-                                <TableCell className="text-right font-mono">
-                                    {stats?.totalRejectedCase}
-                                    
-                                </TableCell>
-                            </TableRow>
-                            
-                            
+                            {renderRow("Total Bill Amt.", "totalBillAmt")}
+                            {renderRow("TPA Approved Amt.", "tpaApprovedAmt")}
+                            {renderRow("Amount Before TDS", "amountBeforeTds")}
+                            {renderRow("Amount After TDS", "amountAfterTds")}
+                            {renderRow("TDS", "tds")}
+                            {renderRow("Final Outstanding Amount", "finalAuthorisedAmount")}
+                            {renderRow("Total Patients", "patientCount", false)}
+                            {renderRow("Total Settlement Case", "totalSettledCase", false)}
+                            {renderRow("Pending Case", "pendingCaseCount", false)}
+                            {renderRow("Cancelled Case", "totalRejectedCase", false)}
                         </TableBody>
                     </Table>
                 )}
