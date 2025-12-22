@@ -669,8 +669,10 @@ export async function getSummaryReportStats(): Promise<{ totalBillAmt: number }>
         const query = `SELECT ISNULL(SUM(final_bill), 0) as totalBillAmt FROM claims WHERE status = 'Final Approval'`;
         
         const result = await request.query(query);
+        // The result from mssql might not be a number directly.
+        const totalBillAmt = result.recordset[0]?.totalBillAmt;
         return {
-            totalBillAmt: result.recordset[0]?.totalBillAmt ?? 0,
+            totalBillAmt: Number(totalBillAmt) || 0,
         };
     } catch (error) {
         console.error('Error fetching summary report stats:', error);
