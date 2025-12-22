@@ -680,20 +680,12 @@ export async function getMonthlySummaryReport(year: number): Promise<MonthlySumm
         request.input('year', sql.Int, year);
         
         const query = `
-            SELECT 
-                m.month,
-                ISNULL(d.totalBillAmt, 0) as totalBillAmt,
-                ISNULL(d.tpaApprovedAmt, 0) as tpaApprovedAmt,
-                ISNULL(d.amountBeforeTds, 0) as amountBeforeTds,
-                ISNULL(d.amountAfterTds, 0) as amountAfterTds,
-                ISNULL(d.tds, 0) as tds,
-                ISNULL(d.totalPatient, 0) as totalPatient,
-                ISNULL(d.totalSettlementCase, 0) as totalSettlementCase,
-                ISNULL(d.totalPendingCase, 0) as totalPendingCase,
-                ISNULL(d.cancelledCases, 0) as cancelledCases
-            FROM 
-                (SELECT 1 AS month UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12) AS m
-            LEFT JOIN (
+            WITH Months AS (
+                SELECT 1 AS month UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL
+                SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL
+                SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12
+            ),
+            MonthlyData AS (
                 SELECT 
                     MONTH(created_at) as month,
                     SUM(CASE WHEN status = 'Final Approval' THEN final_bill ELSE 0 END) as totalBillAmt,
@@ -708,7 +700,20 @@ export async function getMonthlySummaryReport(year: number): Promise<MonthlySumm
                 FROM claims
                 WHERE YEAR(created_at) = @year
                 GROUP BY MONTH(created_at)
-            ) AS d ON m.month = d.month
+            )
+            SELECT 
+                m.month,
+                ISNULL(d.totalBillAmt, 0) as totalBillAmt,
+                ISNULL(d.tpaApprovedAmt, 0) as tpaApprovedAmt,
+                ISNULL(d.amountBeforeTds, 0) as amountBeforeTds,
+                ISNULL(d.amountAfterTds, 0) as amountAfterTds,
+                ISNULL(d.tds, 0) as tds,
+                ISNULL(d.totalPatient, 0) as totalPatient,
+                ISNULL(d.totalSettlementCase, 0) as totalSettlementCase,
+                ISNULL(d.totalPendingCase, 0) as totalPendingCase,
+                ISNULL(d.cancelledCases, 0) as cancelledCases
+            FROM Months m
+            LEFT JOIN MonthlyData d ON m.month = d.month
             ORDER BY m.month;
         `;
         
