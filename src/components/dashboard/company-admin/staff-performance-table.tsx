@@ -22,7 +22,7 @@ export function StaffPerformanceTable({ stats, isLoading }: StaffPerformanceTabl
     }
 
     const handleExport = () => {
-        const headers = ["Staff Name", "Hospital", "No of Cases", "Total Collection"];
+        const headers = ["Staff Name", "Hospital", "No of Cases", "Total Final Approval", "Total Collection"];
         const csvRows = [headers.join(",")];
 
         stats.forEach((stat) => {
@@ -30,6 +30,7 @@ export function StaffPerformanceTable({ stats, isLoading }: StaffPerformanceTabl
                 `"${stat.staffName}"`,
                 `"${stat.hospitalName}"`,
                 stat.numOfCases,
+                stat.totalFinalApproval,
                 stat.totalCollection,
             ];
             csvRows.push(row.join(","));
@@ -71,6 +72,7 @@ export function StaffPerformanceTable({ stats, isLoading }: StaffPerformanceTabl
                             <TableHead>Staff Name</TableHead>
                             <TableHead>Hospital</TableHead>
                             <TableHead className="text-right">No of Cases</TableHead>
+                            <TableHead className="text-right">Total Final Approval</TableHead>
                             <TableHead className="text-right">Total Collection</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -87,12 +89,13 @@ export function StaffPerformanceTable({ stats, isLoading }: StaffPerformanceTabl
                                     </TableCell>
                                     <TableCell>{stat.hospitalName}</TableCell>
                                     <TableCell className="text-right">{stat.numOfCases}</TableCell>
+                                    <TableCell className="text-right">{stat.totalFinalApproval}</TableCell>
                                     <TableCell className="text-right font-mono">{stat.totalCollection.toLocaleString()}</TableCell>
                                 </TableRow>
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={4} className="h-24 text-center">
+                                <TableCell colSpan={5} className="h-24 text-center">
                                     No staff performance data available.
                                 </TableCell>
                             </TableRow>
