@@ -151,7 +151,7 @@ export function CompanyAdminDashboard() {
             </Card>
           </div>
 
-          <SummaryReportTable />
+          <SummaryReportTable dateRange={date} />
 
           <BusinessSummaryTable stats={businessStats}>
              <Popover>

@@ -7,22 +7,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getSummaryReportStats, SummaryReportStats } from "./actions";
 import { Loader2 } from "lucide-react";
+import { DateRange } from "react-day-picker";
 
-export function SummaryReportTable() {
+interface SummaryReportTableProps {
+    dateRange?: DateRange;
+}
+
+export function SummaryReportTable({ dateRange }: SummaryReportTableProps) {
     const [stats, setStats] = useState<SummaryReportStats | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const data = await getSummaryReportStats();
+            const data = await getSummaryReportStats(dateRange);
             setStats(data);
         } catch (error) {
             console.error("Failed to load summary report:", error);
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [dateRange]);
 
     useEffect(() => {
         loadData();
