@@ -190,7 +190,7 @@ export function CompanyAdminDashboard() {
               </Popover>
           </BusinessSummaryTable>
           
-          <SummaryReportTable dateRange={date} />
+          <SummaryReportTable />
           
           <NewReportTable />
 

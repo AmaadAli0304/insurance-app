@@ -662,18 +662,11 @@ export async function getSettledStatusStats(
     }
 }
 
-export async function getSummaryReportStats(dateRange?: DateRange): Promise<{ totalBillAmt: number }> {
+export async function getSummaryReportStats(): Promise<{ totalBillAmt: number }> {
     try {
         const pool = await getDbPool();
         const request = pool.request();
-        let query = `SELECT ISNULL(SUM(final_bill), 0) as totalBillAmt FROM claims WHERE status = 'Final Approval'`;
-
-        if (dateRange?.from) {
-            const toDate = dateRange.to || new Date();
-            request.input('dateFrom', sql.DateTime, dateRange.from);
-            request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-            query += ' AND created_at BETWEEN @dateFrom AND @dateTo';
-        }
+        const query = `SELECT ISNULL(SUM(final_bill), 0) as totalBillAmt FROM claims WHERE status = 'Final Approval'`;
         
         const result = await request.query(query);
         return {

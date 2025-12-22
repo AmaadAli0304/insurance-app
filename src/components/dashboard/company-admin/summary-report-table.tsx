@@ -7,27 +7,24 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { getSummaryReportStats } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
-import { DateRange } from "react-day-picker";
 
-interface SummaryReportTableProps {
-  dateRange?: DateRange;
-}
+interface SummaryReportTableProps {}
 
-export function SummaryReportTable({ dateRange }: SummaryReportTableProps) {
+export function SummaryReportTable({}: SummaryReportTableProps) {
     const [stats, setStats] = useState<{ totalBillAmt: number } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const data = await getSummaryReportStats(dateRange);
+            const data = await getSummaryReportStats();
             setStats(data);
         } catch (error) {
             console.error("Failed to load summary report stats:", error);
         } finally {
             setIsLoading(false);
         }
-    }, [dateRange]);
+    }, []);
 
     useEffect(() => {
         loadData();
