@@ -309,31 +309,42 @@ export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<S
                     hospitals h ON hs.hospital_id = h.id
                 GROUP BY 
                     staff_id
+            ),
+            ClaimCounts AS (
+                SELECT
+                    created_by,
+                    COUNT(DISTINCT Patient_id) AS numOfCases,
+                    ISNULL(SUM(CASE WHEN status = 'Final Approval' THEN paidAmount ELSE 0 END), 0) AS totalCollection,
+                    ISNULL(SUM(CASE WHEN status = 'Final Approval' THEN 1 ELSE 0 END), 0) as totalFinalApproval,
+                    ISNULL(SUM(CASE WHEN status = 'Final Discharge sent' THEN 1 ELSE 0 END), 0) as preAuthApprovedCases,
+                    ISNULL(SUM(CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END), 0) as rejectionCount,
+                    ISNULL(SUM(CASE WHEN status = 'Settled' THEN 1 ELSE 0 END), 0) as settledCasesCount
+                FROM claims c
+                WHERE 1=1 ${dateFilterClaims}
+                GROUP BY created_by
             )
             SELECT 
                 u.uid AS staffId,
                 u.name AS staffName,
                 u.photo as staffPhoto,
                 ISNULL(ha.hospitalName, 'N/A') AS hospitalName,
-                COUNT(DISTINCT c.Patient_id) AS numOfCases,
-                ISNULL(SUM(CASE WHEN c.status = 'Final Approval' THEN c.paidAmount ELSE 0 END), 0) AS totalCollection,
-                ISNULL(SUM(CASE WHEN c.status = 'Final Approval' THEN 1 ELSE 0 END), 0) as totalFinalApproval,
-                ISNULL(SUM(CASE WHEN c.status = 'Final Discharge Sent' THEN 1 ELSE 0 END), 0) as preAuthApprovedCases,
-                ISNULL(SUM(CASE WHEN c.status = 'Rejected' THEN 1 ELSE 0 END), 0) as rejectionCount,
-                ISNULL(SUM(CASE WHEN c.status = 'Settled' THEN 1 ELSE 0 END), 0) as settledCasesCount,
+                ISNULL(cc.numOfCases, 0) AS numOfCases,
+                ISNULL(cc.totalCollection, 0) AS totalCollection,
+                ISNULL(cc.totalFinalApproval, 0) as totalFinalApproval,
+                ISNULL(cc.preAuthApprovedCases, 0) as preAuthApprovedCases,
+                ISNULL(cc.rejectionCount, 0) as rejectionCount,
+                ISNULL(cc.settledCasesCount, 0) as settledCasesCount,
                 (SELECT COUNT(*) FROM attendance a WHERE a.staff_id = u.uid AND a.status = 'present' ${dateFilterAttendance}) as attendance
             FROM 
                 users u
             LEFT JOIN 
-                claims c ON u.uid = c.created_by ${dateFilterClaims}
+                ClaimCounts cc ON u.uid = cc.created_by
             LEFT JOIN 
                 HospitalAssignments ha ON u.uid = ha.staff_id
             WHERE 
                 u.role = 'Hospital Staff'
-            GROUP BY 
-                u.uid, u.name, u.photo, ha.hospitalName
             ORDER BY
-                totalCollection DESC;
+                u.name;
         `;
         
         const result = await request.query(query);
@@ -717,3 +728,6 @@ export async function getSummaryReportStats(year: number): Promise<any[]> {
 export async function getMonthlySummaryReport(year: number): Promise<any[]> {
     return getSummaryReportStats(year);
 }
+
+
+    
