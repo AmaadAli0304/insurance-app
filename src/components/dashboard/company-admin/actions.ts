@@ -280,19 +280,22 @@ export type StaffPerformanceStat = {
   preAuthApprovedCases: number;
   rejectionCount: number;
   settledCasesCount: number;
+  attendance: number;
 };
 
 export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<StaffPerformanceStat[]> {
     try {
         const pool = await getDbPool();
         const request = pool.request();
-        let dateFilter = '';
+        let dateFilterClaims = '';
+        let dateFilterAttendance = '';
 
         if (dateRange?.from) {
             const toDate = dateRange.to || new Date(); 
             request.input('dateFrom', sql.DateTime, dateRange.from);
             request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-            dateFilter = `AND c.created_at BETWEEN @dateFrom AND @dateTo`;
+            dateFilterClaims = `AND c.created_at BETWEEN @dateFrom AND @dateTo`;
+            dateFilterAttendance = `AND a.date BETWEEN @dateFrom AND @dateTo`;
         }
 
         const query = `
@@ -317,11 +320,12 @@ export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<S
                 ISNULL(SUM(CASE WHEN c.status = 'Final Approval' THEN 1 ELSE 0 END), 0) as totalFinalApproval,
                 ISNULL(SUM(CASE WHEN c.status = 'Final Discharge Sent' THEN 1 ELSE 0 END), 0) as preAuthApprovedCases,
                 ISNULL(SUM(CASE WHEN c.status = 'Rejected' THEN 1 ELSE 0 END), 0) as rejectionCount,
-                ISNULL(SUM(CASE WHEN c.status = 'Settled' THEN 1 ELSE 0 END), 0) as settledCasesCount
+                ISNULL(SUM(CASE WHEN c.status = 'Settled' THEN 1 ELSE 0 END), 0) as settledCasesCount,
+                (SELECT COUNT(*) FROM attendance a WHERE a.staff_id = u.uid AND a.status = 'present' ${dateFilterAttendance}) as attendance
             FROM 
                 users u
             LEFT JOIN 
-                claims c ON u.uid = c.created_by ${dateFilter}
+                claims c ON u.uid = c.created_by ${dateFilterClaims}
             LEFT JOIN 
                 HospitalAssignments ha ON u.uid = ha.staff_id
             WHERE 

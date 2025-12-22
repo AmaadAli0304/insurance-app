@@ -22,7 +22,7 @@ export function StaffPerformanceTable({ stats, isLoading }: StaffPerformanceTabl
     }
 
     const handleExport = () => {
-        const headers = ["Staff Name", "Hospital", "No of Cases", "No. of Preauth Approved Cases", "Total Final Approval", "No. of Denial Cases", "No. of Settled Cases", "Total Collection"];
+        const headers = ["Staff Name", "Hospital", "No of Cases", "No. of Preauth Approved Cases", "Total Final Approval", "No. of Denial Cases", "No. of Settled Cases", "Total Collection", "Attendance"];
         const csvRows = [headers.join(",")];
 
         stats.forEach((stat) => {
@@ -35,6 +35,7 @@ export function StaffPerformanceTable({ stats, isLoading }: StaffPerformanceTabl
                 stat.rejectionCount,
                 stat.settledCasesCount,
                 stat.totalCollection,
+                stat.attendance,
             ];
             csvRows.push(row.join(","));
         });
@@ -79,6 +80,7 @@ export function StaffPerformanceTable({ stats, isLoading }: StaffPerformanceTabl
                             <TableHead className="text-right">Total Final Approval</TableHead>
                             <TableHead className="text-right">No. of Denial Cases</TableHead>
                             <TableHead className="text-right">No. of Settled Cases</TableHead>
+                            <TableHead className="text-right">Attendance</TableHead>
                             <TableHead className="text-right">Total Collection</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -99,12 +101,13 @@ export function StaffPerformanceTable({ stats, isLoading }: StaffPerformanceTabl
                                     <TableCell className="text-right">{stat.totalFinalApproval}</TableCell>
                                     <TableCell className="text-right">{stat.rejectionCount}</TableCell>
                                     <TableCell className="text-right">{stat.settledCasesCount}</TableCell>
+                                    <TableCell className="text-right">{stat.attendance}</TableCell>
                                     <TableCell className="text-right font-mono">{stat.totalCollection.toLocaleString()}</TableCell>
                                 </TableRow>
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={8} className="h-24 text-center">
+                                <TableCell colSpan={9} className="h-24 text-center">
                                     No staff performance data available.
                                 </TableCell>
                             </TableRow>
