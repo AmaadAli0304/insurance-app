@@ -276,6 +276,7 @@ export type StaffPerformanceStat = {
   hospitalName: string;
   numOfCases: number;
   totalCollection: number;
+  totalFinalApproval: number;
 };
 
 export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<StaffPerformanceStat[]> {
@@ -309,7 +310,8 @@ export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<S
                 u.photo as staffPhoto,
                 ISNULL(ha.hospitalName, 'N/A') AS hospitalName,
                 COUNT(DISTINCT c.Patient_id) AS numOfCases,
-                ISNULL(SUM(CASE WHEN c.status = 'Final Approval' THEN c.paidAmount ELSE 0 END), 0) AS totalCollection
+                ISNULL(SUM(CASE WHEN c.status = 'Final Approval' THEN c.paidAmount ELSE 0 END), 0) AS totalCollection,
+                ISNULL(SUM(CASE WHEN c.status = 'Final Approval' THEN 1 ELSE 0 END), 0) as totalFinalApproval
             FROM 
                 users u
             LEFT JOIN 
@@ -657,5 +659,28 @@ export async function getSettledStatusStats(
     } catch (error) {
         console.error("Error fetching settled status stats:", error);
         throw new Error("Failed to fetch settled status statistics.");
+    }
+}
+
+export async function getSummaryReportStats(dateRange?: DateRange): Promise<{ totalBillAmt: number }> {
+    try {
+        const pool = await getDbPool();
+        const request = pool.request();
+        let query = `SELECT ISNULL(SUM(final_bill), 0) as totalBillAmt FROM claims WHERE status = 'Final Approval'`;
+
+        if (dateRange?.from) {
+            const toDate = dateRange.to || new Date();
+            request.input('dateFrom', sql.DateTime, dateRange.from);
+            request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+            query += ' AND created_at BETWEEN @dateFrom AND @dateTo';
+        }
+        
+        const result = await request.query(query);
+        return {
+            totalBillAmt: result.recordset[0]?.totalBillAmt ?? 0,
+        };
+    } catch (error) {
+        console.error('Error fetching summary report stats:', error);
+        throw new Error('Failed to fetch summary report statistics.');
     }
 }
