@@ -38,14 +38,6 @@ export function SummaryReportTable() {
                 return monthlyDataMap.get(month) || {
                     month,
                     totalBillAmt: 0,
-                    tpaApprovedAmt: 0,
-                    amountBeforeTds: 0,
-                    amountAfterTds: 0,
-                    tds: 0,
-                    totalPatient: 0,
-                    totalSettlementCase: 0,
-                    totalPendingCase: 0,
-                    cancelledCases: 0,
                 };
             });
             
@@ -68,20 +60,10 @@ export function SummaryReportTable() {
     const handleExport = () => {
         const headers = ["Patient Monthly Data", ...MONTHS, "Grand Total"];
         const keys: (keyof Omit<MonthlySummary, 'month'>)[] = [
-            "totalBillAmt", "tpaApprovedAmt", "amountBeforeTds", 
-            "amountAfterTds", "tds", "totalPatient", 
-            "totalSettlementCase", "totalPendingCase", "cancelledCases"
+            "totalBillAmt"
         ];
         const labels: Record<keyof Omit<MonthlySummary, 'month'>, string> = {
             totalBillAmt: "Total Bill Amt.",
-            tpaApprovedAmt: "TPA Approved Amt.",
-            amountBeforeTds: "Amount Before TDS (Rs.)",
-            amountAfterTds: "Amount After TDS (Rs.)",
-            tds: "TDS",
-            totalPatient: "Total Patient :",
-            totalSettlementCase: "Total Settlement Case :",
-            totalPendingCase: "Total Pending Case :",
-            cancelledCases: "Cancelled cases"
         };
         
         const csvRows = [headers.join(",")];
@@ -149,51 +131,6 @@ export function SummaryReportTable() {
                                     <TableCell className="font-semibold sticky left-0 bg-card">Total Bill Amt.</TableCell>
                                     {stats.map(s => <TableCell key={s.month} className="text-right font-mono">{renderCell(s.totalBillAmt)}</TableCell>)}
                                     <TableCell className="text-right font-bold font-mono sticky right-0 bg-card">{renderCell(calculateTotal("totalBillAmt"))}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-semibold sticky left-0 bg-card">TPA Approved Amt.</TableCell>
-                                    {stats.map(s => <TableCell key={s.month} className="text-right font-mono">{renderCell(s.tpaApprovedAmt)}</TableCell>)}
-                                    <TableCell className="text-right font-bold font-mono sticky right-0 bg-card">{renderCell(calculateTotal("tpaApprovedAmt"))}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-semibold sticky left-0 bg-card">Amount Before TDS (Rs.)</TableCell>
-                                    {stats.map(s => <TableCell key={s.month} className="text-right font-mono">{renderCell(s.amountBeforeTds)}</TableCell>)}
-                                    <TableCell className="text-right font-bold font-mono sticky right-0 bg-card">{renderCell(calculateTotal("amountBeforeTds"))}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-semibold sticky left-0 bg-card">Amount After TDS (Rs.)</TableCell>
-                                    {stats.map(s => <TableCell key={s.month} className="text-right font-mono">{renderCell(s.amountAfterTds)}</TableCell>)}
-                                    <TableCell className="text-right font-bold font-mono sticky right-0 bg-card">{renderCell(calculateTotal("amountAfterTds"))}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-semibold sticky left-0 bg-card">TDS</TableCell>
-                                    {stats.map(s => <TableCell key={s.month} className="text-right font-mono">{renderCell(s.tds)}</TableCell>)}
-                                    <TableCell className="text-right font-bold font-mono sticky right-0 bg-card">{renderCell(calculateTotal("tds"))}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-semibold sticky left-0 bg-card">Total Outstanding Amount</TableCell>
-                                    {stats.map(s => <TableCell key={s.month} className="text-right font-mono">{renderCell(s.amountBeforeTds - s.amountAfterTds)}</TableCell>)}
-                                    <TableCell className="text-right font-bold font-mono sticky right-0 bg-card">{renderCell(calculateTotal("amountBeforeTds") - calculateTotal("amountAfterTds"))}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-semibold sticky left-0 bg-card">Total Patient</TableCell>
-                                    {stats.map(s => <TableCell key={s.month} className="text-right font-mono">{renderCell(s.totalPatient)}</TableCell>)}
-                                    <TableCell className="text-right font-bold font-mono sticky right-0 bg-card">{renderCell(calculateTotal("totalPatient"))}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-semibold sticky left-0 bg-card">Total Settlement Case</TableCell>
-                                    {stats.map(s => <TableCell key={s.month} className="text-right font-mono">{renderCell(s.totalSettlementCase)}</TableCell>)}
-                                    <TableCell className="text-right font-bold font-mono sticky right-0 bg-card">{renderCell(calculateTotal("totalSettlementCase"))}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-semibold sticky left-0 bg-card">Total Pending Case</TableCell>
-                                    {stats.map(s => <TableCell key={s.month} className="text-right font-mono">{renderCell(s.totalPendingCase)}</TableCell>)}
-                                    <TableCell className="text-right font-bold font-mono sticky right-0 bg-card">{renderCell(calculateTotal("totalPendingCase"))}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-semibold sticky left-0 bg-card">Cancelled cases</TableCell>
-                                    {stats.map(s => <TableCell key={s.month} className="text-right font-mono">{renderCell(s.cancelledCases)}</TableCell>)}
-                                    <TableCell className="text-right font-bold font-mono sticky right-0 bg-card">{renderCell(calculateTotal("cancelledCases"))}</TableCell>
                                 </TableRow>
                             </TableBody>
                         </Table>

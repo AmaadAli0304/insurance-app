@@ -665,14 +665,6 @@ export async function getSettledStatusStats(
 export type MonthlySummary = {
     month: number;
     totalBillAmt: number;
-    tpaApprovedAmt: number;
-    amountBeforeTds: number;
-    amountAfterTds: number;
-    tds: number;
-    totalPatient: number;
-    totalSettlementCase: number;
-    totalPendingCase: number;
-    cancelledCases: number;
 };
 
 export async function getMonthlySummaryReport(year: number): Promise<MonthlySummary[]> {
@@ -690,30 +682,14 @@ export async function getMonthlySummaryReport(year: number): Promise<MonthlySumm
             MonthlyData AS (
                 SELECT 
                     MONTH(created_at) as month,
-                    SUM(CASE WHEN status = 'Final Approval' THEN ISNULL(final_bill, 0) ELSE 0 END) as totalBillAmt,
-                    SUM(CASE WHEN status = 'Final Approval' THEN ISNULL(final_amount, 0) ELSE 0 END) as tpaApprovedAmt,
-                    SUM(CASE WHEN status = 'Settled' THEN ISNULL(final_settle_amount, 0) ELSE 0 END) as amountBeforeTds,
-                    SUM(CASE WHEN status = 'Settled' THEN ISNULL(amount, 0) ELSE 0 END) as amountAfterTds,
-                    SUM(CASE WHEN status = 'Settled' THEN ISNULL(tds, 0) ELSE 0 END) as tds,
-                    COUNT(DISTINCT Patient_id) as totalPatient,
-                    COUNT(DISTINCT CASE WHEN status = 'Settled' THEN Patient_id END) as totalSettlementCase,
-                    COUNT(DISTINCT CASE WHEN status IN ('Pre auth Sent', 'Query Raised', 'Query Answered', 'Enhancement Request', 'Final Discharge sent', 'Initial Approval', 'Settlement Pending', 'Settlement Query', 'Settlement Answered') THEN Patient_id END) as totalPendingCase,
-                    COUNT(DISTINCT CASE WHEN status = 'Rejected' THEN Patient_id END) as cancelledCases
+                    SUM(CASE WHEN status = 'Final Approval' THEN ISNULL(final_bill, 0) ELSE 0 END) as totalBillAmt
                 FROM claims
                 WHERE YEAR(created_at) = @year
                 GROUP BY MONTH(created_at)
             )
             SELECT 
                 m.month,
-                ISNULL(d.totalBillAmt, 0) as totalBillAmt,
-                ISNULL(d.tpaApprovedAmt, 0) as tpaApprovedAmt,
-                ISNULL(d.amountBeforeTds, 0) as amountBeforeTds,
-                ISNULL(d.amountAfterTds, 0) as amountAfterTds,
-                ISNULL(d.tds, 0) as tds,
-                ISNULL(d.totalPatient, 0) as totalPatient,
-                ISNULL(d.totalSettlementCase, 0) as totalSettlementCase,
-                ISNULL(d.totalPendingCase, 0) as totalPendingCase,
-                ISNULL(d.cancelledCases, 0) as cancelledCases
+                ISNULL(d.totalBillAmt, 0) as totalBillAmt
             FROM Months m
             LEFT JOIN MonthlyData d ON m.month = d.month
             ORDER BY m.month;
