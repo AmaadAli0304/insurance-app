@@ -662,20 +662,123 @@ export async function getSettledStatusStats(
     }
 }
 
-export async function getSummaryReportStats(): Promise<{ totalBillAmt: number }> {
+export async function getSummaryReportStats(): Promise<{
+    totalBillAmt: number;
+    tpaApprovedAmt: number;
+    finalAuthorisedAmount: number;
+    amountBeforeTds: number;
+    amountAfterTds: number;
+    tds: number;
+    patientCount: number;
+    totalSettledCase: number;
+    totalRejectedCase: number;
+    pendingCaseCount: number;
+}> {
     try {
         const pool = await getDbPool();
         const request = pool.request();
-        const query = `SELECT ISNULL(SUM(final_bill), 0) as totalBillAmt FROM claims WHERE status = 'Final Approval'`;
-        
+
+        const query = `
+            SELECT 
+                -- =======================
+                -- FINAL APPROVAL (AMOUNTS)
+                -- =======================
+                ISNULL(SUM(CASE 
+                    WHEN LTRIM(RTRIM(c.status)) = 'Final Approval' 
+                    THEN CAST(c.final_bill AS DECIMAL(18,2)) 
+                    ELSE 0 
+                END), 0) AS totalBillAmt,
+
+                ISNULL(SUM(CASE 
+                    WHEN LTRIM(RTRIM(c.status)) = 'Final Approval' 
+                    THEN CAST(c.final_amount AS DECIMAL(18,2)) 
+                    ELSE 0 
+                END), 0) AS tpaApprovedAmt,
+
+                ISNULL(SUM(CASE 
+                    WHEN LTRIM(RTRIM(c.status)) = 'Final Approval' 
+                    THEN CAST(c.amount AS DECIMAL(18,2)) 
+                    ELSE 0 
+                END), 0) AS finalAuthorisedAmount,
+
+                -- =======================
+                -- SETTLED (AMOUNTS)
+                -- =======================
+                ISNULL(SUM(CASE 
+                    WHEN LTRIM(RTRIM(c.status)) = 'Settled' 
+                    THEN CAST(c.final_amount AS DECIMAL(18,2)) 
+                    ELSE 0 
+                END), 0) AS amountBeforeTds,
+
+                ISNULL(SUM(CASE 
+                    WHEN LTRIM(RTRIM(c.status)) = 'Settled' 
+                    THEN CAST(c.amount AS DECIMAL(18,2)) 
+                    ELSE 0 
+                END), 0) AS amountAfterTds,
+
+                ISNULL(SUM(CASE 
+                    WHEN LTRIM(RTRIM(c.status)) = 'Settled' 
+                    THEN CAST(c.tds AS DECIMAL(18,2)) 
+                    ELSE 0 
+                END), 0) AS tds,
+
+                -- =======================
+                -- CASE COUNTS
+                -- =======================
+                SUM(CASE 
+                    WHEN LTRIM(RTRIM(c.status)) = 'Settled' 
+                    THEN 1 ELSE 0 
+                END) AS totalSettledCase,
+
+                SUM(CASE 
+                    WHEN LTRIM(RTRIM(c.status)) = 'Rejected' 
+                    THEN 1 ELSE 0 
+                END) AS totalRejectedCase,
+
+                -- =======================
+                -- PATIENT COUNT
+                -- =======================
+                (SELECT COUNT(*) FROM dbo.patients) AS patientCount,
+
+                -- =======================
+                -- PENDING CASES
+                -- Patient with NO "Pre auth Sent" claim
+                -- =======================
+                (
+                    SELECT COUNT(*)
+                    FROM dbo.patients p
+                    WHERE NOT EXISTS (
+                        SELECT 1
+                        FROM dbo.claims c2
+                        WHERE c2.patient_id = p.id
+                          AND LTRIM(RTRIM(c2.status)) = 'Pre auth Sent'
+                    )
+                ) AS pendingCaseCount
+
+            FROM dbo.claims c
+        `;
+
         const result = await request.query(query);
-        // The result from mssql might not be a number directly.
-        const totalBillAmt = result.recordset[0]?.totalBillAmt;
+        const row = result.recordset[0] || {};
+
         return {
-            totalBillAmt: Number(totalBillAmt) || 0,
+            totalBillAmt: Number(row.totalBillAmt) || 0,
+            tpaApprovedAmt: Number(row.tpaApprovedAmt) || 0,
+            finalAuthorisedAmount: Number(row.finalAuthorisedAmount) || 0,
+            amountBeforeTds: Number(row.amountBeforeTds) || 0,
+            amountAfterTds: Number(row.amountAfterTds) || 0,
+            tds: Number(row.tds) || 0,
+            patientCount: Number(row.patientCount) || 0,
+            totalSettledCase: Number(row.totalSettledCase) || 0,
+            totalRejectedCase: Number(row.totalRejectedCase) || 0,
+            pendingCaseCount: Number(row.pendingCaseCount) || 0,
         };
     } catch (error) {
         console.error('Error fetching summary report stats:', error);
         throw new Error('Failed to fetch summary report statistics.');
     }
 }
+
+
+
+

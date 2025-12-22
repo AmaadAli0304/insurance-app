@@ -11,7 +11,7 @@ import { Download, Loader2 } from "lucide-react";
 interface SummaryReportTableProps {}
 
 export function SummaryReportTable({}: SummaryReportTableProps) {
-    const [stats, setStats] = useState<{ totalBillAmt: number } | null>(null);
+    const [stats, setStats] = useState({});
     const [isLoading, setIsLoading] = useState(true);
 
     const loadData = useCallback(async () => {
@@ -80,14 +80,75 @@ export function SummaryReportTable({}: SummaryReportTableProps) {
                             <TableRow>
                                 <TableCell className="font-medium">Total Bill Amt.</TableCell>
                                 <TableCell className="text-right font-mono">
-                                    {(stats?.totalBillAmt ?? 0).toLocaleString('en-IN', {
-                                        style: 'currency',
-                                        currency: 'INR',
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2
-                                    })}
+                                    {stats?.totalBillAmt}
+                                    
                                 </TableCell>
                             </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">TPA Approved Amt.</TableCell>
+                                <TableCell className="text-right font-mono">
+                                    {stats?.tpaApprovedAmt}
+                                    
+                                </TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Amount Before TDS</TableCell>
+                                <TableCell className="text-right font-mono">
+                                    {stats?.amountBeforeTds}
+                                    
+                                </TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Amount After TDS</TableCell>
+                                <TableCell className="text-right font-mono">
+                                    {stats?.amountAfterTds}
+                                    
+                                </TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">TDS</TableCell>
+                                <TableCell className="text-right font-mono">
+                                    {stats?.tds}
+                                    
+                                </TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Final Outstanding Amount</TableCell>
+                                <TableCell className="text-right font-mono">
+                                    {stats?.finalAuthorisedAmount}
+                                    
+                                </TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Total Patients</TableCell>
+                                <TableCell className="text-right font-mono">
+                                    {stats?.patientCount}
+                                    
+                                </TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Total Settlement Case</TableCell>
+                                <TableCell className="text-right font-mono">
+                                    {stats?.totalSettledCase}
+                                    
+                                </TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Pending Case</TableCell>
+                                <TableCell className="text-right font-mono">
+                                    {stats?.pendingCaseCount}
+                                    
+                                </TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Cancelled Case</TableCell>
+                                <TableCell className="text-right font-mono">
+                                    {stats?.totalRejectedCase}
+                                    
+                                </TableCell>
+                            </TableRow>
+                            
+                            
                         </TableBody>
                     </Table>
                 )}
