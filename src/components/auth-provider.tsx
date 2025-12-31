@@ -30,10 +30,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const getRoleFromPath = useCallback((path: string): UserRole | null => {
     // Specific dashboard pages for roles
-    if (path.startsWith('/dashboard/companies') || path.startsWith('/dashboard/company-hospitals') || path.startsWith('/dashboard/tpas') || path.startsWith('/dashboard/staff') || path.startsWith('/dashboard/invoices') || path.startsWith('/dashboard/attendance')) return 'Company Admin';
+    if (path.startsWith('/dashboard/companies') || path.startsWith('/dashboard/company-hospitals') || path.startsWith('/dashboard/tpas') || path.startsWith('/dashboard/staff') || path.startsWith('/dashboard/invoices') || path.startsWith('/dashboard/attendance') || path.startsWith('/dashboard/company-settings')) {
+        return 'Company Admin';
+    }
     if (path.startsWith('/dashboard/patients') || path.startsWith('/dashboard/pre-auths') || path.startsWith('/dashboard/claims')) return 'Hospital Staff';
+    
+    // Routes accessible by multiple roles
     if (path.startsWith('/dashboard/doctors') || path.startsWith('/dashboard/import') || path.startsWith('/dashboard/activity-log')) {
-        // These can be accessed by both Admin and Company Admin
         const lastRole = localStorage.getItem(LAST_ACTIVE_ROLE_KEY) as UserRole;
         if(lastRole === 'Admin' || lastRole === 'Company Admin') return lastRole;
     }
@@ -44,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (path.includes('/login/hospital-staff')) return 'Hospital Staff';
     
     // Fallback for the main dashboard page
-    if (path === '/dashboard') {
+    if (path === '/dashboard' || path === '/dashboard/profile') {
         const lastRole = localStorage.getItem(LAST_ACTIVE_ROLE_KEY) as UserRole;
         if (lastRole && localStorage.getItem(getUserKey(lastRole))) {
             return lastRole;
@@ -102,8 +105,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if(currentRole){
       localStorage.removeItem(getUserKey(currentRole));
       localStorage.removeItem(getTokenKey(currentRole));
-      localStorage.removeItem(LAST_ACTIVE_ROLE_KEY);
     }
+    // Keep last active role so login page can default correctly, but clear user
     setUser(null);
     setRole(null);
     // Redirect to a neutral login page or a default one
