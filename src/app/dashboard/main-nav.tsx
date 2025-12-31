@@ -41,13 +41,17 @@ export function MainNav() {
     <nav className="flex flex-col items-start gap-2 px-2 text-sm font-medium">
       {currentRoutes.map((route, index) => {
         const Icon = route.icon;
+        const isActive = route.href === '/dashboard' 
+          ? pathname === route.href 
+          : pathname.startsWith(route.href);
+
         return (
           <Link
             key={index}
             href={route.href}
             className={cn(
               'flex items-center gap-3 rounded-lg px-3 py-2 text-sidebar-foreground transition-all hover:text-primary-foreground hover:bg-sidebar-accent',
-              pathname.startsWith(route.href) && route.href !== '/dashboard' ? 'bg-sidebar-accent text-primary-foreground' : pathname === '/dashboard' && route.href === '/dashboard' ? 'bg-sidebar-accent text-primary-foreground' : ''
+              isActive && 'bg-sidebar-accent text-primary-foreground'
             )}
           >
             <Icon className="h-4 w-4" />
