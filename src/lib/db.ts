@@ -27,6 +27,31 @@ export async function getDbPool(): Promise<sql.ConnectionPool> {
   try {
     pool = new sql.ConnectionPool(config);
     await pool.connect();
+    // Setup company_settings table on initial connection if it doesn't exist
+    const request = pool.request();
+    const createCompanySettingsTableQuery = `
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='company_settings' and xtype='U')
+      BEGIN
+        CREATE TABLE company_settings (
+          id INT IDENTITY(1,1) PRIMARY KEY,
+          company_id NVARCHAR(255) NOT NULL UNIQUE,
+          name NVARCHAR(255),
+          address NVARCHAR(MAX),
+          gst_no NVARCHAR(100),
+          pan_no NVARCHAR(100),
+          contact_no NVARCHAR(50),
+          banking_details NVARCHAR(MAX),
+          account_name NVARCHAR(255),
+          bank_name NVARCHAR(255),
+          branch NVARCHAR(255),
+          account_no NVARCHAR(50),
+          ifsc_code NVARCHAR(50),
+          CONSTRAINT FK_company_settings_companies FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE
+        );
+      END
+    `;
+    await request.query(createCompanySettingsTableQuery);
+    
     return pool;
   } catch (err) {
     console.error('Database connection failed:', err);
