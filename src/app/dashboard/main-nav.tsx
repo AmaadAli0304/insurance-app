@@ -4,7 +4,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Building, Factory, FileText, LayoutDashboard, Stethoscope, User, Users, HandCoins, Briefcase, ShieldCheck, Upload, Bell, FilePlus2, Activity } from 'lucide-react';
+import { Building, Factory, FileText, LayoutDashboard, Stethoscope, User, Users, HandCoins, Briefcase, ShieldCheck, Upload, Bell, FilePlus2, Activity, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/components/auth-provider';
 
@@ -31,6 +31,7 @@ export function MainNav() {
       { href: '/dashboard/doctors', label: 'Doctors', icon: Stethoscope },
       { href: '/dashboard/invoices', label: 'Invoices', icon: FileText },
       { href: '/dashboard/attendance', label: 'Attendance', icon: FileText },
+      { href: '/dashboard/company-settings', label: 'Company Settings', icon: Settings },
     ],
   };
 
