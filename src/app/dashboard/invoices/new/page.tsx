@@ -33,10 +33,11 @@ interface InvoiceItem {
 
 function SubmitButton({ status }: { status: 'draft' | 'sent' }) {
     const { pending } = useFormStatus();
-    const Icon = status === 'draft' ? Save : Send;
-    const text = status === 'draft' ? "Save as Draft" : "Create Invoice";
-    const pendingText = status === 'draft' ? "Saving..." : "Creating...";
-    
+    const isDraft = status === 'draft';
+    const Icon = isDraft ? Save : Send;
+    const text = isDraft ? "Save as Draft" : "Create Invoice";
+    const pendingText = "Saving...";
+
     return (
         <Button type="submit" name="status" value={status} disabled={pending}>
              {pending ? (
@@ -95,6 +96,7 @@ export default function NewInvoicePage() {
     const [selectedHospitalId, setSelectedHospitalId] = useState<string>("");
     const [hospitals, setHospitals] = useState<Pick<Hospital, 'id' | 'name' | 'address'>[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [contractType, setContractType] = useState<string | undefined>();
 
     const [items, setItems] = useState<InvoiceItem[]>([{ id: 1, description: 'Service Charges', qty: "1", rate: '0.03' }]);
     const [taxRate] = useState(18);
@@ -270,7 +272,7 @@ export default function NewInvoicePage() {
                                         />
                                     </PopoverContent>
                                 </Popover>
-                                <Select name="contract_type">
+                                <Select name="contract_type" onValueChange={setContractType}>
                                     <SelectTrigger className="md:ml-auto md:w-48 text-right">
                                         <SelectValue placeholder="Contract Type" />
                                     </SelectTrigger>
@@ -294,8 +296,8 @@ export default function NewInvoicePage() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead className="w-1/2">Description</TableHead>
-                                    <TableHead className="w-[100px]">Qty</TableHead>
-                                    <TableHead className="w-[150px]">Rate</TableHead>
+                                    {contractType !== 'Percentage' && <TableHead className="w-[100px]">Qty</TableHead>}
+                                    {contractType !== 'Percentage' && <TableHead className="w-[150px]">Rate</TableHead>}
                                     <TableHead className="text-right w-[150px]">Amount</TableHead>
                                     <TableHead className="w-[50px]"></TableHead>
                                 </TableRow>
@@ -306,12 +308,16 @@ export default function NewInvoicePage() {
                                         <TableCell>
                                             <Input placeholder="Item name" value={item.description} onChange={(e) => handleItemChange(item.id, 'description', e.target.value)} />
                                         </TableCell>
-                                        <TableCell>
-                                            <Input placeholder="1" type="text" value={item.qty} onChange={(e) => handleItemChange(item.id, 'qty', e.target.value)} />
-                                        </TableCell>
-                                        <TableCell>
-                                            <Input placeholder="0.00" type="text" value={item.rate} onChange={(e) => handleItemChange(item.id, 'rate', e.target.value)} onBlur={() => handleRateBlur(item.id)} />
-                                        </TableCell>
+                                        {contractType !== 'Percentage' && (
+                                            <>
+                                                <TableCell>
+                                                    <Input placeholder="1" type="text" value={item.qty} onChange={(e) => handleItemChange(item.id, 'qty', e.target.value)} />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Input placeholder="0.00" type="text" value={item.rate} onChange={(e) => handleItemChange(item.id, 'rate', e.target.value)} onBlur={() => handleRateBlur(item.id)} />
+                                                </TableCell>
+                                            </>
+                                        )}
                                         <TableCell className="text-right font-medium">
                                             {calculateAmount(item).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </TableCell>

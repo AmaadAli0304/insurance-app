@@ -87,6 +87,7 @@ export default function EditInvoicePage() {
 
     const [items, setItems] = useState<EditInvoiceItem[]>([]);
     const [taxRate] = useState(18);
+    const [contractType, setContractType] = useState<string | undefined>();
 
     const [subtotal, setSubtotal] = useState(0);
     const [taxAmount, setTaxAmount] = useState(0);
@@ -123,6 +124,7 @@ export default function EditInvoicePage() {
                 setHospitals(hospitalList);
                 setItems(invoiceData.items.map(item => ({ ...item, _id: Math.random(), rate: String(item.rate), qty: String(item.qty) })));
                 setBillingPeriod(invoiceData.period ? new Date(invoiceData.period) : new Date());
+                setContractType(invoiceData.contract_type);
             } catch (error) {
                 console.error(error);
                 toast({ title: "Error", description: "Failed to load invoice data.", variant: "destructive" });
@@ -254,7 +256,7 @@ export default function EditInvoicePage() {
                                         />
                                     </PopoverContent>
                                 </Popover>
-                                <Select name="contract_type" defaultValue={invoice.contract_type}>
+                                <Select name="contract_type" defaultValue={contractType} onValueChange={setContractType}>
                                     <SelectTrigger className="md:ml-auto md:w-48 text-right">
                                         <SelectValue placeholder="Contract Type" />
                                     </SelectTrigger>
@@ -278,8 +280,8 @@ export default function EditInvoicePage() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead className="w-1/2">Description</TableHead>
-                                    <TableHead className="w-[100px]">Qty</TableHead>
-                                    <TableHead className="w-[150px]">Rate</TableHead>
+                                    {contractType !== 'Percentage' && <TableHead className="w-[100px]">Qty</TableHead>}
+                                    {contractType !== 'Percentage' && <TableHead className="w-[150px]">Rate</TableHead>}
                                     <TableHead className="text-right w-[150px]">Amount</TableHead>
                                     <TableHead className="w-[50px]"></TableHead>
                                 </TableRow>
@@ -290,12 +292,16 @@ export default function EditInvoicePage() {
                                         <TableCell>
                                             <Input placeholder="Item name" value={item.description} onChange={(e) => handleItemChange(item._id, 'description', e.target.value)} />
                                         </TableCell>
-                                        <TableCell>
-                                            <Input placeholder="1" type="number" value={item.qty} onChange={(e) => handleItemChange(item._id, 'qty', e.target.value)} onBlur={() => handleRateBlur(item._id, 'qty')} />
-                                        </TableCell>
-                                        <TableCell>
-                                            <Input placeholder="0.00" type="text" value={item.rate} onChange={(e) => handleItemChange(item._id, 'rate', e.target.value)} onBlur={() => handleRateBlur(item._id, 'rate')} />
-                                        </TableCell>
+                                        {contractType !== 'Percentage' && (
+                                          <>
+                                            <TableCell>
+                                                <Input placeholder="1" type="number" value={item.qty} onChange={(e) => handleItemChange(item._id, 'qty', e.target.value)} onBlur={() => handleRateBlur(item._id, 'qty')} />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Input placeholder="0.00" type="text" value={item.rate} onChange={(e) => handleItemChange(item._id, 'rate', e.target.value)} onBlur={() => handleRateBlur(item._id, 'rate')} />
+                                            </TableCell>
+                                          </>
+                                        )}
                                         <TableCell className="text-right font-medium">
                                             {calculateAmount(item).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </TableCell>
