@@ -683,7 +683,7 @@ export async function getSettledStatusStats(
     }
 }
 
-export async function getSummaryReportStats(year: number, hospitalId?: string | null): Promise<any[]> {
+export async function getSummaryReportStats(year: number, hospitalId?: string | null, dateRange?: DateRange): Promise<any[]> {
     try {
         const pool = await getDbPool();
         const request = pool.request();
@@ -693,6 +693,14 @@ export async function getSummaryReportStats(year: number, hospitalId?: string | 
         if (hospitalId) {
             request.input("hospitalId", sql.NVarChar, hospitalId);
             hospitalFilter = 'AND hospital_id = @hospitalId';
+        }
+
+        let dateFilter = '';
+        if (dateRange?.from) {
+            const toDate = dateRange.to || new Date();
+            request.input('dateFrom', sql.DateTime, dateRange.from);
+            request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+            dateFilter = 'AND created_at BETWEEN @dateFrom AND @dateTo';
         }
 
         const query = `
@@ -722,7 +730,7 @@ export async function getSummaryReportStats(year: number, hospitalId?: string | 
                 MONTH(created_at) AS monthNo,
                 COUNT(DISTINCT id) AS patientCount
             FROM dbo.patients
-            WHERE YEAR(created_at) = @year ${hospitalFilter}
+            WHERE 1=1 ${hospitalFilter} ${dateFilter}
             GROUP BY MONTH(created_at)
         ),
 
@@ -737,17 +745,19 @@ export async function getSummaryReportStats(year: number, hospitalId?: string | 
                 final_amount,
                 amount,
                 tds,
-                MONTH(created_at) AS monthNo,
+                created_at,
                 ROW_NUMBER() OVER (
                     PARTITION BY patient_id, MONTH(created_at)
                     ORDER BY created_at DESC
                 ) AS rn
             FROM dbo.claims
-            WHERE YEAR(created_at) = @year ${hospitalFilter}
+            WHERE 1=1 ${hospitalFilter} ${dateFilter}
         ),
 
         latestClaims AS (
-            SELECT *
+            SELECT 
+                *,
+                MONTH(created_at) as monthNo
             FROM rankedClaims
             WHERE rn = 1
         ),
@@ -783,7 +793,7 @@ export async function getSummaryReportStats(year: number, hospitalId?: string | 
         -- FINAL RESULT
         -- ==========================
         SELECT
-            CONCAT(m.monthName, '-', RIGHT(CAST(@year AS VARCHAR(4)), 2)) AS month,
+            CONCAT(m.monthName, '-', RIGHT(CAST(COALESCE(YEAR(lc.created_at), @year) AS VARCHAR(4)), 2)) AS month,
 
             -- Patient count from PATIENTS table (registration date)
             ISNULL(ppm.patientCount, 0) AS patientCount,
@@ -802,6 +812,8 @@ export async function getSummaryReportStats(year: number, hospitalId?: string | 
         FROM months m
         LEFT JOIN patientsPerMonth ppm ON ppm.monthNo = m.monthNo
         LEFT JOIN claimsAgg ca ON ca.monthNo = m.monthNo
+        LEFT JOIN latestClaims lc ON lc.monthNo = m.monthNo -- Join to get year context for the month label
+        GROUP BY m.monthName, m.monthNo, ppm.patientCount, ca.pendingCaseCount, ca.totalSettledCase, ca.totalRejectedCase, ca.totalBillAmt, ca.tpaApprovedAmt, ca.finalAuthorisedAmount, ca.amountBeforeTds, ca.amountAfterTds, ca.tds, YEAR(lc.created_at)
         ORDER BY m.monthNo;
         `;
 
@@ -819,4 +831,5 @@ export async function getMonthlySummaryReport(year: number): Promise<any[]> {
 
 
     
+
 
