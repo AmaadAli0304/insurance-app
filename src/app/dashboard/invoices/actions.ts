@@ -322,3 +322,21 @@ export async function handleUpdateInvoice(prevState: { message: string, type?: s
   revalidatePath(`/dashboard/invoices/${id}/view`);
   return { message: "Invoice updated successfully.", type: "success" };
 }
+
+export async function getSettledFinalBillSum(hospitalId: string): Promise<number> {
+    if (!hospitalId) return 0;
+    try {
+        const pool = await getDbPool();
+        const result = await pool.request()
+            .input('hospitalId', sql.NVarChar, hospitalId)
+            .query(`
+                SELECT SUM(final_bill) as total 
+                FROM claims 
+                WHERE hospital_id = @hospitalId AND status = 'Settled'
+            `);
+        return result.recordset[0]?.total || 0;
+    } catch (error) {
+        console.error("Error fetching settled final bill sum:", error);
+        return 0; // Return 0 on error to prevent breaking the form
+    }
+}

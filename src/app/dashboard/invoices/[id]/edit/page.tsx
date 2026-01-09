@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useFormStatus } from "react-dom";
-import { handleUpdateInvoice, getInvoiceById } from "../../actions";
+import { handleUpdateInvoice, getInvoiceById, getSettledFinalBillSum } from "../../actions";
 import { getHospitals } from "@/app/dashboard/company-hospitals/actions";
 import Link from "next/link";
 import { ArrowLeft, PlusCircle, Trash2, Save, Loader2, CalendarIcon } from "lucide-react";
@@ -94,6 +94,9 @@ export default function EditInvoicePage() {
     const [grandTotal, setGrandTotal] = useState(0);
     const [billingPeriod, setBillingPeriod] = useState<Date | undefined>();
 
+    const [baseAmount, setBaseAmount] = useState(0);
+    const [percentage, setPercentage] = useState(0);
+
     const calculateAmount = React.useCallback((item: EditInvoiceItem) => {
         const { qty, rate } = item;
         const numQuantity = Number(qty);
@@ -134,6 +137,24 @@ export default function EditInvoicePage() {
         }
         loadData();
     }, [id, toast]);
+
+     useEffect(() => {
+        if (contractType === 'Percentage' && invoice?.hospital) {
+            getSettledFinalBillSum(invoice.hospital).then(setBaseAmount);
+        } else {
+            setBaseAmount(0);
+        }
+    }, [contractType, invoice?.hospital]);
+
+    useEffect(() => {
+        if (contractType === 'Percentage') {
+            const calculatedAmount = baseAmount * (percentage / 100);
+            if(items.length > 0){
+                const updatedItems = [{ ...items[0], rate: String(calculatedAmount), qty: '1' }];
+                setItems(updatedItems);
+            }
+        }
+    }, [baseAmount, percentage, contractType]);
     
     useEffect(() => {
         const newSubtotal = items.reduce((acc, item) => acc + calculateAmount(item), 0);
@@ -267,6 +288,27 @@ export default function EditInvoicePage() {
                                     </SelectContent>
                                 </Select>
                             </div>
+                            {contractType === 'Percentage' && (
+                                <div className="space-y-4">
+                                     <div className="space-y-2">
+                                        <Label htmlFor="baseAmount" className="font-semibold text-muted-foreground">Settled Amount</Label>
+                                        <Input id="baseAmount" value={baseAmount.toLocaleString('en-IN')} readOnly className="md:ml-auto md:w-48 text-right font-bold bg-muted/50" />
+                                    </div>
+                                    <div className="space-y-2">
+                                         <Label htmlFor="percentage" className="font-semibold text-muted-foreground">Percentage</Label>
+                                         <Select onValueChange={(val) => setPercentage(Number(val))}>
+                                            <SelectTrigger className="md:ml-auto md:w-48 text-right">
+                                                <SelectValue placeholder="Select %" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {Array.from({length: 10}, (_, i) => i + 1).map(p => (
+                                                    <SelectItem key={p} value={String(p)}>{p}%</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -292,7 +334,7 @@ export default function EditInvoicePage() {
                                         <TableCell>
                                             <Input placeholder="Item name" value={item.description} onChange={(e) => handleItemChange(item._id, 'description', e.target.value)} />
                                         </TableCell>
-                                        {contractType !== 'Percentage' && (
+                                        {contractType !== 'Percentage' ? (
                                           <>
                                             <TableCell>
                                                 <Input placeholder="1" type="number" value={item.qty} onChange={(e) => handleItemChange(item._id, 'qty', e.target.value)} onBlur={() => handleRateBlur(item._id, 'qty')} />
@@ -301,6 +343,8 @@ export default function EditInvoicePage() {
                                                 <Input placeholder="0.00" type="text" value={item.rate} onChange={(e) => handleItemChange(item._id, 'rate', e.target.value)} onBlur={() => handleRateBlur(item._id, 'rate')} />
                                             </TableCell>
                                           </>
+                                        ) : (
+                                            <TableCell colSpan={2}></TableCell>
                                         )}
                                         <TableCell className="text-right font-medium">
                                             {calculateAmount(item).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -314,9 +358,11 @@ export default function EditInvoicePage() {
                                 ))}
                             </TableBody>
                         </Table>
-                         <Button type="button" variant="outline" size="sm" onClick={handleAddItem} className="mt-4">
-                            <PlusCircle className="mr-2 h-4 w-4" /> Add New Charges
-                        </Button>
+                         {contractType !== 'Percentage' && (
+                             <Button type="button" variant="outline" size="sm" onClick={handleAddItem} className="mt-4">
+                                <PlusCircle className="mr-2 h-4 w-4" /> Add New Charges
+                            </Button>
+                         )}
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-12 mt-8">

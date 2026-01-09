@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useFormStatus } from "react-dom";
-import { handleSaveInvoice } from "../actions";
+import { handleSaveInvoice, getSettledFinalBillSum } from "../actions";
 import { getHospitals } from "@/app/dashboard/company-hospitals/actions";
 import Link from "next/link";
 import { ArrowLeft, PlusCircle, Trash2, Send, Save, Loader2, CalendarIcon } from "lucide-react";
@@ -98,7 +98,7 @@ export default function NewInvoicePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [contractType, setContractType] = useState<string | undefined>();
 
-    const [items, setItems] = useState<InvoiceItem[]>([{ id: 1, description: 'Service Charges', qty: "1", rate: '0.03' }]);
+    const [items, setItems] = useState<InvoiceItem[]>([{ id: 1, description: 'Service Charges', qty: "1", rate: '0' }]);
     const [taxRate] = useState(18);
 
     const [subtotal, setSubtotal] = useState(0);
@@ -106,6 +106,9 @@ export default function NewInvoicePage() {
     const [grandTotal, setGrandTotal] = useState(0);
     const [billingPeriod, setBillingPeriod] = useState<Date | undefined>(new Date());
     
+    const [baseAmount, setBaseAmount] = useState(0);
+    const [percentage, setPercentage] = useState(0);
+
     useEffect(() => {
         async function loadData() {
             try {
@@ -122,9 +125,8 @@ export default function NewInvoicePage() {
     }, [toast]);
     
     const calculateAmount = React.useCallback((item: InvoiceItem) => {
-        const { qty, rate } = item;
-        const numQuantity = Number(qty);
-        const numRate = Number(rate);
+        const numQuantity = Number(item.qty);
+        const numRate = Number(item.rate);
         if (isNaN(numQuantity) || isNaN(numRate)) return 0;
         return numQuantity * numRate;
     }, []);
@@ -147,6 +149,26 @@ export default function NewInvoicePage() {
             toast({ title: "Error", description: state.message, variant: "destructive" });
         }
     }, [state, toast, router]);
+    
+    useEffect(() => {
+        if (contractType === 'Percentage' && selectedHospitalId) {
+            getSettledFinalBillSum(selectedHospitalId).then(setBaseAmount);
+        } else {
+            setBaseAmount(0);
+        }
+    }, [contractType, selectedHospitalId]);
+
+    useEffect(() => {
+        if (contractType === 'Percentage') {
+            const calculatedAmount = baseAmount * (percentage / 100);
+            const updatedItems = [{ ...items[0], rate: String(calculatedAmount), qty: '1' }];
+            setItems(updatedItems);
+        } else {
+             const updatedItems = [{ ...items[0], rate: '0', qty: '1' }];
+             setItems(updatedItems);
+        }
+    }, [baseAmount, percentage, contractType]);
+
 
     const handleAddItem = () => {
         setItems([...items, { id: Date.now(), description: '', qty: "1", rate: '0' }]);
@@ -283,6 +305,27 @@ export default function NewInvoicePage() {
                                     </SelectContent>
                                 </Select>
                             </div>
+                            {contractType === 'Percentage' && (
+                                <div className="space-y-4">
+                                     <div className="space-y-2">
+                                        <Label htmlFor="baseAmount" className="font-semibold text-muted-foreground">Settled Amount</Label>
+                                        <Input id="baseAmount" value={baseAmount.toLocaleString('en-IN')} readOnly className="md:ml-auto md:w-48 text-right font-bold bg-muted/50" />
+                                    </div>
+                                    <div className="space-y-2">
+                                         <Label htmlFor="percentage" className="font-semibold text-muted-foreground">Percentage</Label>
+                                         <Select onValueChange={(val) => setPercentage(Number(val))}>
+                                            <SelectTrigger className="md:ml-auto md:w-48 text-right">
+                                                <SelectValue placeholder="Select %" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {Array.from({length: 10}, (_, i) => i + 1).map(p => (
+                                                    <SelectItem key={p} value={String(p)}>{p}%</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -308,7 +351,7 @@ export default function NewInvoicePage() {
                                         <TableCell>
                                             <Input placeholder="Item name" value={item.description} onChange={(e) => handleItemChange(item.id, 'description', e.target.value)} />
                                         </TableCell>
-                                        {contractType !== 'Percentage' && (
+                                        {contractType !== 'Percentage' ? (
                                             <>
                                                 <TableCell>
                                                     <Input placeholder="1" type="text" value={item.qty} onChange={(e) => handleItemChange(item.id, 'qty', e.target.value)} />
@@ -317,6 +360,8 @@ export default function NewInvoicePage() {
                                                     <Input placeholder="0.00" type="text" value={item.rate} onChange={(e) => handleItemChange(item.id, 'rate', e.target.value)} onBlur={() => handleRateBlur(item.id)} />
                                                 </TableCell>
                                             </>
+                                        ) : (
+                                           <TableCell colSpan={2}></TableCell>
                                         )}
                                         <TableCell className="text-right font-medium">
                                             {calculateAmount(item).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -330,9 +375,11 @@ export default function NewInvoicePage() {
                                 ))}
                             </TableBody>
                         </Table>
-                         <Button type="button" variant="outline" size="sm" onClick={handleAddItem} className="mt-4">
-                            <PlusCircle className="mr-2 h-4 w-4" /> Add New Charges
-                        </Button>
+                         {contractType !== 'Percentage' && 
+                             <Button type="button" variant="outline" size="sm" onClick={handleAddItem} className="mt-4">
+                                <PlusCircle className="mr-2 h-4 w-4" /> Add New Charges
+                            </Button>
+                         }
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-12 mt-8">
