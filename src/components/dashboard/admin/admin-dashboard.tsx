@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import { useEffect, useState, useCallback } from "react";
@@ -19,6 +18,7 @@ import { FinalApprovalDetailsTable } from "./final-approval-details-table";
 import { SettledStatusDetailsTable } from "./settled-status-details-table";
 import { PreAuthSummaryTable } from "./pre-auth-summary-table";
 import { NewReportTable } from "./new-report-table";
+import { SummaryReportTable } from "../company-admin/summary-report-table";
 
 
 export function AdminDashboard() {
@@ -78,6 +78,7 @@ export function AdminDashboard() {
             </PopoverContent>
           </Popover>
       </div>
+      <SummaryReportTable />
       <AdminPatientBillingTable dateRange={date} />
       <NewReportTable />
       <PreAuthSummaryTable dateRange={date} />
