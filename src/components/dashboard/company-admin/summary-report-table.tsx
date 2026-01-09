@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -60,11 +61,9 @@ export function SummaryReportTable({}: SummaryReportTableProps) {
         }, 0);
     }, [stats]);
 
-    // Function to format currency values
+    // Function to format currency values without the currency symbol
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
         }).format(value);
