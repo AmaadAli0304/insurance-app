@@ -330,7 +330,7 @@ export async function getSettledFinalBillSum(hospitalId: string): Promise<number
         const result = await pool.request()
             .input('hospitalId', sql.NVarChar, hospitalId)
             .query(`
-                SELECT SUM(ISNULL(final_bill, 0)) as total 
+                SELECT SUM(ISNULL(final_amount, 0)) as total 
                 FROM claims 
                 WHERE hospital_id = @hospitalId AND status = 'Settled'
             `);
