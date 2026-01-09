@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -6,10 +5,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getSummaryReportStats, getHospitalList } from "./actions";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2 } from "lucide-react";
+import { Download, Loader2, Calendar as CalendarIcon } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Hospital } from "@/lib/types";
 import { useAuth } from "@/components/auth-provider";
+import { DateRange } from "react-day-picker";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { format, subDays } from "date-fns";
 
 interface SummaryReportTableProps {
   year?: number;
@@ -35,13 +39,17 @@ export function SummaryReportTable({ year = new Date().getFullYear() }: SummaryR
     const [isLoading, setIsLoading] = useState(true);
     const [hospitals, setHospitals] = useState<Pick<Hospital, 'id' | 'name'>[]>([]);
     const [selectedHospitalId, setSelectedHospitalId] = useState<string | null>(null);
+    const [date, setDate] = useState<DateRange | undefined>({
+        from: subDays(new Date(), 29),
+        to: new Date(),
+    });
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
             const hospitalIdForQuery = role === 'Hospital Staff' || role === 'Admin' ? user?.hospitalId : selectedHospitalId;
             const [data, hospitalList] = await Promise.all([
-                getSummaryReportStats(year, hospitalIdForQuery),
+                getSummaryReportStats(year, hospitalIdForQuery, date),
                 (role === 'Company Admin') ? getHospitalList() : Promise.resolve([])
             ]);
             setStats(data);
@@ -51,7 +59,7 @@ export function SummaryReportTable({ year = new Date().getFullYear() }: SummaryR
         } finally {
             setIsLoading(false);
         }
-    }, [year, selectedHospitalId, role, user?.hospitalId]);
+    }, [year, selectedHospitalId, role, user?.hospitalId, date]);
 
     useEffect(() => {
         if (user) {
@@ -153,6 +161,42 @@ export function SummaryReportTable({ year = new Date().getFullYear() }: SummaryR
                             </SelectContent>
                         </Select>
                     )}
+                    <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            id="date"
+                            variant={"outline"}
+                            className={cn(
+                              "w-[300px] justify-start text-left font-normal",
+                              !date && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {date?.from ? (
+                              date.to ? (
+                                <>
+                                  {format(date.from, "LLL dd, y")} -{" "}
+                                  {format(date.to, "LLL dd, y")}
+                                </>
+                              ) : (
+                                format(date.from, "LLL dd, y")
+                              )
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                          <Calendar
+                            initialFocus
+                            mode="range"
+                            defaultMonth={date?.from}
+                            selected={date}
+                            onSelect={setDate}
+                            numberOfMonths={2}
+                          />
+                        </PopoverContent>
+                    </Popover>
                     <Button onClick={handleExport} variant="outline" size="sm" disabled={!stats || stats.length === 0}>
                         <Download className="mr-2 h-4 w-4" />
                         Export
