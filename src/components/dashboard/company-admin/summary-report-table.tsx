@@ -6,16 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getSummaryReportStats, getHospitalList } from "./actions";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2, Calendar as CalendarIcon } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Hospital } from "@/lib/types";
-import { DateRange } from "react-day-picker";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
-import { format, subDays } from "date-fns";
+import { useAuth } from "@/components/auth-provider";
 
-interface SummaryReportTableProps {}
+interface SummaryReportTableProps {
+  year?: number;
+}
 
 interface StatItem {
   month: string;
@@ -31,22 +29,20 @@ interface StatItem {
   totalRejectedCase: number;
 }
 
-export function SummaryReportTable({}: SummaryReportTableProps) {
+export function SummaryReportTable({ year = new Date().getFullYear() }: SummaryReportTableProps) {
+    const { user, role } = useAuth();
     const [stats, setStats] = useState<StatItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [hospitals, setHospitals] = useState<Pick<Hospital, 'id' | 'name'>[]>([]);
     const [selectedHospitalId, setSelectedHospitalId] = useState<string | null>(null);
-    const [date, setDate] = useState<DateRange | undefined>({
-      from: subDays(new Date(), 365), // Default to one year
-      to: new Date(),
-    });
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
+            const hospitalIdForQuery = role === 'Hospital Staff' || role === 'Admin' ? user?.hospitalId : selectedHospitalId;
             const [data, hospitalList] = await Promise.all([
-                getSummaryReportStats(2025, selectedHospitalId, date),
-                getHospitalList()
+                getSummaryReportStats(year, hospitalIdForQuery),
+                (role === 'Company Admin') ? getHospitalList() : Promise.resolve([])
             ]);
             setStats(data);
             setHospitals(hospitalList);
@@ -55,13 +51,14 @@ export function SummaryReportTable({}: SummaryReportTableProps) {
         } finally {
             setIsLoading(false);
         }
-    }, [selectedHospitalId, date]);
+    }, [year, selectedHospitalId, role, user?.hospitalId]);
 
     useEffect(() => {
-        loadData();
-    }, [loadData]);
+        if (user) {
+            loadData();
+        }
+    }, [loadData, user]);
 
-    // Function to calculate total for a specific metric
     const calculateTotal = useCallback((key: keyof StatItem) => {
         if (!stats.length) return 0;
         return stats.reduce((sum, item) => {
@@ -70,7 +67,6 @@ export function SummaryReportTable({}: SummaryReportTableProps) {
         }, 0);
     }, [stats]);
 
-    // Function to format currency values without the currency symbol
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('en-IN', {
             minimumFractionDigits: 0,
@@ -78,7 +74,6 @@ export function SummaryReportTable({}: SummaryReportTableProps) {
         }).format(value);
     };
 
-    // Function to format regular numbers
     const formatNumber = (value: number) => {
         return new Intl.NumberFormat('en-IN').format(value);
     };
@@ -147,51 +142,17 @@ export function SummaryReportTable({}: SummaryReportTableProps) {
                     <CardDescription>An all-time summary of key metrics.</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Select onValueChange={(value) => setSelectedHospitalId(value === 'all' ? null : value)} defaultValue="all">
-                        <SelectTrigger className="w-[220px]">
-                            <SelectValue placeholder="Filter by Hospital" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Hospitals</SelectItem>
-                            {hospitals.map(h => <SelectItem key={h.id} value={h.id}>{h.name}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                     <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            id="date"
-                            variant={"outline"}
-                            className={cn(
-                              "w-[300px] justify-start text-left font-normal",
-                              !date && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {date?.from ? (
-                              date.to ? (
-                                <>
-                                  {format(date.from, "LLL dd, y")} -{" "}
-                                  {format(date.to, "LLL dd, y")}
-                                </>
-                              ) : (
-                                format(date.from, "LLL dd, y")
-                              )
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="end">
-                          <Calendar
-                            initialFocus
-                            mode="range"
-                            defaultMonth={date?.from}
-                            selected={date}
-                            onSelect={setDate}
-                            numberOfMonths={2}
-                          />
-                        </PopoverContent>
-                      </Popover>
+                     {(role === 'Company Admin') && (
+                        <Select onValueChange={(value) => setSelectedHospitalId(value === 'all' ? null : value)} defaultValue="all">
+                            <SelectTrigger className="w-[220px]">
+                                <SelectValue placeholder="Filter by Hospital" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Hospitals</SelectItem>
+                                {hospitals.map(h => <SelectItem key={h.id} value={h.id}>{h.name}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    )}
                     <Button onClick={handleExport} variant="outline" size="sm" disabled={!stats || stats.length === 0}>
                         <Download className="mr-2 h-4 w-4" />
                         Export
