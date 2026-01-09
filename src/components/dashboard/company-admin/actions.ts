@@ -320,7 +320,7 @@ export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<S
                     ISNULL(SUM(CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END), 0) as rejectionCount,
                     ISNULL(SUM(CASE WHEN status = 'Settled' THEN 1 ELSE 0 END), 0) as settledCasesCount
                 FROM claims c
-                WHERE 1=1 ${dateFilterClaims}
+                WHERE created_by IS NOT NULL ${dateFilterClaims}
                 GROUP BY created_by
             )
             SELECT 
@@ -683,7 +683,7 @@ export async function getSettledStatusStats(
     }
 }
 
-export async function getSummaryReportStats(year: number, hospitalId?: string | null, dateRange?: DateRange): Promise<any[]> {
+export async function getSummaryReportStats(year: number, hospitalId?: string | null): Promise<any[]> {
     try {
         const pool = await getDbPool();
         const request = pool.request();
@@ -693,14 +693,6 @@ export async function getSummaryReportStats(year: number, hospitalId?: string | 
         if (hospitalId) {
             request.input("hospitalId", sql.NVarChar, hospitalId);
             hospitalFilter = 'AND hospital_id = @hospitalId';
-        }
-
-        let dateFilter = '';
-        if (dateRange?.from) {
-            const toDate = dateRange.to || new Date();
-            request.input('dateFrom', sql.DateTime, dateRange.from);
-            request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
-            dateFilter = 'AND created_at BETWEEN @dateFrom AND @dateTo';
         }
 
         const query = `
@@ -730,7 +722,7 @@ export async function getSummaryReportStats(year: number, hospitalId?: string | 
                 MONTH(created_at) AS monthNo,
                 COUNT(DISTINCT id) AS patientCount
             FROM dbo.patients
-            WHERE 1=1 ${hospitalFilter} ${dateFilter}
+            WHERE YEAR(created_at) = @year ${hospitalFilter}
             GROUP BY MONTH(created_at)
         ),
 
@@ -751,7 +743,7 @@ export async function getSummaryReportStats(year: number, hospitalId?: string | 
                     ORDER BY created_at DESC
                 ) AS rn
             FROM dbo.claims
-            WHERE 1=1 ${hospitalFilter} ${dateFilter}
+            WHERE YEAR(created_at) = @year ${hospitalFilter}
         ),
 
         latestClaims AS (
@@ -831,5 +823,6 @@ export async function getMonthlySummaryReport(year: number): Promise<any[]> {
 
 
     
+
 
 

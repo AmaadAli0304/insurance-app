@@ -1,21 +1,48 @@
 
-
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { StaffPerformanceStat } from "./actions";
-import { Loader2, Download } from "lucide-react";
+import { Loader2, Download, Calendar as CalendarIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { useState, useEffect, useCallback } from "react";
+import { DateRange } from "react-day-picker";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { format, subDays } from "date-fns";
+import { getStaffPerformanceStats } from "./actions";
 
 interface StaffPerformanceTableProps {
-  stats: StaffPerformanceStat[];
-  isLoading: boolean;
+  // The stats and isLoading props are now removed as the component will fetch its own data.
 }
 
-export function StaffPerformanceTable({ stats, isLoading }: StaffPerformanceTableProps) {
+export function StaffPerformanceTable({}: StaffPerformanceTableProps) {
+    const [stats, setStats] = useState<StaffPerformanceStat[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [date, setDate] = useState<DateRange | undefined>({
+        from: subDays(new Date(), 29),
+        to: new Date(),
+    });
     
+    const loadData = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const staffData = await getStaffPerformanceStats(date);
+            setStats(staffData);
+        } catch (err: any) {
+            console.error("Failed to load staff performance:", err);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [date]);
+
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
+
     const getInitials = (name: string) => {
         if (!name) return 'S';
         return name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -59,10 +86,48 @@ export function StaffPerformanceTable({ stats, isLoading }: StaffPerformanceTabl
                     <CardTitle>Staff Performance</CardTitle>
                     <CardDescription>Performance metrics for each staff member.</CardDescription>
                 </div>
-                 <Button onClick={handleExport} variant="outline" size="sm" disabled={stats.length === 0}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Export
-                </Button>
+                <div className="flex items-center gap-2">
+                     <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            id="date"
+                            variant={"outline"}
+                            className={cn(
+                              "w-[300px] justify-start text-left font-normal",
+                              !date && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {date?.from ? (
+                              date.to ? (
+                                <>
+                                  {format(date.from, "LLL dd, y")} -{" "}
+                                  {format(date.to, "LLL dd, y")}
+                                </>
+                              ) : (
+                                format(date.from, "LLL dd, y")
+                              )
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                          <Calendar
+                            initialFocus
+                            mode="range"
+                            defaultMonth={date?.from}
+                            selected={date}
+                            onSelect={setDate}
+                            numberOfMonths={2}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    <Button onClick={handleExport} variant="outline" size="sm" disabled={stats.length === 0}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Export
+                    </Button>
+                </div>
             </CardHeader>
             <CardContent>
                  {isLoading ? (

@@ -6,7 +6,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building, Users, Clock, AlertTriangle, Loader2, Calendar as CalendarIcon } from "lucide-react";
-import { getCompanyAdminDashboardStats, getHospitalBusinessStats, getSimpleHospitalBusinessStats, getStaffPerformanceStats, HospitalBusinessStats, SimpleHospitalStat, StaffPerformanceStat } from "./actions";
+import { getCompanyAdminDashboardStats, getHospitalBusinessStats, getSimpleHospitalBusinessStats, HospitalBusinessStats, SimpleHospitalStat } from "./actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { BusinessSummaryTable } from "./business-summary-table";
 import { DateRange } from "react-day-picker";
@@ -38,9 +38,7 @@ export function CompanyAdminDashboard() {
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [businessStats, setBusinessStats] = useState<HospitalBusinessStats[]>([]);
-  const [staffPerformanceStats, setStaffPerformanceStats] = useState<StaffPerformanceStat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingStaff, setIsLoadingStaff] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   const [date, setDate] = useState<DateRange | undefined>({
@@ -71,24 +69,10 @@ export function CompanyAdminDashboard() {
     }
   }, [companyId, date]);
 
-  const fetchStaffPerformance = useCallback(async () => {
-    try {
-      setIsLoadingStaff(true);
-      const staffData = await getStaffPerformanceStats(date);
-      setStaffPerformanceStats(staffData);
-    } catch (err: any) {
-       // Assuming main error state will catch major issues
-      console.error("Failed to load staff performance:", err);
-    } finally {
-      setIsLoadingStaff(false);
-    }
-  }, [date]);
-
 
   useEffect(() => {
     fetchDashboardStats();
-    fetchStaffPerformance();
-  }, [fetchDashboardStats, fetchStaffPerformance]);
+  }, [fetchDashboardStats]);
   
   if (error && !isLoading) {
      return (
@@ -198,7 +182,7 @@ export function CompanyAdminDashboard() {
 
           <PatientBillingTable dateRange={date} />
           
-          <StaffPerformanceTable stats={staffPerformanceStats} isLoading={isLoadingStaff} />
+          <StaffPerformanceTable />
           
           <StaffOnDutyTable />
 
