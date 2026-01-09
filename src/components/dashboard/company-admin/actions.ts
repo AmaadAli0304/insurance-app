@@ -683,11 +683,17 @@ export async function getSettledStatusStats(
     }
 }
 
-export async function getSummaryReportStats(year: number): Promise<any[]> {
+export async function getSummaryReportStats(year: number, hospitalId?: string | null): Promise<any[]> {
     try {
         const pool = await getDbPool();
         const request = pool.request();
-        request.input("year", year);
+        request.input("year", sql.Int, year);
+        
+        let hospitalFilter = '';
+        if (hospitalId) {
+            request.input("hospitalId", sql.NVarChar, hospitalId);
+            hospitalFilter = 'AND hospital_id = @hospitalId';
+        }
 
         const query = `
         -- ==========================
@@ -716,7 +722,7 @@ export async function getSummaryReportStats(year: number): Promise<any[]> {
                 MONTH(created_at) AS monthNo,
                 COUNT(DISTINCT id) AS patientCount
             FROM dbo.patients
-            WHERE YEAR(created_at) = @year
+            WHERE YEAR(created_at) = @year ${hospitalFilter}
             GROUP BY MONTH(created_at)
         ),
 
@@ -737,7 +743,7 @@ export async function getSummaryReportStats(year: number): Promise<any[]> {
                     ORDER BY created_at DESC
                 ) AS rn
             FROM dbo.claims
-            WHERE YEAR(created_at) = @year
+            WHERE YEAR(created_at) = @year ${hospitalFilter}
         ),
 
         latestClaims AS (
@@ -777,7 +783,7 @@ export async function getSummaryReportStats(year: number): Promise<any[]> {
         -- FINAL RESULT
         -- ==========================
         SELECT
-            CONCAT(m.monthName, '-', RIGHT(@year, 2)) AS month,
+            CONCAT(m.monthName, '-', RIGHT(CAST(@year AS VARCHAR(4)), 2)) AS month,
 
             -- Patient count from PATIENTS table (registration date)
             ISNULL(ppm.patientCount, 0) AS patientCount,
@@ -813,3 +819,4 @@ export async function getMonthlySummaryReport(year: number): Promise<any[]> {
 
 
     
+

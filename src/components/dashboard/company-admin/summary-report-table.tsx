@@ -3,9 +3,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getSummaryReportStats } from "./actions";
+import { getSummaryReportStats, getHospitalList } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { Hospital } from "@/lib/types";
 
 interface SummaryReportTableProps {}
 
@@ -26,19 +28,24 @@ interface StatItem {
 export function SummaryReportTable({}: SummaryReportTableProps) {
     const [stats, setStats] = useState<StatItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [hospitals, setHospitals] = useState<Pick<Hospital, 'id' | 'name'>[]>([]);
+    const [selectedHospitalId, setSelectedHospitalId] = useState<string | null>(null);
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const data = await getSummaryReportStats(2025);
-            console.log(data)
+            const [data, hospitalList] = await Promise.all([
+                getSummaryReportStats(2025, selectedHospitalId),
+                getHospitalList()
+            ]);
             setStats(data);
+            setHospitals(hospitalList);
         } catch (error) {
             console.error("Failed to load summary report stats:", error);
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [selectedHospitalId]);
 
     useEffect(() => {
         loadData();
@@ -71,12 +78,28 @@ export function SummaryReportTable({}: SummaryReportTableProps) {
     const handleExport = () => {
         if (!stats) return;
         
-        const headers = ["Metric", "Value"];
-        const csvRows = [
-            headers.join(","),
-            `"Total Bill Amt.",${stats.totalBillAmt}`
-        ];
-
+        const headers = ["Metric", ...stats.map(s => s.month), "Grand Total"];
+        const keys: (keyof StatItem)[] = ["totalBillAmt", "tpaApprovedAmt", "amountBeforeTds", "amountAfterTds", "tds", "finalAuthorisedAmount", "patientCount", "totalSettledCase", "pendingCaseCount", "totalRejectedCase"];
+        const labels: Record<keyof StatItem, string> = {
+            month: "Month",
+            totalBillAmt: "Total Bill Amt.",
+            tpaApprovedAmt: "TPA Approved Amt.",
+            amountBeforeTds: "Amount Before TDS",
+            amountAfterTds: "Amount After TDS",
+            tds: "TDS",
+            finalAuthorisedAmount: "Final Outstanding Amount",
+            patientCount: "Total Patients",
+            totalSettledCase: "Total Settlement Case",
+            pendingCaseCount: "Pending Case",
+            totalRejectedCase: "Cancelled Case",
+        };
+        
+        const csvRows = [headers.join(",")];
+        keys.forEach(key => {
+            const rowData = [labels[key], ...stats.map(s => s[key]), calculateTotal(key)];
+            csvRows.push(rowData.join(","));
+        });
+        
         const csvContent = csvRows.join("\n");
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
@@ -91,17 +114,18 @@ export function SummaryReportTable({}: SummaryReportTableProps) {
 
     const renderRow = (label: string, key: keyof StatItem, isCurrency: boolean = true) => {
         const total = calculateTotal(key);
+        const formatFn = isCurrency ? formatCurrency : formatNumber;
         
         return (
             <TableRow>
                 <TableCell className="font-medium">{label}</TableCell>
                 {stats.map((item, index) => (
                     <TableCell key={index} className="text-right font-mono">
-                        {item[key] }
+                        {formatFn(Number(item[key]) || 0)}
                     </TableCell>
                 ))}
                 <TableCell className="text-right font-mono font-bold bg-muted/50">
-                    {total}
+                    {formatFn(total)}
                 </TableCell>
             </TableRow>
         );
@@ -114,10 +138,21 @@ export function SummaryReportTable({}: SummaryReportTableProps) {
                     <CardTitle>Summary Report</CardTitle>
                     <CardDescription>An all-time summary of key metrics.</CardDescription>
                 </div>
-                <Button onClick={handleExport} variant="outline" size="sm" disabled={!stats}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Export
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Select onValueChange={(value) => setSelectedHospitalId(value === 'all' ? null : value)} defaultValue="all">
+                        <SelectTrigger className="w-[220px]">
+                            <SelectValue placeholder="Filter by Hospital" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Hospitals</SelectItem>
+                            {hospitals.map(h => <SelectItem key={h.id} value={h.id}>{h.name}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <Button onClick={handleExport} variant="outline" size="sm" disabled={!stats || stats.length === 0}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Export
+                    </Button>
+                </div>
             </CardHeader>
             <CardContent>
                 {isLoading ? (
