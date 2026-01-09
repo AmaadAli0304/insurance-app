@@ -11,12 +11,14 @@ import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Logo } from '@/components/logo';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function HospitalStaffLoginPage() {
   const { login } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -90,8 +92,19 @@ export default function HospitalStaffLoginPage() {
                 <Input id="email" name="email" type="email" placeholder="staff@hospital.com" required />
                 </div>
                 <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" name="password" type="password" required />
+                    <Label htmlFor="password">Password</Label>
+                    <div className="relative">
+                        <Input id="password" name="password" type={showPassword ? "text" : "password"} required />
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground"
+                            onClick={() => setShowPassword((prev) => !prev)}
+                        >
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
+                    </div>
                 </div>
                 {error && <p className="text-sm text-destructive text-center">{error}</p>}
             </CardContent>
