@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -263,16 +262,8 @@ export default function ViewInvoicePage() {
                         <p><strong>Contact No:</strong> {invoice.companySettings?.contact_no || 'N/A'}</p>
                         <p>Attached PT List</p>
                     </div>
-                    <div className="flex justify-between p-4 mt-16">
-                        <div>
-                        </div>
-                        <div className="text-right">
-                            <p className="font-bold">For, {invoice.companySettings?.name || 'Your Company'}</p>
-                            <div className="h-12"></div> {/* Spacer for signature */}
-                            <p>Authorised Signatory</p>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
     );
+}
