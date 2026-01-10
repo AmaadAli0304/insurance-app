@@ -21,8 +21,9 @@ import { useAuth } from "@/components/auth-provider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
+import { format, subDays } from "date-fns";
 import { cn } from "@/lib/utils";
+import { DateRange } from "react-day-picker";
 
 interface InvoiceItem {
   id: number;
@@ -105,7 +106,11 @@ export default function NewInvoicePage() {
     const [subtotal, setSubtotal] = useState(0);
     const [taxAmount, setTaxAmount] = useState(0);
     const [grandTotal, setGrandTotal] = useState(0);
-    const [billingPeriod, setBillingPeriod] = useState<Date | undefined>(new Date());
+    
+    const [billingPeriod, setBillingPeriod] = useState<DateRange | undefined>({
+      from: subDays(new Date(), 29),
+      to: new Date(),
+    });
     
     const [baseAmount, setBaseAmount] = useState(0);
     const [percentage, setPercentage] = useState(0);
@@ -145,11 +150,11 @@ export default function NewInvoicePage() {
     
     useEffect(() => {
         if (contractType === 'Percentage' && selectedHospitalId) {
-            getSettledFinalBillSum(selectedHospitalId).then(setBaseAmount);
+            getSettledFinalBillSum(selectedHospitalId, billingPeriod).then(setBaseAmount);
         } else {
             setBaseAmount(0);
         }
-    }, [contractType, selectedHospitalId]);
+    }, [contractType, selectedHospitalId, billingPeriod]);
 
     useEffect(() => {
         if (contractType === 'Percentage') {
@@ -160,6 +165,7 @@ export default function NewInvoicePage() {
              const updatedItems = [{ ...items[0], rate: '0', qty: '1', amount: 0 }];
              setItems(updatedItems);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [baseAmount, percentage, contractType]);
 
 
@@ -211,7 +217,7 @@ export default function NewInvoicePage() {
             <input type="hidden" name="hospitalId" value={selectedHospitalId} />
              <input type="hidden" name="items" value={JSON.stringify(items.map(({ id, ...rest }) => rest))} />
              <input type="hidden" name="tax" value={taxRate} />
-             <input type="hidden" name="period" value={billingPeriod ? format(billingPeriod, "MMMM yyyy") : ""} />
+             <input type="hidden" name="period" value={billingPeriod?.from ? `${format(billingPeriod.from, "LLL dd, y")} - ${billingPeriod.to ? format(billingPeriod.to, "LLL dd, y") : ''}` : ""} />
              <input type="hidden" name="percentage" value={percentage} />
 
             <div className="space-y-6">
@@ -262,20 +268,33 @@ export default function NewInvoicePage() {
                                         <Button
                                             variant={"outline"}
                                             className={cn(
-                                                "md:ml-auto md:w-48 justify-start text-left font-normal",
+                                                "md:ml-auto md:w-full justify-start text-left font-normal",
                                                 !billingPeriod && "text-muted-foreground"
                                             )}
                                         >
                                             <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {billingPeriod ? format(billingPeriod, "MMMM yyyy") : <span>Pick a month</span>}
+                                            {billingPeriod?.from ? (
+                                              billingPeriod.to ? (
+                                                <>
+                                                  {format(billingPeriod.from, "LLL dd, y")} -{" "}
+                                                  {format(billingPeriod.to, "LLL dd, y")}
+                                                </>
+                                              ) : (
+                                                format(billingPeriod.from, "LLL dd, y")
+                                              )
+                                            ) : (
+                                              <span>Pick a date range</span>
+                                            )}
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0">
+                                    <PopoverContent className="w-auto p-0" align="end">
                                         <Calendar
-                                            mode="single"
+                                            initialFocus
+                                            mode="range"
+                                            defaultMonth={billingPeriod?.from}
                                             selected={billingPeriod}
                                             onSelect={setBillingPeriod}
-                                            initialFocus
+                                            numberOfMonths={2}
                                         />
                                     </PopoverContent>
                                 </Popover>

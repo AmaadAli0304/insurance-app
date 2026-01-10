@@ -1,4 +1,5 @@
 
+
 "use server";
 
 import { revalidatePath } from "next/cache";
@@ -19,6 +20,7 @@ const DateRangeSchema = z.object({
   from: z.date().optional(),
   to: z.date().optional(),
 });
+export type DateRangePickerValue = z.infer<typeof DateRangeSchema>;
 
 
 // Fetch all invoices
@@ -382,7 +384,7 @@ export async function getSettledFinalBillSum(hospitalId: string, dateRange?: Dat
         const rows = result.recordset;
         
         const total = rows.reduce((sum, row) => {
-            const val = parseFloat(row.final_amount?.replace(/,/g, '').trim());
+            const val = parseFloat(row.final_amount);
             return sum + (isNaN(val) ? 0 : val);
         }, 0);
     

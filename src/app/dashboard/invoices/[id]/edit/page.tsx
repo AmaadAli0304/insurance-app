@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -21,8 +22,9 @@ import { useAuth } from "@/components/auth-provider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
+import { format, subDays } from "date-fns";
 import { cn } from "@/lib/utils";
+import { DateRange } from "react-day-picker";
 
 interface EditInvoiceItem extends Omit<InvoiceItem, 'rate' | 'qty'> {
   _id: number; // For temporary client-side unique key
@@ -92,7 +94,11 @@ export default function EditInvoicePage() {
     const [subtotal, setSubtotal] = useState(0);
     const [taxAmount, setTaxAmount] = useState(0);
     const [grandTotal, setGrandTotal] = useState(0);
-    const [billingPeriod, setBillingPeriod] = useState<Date | undefined>();
+    
+    const [billingPeriod, setBillingPeriod] = useState<DateRange | undefined>({
+      from: subDays(new Date(), 29),
+      to: new Date(),
+    });
 
     const [baseAmount, setBaseAmount] = useState(0);
     const [percentage, setPercentage] = useState(0);
@@ -131,7 +137,10 @@ export default function EditInvoicePage() {
                 setInvoice(invoiceData);
                 setHospitals(hospitalList);
                 setItems(invoiceData.items.map(item => ({ ...item, _id: Math.random(), rate: String(item.rate), qty: String(item.qty) })));
-                setBillingPeriod(invoiceData.period ? new Date(invoiceData.period) : new Date());
+                if(invoiceData.period?.includes(' - ')){
+                    const [fromString, toString] = invoiceData.period.split(' - ');
+                    setBillingPeriod({ from: new Date(fromString), to: new Date(toString) });
+                }
                 setContractType(invoiceData.contract_type);
                  if (invoiceData.contract_type === 'Percentage' && invoiceData.items.length > 0) {
                     setPercentage(invoiceData.items[0].qty);
@@ -148,11 +157,11 @@ export default function EditInvoicePage() {
 
      useEffect(() => {
         if (contractType === 'Percentage' && invoice?.hospital) {
-            getSettledFinalBillSum(invoice.hospital).then(setBaseAmount);
+            getSettledFinalBillSum(invoice.hospital, billingPeriod).then(setBaseAmount);
         } else {
             setBaseAmount(0);
         }
-    }, [contractType, invoice?.hospital]);
+    }, [contractType, invoice?.hospital, billingPeriod]);
 
     useEffect(() => {
         if (contractType === 'Percentage') {
@@ -162,6 +171,7 @@ export default function EditInvoicePage() {
                 setItems(updatedItems);
             }
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [baseAmount, percentage, contractType]);
     
     useEffect(() => {
@@ -225,7 +235,7 @@ export default function EditInvoicePage() {
             <input type="hidden" name="hospitalId" value={invoice.hospital} />
              <input type="hidden" name="items" value={JSON.stringify(items.map(({ _id, id, invoice_id, ...rest }) => rest))} />
              <input type="hidden" name="tax" value={taxRate} />
-             <input type="hidden" name="period" value={billingPeriod ? format(billingPeriod, "MMMM yyyy") : ""} />
+             <input type="hidden" name="period" value={billingPeriod?.from ? `${format(billingPeriod.from, "LLL dd, y")} - ${billingPeriod.to ? format(billingPeriod.to, "LLL dd, y") : ''}` : ""} />
              <input type="hidden" name="percentage" value={percentage} />
 
 
@@ -269,20 +279,33 @@ export default function EditInvoicePage() {
                                         <Button
                                             variant={"outline"}
                                             className={cn(
-                                                "md:ml-auto md:w-48 justify-start text-left font-normal",
+                                                "md:ml-auto md:w-full justify-start text-left font-normal",
                                                 !billingPeriod && "text-muted-foreground"
                                             )}
                                         >
                                             <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {billingPeriod ? format(billingPeriod, "MMMM yyyy") : <span>Pick a month</span>}
+                                            {billingPeriod?.from ? (
+                                              billingPeriod.to ? (
+                                                <>
+                                                  {format(billingPeriod.from, "LLL dd, y")} -{" "}
+                                                  {format(billingPeriod.to, "LLL dd, y")}
+                                                </>
+                                              ) : (
+                                                format(billingPeriod.from, "LLL dd, y")
+                                              )
+                                            ) : (
+                                              <span>Pick a date range</span>
+                                            )}
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0">
+                                    <PopoverContent className="w-auto p-0" align="end">
                                         <Calendar
-                                            mode="single"
+                                            initialFocus
+                                            mode="range"
+                                            defaultMonth={billingPeriod?.from}
                                             selected={billingPeriod}
                                             onSelect={setBillingPeriod}
-                                            initialFocus
+                                            numberOfMonths={2}
                                         />
                                     </PopoverContent>
                                 </Popover>
