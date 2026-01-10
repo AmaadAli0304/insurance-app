@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -201,7 +202,6 @@ export default function ViewInvoicePage() {
                             <p><strong>Invoice Date:</strong> {format(new Date(invoice.created_at), 'dd-MMM-yyyy')}</p>
                             <p><strong>PAN No:</strong> {invoice.companySettings?.pan_no || 'N/A'}</p>
                             <p><strong>Payment Mode:</strong> ONLINE/CHQ</p>
-                            <p><strong>Payment Date:</strong></p>
                         </div>
                     </div>
                     <div>
