@@ -185,7 +185,7 @@ export default function ViewInvoicePage() {
                             <p><strong>PAN no:</strong> {invoice.companySettings?.pan_no || 'N/A'}</p>
                         </div>
                         <div className="flex justify-end items-start">
-                            <Logo />
+                            <img src="/images/logo.png" alt="One Stop Logo" width={70} height={70} data-ai-hint="logo" />
                         </div>
                     </div>
                     <div className="grid grid-cols-2 p-4 border-b-2 border-black">
@@ -222,24 +222,42 @@ export default function ViewInvoicePage() {
                                     </TableRow>
                                 ))}
                                 <TableRow>
-                                    <TableCell colSpan={2} className="text-right font-bold border-t-2 border-black">Sub Total</TableCell>
-                                    <TableCell className="text-right font-mono border-t-2 border-black">{subtotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell colSpan={2} className="text-right font-bold">CGST 9%</TableCell>
-                                    <TableCell className="text-right font-mono">{cgstAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell colSpan={2} className="text-right font-bold">SGST 9%</TableCell>
-                                    <TableCell className="text-right font-mono">{sgstAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell colSpan={2} className="text-right font-bold">Balance Received</TableCell>
-                                    <TableCell className="text-right font-mono">0.00</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell colSpan={2} className="text-right font-bold">Balance Due</TableCell>
-                                    <TableCell className="text-right font-mono">{grandTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
+                                    <TableCell colSpan={2} className="pt-4 align-top">
+                                        <div className="text-xs space-y-1">
+                                            <p className="font-bold underline">Terms &amp; Conditions:</p>
+                                            <ol className="list-decimal list-inside">
+                                                <li>Subject to realization of cheque.</li>
+                                                <li>Goods once sold will not be taken back.</li>
+                                                <li>Interest @24% p.a. will be charged if the bill is not paid on due date.</li>
+                                            </ol>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="p-0">
+                                         <Table className="w-full">
+                                            <TableBody>
+                                                <TableRow>
+                                                    <TableCell className="text-right font-bold border-t-2 border-black">Sub Total</TableCell>
+                                                    <TableCell className="text-right font-mono border-t-2 border-black">{subtotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
+                                                </TableRow>
+                                                <TableRow>
+                                                    <TableCell className="text-right font-bold">CGST 9%</TableCell>
+                                                    <TableCell className="text-right font-mono">{cgstAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
+                                                </TableRow>
+                                                <TableRow>
+                                                    <TableCell className="text-right font-bold">SGST 9%</TableCell>
+                                                    <TableCell className="text-right font-mono">{sgstAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
+                                                </TableRow>
+                                                <TableRow>
+                                                    <TableCell className="text-right font-bold">Balance Received</TableCell>
+                                                    <TableCell className="text-right font-mono">0.00</TableCell>
+                                                </TableRow>
+                                                <TableRow>
+                                                    <TableCell className="text-right font-bold">Balance Due</TableCell>
+                                                    <TableCell className="text-right font-mono">{grandTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
+                                                </TableRow>
+                                            </TableBody>
+                                        </Table>
+                                    </TableCell>
                                 </TableRow>
                             </TableBody>
                             <TableFooter>
