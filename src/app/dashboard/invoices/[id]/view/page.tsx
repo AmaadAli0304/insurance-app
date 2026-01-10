@@ -263,6 +263,25 @@ export default function ViewInvoicePage() {
                         <p><strong>Contact No:</strong> {invoice.companySettings?.contact_no || 'N/A'}</p>
                         <p>Attached PT List</p>
                     </div>
+                    <div className="p-4 border-y-2 border-black">
+                        <h4 className="font-bold mb-2">Terms & Conditions</h4>
+                        <ol className="list-decimal list-inside text-xs space-y-1">
+                            <li>We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</li>
+                            <li>Payment is due within 30 days of the invoice date.</li>
+                            <li>A late fee of 1.5% per month will be charged on overdue accounts.</li>
+                            <li>Please make all checks payable to {invoice.companySettings?.name || '[Your Company Name]'}.</li>
+                        </ol>
+                    </div>
+                     <div className="flex justify-between p-4">
+                        <div>
+                            <p className="font-bold">Receiver's Seal & Signature</p>
+                        </div>
+                        <div className="text-right">
+                            <p className="font-bold">For, {invoice.companySettings?.name || 'Your Company'}</p>
+                            <div className="h-12"></div> {/* Spacer for signature */}
+                            <p>Authorised Signatory</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
