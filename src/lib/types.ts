@@ -470,11 +470,29 @@ export interface Staff extends Omit<User, 'uid' | 'role' | 'companyId'> {
   assignedHospitalsDetails?: { id: string | number, name: string }[];
 }
 
+export interface CompanySettings {
+  name?: string;
+  address?: string;
+  gst_no?: string;
+  pan_no?: string;
+  contact_no?: string;
+  banking_details?: string;
+  account_name?: string;
+  bank_name?: string;
+  branch?: string;
+  account_no?: string;
+  ifsc_code?: string;
+}
+
 export interface Invoice {
     id: number;
-    to: string;
-    hospital: string;
-    address: string;
+    to: string; // Hospital Name
+    hospital: string; // Hospital ID
+    address: string; // This is the company address for billing from
+    hospitalAddress?: string; // This is the hospital's address for billing to
+    hospitalContactPerson?: string;
+    hospitalPhone?: string;
+    hospitalEmail?: string;
     period: string;
     contract_type: string;
     service_provided: string;
@@ -485,6 +503,8 @@ export interface Invoice {
     branch: string;
     staff_id: string;
     staffName?: string; // from join
+    companyId?: string; // from join on users
+    companySettings?: CompanySettings; // from company_settings table
     created_at: string;
 }
 

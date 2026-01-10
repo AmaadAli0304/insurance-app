@@ -4,7 +4,7 @@
 import { revalidatePath } from "next/cache";
 import { getDbPool, sql } from "@/lib/db";
 import { z } from 'zod';
-import { Invoice, InvoiceItem, Staff } from "@/lib/types";
+import { Invoice, InvoiceItem, Staff, CompanySettings } from "@/lib/types";
 import { redirect } from 'next/navigation';
 import { DateRange } from "react-day-picker";
 
@@ -69,9 +69,16 @@ export async function getInvoiceById(id: number): Promise<(Invoice & { items: In
             pool.request()
                 .input('id', sql.Int, id)
                 .query(`
-                  SELECT i.*, s.name as staffName 
+                  SELECT i.*, 
+                         s.name as staffName, 
+                         s.companyId as companyId,
+                         h.address as hospitalAddress,
+                         h.contact_person as hospitalContactPerson,
+                         h.phone as hospitalPhone,
+                         h.email as hospitalEmail
                   FROM Invoices i
                   LEFT JOIN users s ON i.staff_id = s.uid
+                  LEFT JOIN hospitals h ON i.hospital = h.id
                   WHERE i.id = @id
                 `),
             pool.request()
@@ -85,6 +92,16 @@ export async function getInvoiceById(id: number): Promise<(Invoice & { items: In
 
         const invoice = invoiceResult.recordset[0] as Invoice;
         const items = itemsResult.recordset as InvoiceItem[];
+        
+        if (invoice.companyId) {
+            const settingsResult = await pool.request()
+                .input('company_id', sql.NVarChar, invoice.companyId)
+                .query('SELECT * FROM company_settings WHERE company_id = @company_id');
+            if(settingsResult.recordset.length > 0) {
+                invoice.companySettings = settingsResult.recordset[0] as CompanySettings;
+            }
+        }
+
 
         return { ...invoice, items };
     } catch (error) {
@@ -339,19 +356,28 @@ export async function handleUpdateInvoice(prevState: { message: string, type?: s
   return { message: "Invoice updated successfully.", type: "success" };
 }
 
-export async function getSettledFinalBillSum(hospitalId: string): Promise<number> {
+export async function getSettledFinalBillSum(hospitalId: string, dateRange?: DateRange): Promise<number> {
     if (!hospitalId) return 0;
 
     try {
         const pool = await getDbPool();
-        const result = await pool.request()
-            .input('hospitalId', sql.NVarChar, hospitalId)
-            .query(`
-                SELECT final_amount
-                FROM claims
-                WHERE LTRIM(RTRIM(hospital_id)) = @hospitalId
-                  AND LOWER(LTRIM(RTRIM(status))) = 'settled'
-            `);
+        const request = pool.request().input('hospitalId', sql.NVarChar, hospitalId);
+        
+        let dateFilter = '';
+        if (dateRange?.from) {
+            const toDate = dateRange.to || new Date(); 
+            request.input('dateFrom', sql.DateTime, dateRange.from);
+            request.input('dateTo', sql.DateTime, new Date(toDate.setHours(23, 59, 59, 999)));
+            dateFilter = 'AND created_at BETWEEN @dateFrom AND @dateTo';
+        }
+
+        const result = await request.query(`
+            SELECT final_amount
+            FROM claims
+            WHERE LTRIM(RTRIM(hospital_id)) = @hospitalId
+              AND LOWER(LTRIM(RTRIM(status))) = 'settled'
+              ${dateFilter}
+        `);
     
         const rows = result.recordset;
         

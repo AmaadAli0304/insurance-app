@@ -14,6 +14,8 @@ import { format } from "date-fns";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/components/auth-provider";
+import { Logo } from "@/components/logo";
 
 // Function to convert number to words
 function numberToWords(num: number): string {
@@ -28,19 +30,29 @@ function numberToWords(num: number): string {
 
     const formatNumber = (n: number): string => {
         if (n < 100) return inWords(n);
-        if (n < 1000) return `${a[Math.floor(n / 100)]} hundred${n % 100 ? ' ' + inWords(n % 100) : ''}`;
+        if (n < 1000) return `${a[Math.floor(n / 100)]} hundred${n % 100 ? ' and ' + inWords(n % 100) : ''}`;
         if (n < 100000) return `${inWords(Math.floor(n / 1000))} thousand${n % 1000 ? ' ' + formatNumber(n % 1000) : ''}`;
         if (n < 10000000) return `${inWords(Math.floor(n / 100000))} lakh${n % 100000 ? ' ' + formatNumber(n % 100000) : ''}`;
         return `${inWords(Math.floor(n / 10000000))} crore${n % 10000000 ? ' ' + formatNumber(n % 10000000) : ''}`;
     };
 
-    if (num === 0) return 'zero';
-    const words = formatNumber(Math.floor(num));
-    return `${words.charAt(0).toUpperCase() + words.slice(1)} only`;
+    if (num === 0) return 'Zero';
+    const integerPart = Math.floor(num);
+    const decimalPart = Math.round((num - integerPart) * 100);
+    
+    let words = formatNumber(integerPart);
+    words = words.charAt(0).toUpperCase() + words.slice(1);
+
+    if (decimalPart > 0) {
+        words += ` and ${inWords(decimalPart)} paisa`;
+    }
+
+    return `${words} only`;
 }
 
 export default function ViewInvoicePage() {
     const params = useParams();
+    const { user } = useAuth();
     const id = Number(params.id);
     const [invoice, setInvoice] = useState<(Invoice & { items: InvoiceItem[] }) | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -98,30 +110,36 @@ export default function ViewInvoicePage() {
         const ratio = canvasWidth / canvasHeight;
 
         const imgHeight = pdfWidth / ratio;
-        const topMargin = 15;
-        const bottomMargin = 15;
-        const usablePageHeight = pdfHeight - topMargin - bottomMargin;
-        
-        let heightLeft = imgHeight;
+        const topMargin = 5;
+        const bottomMargin = 5;
+        const leftMargin = 5;
+        const rightMargin = 5;
+        const usablePageWidth = pdfWidth - leftMargin - rightMargin;
+        const imgWidth = usablePageWidth;
+        const finalImgHeight = imgWidth / ratio;
+
+
+        let heightLeft = finalImgHeight;
         let position = topMargin;
 
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-        heightLeft -= usablePageHeight;
+        pdf.addImage(imgData, 'PNG', leftMargin, position, imgWidth, finalImgHeight);
+        heightLeft -= (pdfHeight - topMargin - bottomMargin);
 
         while (heightLeft > 0) {
             position = position - pdfHeight + topMargin; 
             pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-            heightLeft -= usablePageHeight;
+            pdf.addImage(imgData, 'PNG', leftMargin, position, imgWidth, finalImgHeight);
+            heightLeft -= (pdfHeight - topMargin - bottomMargin);
         }
 
         pdf.save(`invoice-${invoice.to.replace(/ /g, '_')}-${invoice.id}.pdf`);
     };
 
     const subtotal = invoice?.items.reduce((acc, item) => acc + item.amount, 0) ?? 0;
-    const taxRate = 18;
-    const taxAmount = subtotal * (taxRate / 100);
-    const grandTotal = subtotal + taxAmount;
+    const taxRate = 9; // 9% for CGST and SGST
+    const cgstAmount = subtotal * (taxRate / 100);
+    const sgstAmount = subtotal * (taxRate / 100);
+    const grandTotal = subtotal + cgstAmount + sgstAmount;
 
     if (isLoading) {
         return <div className="flex items-center justify-center h-full"><Loader2 className="h-8 w-8 animate-spin" /></div>;
@@ -154,79 +172,98 @@ export default function ViewInvoicePage() {
                     </Button>
                 </div>
             </div>
-            <div id="printable-invoice" ref={pdfFormRef}>
-                <Card className="p-6">
-                    <div className="grid md:grid-cols-2 gap-12">
-                        <div className="space-y-4">
-                            <h2 className="text-xl font-bold">{invoice.staffName || "Staff"}</h2>
-                            <div className="grid grid-cols-2 gap-y-1 text-sm">
-                                <span className="font-semibold">Bank:</span><span>{invoice.bank_name}</span>
-                                <span className="font-semibold">Account Name:</span><span>{invoice.account_name}</span>
-                                <span className="font-semibold">Account No:</span><span>{invoice.account_number}</span>
-                                <span className="font-semibold">IFSC:</span><span>{invoice.ifsc_code}</span>
-                                <span className="font-semibold">Branch:</span><span>{invoice.branch}</span>
-                            </div>
+            <div id="printable-invoice" ref={pdfFormRef} className="bg-white p-4">
+                <div className="border-2 border-black">
+                    <div className="bg-yellow-400 text-black text-center py-2">
+                        <h1 className="text-2xl font-bold">INVOICE</h1>
+                    </div>
+                    <div className="grid grid-cols-2 p-4 border-b-2 border-black">
+                        <div className="space-y-1">
+                            <p><strong>Company Name:</strong> {invoice.companySettings?.name || 'N/A'}</p>
+                            <p><strong>Address:</strong> {invoice.companySettings?.address || 'N/A'}</p>
+                            <p><strong>Email:</strong> {user?.email || 'N/A'}</p>
+                            <p><strong>GST No:</strong> {invoice.companySettings?.gst_no || 'N/A'}</p>
+                            <p><strong>PAN no:</strong> {invoice.companySettings?.pan_no || 'N/A'}</p>
                         </div>
-                        <div className="space-y-6 text-left md:text-right">
-                            <div className="space-y-1">
-                                <h3 className="font-semibold text-muted-foreground">Billed To</h3>
-                                <p className="font-bold">{invoice.to}</p>
-                                <p className="text-muted-foreground">{invoice.address}</p>
-                            </div>
-                            <div className="space-y-1">
-                                <p><span className="font-semibold text-muted-foreground">Invoice Date:</span> {format(new Date(invoice.created_at), 'MMMM dd, yyyy')}</p>
-                                <p><span className="font-semibold text-muted-foreground">Billing Period:</span> {invoice.period}</p>
-                            </div>
+                        <div className="flex justify-end items-start">
+                            <Logo />
                         </div>
                     </div>
-
-                    <div className="mt-8">
-                        <p><strong className="text-muted-foreground">Service Provided:</strong> {invoice.service_provided}</p>
+                    <div className="grid grid-cols-2 p-4 border-b-2 border-black">
+                         <div className="space-y-1">
+                            <p><strong>Billing To:</strong> {invoice.to}</p>
+                            <p><strong>Name:</strong> {invoice.hospitalContactPerson || 'N/A'}</p>
+                            <p><strong>Address:</strong> {invoice.hospitalAddress || 'N/A'}</p>
+                            <p><strong>Mobile:</strong> {invoice.hospitalPhone || 'N/A'}</p>
+                            <p><strong>Email ID:</strong> {invoice.hospitalEmail || 'N/A'}</p>
+                        </div>
+                         <div className="space-y-1 text-right">
+                            <p><strong>Invoice No:</strong> INV-{String(invoice.id).padStart(4, '0')}</p>
+                            <p><strong>Invoice Date:</strong> {format(new Date(invoice.created_at), 'dd-MMM-yyyy')}</p>
+                            <p><strong>PAN No:</strong> {invoice.companySettings?.pan_no || 'N/A'}</p>
+                            <p><strong>Payment Mode:</strong> ONLINE/CHQ</p>
+                            <p><strong>Payment Date:</strong></p>
+                        </div>
                     </div>
-
-                    <div className="mt-8">
-                        <Table>
+                    <div>
+                        <Table className="w-full">
                             <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-1/2">Description</TableHead>
-                                    <TableHead className="text-center">Qty</TableHead>
-                                    <TableHead className="text-right">Rate</TableHead>
-                                    <TableHead className="text-right">Amount</TableHead>
+                                <TableRow className="border-b-2 border-black">
+                                    <TableHead className="w-[80px] border-r-2 border-black text-black font-bold">Sr No</TableHead>
+                                    <TableHead className="text-black font-bold">Description</TableHead>
+                                    <TableHead className="text-right text-black font-bold">Amount</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {invoice.items.map((item) => (
-                                    <TableRow key={item.id}>
+                                {invoice.items.map((item, index) => (
+                                    <TableRow key={item.id} className="border-b-2 border-black">
+                                        <TableCell className="border-r-2 border-black text-center">{index + 1}</TableCell>
                                         <TableCell>{item.description}</TableCell>
-                                        <TableCell className="text-center">{item.qty}</TableCell>
-                                        <TableCell className="text-right">{item.rate.toLocaleString('en-IN')}</TableCell>
-                                        <TableCell className="text-right font-medium">{item.amount.toLocaleString('en-IN')}</TableCell>
+                                        <TableCell className="text-right font-mono">{item.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
                                     </TableRow>
                                 ))}
+                                <TableRow>
+                                    <TableCell colSpan={2} className="text-right font-bold">Sub Total</TableCell>
+                                    <TableCell className="text-right font-mono">{subtotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell colSpan={2} className="text-right font-bold">CGST 9%</TableCell>
+                                    <TableCell className="text-right font-mono">{cgstAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell colSpan={2} className="text-right font-bold">SGST 9%</TableCell>
+                                    <TableCell className="text-right font-mono">{sgstAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell colSpan={2} className="text-right font-bold">Balance Received</TableCell>
+                                    <TableCell className="text-right font-mono">0.00</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell colSpan={2} className="text-right font-bold">Balance Due</TableCell>
+                                    <TableCell className="text-right font-mono">{grandTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
+                                </TableRow>
                             </TableBody>
+                            <TableFooter>
+                                <TableRow className="border-t-2 border-black bg-yellow-400">
+                                    <TableHead colSpan={2} className="text-right text-black font-bold">Total</TableHead>
+                                    <TableHead className="text-right text-black font-bold font-mono">{grandTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableHead>
+                                </TableRow>
+                            </TableFooter>
                         </Table>
                     </div>
-
-                    <div className="grid md:grid-cols-2 gap-12 mt-8">
-                        <div className="space-y-4"></div>
-                        <div className="space-y-2">
-                            <div className="flex justify-between"><span>Subtotal</span><span>{subtotal.toLocaleString('en-IN')}</span></div>
-                            <div className="flex justify-between"><span>GST @ {taxRate}%</span><span>{taxAmount.toLocaleString('en-IN')}</span></div>
-                            <div className="flex justify-between font-bold text-lg border-t pt-2"><span>Grand Total</span><span>{grandTotal.toLocaleString('en-IN')}</span></div>
-                            <div className="text-sm text-muted-foreground pt-2"><strong>In Words:</strong> {numberToWords(grandTotal)}</div>
-                        </div>
+                     <div className="p-4 space-y-1">
+                        <p><strong>Amount in Words:</strong> {numberToWords(grandTotal)}</p>
+                        <p><strong>Amount to be credited:</strong></p>
+                        <p><strong>Account Name:</strong> {invoice.companySettings?.account_name || 'N/A'}</p>
+                        <p><strong>Banking Details:</strong></p>
+                        <p><strong>Bank Name:</strong> {invoice.companySettings?.bank_name || 'N/A'}</p>
+                        <p><strong>Branch:</strong> {invoice.companySettings?.branch || 'N/A'}</p>
+                        <p><strong>Account No:</strong> {invoice.companySettings?.account_no || 'N/A'}</p>
+                        <p><strong>IFSC Code:</strong> {invoice.companySettings?.ifsc_code || 'N/A'}</p>
+                        <p><strong>Contact No:</strong> {invoice.companySettings?.contact_no || 'N/A'}</p>
+                        <p>Attached PT List</p>
                     </div>
-
-                    <div className="mt-12 pt-8 border-t">
-                        <h4 className="font-semibold mb-2">Declaration</h4>
-                        <ol className="text-xs text-muted-foreground list-decimal list-inside space-y-1">
-                            <li>We declare that the information given above is true and correct.</li>
-                            <li>Please Pay Cheque/Draft in favour of Global Communication</li>
-                            <li>Price And Validity Will Be Revised As Per Market Rule and Regulation</li>
-                            <li>(This is a Computer Generated Invoice)</li>
-                        </ol>
-                    </div>
-                </Card>
+                </div>
             </div>
         </div>
     );
