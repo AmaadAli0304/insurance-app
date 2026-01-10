@@ -325,18 +325,36 @@ export async function handleUpdateInvoice(prevState: { message: string, type?: s
 
 export async function getSettledFinalBillSum(hospitalId: string): Promise<number> {
     if (!hospitalId) return 0;
+
     try {
         const pool = await getDbPool();
+    
+        // Step 1: Fetch all rows for hospital with status containing 'settled'
         const result = await pool.request()
             .input('hospitalId', sql.NVarChar, hospitalId)
             .query(`
-                SELECT SUM(ISNULL(final_amount, 0)) as total 
-                FROM claims 
-                WHERE hospital_id = @hospitalId AND status = 'Settled'
+                SELECT final_amount
+                FROM claims
+                WHERE LTRIM(RTRIM(hospital_id)) = @hospitalId
+                  AND LOWER(LTRIM(RTRIM(status))) LIKE '%settled%'
             `);
-        return result.recordset[0]?.total || 0;
+    
+        const rows = result.recordset;
+           console.log(rows)
+        // Step 2: Convert string final_bill to number and sum
+        const total = rows.reduce((sum, row) => {
+            const val = parseFloat(row.final_amount?.replace(/,/g, '').trim());
+            return sum + (isNaN(val) ? 0 : val);
+        }, 0);
+    
+        console.log("Settled total:", total);
+        return total;
+    
     } catch (error) {
         console.error("Error fetching settled final bill sum:", error);
-        return 0; // Return 0 on error to prevent breaking the form
+        return 0;
     }
+    
+
+    
 }
