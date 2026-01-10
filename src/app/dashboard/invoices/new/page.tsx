@@ -161,7 +161,7 @@ export default function NewInvoicePage() {
     useEffect(() => {
         if (contractType === 'Percentage') {
             const calculatedAmount = baseAmount * (percentage / 100);
-            const updatedItems = [{ ...items[0], rate: String(calculatedAmount), qty: '1' }];
+            const updatedItems = [{ ...items[0], rate: String(calculatedAmount), qty: String(percentage || 1) }];
             setItems(updatedItems);
         } else {
              const updatedItems = [{ ...items[0], rate: '0', qty: '1' }];
@@ -228,6 +228,7 @@ export default function NewInvoicePage() {
             })))} />
              <input type="hidden" name="tax" value={taxRate} />
              <input type="hidden" name="period" value={billingPeriod ? format(billingPeriod, "MMMM yyyy") : ""} />
+             <input type="hidden" name="percentage" value={percentage} />
 
             <div className="space-y-6">
                 <div className="flex items-center justify-between gap-4">

@@ -146,6 +146,8 @@ export async function handleSaveInvoice(prevState: { message: string, type?: str
   const ifsc_code = formData.get('ifsc_code') as string;
   const branch = formData.get('branch') as string;
   const itemsJson = formData.get('items') as string;
+  const percentage = formData.get('percentage') as string;
+
 
   if (!staffId || !itemsJson || !hospitalId) {
       return { message: 'Missing required invoice data.', type: 'error' };
@@ -197,8 +199,7 @@ export async function handleSaveInvoice(prevState: { message: string, type?: str
           let itemToSave = { ...item };
 
           if (contract_type === 'Percentage') {
-              itemToSave.rate = item.amount;
-              itemToSave.qty = 1;
+              itemToSave.qty = Number(percentage) || 0;
           }
           
           await itemRequest
@@ -242,6 +243,7 @@ export async function handleUpdateInvoice(prevState: { message: string, type?: s
   const ifsc_code = formData.get('ifsc_code') as string;
   const branch = formData.get('branch') as string;
   const itemsJson = formData.get('items') as string;
+  const percentage = formData.get('percentage') as string;
 
 
   if (!id || !staffId || !itemsJson) {
@@ -306,8 +308,7 @@ export async function handleUpdateInvoice(prevState: { message: string, type?: s
           let itemToSave = { ...item };
 
           if (contract_type === 'Percentage') {
-              itemToSave.rate = item.amount;
-              itemToSave.qty = 1;
+              itemToSave.qty = Number(percentage) || 0;
           }
 
           await itemRequest

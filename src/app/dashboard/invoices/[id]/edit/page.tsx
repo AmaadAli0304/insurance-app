@@ -128,6 +128,9 @@ export default function EditInvoicePage() {
                 setItems(invoiceData.items.map(item => ({ ...item, _id: Math.random(), rate: String(item.rate), qty: String(item.qty) })));
                 setBillingPeriod(invoiceData.period ? new Date(invoiceData.period) : new Date());
                 setContractType(invoiceData.contract_type);
+                 if (invoiceData.contract_type === 'Percentage' && invoiceData.items.length > 0) {
+                    setPercentage(invoiceData.items[0].qty);
+                }
             } catch (error) {
                 console.error(error);
                 toast({ title: "Error", description: "Failed to load invoice data.", variant: "destructive" });
@@ -150,7 +153,7 @@ export default function EditInvoicePage() {
         if (contractType === 'Percentage') {
             const calculatedAmount = baseAmount * (percentage / 100);
             if(items.length > 0){
-                const updatedItems = [{ ...items[0], rate: String(calculatedAmount), qty: '1' }];
+                const updatedItems = [{ ...items[0], rate: String(calculatedAmount), qty: String(percentage || 1) }];
                 setItems(updatedItems);
             }
         }
@@ -219,6 +222,8 @@ export default function EditInvoicePage() {
             })))} />
              <input type="hidden" name="tax" value={taxRate} />
              <input type="hidden" name="period" value={billingPeriod ? format(billingPeriod, "MMMM yyyy") : ""} />
+             <input type="hidden" name="percentage" value={percentage} />
+
 
             <div className="space-y-6">
                 <div className="flex items-center justify-between gap-4">
@@ -296,7 +301,7 @@ export default function EditInvoicePage() {
                                     </div>
                                     <div className="space-y-2">
                                          <Label htmlFor="percentage" className="font-semibold text-muted-foreground">Percentage</Label>
-                                         <Select onValueChange={(val) => setPercentage(Number(val))}>
+                                         <Select value={String(percentage)} onValueChange={(val) => setPercentage(Number(val))}>
                                             <SelectTrigger className="md:ml-auto md:w-48 text-right">
                                                 <SelectValue placeholder="Select %" />
                                             </SelectTrigger>
