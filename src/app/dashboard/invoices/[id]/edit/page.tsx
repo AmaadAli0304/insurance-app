@@ -158,20 +158,20 @@ export default function EditInvoicePage() {
         if (contractType === 'Percentage') {
             const calculatedAmount = baseAmount * (percentage / 100);
             if(items.length > 0){
-                const updatedItems = [{ ...items[0], rate: String(calculatedAmount), qty: String(percentage || 0) }];
+                const updatedItems = [{ ...items[0], rate: String(calculatedAmount), qty: String(percentage || 0), amount: calculatedAmount }];
                 setItems(updatedItems);
             }
         }
     }, [baseAmount, percentage, contractType]);
     
     useEffect(() => {
-        const newSubtotal = items.reduce((acc, item) => acc + calculateAmount(item), 0);
+        const newSubtotal = items.reduce((acc, item) => acc + item.amount, 0);
         setSubtotal(newSubtotal);
         const newTaxAmount = newSubtotal * (taxRate / 100);
         setTaxAmount(newTaxAmount);
         const newGrandTotal = newSubtotal + newTaxAmount;
         setGrandTotal(newGrandTotal);
-    }, [items, taxRate, calculateAmount]);
+    }, [items, taxRate]);
 
     useEffect(() => {
         if (state.type === 'success') {
@@ -191,12 +191,16 @@ export default function EditInvoicePage() {
     };
 
     const handleItemChange = (_id: number, field: keyof Omit<EditInvoiceItem, '_id' | 'id' | 'invoice_id' | 'amount'>, value: string) => {
-        setItems(items.map(item => {
-            if (item._id === _id) {
-                return { ...item, [field]: value };
-            }
-            return item;
-        }));
+      setItems(items.map(item => {
+          if (item._id === _id) {
+              const updatedItem = { ...item, [field]: value };
+              const qty = parseFloat(updatedItem.qty) || 0;
+              const rate = parseFloat(updatedItem.rate) || 0;
+              updatedItem.amount = qty * rate;
+              return updatedItem;
+          }
+          return item;
+      }));
     };
     
     const handleRateBlur = (id: number, field: 'rate' | 'qty') => {
@@ -219,12 +223,7 @@ export default function EditInvoicePage() {
             <input type="hidden" name="id" value={invoice.id} />
             <input type="hidden" name="staffId" value={fromUser?.uid ?? invoice.staff_id} />
             <input type="hidden" name="hospitalId" value={invoice.hospital} />
-             <input type="hidden" name="items" value={JSON.stringify(items.map(({ _id, id, invoice_id, ...rest }) => ({
-                ...rest,
-                qty: Number(rest.qty) || 0,
-                rate: Number(rest.rate) || 0,
-                amount: (Number(rest.qty) || 0) * (Number(rest.rate) || 0),
-            })))} />
+             <input type="hidden" name="items" value={JSON.stringify(items.map(({ _id, id, invoice_id, ...rest }) => rest))} />
              <input type="hidden" name="tax" value={taxRate} />
              <input type="hidden" name="period" value={billingPeriod ? format(billingPeriod, "MMMM yyyy") : ""} />
              <input type="hidden" name="percentage" value={percentage} />
@@ -355,7 +354,7 @@ export default function EditInvoicePage() {
                                           </>
                                         ) : null}
                                         <TableCell className="text-right font-medium">
-                                            {calculateAmount(item).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            {item.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </TableCell>
                                         <TableCell>
                                             <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveItem(item._id)} className="text-destructive">
@@ -412,5 +411,7 @@ export default function EditInvoicePage() {
     );
 }
 
+
+    
 
     

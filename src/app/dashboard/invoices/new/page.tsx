@@ -29,6 +29,7 @@ interface InvoiceItem {
   description: string;
   qty: string;
   rate: string;
+  amount: number;
 }
 
 function SubmitButton({ status }: { status: 'draft' | 'sent' }) {
@@ -98,7 +99,7 @@ export default function NewInvoicePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [contractType, setContractType] = useState<string | undefined>();
 
-    const [items, setItems] = useState<InvoiceItem[]>([{ id: 1, description: 'Service Charges', qty: "1", rate: '0' }]);
+    const [items, setItems] = useState<InvoiceItem[]>([{ id: 1, description: 'Service Charges', qty: "1", rate: '0', amount: 0 }]);
     const [taxRate] = useState(18);
 
     const [subtotal, setSubtotal] = useState(0);
@@ -124,27 +125,14 @@ export default function NewInvoicePage() {
         loadData();
     }, [toast]);
     
-    const calculateAmount = React.useCallback((item: InvoiceItem) => {
-        if (contractType === 'Percentage') {
-            const numRate = Number(item.rate);
-            if (isNaN(numRate)) return 0;
-            return numRate;
-        }
-        const numQuantity = Number(item.qty);
-        const numRate = Number(item.rate);
-        if (isNaN(numQuantity) || isNaN(numRate)) return 0;
-        return numQuantity * numRate;
-    }, [contractType]);
-
-
     useEffect(() => {
-        const newSubtotal = items.reduce((acc, item) => acc + calculateAmount(item), 0);
-        setSubtotal(newSubtotal);
-        const newTaxAmount = newSubtotal * (taxRate / 100);
-        setTaxAmount(newTaxAmount);
-        const newGrandTotal = newSubtotal + newTaxAmount;
-        setGrandTotal(newGrandTotal);
-    }, [items, taxRate, calculateAmount]);
+      const newSubtotal = items.reduce((acc, item) => acc + item.amount, 0);
+      setSubtotal(newSubtotal);
+      const newTaxAmount = newSubtotal * (taxRate / 100);
+      setTaxAmount(newTaxAmount);
+      const newGrandTotal = newSubtotal + newTaxAmount;
+      setGrandTotal(newGrandTotal);
+    }, [items, taxRate]);
 
     useEffect(() => {
         if (state.type === 'success') {
@@ -166,38 +154,34 @@ export default function NewInvoicePage() {
     useEffect(() => {
         if (contractType === 'Percentage') {
             const calculatedAmount = baseAmount * (percentage / 100);
-            const updatedItems = [{ ...items[0], rate: String(calculatedAmount), qty: String(percentage || 0) }];
+            const updatedItems = [{ ...items[0], rate: String(calculatedAmount), qty: String(percentage || 0), amount: calculatedAmount }];
             setItems(updatedItems);
         } else {
-             const updatedItems = [{ ...items[0], rate: '0', qty: '1' }];
+             const updatedItems = [{ ...items[0], rate: '0', qty: '1', amount: 0 }];
              setItems(updatedItems);
         }
     }, [baseAmount, percentage, contractType]);
 
 
     const handleAddItem = () => {
-        setItems([...items, { id: Date.now(), description: '', qty: "1", rate: '0' }]);
+        setItems([...items, { id: Date.now(), description: '', qty: "1", rate: '0', amount: 0 }]);
     };
     
     const handleRemoveItem = (id: number) => {
         setItems(items.filter(item => item.id !== id));
     };
 
-    const handleItemChange = (id: number, field: keyof Omit<InvoiceItem, 'id'>, value: string) => {
-        setItems(items.map(item => {
-            if (item.id === id) {
-                 if (field === 'rate' || field === 'qty') {
-                    if (value === '' || !isNaN(Number(value))) {
-                        return { ...item, [field]: value };
-                    }
-                    return item; 
-                }
-                if (field === 'description') {
-                    return { ...item, [field]: value };
-                }
-            }
-            return item;
-        }));
+    const handleItemChange = (id: number, field: keyof Omit<InvoiceItem, 'id'|'amount'>, value: string) => {
+      setItems(items.map(item => {
+          if (item.id === id) {
+              const updatedItem = { ...item, [field]: value };
+              const qty = parseFloat(updatedItem.qty) || 0;
+              const rate = parseFloat(updatedItem.rate) || 0;
+              updatedItem.amount = qty * rate;
+              return updatedItem;
+          }
+          return item;
+      }));
     };
     
     const handleRateBlur = (id: number) => {
@@ -225,12 +209,7 @@ export default function NewInvoicePage() {
         <form action={formAction}>
             <input type="hidden" name="staffId" value={fromUser.uid} />
             <input type="hidden" name="hospitalId" value={selectedHospitalId} />
-             <input type="hidden" name="items" value={JSON.stringify(items.map(({ id, ...rest }) => ({
-                ...rest,
-                qty: Number(rest.qty) || 0,
-                rate: Number(rest.rate) || 0,
-                amount: (Number(rest.qty) || 0) * (Number(rest.rate) || 0),
-            })))} />
+             <input type="hidden" name="items" value={JSON.stringify(items.map(({ id, ...rest }) => rest))} />
              <input type="hidden" name="tax" value={taxRate} />
              <input type="hidden" name="period" value={billingPeriod ? format(billingPeriod, "MMMM yyyy") : ""} />
              <input type="hidden" name="percentage" value={percentage} />
@@ -368,7 +347,7 @@ export default function NewInvoicePage() {
                                             </>
                                         ) : null}
                                         <TableCell className="text-right font-medium">
-                                            {calculateAmount(item).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            {item.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </TableCell>
                                         <TableCell>
                                             <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveItem(item.id)} className="text-destructive">
@@ -429,5 +408,7 @@ export default function NewInvoicePage() {
 
 }
 
+
+    
 
     
