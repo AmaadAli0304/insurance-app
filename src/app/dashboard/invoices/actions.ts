@@ -194,12 +194,19 @@ export async function handleSaveInvoice(prevState: { message: string, type?: str
 
       for (const item of parsedItems.data) {
           const itemRequest = new sql.Request(transaction);
+          let itemToSave = { ...item };
+
+          if (contract_type === 'Percentage') {
+              itemToSave.rate = item.amount;
+              itemToSave.qty = 1;
+          }
+          
           await itemRequest
-              .input('description', sql.NVarChar, item.description)
-              .input('qty', sql.Int, item.qty)
-              .input('rate', sql.Decimal(18, 2), item.rate)
-              .input('total', sql.Decimal(18, 2), item.qty * item.rate)
-              .input('amount', sql.Decimal(18, 2), item.amount)
+              .input('description', sql.NVarChar, itemToSave.description)
+              .input('qty', sql.Int, itemToSave.qty)
+              .input('rate', sql.Decimal(18, 2), itemToSave.rate)
+              .input('total', sql.Decimal(18, 2), itemToSave.qty * itemToSave.rate) // Recalculate total for consistency
+              .input('amount', sql.Decimal(18, 2), itemToSave.amount)
               .input('invoice_id', sql.Int, invoiceId)
               .input('staff_id', sql.NVarChar, staffId)
               .query(`
@@ -295,12 +302,20 @@ export async function handleUpdateInvoice(prevState: { message: string, type?: s
       // Insert new items
       for (const item of parsedItems.data) {
           const itemRequest = new sql.Request(transaction);
+          
+          let itemToSave = { ...item };
+
+          if (contract_type === 'Percentage') {
+              itemToSave.rate = item.amount;
+              itemToSave.qty = 1;
+          }
+
           await itemRequest
-              .input('description', sql.NVarChar, item.description)
-              .input('qty', sql.Int, item.qty)
-              .input('rate', sql.Decimal(18, 2), item.rate)
-              .input('total', sql.Decimal(18, 2), item.qty * item.rate)
-              .input('amount', sql.Decimal(18, 2), item.amount)
+              .input('description', sql.NVarChar, itemToSave.description)
+              .input('qty', sql.Int, itemToSave.qty)
+              .input('rate', sql.Decimal(18, 2), itemToSave.rate)
+              .input('total', sql.Decimal(18, 2), itemToSave.qty * itemToSave.rate) // Recalculate total for consistency
+              .input('amount', sql.Decimal(18, 2), itemToSave.amount)
               .input('invoice_id', sql.Int, Number(id))
               .input('staff_id', sql.NVarChar, staffId)
               .query(`
@@ -328,33 +343,26 @@ export async function getSettledFinalBillSum(hospitalId: string): Promise<number
 
     try {
         const pool = await getDbPool();
-    
-        // Step 1: Fetch all rows for hospital with status containing 'settled'
         const result = await pool.request()
             .input('hospitalId', sql.NVarChar, hospitalId)
             .query(`
                 SELECT final_amount
                 FROM claims
                 WHERE LTRIM(RTRIM(hospital_id)) = @hospitalId
-                  AND LOWER(LTRIM(RTRIM(status))) LIKE '%settled%'
+                  AND LOWER(LTRIM(RTRIM(status))) = 'settled'
             `);
     
         const rows = result.recordset;
-           console.log(rows)
-        // Step 2: Convert string final_bill to number and sum
+        
         const total = rows.reduce((sum, row) => {
             const val = parseFloat(row.final_amount?.replace(/,/g, '').trim());
             return sum + (isNaN(val) ? 0 : val);
         }, 0);
     
-        console.log("Settled total:", total);
         return total;
     
     } catch (error) {
         console.error("Error fetching settled final bill sum:", error);
         return 0;
     }
-    
-
-    
 }
