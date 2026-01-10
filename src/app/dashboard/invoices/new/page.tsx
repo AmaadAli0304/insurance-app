@@ -125,11 +125,16 @@ export default function NewInvoicePage() {
     }, [toast]);
     
     const calculateAmount = React.useCallback((item: InvoiceItem) => {
+        if (contractType === 'Percentage') {
+            const numRate = Number(item.rate);
+            if (isNaN(numRate)) return 0;
+            return numRate;
+        }
         const numQuantity = Number(item.qty);
         const numRate = Number(item.rate);
         if (isNaN(numQuantity) || isNaN(numRate)) return 0;
         return numQuantity * numRate;
-    }, []);
+    }, [contractType]);
 
 
     useEffect(() => {
@@ -161,7 +166,7 @@ export default function NewInvoicePage() {
     useEffect(() => {
         if (contractType === 'Percentage') {
             const calculatedAmount = baseAmount * (percentage / 100);
-            const updatedItems = [{ ...items[0], rate: String(calculatedAmount), qty: String(percentage || 1) }];
+            const updatedItems = [{ ...items[0], rate: String(calculatedAmount), qty: String(percentage || 0) }];
             setItems(updatedItems);
         } else {
              const updatedItems = [{ ...items[0], rate: '0', qty: '1' }];
@@ -361,9 +366,7 @@ export default function NewInvoicePage() {
                                                     <Input placeholder="0.00" type="text" value={item.rate} onChange={(e) => handleItemChange(item.id, 'rate', e.target.value)} onBlur={() => handleRateBlur(item.id)} />
                                                 </TableCell>
                                             </>
-                                        ) : (
-                                           <TableCell colSpan={2}></TableCell>
-                                        )}
+                                        ) : null}
                                         <TableCell className="text-right font-medium">
                                             {calculateAmount(item).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </TableCell>
@@ -425,3 +428,6 @@ export default function NewInvoicePage() {
     
 
 }
+
+
+    

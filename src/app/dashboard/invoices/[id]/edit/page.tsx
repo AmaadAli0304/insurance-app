@@ -98,12 +98,17 @@ export default function EditInvoicePage() {
     const [percentage, setPercentage] = useState(0);
 
     const calculateAmount = React.useCallback((item: EditInvoiceItem) => {
+        if (contractType === 'Percentage') {
+            const numRate = Number(item.rate);
+            if (isNaN(numRate)) return 0;
+            return numRate;
+        }
         const { qty, rate } = item;
         const numQuantity = Number(qty);
         const numRate = Number(rate);
         if (isNaN(numQuantity) || isNaN(numRate)) return 0;
         return numQuantity * numRate;
-    }, []);
+    }, [contractType]);
 
     useEffect(() => {
         if (isNaN(id)) {
@@ -153,7 +158,7 @@ export default function EditInvoicePage() {
         if (contractType === 'Percentage') {
             const calculatedAmount = baseAmount * (percentage / 100);
             if(items.length > 0){
-                const updatedItems = [{ ...items[0], rate: String(calculatedAmount), qty: String(percentage || 1) }];
+                const updatedItems = [{ ...items[0], rate: String(calculatedAmount), qty: String(percentage || 0) }];
                 setItems(updatedItems);
             }
         }
@@ -348,9 +353,7 @@ export default function EditInvoicePage() {
                                                 <Input placeholder="0.00" type="text" value={item.rate} onChange={(e) => handleItemChange(item._id, 'rate', e.target.value)} onBlur={() => handleRateBlur(item._id, 'rate')} />
                                             </TableCell>
                                           </>
-                                        ) : (
-                                            <TableCell colSpan={2}></TableCell>
-                                        )}
+                                        ) : null}
                                         <TableCell className="text-right font-medium">
                                             {calculateAmount(item).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </TableCell>
@@ -408,3 +411,6 @@ export default function EditInvoicePage() {
         </form>
     );
 }
+
+
+    
