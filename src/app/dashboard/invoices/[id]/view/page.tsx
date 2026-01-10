@@ -223,8 +223,8 @@ export default function ViewInvoicePage() {
                                     </TableRow>
                                 ))}
                                 <TableRow>
-                                    <TableCell colSpan={2} className="text-right font-bold">Sub Total</TableCell>
-                                    <TableCell className="text-right font-mono">{subtotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
+                                    <TableCell colSpan={2} className="text-right font-bold border-t-2 border-black">Sub Total</TableCell>
+                                    <TableCell className="text-right font-mono border-t-2 border-black">{subtotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell colSpan={2} className="text-right font-bold">CGST 9%</TableCell>
