@@ -723,7 +723,7 @@ export async function getSummaryReportStats(year: number, hospitalId?: string | 
             SELECT 11, 'Nov' UNION ALL
             SELECT 12, 'Dec'
         ),
-
+        
         -- ==========================
         -- PATIENTS REGISTERED PER MONTH
         -- ==========================
@@ -735,89 +735,124 @@ export async function getSummaryReportStats(year: number, hospitalId?: string | 
             WHERE YEAR(created_at) = @year ${hospitalFilter}
             GROUP BY MONTH(created_at)
         ),
-
+        
         -- ==========================
-        -- LATEST CLAIM PER PATIENT PER MONTH
+        -- PATIENTS WHO HAVE ANY SETTLED CLAIM
+        -- ==========================
+        patientHasSettled AS (
+            SELECT DISTINCT patient_id
+            FROM dbo.claims
+            WHERE LTRIM(RTRIM(status)) = 'Settled'
+        ),
+        
+        -- ==========================
+        -- ALL CLAIMS (FOR AMOUNTS)
+        -- ==========================
+        claimsBase AS (
+            SELECT
+                c.*,
+                MONTH(c.created_at) AS monthNo,
+                CASE 
+                    WHEN phs.patient_id IS NULL THEN 0
+                    ELSE 1
+                END AS hasSettled
+            FROM dbo.claims c
+            LEFT JOIN patientHasSettled phs 
+                ON phs.patient_id = c.patient_id
+            WHERE YEAR(c.created_at) = @year ${hospitalFilter}
+        ),
+        
+        -- ==========================
+        -- LATEST CLAIM PER PATIENT PER MONTH (FOR STATUS COUNTS)
         -- ==========================
         rankedClaims AS (
             SELECT
-                patient_id,
-                status,
-                final_bill,
-                final_amount,
-                amount,
-                tds,
-                created_at,
+                c.*,
                 ROW_NUMBER() OVER (
                     PARTITION BY patient_id, MONTH(created_at)
                     ORDER BY created_at DESC
                 ) AS rn
-            FROM dbo.claims
+            FROM dbo.claims c
             WHERE YEAR(created_at) = @year ${hospitalFilter}
         ),
-
+        
         latestClaims AS (
             SELECT 
                 *,
-                MONTH(created_at) as monthNo
+                MONTH(created_at) AS monthNo
             FROM rankedClaims
             WHERE rn = 1
         ),
-
+        
         -- ==========================
-        -- MONTHLY AGGREGATION FOR CLAIMS
+        -- AGGREGATE AMOUNTS
         -- ==========================
-        claimsAgg AS (
+        amountsAgg AS (
             SELECT
                 monthNo,
-
-                -- Pending (LATEST = Pre auth Sent)
+        
+                -- These always sum normally
+                SUM(CASE WHEN LTRIM(RTRIM(status)) = 'Final Approval' THEN CAST(final_bill AS DECIMAL(18,2)) ELSE 0 END) AS totalBillAmt,
+                SUM(CASE WHEN LTRIM(RTRIM(status)) = 'Final Approval' THEN CAST(amount AS DECIMAL(18,2)) ELSE 0 END) AS tpaApprovedAmt,
+        
+                -- ✅ ONLY SUM IF PATIENT HAS NEVER BEEN SETTLED
+                SUM(
+                    CASE 
+                        WHEN LTRIM(RTRIM(status)) = 'Final Approval'
+                         AND hasSettled = 0
+                        THEN CAST(amount AS DECIMAL(18,2)) 
+                        ELSE 0 
+                    END
+                ) AS finalAuthorisedAmount,
+        
+                SUM(CASE WHEN LTRIM(RTRIM(status)) = 'Settled' THEN CAST(final_amount AS DECIMAL(18,2)) ELSE 0 END) AS amountBeforeTds,
+                SUM(CASE WHEN LTRIM(RTRIM(status)) = 'Settled' THEN CAST(amount AS DECIMAL(18,2)) ELSE 0 END) AS amountAfterTds,
+                SUM(CASE WHEN LTRIM(RTRIM(status)) = 'Settled' THEN CAST(tds AS DECIMAL(18,2)) ELSE 0 END) AS tds
+        
+            FROM claimsBase
+            GROUP BY monthNo
+        ),
+        
+        -- ==========================
+        -- AGGREGATE STATUS COUNTS
+        -- ==========================
+        statusAgg AS (
+            SELECT
+                monthNo,
                 SUM(CASE WHEN LTRIM(RTRIM(status)) = 'Pre auth Sent' THEN 1 ELSE 0 END) AS pendingCaseCount,
-
-                -- Settled / Rejected
                 SUM(CASE WHEN LTRIM(RTRIM(status)) = 'Settled' THEN 1 ELSE 0 END) AS totalSettledCase,
-                SUM(CASE WHEN LTRIM(RTRIM(status)) = 'Rejected' THEN 1 ELSE 0 END) AS totalRejectedCase,
-
-                -- Amounts
-                SUM(CASE WHEN status = 'Final Approval' THEN CAST(final_bill AS DECIMAL(18,2)) ELSE 0 END) AS totalBillAmt,
-                SUM(CASE WHEN status = 'Final Approval' THEN CAST(final_amount AS DECIMAL(18,2)) ELSE 0 END) AS tpaApprovedAmt,
-                SUM(CASE WHEN status = 'Final Approval' THEN CAST(amount AS DECIMAL(18,2)) ELSE 0 END) AS finalAuthorisedAmount,
-
-                SUM(CASE WHEN status = 'Settled' THEN CAST(final_amount AS DECIMAL(18,2)) ELSE 0 END) AS amountBeforeTds,
-                SUM(CASE WHEN status = 'Settled' THEN CAST(amount AS DECIMAL(18,2)) ELSE 0 END) AS amountAfterTds,
-                SUM(CASE WHEN status = 'Settled' THEN CAST(tds AS DECIMAL(18,2)) ELSE 0 END) AS tds
-
+                SUM(CASE WHEN LTRIM(RTRIM(status)) = 'Rejected' THEN 1 ELSE 0 END) AS totalRejectedCase
             FROM latestClaims
             GROUP BY monthNo
         )
-
+        
         -- ==========================
         -- FINAL RESULT
         -- ==========================
         SELECT
-            CONCAT(m.monthName, '-', RIGHT(CAST(COALESCE(YEAR(lc.created_at), @year) AS VARCHAR(4)), 2)) AS month,
-
-            -- Patient count from PATIENTS table (registration date)
+            CONCAT(m.monthName, '-', RIGHT(CAST(@year AS VARCHAR(4)), 2)) AS month,
+        
             ISNULL(ppm.patientCount, 0) AS patientCount,
-            
-            -- Claim-related metrics
-            ISNULL(ca.pendingCaseCount, 0) AS pendingCaseCount,
-            ISNULL(ca.totalSettledCase, 0) AS totalSettledCase,
-            ISNULL(ca.totalRejectedCase, 0) AS totalRejectedCase,
-            ISNULL(ca.totalBillAmt, 0) AS totalBillAmt,
-            ISNULL(ca.tpaApprovedAmt, 0) AS tpaApprovedAmt,
-            ISNULL(ca.finalAuthorisedAmount, 0) AS finalAuthorisedAmount,
-            ISNULL(ca.amountBeforeTds, 0) AS amountBeforeTds,
-            ISNULL(ca.amountAfterTds, 0) AS amountAfterTds,
-            ISNULL(ca.tds, 0) AS tds
-
+        
+            ISNULL(sa.pendingCaseCount, 0) AS pendingCaseCount,
+            ISNULL(sa.totalSettledCase, 0) AS totalSettledCase,
+            ISNULL(sa.totalRejectedCase, 0) AS totalRejectedCase,
+        
+            ISNULL(aa.totalBillAmt, 0) AS totalBillAmt,
+            ISNULL(aa.tpaApprovedAmt, 0) AS tpaApprovedAmt,
+            ISNULL(aa.finalAuthorisedAmount, 0) AS finalAuthorisedAmount,
+            ISNULL(aa.amountBeforeTds, 0) AS amountBeforeTds,
+            ISNULL(aa.amountAfterTds, 0) AS amountAfterTds,
+            ISNULL(aa.tds, 0) AS tds
+        
         FROM months m
         LEFT JOIN patientsPerMonth ppm ON ppm.monthNo = m.monthNo
-        LEFT JOIN claimsAgg ca ON ca.monthNo = m.monthNo
-        LEFT JOIN latestClaims lc ON lc.monthNo = m.monthNo -- Join to get year context for the month label
-        GROUP BY m.monthName, m.monthNo, ppm.patientCount, ca.pendingCaseCount, ca.totalSettledCase, ca.totalRejectedCase, ca.totalBillAmt, ca.tpaApprovedAmt, ca.finalAuthorisedAmount, ca.amountBeforeTds, ca.amountAfterTds, ca.tds, YEAR(lc.created_at)
+        LEFT JOIN statusAgg sa ON sa.monthNo = m.monthNo
+        LEFT JOIN amountsAgg aa ON aa.monthNo = m.monthNo
         ORDER BY m.monthNo;
         `;
+        
+        
 
         const result = await request.query(query);
         return result.recordset;
