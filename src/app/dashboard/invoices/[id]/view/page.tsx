@@ -58,6 +58,7 @@ export default function ViewInvoicePage() {
     const [isLoading, setIsLoading] = useState(true);
     const pdfFormRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
+    const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
     useEffect(() => {
         if (isNaN(id)) {
@@ -86,6 +87,7 @@ export default function ViewInvoicePage() {
             return;
         }
 
+        setIsDownloadingPdf(true);
         toast({
             title: "Generating PDF",
             description: "Please wait while the PDF is being created...",
@@ -133,6 +135,7 @@ export default function ViewInvoicePage() {
         }
 
         pdf.save(`invoice-${invoice.to.replace(/ /g, '_')}-${invoice.id}.pdf`);
+        setIsDownloadingPdf(false);
     };
 
     const subtotal = invoice?.items.reduce((acc, item) => acc + item.amount, 0) ?? 0;
@@ -166,13 +169,24 @@ export default function ViewInvoicePage() {
                 </div>
                  <div className="flex gap-2">
                     <Button onClick={handlePrint} variant="outline"><Printer className="mr-2 h-4 w-4" /> Print</Button>
-                    <Button onClick={handleDownloadPdf} variant="outline"><Download className="mr-2 h-4 w-4" /> Download as PDF</Button>
+                    <Button onClick={handleDownloadPdf} variant="outline" disabled={isDownloadingPdf}>
+                        {isDownloadingPdf ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                        {isDownloadingPdf ? 'Downloading...' : 'Download as PDF'}
+                    </Button>
                     <Button asChild>
                         <Link href={`/dashboard/invoices/${invoice.id}/edit`}>Edit Invoice</Link>
                     </Button>
                 </div>
             </div>
             <div id="printable-invoice" ref={pdfFormRef} className="bg-white p-4">
+                {invoice.companySettings?.header_img && (
+                    <img 
+                        src={invoice.companySettings.header_img} 
+                        alt="Invoice Header" 
+                        className="w-full h-auto mb-4" 
+                        crossOrigin="anonymous"
+                    />
+                )}
                 <div className="border-2 border-black">
                     <div className="bg-yellow-400 text-black text-center py-2">
                         <h1 className="text-2xl font-bold">INVOICE</h1>
@@ -225,6 +239,11 @@ export default function ViewInvoicePage() {
                                     <TableCell colSpan={2} className="pt-4 align-top">
                                         <div className="text-xs space-y-1">
                                             <p className="font-bold underline">Terms &amp; Conditions:</p>
+                                            <ol className="list-decimal list-inside">
+                                                <li>Subject to realization of cheque.</li>
+                                                <li>Goods once sold will not be taken back.</li>
+                                                <li>Interest @24% p.a. will be charged if the bill is not paid on due date.</li>
+                                            </ol>
                                         </div>
                                     </TableCell>
                                     <TableCell className="p-0">
@@ -275,7 +294,24 @@ export default function ViewInvoicePage() {
                         <p><strong>Contact No:</strong> {invoice.companySettings?.contact_no || 'N/A'}</p>
                         <p>Attached PT List</p>
                     </div>
+                    <div className="flex justify-between p-4 mt-8">
+                        <div>
+                            <p className="font-bold">Receiver's Seal & Signature</p>
+                        </div>
+                        <div>
+                            <p className="font-bold text-center">For, One Stop</p>
+                            <p className="mt-16 text-center">Authorised Signatory</p>
+                        </div>
+                    </div>
                 </div>
+                 {invoice.companySettings?.footer_img && (
+                    <img 
+                        src={invoice.companySettings.footer_img} 
+                        alt="Invoice Footer" 
+                        className="w-full h-auto mt-4" 
+                        crossOrigin="anonymous"
+                    />
+                )}
             </div>
         </div>
     );
