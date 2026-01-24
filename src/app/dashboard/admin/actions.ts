@@ -568,6 +568,7 @@ export type NewReportStat = {
   patientId: number;
   patientName: string;
   patientPhoto: string | null;
+  hospitalName: string | null;
   tpaName: string;
   insuranceCoName: string | null;
   admissionDate: string | null;
@@ -665,6 +666,7 @@ export async function getNewReportStats(
                     p.id AS patientId,
                     p.first_name + ' ' + p.last_name AS patientName,
                     p.photo AS patientPhoto,
+                    h.name AS hospitalName,
                     COALESCE(t.name, co.name, 'N/A') as tpaName,
                     co.name as insuranceCoName,
                     pr.admissionDate,
@@ -785,6 +787,7 @@ export async function getNewReportStats(
                 LEFT JOIN preauth_request pr ON p.id = pr.patient_id
                 LEFT JOIN companies co ON pr.company_id = co.id
                 LEFT JOIN tpas t ON pr.tpa_id = t.id
+                LEFT JOIN hospitals h ON p.hospital_id = h.id
                 ${whereClause}
             )
             SELECT *
@@ -902,12 +905,3 @@ export async function getComprehensiveClaimDetails(
     }
 }
     
-
-
-
-
-
-
-    
-
-

@@ -88,7 +88,7 @@ export function NewReportTable() {
             const hospitalId = user?.role === 'Admin' || user?.role === 'Hospital Staff' ? user.hospitalId : selectedHospitalId;
             const { stats: allStats } = await getNewReportStats(date, hospitalId, selectedTpaId, 1, 999999, selectedAdmissionType, selectedStatus);
 
-            const headers = ["Patient Name", "DOA", "DOD", "Policy Number", "Claim Number", "TPA / Insurance", "Insurance Co", "Hospital Exp", "USG/2DECHO/EEG", "X-Ray", "MRI/CT Scan", "Lab Exp", "Pharmacy Ex", "Implant Charges", "Total Bill Amt", "TPA Approved Amt", "Amount paid by insured", "Deductions", "Discount Amt", "Co-Pay", "Amount Before TDS", "TDS", "Amount After TDS", "Deduction by Insurance Co.", "Actual Settlement Date", "BRN / UTR No.", "POD DETAILS"];
+            const headers = ["Patient Name", "DOA", "DOD", "Policy Number", "Claim Number", "Hospital", "TPA / Insurance", "Insurance Co", "Hospital Exp", "USG/2DECHO/EEG", "X-Ray", "MRI/CT Scan", "Lab Exp", "Pharmacy Ex", "Implant Charges", "Total Bill Amt", "TPA Approved Amt", "Amount paid by insured", "Deductions", "Discount Amt", "Co-Pay", "TDS", "Amount Before TDS", "Amount After TDS", "Deduction by Insurance Co.", "Actual Settlement Date", "BRN / UTR No.", "POD DETAILS"];
             const csvRows = [headers.join(",")];
 
             allStats.forEach((stat) => {
@@ -99,6 +99,7 @@ export function NewReportTable() {
                     stat.dischargeDate ? format(new Date(stat.dischargeDate), 'yyyy-MM-dd') : 'N/A',
                     `"${stat.policyNumber || 'N/A'}"`,
                     `"${stat.claimNumber || 'N/A'}"`,
+                    `"${stat.hospitalName || 'N/A'}"`,
                     `"${stat.tpaName}"`,
                     `"${stat.insuranceCoName || 'N/A'}"`,
                     hospitalExp,
@@ -114,8 +115,8 @@ export function NewReportTable() {
                     stat.deductions || 0,
                     stat.discountAmount || 0,
                     stat.coPay || 0,
-                    stat.amountBeforeTds || 0,
                     stat.tds || 0,
+                    stat.amountBeforeTds || 0,
                     stat.amountAfterTds || 0,
                     stat.insuranceDeduction || 0,
                     stat.actualSettlementDate ? format(new Date(stat.actualSettlementDate), 'yyyy-MM-dd') : 'N/A',
@@ -269,6 +270,7 @@ export function NewReportTable() {
                                         <TableHead>DOD</TableHead>
                                         <TableHead>Policy Number</TableHead>
                                         <TableHead>Claim Number</TableHead>
+                                        <TableHead>Hospital</TableHead>
                                         <TableHead>TPA / Insurance</TableHead>
                                         <TableHead>Insurance Co</TableHead>
                                         <TableHead className="text-right">Hospital Exp</TableHead>
@@ -308,6 +310,7 @@ export function NewReportTable() {
                                                 <TableCell>{stat.dischargeDate ? format(new Date(stat.dischargeDate), 'yyyy-MM-dd') : 'N/A'}</TableCell>
                                                 <TableCell>{stat.policyNumber || 'N/A'}</TableCell>
                                                 <TableCell>{stat.claimNumber || 'N/A'}</TableCell>
+                                                <TableCell>{stat.hospitalName || 'N/A'}</TableCell>
                                                 <TableCell>{stat.tpaName}</TableCell>
                                                 <TableCell>{stat.insuranceCoName || 'N/A'}</TableCell>
                                                 <TableCell className="text-right font-mono">{calculateHospitalExp(stat).toLocaleString('en-IN') ?? 'N/A'}</TableCell>
@@ -334,7 +337,7 @@ export function NewReportTable() {
                                         ))
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={27} className="h-24 text-center">
+                                            <TableCell colSpan={28} className="h-24 text-center">
                                                 No data available for this report.
                                             </TableCell>
                                         </TableRow>
@@ -375,3 +378,4 @@ export function NewReportTable() {
     
 
     
+
