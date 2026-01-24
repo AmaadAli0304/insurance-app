@@ -1,7 +1,8 @@
 
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState, useRef } from "react";
+import * as React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,8 +11,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { getCompanySettings, addOrUpdateCompanySettings, CompanySettings } from "./actions";
 import { useToast } from "@/hooks/use-toast";
 import { useFormStatus } from "react-dom";
-import { Save, Loader2 } from "lucide-react";
+import { Save, Loader2, Upload, XCircle } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
+import { getPresignedUrl } from "@/app/dashboard/staff/actions";
+import Image from "next/image";
+
+// Helper function for uploading files
+async function uploadFile(file: File): Promise<{ publicUrl: string } | { error: string }> {
+    const key = `uploads/company_assets/${Date.now()}-${file.name.replace(/\s/g, "_")}`;
+    const presignedUrlResult = await getPresignedUrl(key, file.type);
+    if ("error" in presignedUrlResult) {
+        return { error: presignedUrlResult.error };
+    }
+    const { url, publicUrl } = presignedUrlResult;
+    const res = await fetch(url, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+    if (!res.ok) return { error: "Failed to upload file to S3." };
+    return { publicUrl };
+}
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -29,12 +45,23 @@ export default function CompanySettingsPage() {
   const [settings, setSettings] = useState<CompanySettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  
+  const [headerImg, setHeaderImg] = useState<{ url: string | null; isUploading: boolean; }>({ url: null, isUploading: false });
+  const [footerImg, setFooterImg] = useState<{ url: string | null; isUploading: boolean; }>({ url: null, isUploading: false });
+
+  const headerInputRef = useRef<HTMLInputElement>(null);
+  const footerInputRef = useRef<HTMLInputElement>(null);
+
 
   useEffect(() => {
     if (user?.companyId) {
       getCompanySettings(user.companyId)
         .then(data => {
           setSettings(data);
+          if (data) {
+              setHeaderImg(prev => ({...prev, url: data.header_img || null}));
+              setFooterImg(prev => ({...prev, url: data.footer_img || null}));
+          }
         })
         .catch(err => {
           toast({ title: "Error", description: "Failed to load company settings.", variant: "destructive" });
@@ -52,6 +79,27 @@ export default function CompanySettingsPage() {
       toast({ title: "Error", description: state.message, variant: "destructive" });
     }
   }, [state, toast]);
+
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    type: 'header' | 'footer'
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const setState = type === 'header' ? setHeaderImg : setFooterImg;
+    setState({ url: null, isUploading: true });
+
+    const result = await uploadFile(file);
+    if ("publicUrl" in result) {
+      setState({ url: result.publicUrl, isUploading: false });
+      toast({ title: "Success", description: `${type.charAt(0).toUpperCase() + type.slice(1)} image uploaded.` });
+    } else {
+      setState({ url: null, isUploading: false });
+      toast({ title: "Error", description: result.error, variant: "destructive" });
+    }
+  };
+
 
   if (isLoading) {
     return (
@@ -72,6 +120,9 @@ export default function CompanySettingsPage() {
             <input type="hidden" name="companyId" value={user?.companyId ?? ''} />
             <input type="hidden" name="userId" value={user?.uid ?? ''} />
             <input type="hidden" name="userName" value={user?.name ?? ''} />
+            <input type="hidden" name="header_img" value={headerImg.url || ''} />
+            <input type="hidden" name="footer_img" value={footerImg.url || ''} />
+            
             <CardContent className="space-y-8">
                 <section>
                     <h3 className="text-lg font-semibold mb-4 border-b pb-2">Business Details</h3>
@@ -96,6 +147,32 @@ export default function CompanySettingsPage() {
                             <Label htmlFor="contact_no">Contact No.</Label>
                             <Input id="contact_no" name="contact_no" defaultValue={settings?.contact_no ?? ''} />
                         </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h3 className="text-lg font-semibold mb-4 border-b pb-2">Invoice Assets</h3>
+                    <div className="grid md:grid-cols-2 gap-8">
+                       <div className="space-y-2">
+                            <Label>Header Image</Label>
+                            {headerImg.url && !headerImg.isUploading && (
+                                <div className="relative w-full h-24 border rounded-md overflow-hidden">
+                                    <Image src={headerImg.url} alt="Header Preview" layout="fill" objectFit="contain" />
+                                </div>
+                            )}
+                            {headerImg.isUploading && <div className="h-24 flex items-center justify-center border rounded-md"><Loader2 className="animate-spin" /></div>}
+                            <Input ref={headerInputRef} type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'header')} className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
+                       </div>
+                       <div className="space-y-2">
+                            <Label>Footer Image</Label>
+                            {footerImg.url && !footerImg.isUploading && (
+                                <div className="relative w-full h-24 border rounded-md overflow-hidden">
+                                    <Image src={footerImg.url} alt="Footer Preview" layout="fill" objectFit="contain" />
+                                </div>
+                            )}
+                            {footerImg.isUploading && <div className="h-24 flex items-center justify-center border rounded-md"><Loader2 className="animate-spin" /></div>}
+                            <Input ref={footerInputRef} type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'footer')} className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
+                       </div>
                     </div>
                 </section>
                 

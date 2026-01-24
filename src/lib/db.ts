@@ -29,7 +29,7 @@ export async function getDbPool(): Promise<sql.ConnectionPool> {
     await pool.connect();
     // Setup company_settings table on initial connection if it doesn't exist
     const request = pool.request();
-    const createCompanySettingsTableQuery = `
+    const companySettingsTableQuery = `
       IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='company_settings' and xtype='U')
       BEGIN
         CREATE TABLE company_settings (
@@ -46,11 +46,24 @@ export async function getDbPool(): Promise<sql.ConnectionPool> {
           branch NVARCHAR(255),
           account_no NVARCHAR(50),
           ifsc_code NVARCHAR(50),
+          header_img NVARCHAR(MAX),
+          footer_img NVARCHAR(MAX),
           CONSTRAINT FK_company_settings_companies FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE
         );
       END
+      ELSE
+      BEGIN
+          IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'header_img' AND Object_ID = Object_ID(N'company_settings'))
+          BEGIN
+              ALTER TABLE company_settings ADD header_img NVARCHAR(MAX);
+          END
+          IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'footer_img' AND Object_ID = Object_ID(N'company_settings'))
+          BEGIN
+              ALTER TABLE company_settings ADD footer_img NVARCHAR(MAX);
+          END
+      END
     `;
-    await request.query(createCompanySettingsTableQuery);
+    await request.query(companySettingsTableQuery);
     
     return pool;
   } catch (err) {

@@ -18,6 +18,8 @@ const companySettingsSchema = z.object({
   branch: z.string().optional(),
   account_no: z.string().optional(),
   ifsc_code: z.string().optional(),
+  header_img: z.string().optional().nullable(),
+  footer_img: z.string().optional().nullable(),
 });
 
 export type CompanySettings = z.infer<typeof companySettingsSchema>;
