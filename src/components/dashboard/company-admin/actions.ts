@@ -310,35 +310,45 @@ export async function getStaffPerformanceStats(dateRange?: DateRange): Promise<S
                 GROUP BY 
                     staff_id
             ),
-            ClaimCounts AS (
+            PatientCounts AS (
                 SELECT
-                    created_by,
-                    COUNT(DISTINCT c.Patient_id) AS numOfCases,
-                    ISNULL(SUM(CASE WHEN status = 'Final Approval' THEN paidAmount ELSE 0 END), 0) AS totalCollection,
-                    ISNULL(SUM(CASE WHEN status = 'Final Approval' THEN 1 ELSE 0 END), 0) as totalFinalApproval,
-                    ISNULL(SUM(CASE WHEN status = 'Final Discharge sent' THEN 1 ELSE 0 END), 0) as preAuthApprovedCases,
-                    ISNULL(SUM(CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END), 0) as rejectionCount,
-                    ISNULL(SUM(CASE WHEN status = 'Settled' THEN 1 ELSE 0 END), 0) as settledCasesCount
+                    staff_id,
+                    COUNT(id) AS numOfCases
+                FROM patients
+                WHERE staff_id IS NOT NULL
+                GROUP BY staff_id
+            ),
+            ClaimStats AS (
+                SELECT
+                    p.staff_id,
+                    ISNULL(SUM(CASE WHEN c.status = 'Final Approval' THEN c.paidAmount ELSE 0 END), 0) AS totalCollection,
+                    COUNT(CASE WHEN c.status = 'Final Approval' THEN 1 ELSE NULL END) as totalFinalApproval,
+                    COUNT(CASE WHEN c.status = 'Final Discharge sent' THEN 1 ELSE NULL END) as preAuthApprovedCases,
+                    COUNT(CASE WHEN c.status = 'Rejected' THEN 1 ELSE NULL END) as rejectionCount,
+                    COUNT(CASE WHEN c.status = 'Settled' THEN 1 ELSE NULL END) as settledCasesCount
                 FROM claims c
-                WHERE created_by IS NOT NULL ${dateFilterClaims}
-                GROUP BY created_by
+                JOIN patients p ON c.Patient_id = p.id
+                WHERE p.staff_id IS NOT NULL ${dateFilterClaims}
+                GROUP BY p.staff_id
             )
             SELECT 
                 u.uid AS staffId,
                 u.name AS staffName,
                 u.photo as staffPhoto,
                 ISNULL(ha.hospitalName, 'N/A') AS hospitalName,
-                ISNULL(cc.numOfCases, 0) AS numOfCases,
-                ISNULL(cc.totalCollection, 0) AS totalCollection,
-                ISNULL(cc.totalFinalApproval, 0) as totalFinalApproval,
-                ISNULL(cc.preAuthApprovedCases, 0) as preAuthApprovedCases,
-                ISNULL(cc.rejectionCount, 0) as rejectionCount,
-                ISNULL(cc.settledCasesCount, 0) as settledCasesCount,
+                ISNULL(pc.numOfCases, 0) AS numOfCases,
+                ISNULL(cs.totalCollection, 0) AS totalCollection,
+                ISNULL(cs.totalFinalApproval, 0) as totalFinalApproval,
+                ISNULL(cs.preAuthApprovedCases, 0) as preAuthApprovedCases,
+                ISNULL(cs.rejectionCount, 0) as rejectionCount,
+                ISNULL(cs.settledCasesCount, 0) as settledCasesCount,
                 (SELECT COUNT(*) FROM attendance a WHERE a.staff_id = u.uid AND a.status = 'present' ${dateFilterAttendance}) as attendance
             FROM 
                 users u
             LEFT JOIN 
-                ClaimCounts cc ON u.uid = cc.created_by
+                PatientCounts pc ON u.uid = pc.staff_id
+            LEFT JOIN
+                ClaimStats cs ON u.uid = cs.staff_id
             LEFT JOIN 
                 HospitalAssignments ha ON u.uid = ha.staff_id
             WHERE 
@@ -823,6 +833,7 @@ export async function getMonthlySummaryReport(year: number): Promise<any[]> {
 
 
     
+
 
 
 
