@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useActionState, useEffect, useState, useRef } from "react";
@@ -559,13 +558,13 @@ export default function EditPatientPage() {
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-2 gap-4">
-                                        <FileUploadField label="Aadhaar Card" name="adhaar_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.adhaar_path as {url: string, name: string} | undefined} required />
-                                        <FileUploadField label="PAN Card" name="pan_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.pan_path as {url: string, name: string} | undefined} required />
+                                        <FileUploadField label="Aadhaar Card" name="adhaar_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.adhaar_path as {url: string, name: string} | undefined} />
+                                        <FileUploadField label="PAN Card" name="pan_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.pan_path as {url: string, name: string} | undefined} />
                                         <FileUploadField label="Passport" name="passport_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.passport_path as {url: string, name: string} | undefined} />
                                         <FileUploadField label="Driving License" name="driving_licence_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.driving_licence_path as {url: string, name: string} | undefined} />
                                         <FileUploadField label="Voter ID" name="voter_id_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.voter_id_path as {url: string, name: string} | undefined} />
-                                        <FileUploadField label="Policy File" name="policy_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.policy_path as {url: string, name: string} | undefined} required />
-                                        <FileUploadField label="Other Document" name="other_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.other_path as {url: string, name: string} | undefined} required />
+                                        <FileUploadField label="Policy File" name="policy_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.policy_path as {url: string, name: string} | undefined} />
+                                        <FileUploadField label="Other Document" name="other_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.other_path as {url: string, name: string} | undefined} />
                                         <FileUploadField label="Discharge Summary" name="discharge_summary_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.discharge_summary_path as {url: string, name: string} | undefined} />
                                         <FileUploadField label="Final Bill" name="final_bill_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.final_bill_path as {url: string, name: string} | undefined} />
                                         <FileUploadField label="Pharmacy Bill" name="pharmacy_bill_path" onUploadComplete={handleDocumentUploadComplete} initialData={patient.pharmacy_bill_path as {url: string, name: string} | undefined} />

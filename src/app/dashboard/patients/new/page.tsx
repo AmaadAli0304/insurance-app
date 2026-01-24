@@ -497,13 +497,13 @@ export default function NewPatientPage() {
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <CardContent className="grid md:grid-cols-2 gap-4">
-                                        <FileUploadField label="Aadhaar Card" name="adhaar_path" onUploadComplete={handleDocumentUploadComplete} required />
-                                        <FileUploadField label="PAN Card" name="pan_path" onUploadComplete={handleDocumentUploadComplete} required />
+                                        <FileUploadField label="Aadhaar Card" name="adhaar_path" onUploadComplete={handleDocumentUploadComplete} />
+                                        <FileUploadField label="PAN Card" name="pan_path" onUploadComplete={handleDocumentUploadComplete} />
                                         <FileUploadField label="Passport" name="passport_path" onUploadComplete={handleDocumentUploadComplete} />
                                         <FileUploadField label="Driving License" name="driving_licence_path" onUploadComplete={handleDocumentUploadComplete} />
                                         <FileUploadField label="Voter ID" name="voter_id_path" onUploadComplete={handleDocumentUploadComplete} />
-                                        <FileUploadField label="Policy File" name="policy_path" onUploadComplete={handleDocumentUploadComplete} required />
-                                        <FileUploadField label="Other Document" name="other_path" onUploadComplete={handleDocumentUploadComplete} required />
+                                        <FileUploadField label="Policy File" name="policy_path" onUploadComplete={handleDocumentUploadComplete} />
+                                        <FileUploadField label="Other Document" name="other_path" onUploadComplete={handleDocumentUploadComplete} />
                                         <FileUploadField label="Discharge Summary" name="discharge_summary_path" onUploadComplete={handleDocumentUploadComplete} />
                                         <FileUploadField label="Final Bill" name="final_bill_path" onUploadComplete={handleDocumentUploadComplete} />
                                         <FileUploadField label="Pharmacy Bill" name="pharmacy_bill_path" onUploadComplete={handleDocumentUploadComplete} />
@@ -888,4 +888,3 @@ export default function NewPatientPage() {
         </div>
     );
 }
-
