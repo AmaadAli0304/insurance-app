@@ -183,7 +183,7 @@ export default function ViewInvoicePage() {
                     <img 
                         src={invoice.companySettings.header_img} 
                         alt="Invoice Header" 
-                        className="w-full h-auto mb-4" 
+                        className="w-full h-auto mb-4 max-h-24 object-contain" 
                         crossOrigin="anonymous"
                     />
                 )}
@@ -240,9 +240,6 @@ export default function ViewInvoicePage() {
                                         <div className="text-xs space-y-1">
                                             <p className="font-bold underline">Terms &amp; Conditions:</p>
                                             <ol className="list-decimal list-inside">
-                                                <li>Subject to realization of cheque.</li>
-                                                <li>Goods once sold will not be taken back.</li>
-                                                <li>Interest @24% p.a. will be charged if the bill is not paid on due date.</li>
                                             </ol>
                                         </div>
                                     </TableCell>
@@ -294,21 +291,12 @@ export default function ViewInvoicePage() {
                         <p><strong>Contact No:</strong> {invoice.companySettings?.contact_no || 'N/A'}</p>
                         <p>Attached PT List</p>
                     </div>
-                    <div className="flex justify-between p-4 mt-8">
-                        <div>
-                            <p className="font-bold">Receiver's Seal & Signature</p>
-                        </div>
-                        <div>
-                            <p className="font-bold text-center">For, One Stop</p>
-                            <p className="mt-16 text-center">Authorised Signatory</p>
-                        </div>
-                    </div>
                 </div>
                  {invoice.companySettings?.footer_img && (
                     <img 
                         src={invoice.companySettings.footer_img} 
                         alt="Invoice Footer" 
-                        className="w-full h-auto mt-4" 
+                        className="w-full h-auto mt-4 max-h-24 object-contain" 
                         crossOrigin="anonymous"
                     />
                 )}
