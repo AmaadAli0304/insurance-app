@@ -887,7 +887,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
             'updated_at = GETDATE()'
         ];
 
-        patientRequest
+        patientUpdateRequest
             .input('id', sql.Int, Number(patientId))
             .input('first_name', sql.NVarChar, data.firstName)
             .input('last_name', sql.NVarChar, data.lastName)
@@ -924,11 +924,11 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
                 }
                 
                 setClauses.push(`${dbKey} = @${dbKey}`);
-                patientRequest.input(dbKey, sql.NVarChar, createDocumentJson(url, name));
+                patientUpdateRequest.input(dbKey, sql.NVarChar, createDocumentJson(url, name));
             }
         }
         
-        await patientRequest.query(`UPDATE patients SET ${setClauses.join(', ')} WHERE id = @id`);
+        await patientUpdateRequest.query(`UPDATE patients SET ${setClauses.join(', ')} WHERE id = @id`);
 
         // Update admissions table
         if (admission_db_id) {
@@ -1179,6 +1179,7 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
 
 
     
+
 
 
 
