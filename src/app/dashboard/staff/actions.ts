@@ -347,7 +347,7 @@ export async function getPresignedUrl(
 ): Promise<{ url: string; publicUrl: string } | { error: string }> {
     try {
         const command = new PutObjectCommand({
-            Bucket: "inurance-app",
+            Bucket:process.env.AWS_S3_BUCKET_NAME,
             Key: key,
             ContentType: contentType,
             ACL: 'public-read',
