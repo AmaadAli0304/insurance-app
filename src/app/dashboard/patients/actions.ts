@@ -878,7 +878,8 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
         transaction = new sql.Transaction(pool);
         await transaction.begin();
 
-        let patientSetClauses: string[] = [
+        let patientUpdateRequest = new sql.Request(transaction);
+        let setClauses: string[] = [
             'first_name = @first_name', 'last_name = @last_name', 'email_address = @email_address', 
             'phone_number = @phone_number', 'alternative_number = @alternative_number', 'gender = @gender', 
             'birth_date = @birth_date', 'address = @address', 'occupation = @occupation', 
@@ -886,7 +887,6 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
             'updated_at = GETDATE()'
         ];
 
-        const patientRequest = new sql.Request(transaction);
         patientRequest
             .input('id', sql.Int, Number(patientId))
             .input('first_name', sql.NVarChar, data.firstName)
@@ -915,31 +915,20 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
             const name = data[nameKey] as string | undefined | null;
             
             if (url && name) {
-                let dbKey = urlKey.replace('_url', '');
+                let dbKey = urlKey === 'photoUrl' ? 'photo' : urlKey.replace('_url', '');
 
-                if(dbKey === 'photo') {
-                   // Correctly handled
-                } else if (['discharge_summary_path', 'final_bill_path', 'pharmacy_bill_path', 'implant_bill_stickers_path', 'lab_bill_path', 'ot_anesthesia_notes_path'].includes(dbKey)) {
+                if (['discharge_summary_path', 'final_bill_path', 'pharmacy_bill_path', 'implant_bill_stickers_path', 'lab_bill_path', 'ot_anesthesia_notes_path'].includes(dbKey)) {
                      dbKey = dbKey.replace('_path','');
                      if (dbKey === 'implant_bill_stickers') dbKey = 'implant_bill';
                      if (dbKey === 'ot_anesthesia_notes') dbKey = 'ot_notes';
-                } else if (dbKey.endsWith('_path')) {
-                     // Correctly handled
-                } else {
-                   dbKey = `${dbKey}_path`;
                 }
-
-                if (dbKey !== 'photo_path'){
-                  patientSetClauses.push(`${dbKey} = @${dbKey}`);
-                  patientRequest.input(dbKey, sql.NVarChar, createDocumentJson(url, name));
-                } else {
-                    patientSetClauses.push(`photo = @photo`);
-                    patientRequest.input('photo', sql.NVarChar, createDocumentJson(url, name));
-                }
+                
+                setClauses.push(`${dbKey} = @${dbKey}`);
+                patientRequest.input(dbKey, sql.NVarChar, createDocumentJson(url, name));
             }
         }
         
-        await patientRequest.query(`UPDATE patients SET ${patientSetClauses.join(', ')} WHERE id = @id`);
+        await patientRequest.query(`UPDATE patients SET ${setClauses.join(', ')} WHERE id = @id`);
 
         // Update admissions table
         if (admission_db_id) {
@@ -1190,6 +1179,7 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
 
 
     
+
 
 
 
