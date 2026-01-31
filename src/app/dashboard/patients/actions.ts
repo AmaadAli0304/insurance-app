@@ -919,7 +919,7 @@ export async function handleUpdatePatient(prevState: { message: string, type?: s
 
                 if(dbKey === 'photo') {
                    // Correctly handled
-                } else if (['discharge_summary_path', 'final_bill_path', 'pharmacy_bill_path', 'implant_bill_stickers_path', 'lab_bill_path', 'ot_anesthesia_notes_path'].includes(urlKey)) {
+                } else if (['discharge_summary_path', 'final_bill_path', 'pharmacy_bill_path', 'implant_bill_stickers_path', 'lab_bill_path', 'ot_anesthesia_notes_path'].includes(dbKey)) {
                      dbKey = dbKey.replace('_path','');
                      if (dbKey === 'implant_bill_stickers') dbKey = 'implant_bill';
                      if (dbKey === 'ot_anesthesia_notes') dbKey = 'ot_notes';
@@ -1190,6 +1190,7 @@ export async function getClaimsForPatientTimeline(patientId: string): Promise<Cl
 
 
     
+
 
 
 
