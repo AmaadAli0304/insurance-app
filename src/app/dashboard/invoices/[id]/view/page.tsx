@@ -105,7 +105,8 @@ export default function ViewInvoicePage() {
         const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
-        const margin = 5;
+        const margin = 10;
+        const gap = 5;
         const usableWidth = pdfWidth - margin * 2;
 
         const headerHeight = headerCanvas ? (headerCanvas.height * usableWidth) / headerCanvas.width : 0;
@@ -113,8 +114,7 @@ export default function ViewInvoicePage() {
 
         const contentImgTotalHeight = (contentCanvas.height * usableWidth) / contentCanvas.width;
 
-        // The height available for the content on each page
-        const contentAreaHeight = pdfHeight - headerHeight - footerHeight - (margin * 2);
+        const contentAreaHeight = pdfHeight - headerHeight - footerHeight - (margin * 2) - (gap * 2);
 
         let contentDrawnInMm = 0;
         let pageCount = 0;
@@ -125,14 +125,12 @@ export default function ViewInvoicePage() {
                 pdf.addPage();
             }
 
-            // 1. Add Header
             if (headerCanvas) {
                 const headerImgData = headerCanvas.toDataURL('image/png');
                 pdf.addImage(headerImgData, 'PNG', margin, margin, usableWidth, headerHeight);
             }
 
-            // 2. Add Content Slice
-            const contentYOnPage = margin + headerHeight;
+            const contentYOnPage = margin + headerHeight + gap;
             const sourceY = (contentDrawnInMm / contentImgTotalHeight) * contentCanvas.height;
             const remainingContentInMm = contentImgTotalHeight - contentDrawnInMm;
             const heightToDrawInMm = Math.min(contentAreaHeight, remainingContentInMm);
@@ -156,7 +154,6 @@ export default function ViewInvoicePage() {
             const pageContentData = tempCanvas.toDataURL('image/png');
             pdf.addImage(pageContentData, 'PNG', margin, contentYOnPage, usableWidth, heightToDrawInMm);
 
-            // 3. Add Footer
             if (footerCanvas) {
                 const footerImgData = footerCanvas.toDataURL('image/png');
                 pdf.addImage(footerImgData, 'PNG', margin, pdfHeight - footerHeight - margin, usableWidth, footerHeight);
