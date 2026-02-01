@@ -747,7 +747,7 @@ export async function getNewReportStats(
                         ORDER BY c.created_at DESC
                     ), 0) as coPay,
                     (
-                        SELECT TOP 1 c.final_amount
+                        SELECT TOP 1 c.final_settle_amount
                         FROM claims c 
                         WHERE c.Patient_id = p.id AND c.status = 'Settled'
                         ORDER BY c.created_at DESC
