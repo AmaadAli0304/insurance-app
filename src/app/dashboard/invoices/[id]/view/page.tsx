@@ -215,7 +215,7 @@ export default function ViewInvoicePage() {
                         <img 
                             src={invoice.companySettings.header_img} 
                             alt="Invoice Header" 
-                            className="w-full h-auto max-h-36 object-contain" 
+                            className="w-full h-auto object-contain" 
                             crossOrigin="anonymous"
                         />
                     )}
@@ -332,7 +332,7 @@ export default function ViewInvoicePage() {
                         <img 
                             src={invoice.companySettings.footer_img} 
                             alt="Invoice Footer" 
-                            className="w-full h-auto max-h-36 object-contain" 
+                            className="w-full h-auto object-contain" 
                             crossOrigin="anonymous"
                         />
                     )}
