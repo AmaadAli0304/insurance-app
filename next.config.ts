@@ -23,7 +23,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'inurance-app.s3.ap-south-1.amazonaws.com',
+        hostname: 'tpa-app.s3.ap-south-1.amazonaws.com',
         port: '',
         pathname: '/**',
       },
