@@ -243,8 +243,8 @@ export default function ViewInvoicePage() {
                                     {invoice.items.map((item, index) => (
                                         <TableRow key={item.id} className="border-b-2 border-black">
                                             <TableCell className="border-r-2 border-black text-center p-1">{index + 1}</TableCell>
-                                            <TableCell className="p-1">{item.description}</TableCell>
-                                            <TableCell className="text-right font-mono p-1">{item.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
+                                            <TableCell className="p-2">{item.description}</TableCell>
+                                            <TableCell className="text-right font-mono p-2">{item.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
                                         </TableRow>
                                     ))}
                                     <TableRow>
@@ -259,8 +259,8 @@ export default function ViewInvoicePage() {
                                             <Table className="w-full text-xs">
                                                 <TableBody>
                                                     <TableRow>
-                                                        <TableCell className="text-right font-bold border-t-2 border-black p-1">Sub Total</TableCell>
-                                                        <TableCell className="text-right font-mono border-t-2 border-black p-1">{subtotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
+                                                        <TableCell className="text-right font-bold p-1">Sub Total</TableCell>
+                                                        <TableCell className="text-right font-mono p-1">{subtotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
                                                     </TableRow>
                                                     <TableRow>
                                                         <TableCell className="text-right font-bold p-1">CGST 9%</TableCell>
