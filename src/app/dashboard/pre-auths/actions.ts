@@ -119,14 +119,14 @@ const saveDraftSchema = preAuthSchema.extend({
     status: z.string().optional().default('Draft'),
 });
 
-async function sendPreAuthEmail(requestData: { 
-    fromName: string, 
-    fromEmail: string, 
-    to: string, 
+async function sendPreAuthEmail(requestData: {
+    fromName: string,
+    fromEmail: string,
+    to: string,
     cc?: string,
-    subject: string, 
+    subject: string,
     html: string,
-    attachments: { filename: string, content: Buffer, contentType: string }[],
+    attachments: { filename: string, path: string }[],
     token: string,
 }) {
     if (!requestData.token) {
@@ -219,28 +219,10 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
             throw new Error("Recipient email address (To) is missing.");
         }
 
-        const fetchedAttachments = await Promise.all(
-            parsedAttachments.map(async (att: { name: string, url: string }) => {
-                try {
-                    const response = await fetch(att.url);
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch attachment from ' + att.url);
-                    }
-                    const buffer = await response.arrayBuffer();
-                    const contentType = response.headers.get('content-type') || 'application/octet-stream';
-                    return {
-                        filename: att.name,
-                        content: Buffer.from(buffer),
-                        contentType: contentType
-                    };
-                } catch (fetchError) {
-                    console.error(`Error fetching attachment ${att.name}:`, fetchError);
-                    return null; // Return null for failed downloads
-                }
-            })
-        );
-        
-        const validAttachments = fetchedAttachments.filter(att => att !== null) as { filename: string, content: Buffer, contentType: string }[];
+        const attachmentsForEmail = parsedAttachments.map((att: { name: string; url: string }) => ({
+            filename: att.name,
+            path: att.url
+        }));
         
         await sendPreAuthEmail({ 
             fromName: hospitalName, 
@@ -249,7 +231,7 @@ async function savePreAuthRequest(formData: FormData, status: PreAuthStatus, sho
             cc: cc,
             subject: subject, 
             html: details,
-            attachments: validAttachments,
+            attachments: attachmentsForEmail,
             token: mailtrapToken,
         });
     }
@@ -786,29 +768,19 @@ export async function handleUpdateRequest(prevState: { message: string, type?: s
         const shouldLogTpaResponse = statusesThatLogTpaResponse.includes(status);
 
         if (shouldSendEmail) {
-            const fetchedAttachments = await Promise.all(
-                parsedAttachments.map(async (att: { name: string, url: string }) => {
-                    try {
-                        const response = await fetch(att.url);
-                        if (!response.ok) throw new Error('Failed to fetch attachment from ' + att.url);
-                        const buffer = await response.arrayBuffer();
-                        const contentType = response.headers.get('content-type') || 'application/octet-stream';
-                        return { filename: att.name, content: Buffer.from(buffer), contentType };
-                    } catch (fetchError) {
-                        console.error(`Error fetching attachment ${att.name}:`, fetchError);
-                        return null;
-                    }
-                })
-            );
-            
-            await sendPreAuthEmail({ 
-                fromName: preAuthDetails.hospitalName, 
-                fromEmail: from, 
-                to,
-                cc,
-                subject, 
+            const attachmentsForEmail = parsedAttachments.map((att: { name: string; url: string; }) => ({
+                filename: att.name,
+                path: att.url, // Use path for URL
+            }));
+
+            await sendPreAuthEmail({
+                fromName: preAuthDetails.hospitalName,
+                fromEmail: from,
+                to: to,
+                cc: cc,
+                subject: subject,
                 html: details,
-                attachments: fetchedAttachments.filter(att => att !== null) as any,
+                attachments: attachmentsForEmail,
                 token: preAuthDetails.mailtrapToken,
             });
 
@@ -1067,3 +1039,6 @@ export async function handleSavePodDetails(prevState: { message: string, type?: 
 
 
 
+
+
+  
