@@ -590,7 +590,7 @@ export async function getPresignedUrl(
             ACL: 'public-read',
         });
         const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
-        const publicUrl = `https://inurance-app.s3.ap-south-1.amazonaws.com/${key}`;
+        const publicUrl = `https://tpa-app.s3.ap-south-1.amazonaws.com/${key}`;
 
         return { url, publicUrl };
     } catch (error: any) {
