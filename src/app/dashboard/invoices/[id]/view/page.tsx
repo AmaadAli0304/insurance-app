@@ -77,8 +77,11 @@ export default function ViewInvoicePage() {
     };
 
     const handleDownloadPdf = async () => {
-        const formToCapture = document.getElementById('printable-invoice');
-        if (!formToCapture || !invoice) {
+        const headerEl = document.getElementById('pdf-header-container');
+        const contentEl = document.getElementById('pdf-content-container');
+        const footerEl = document.getElementById('pdf-footer-container');
+
+        if (!contentEl || !invoice) {
             toast({
                 title: "Error",
                 description: "Cannot download PDF. Invoice content is missing.",
@@ -93,31 +96,52 @@ export default function ViewInvoicePage() {
             description: "Please wait while the PDF is being created...",
         });
 
-        const canvas = await html2canvas(formToCapture, { scale: 2, useCORS: true });
-        
-        const imgData = canvas.toDataURL('image/png');
         const pdf = new jsPDF({
             orientation: 'portrait',
             unit: 'mm',
             format: 'a4'
         });
-        
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
-        
-        const imgProps = pdf.getImageProperties(imgData);
-        const imgWidth = imgProps.width;
-        const imgHeight = imgProps.height;
-        
-        const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-        
-        const finalWidth = imgWidth * ratio;
-        const finalHeight = imgHeight * ratio;
-        
-        const xOffset = (pdfWidth - finalWidth) / 2;
-        const yOffset = (pdfHeight - finalHeight) / 2;
+        let headerHeight = 0;
+        let footerHeight = 0;
 
-        pdf.addImage(imgData, 'PNG', xOffset, yOffset, finalWidth, finalHeight);
+        // --- Header ---
+        if (headerEl && headerEl.innerHTML.trim() !== "") {
+            const headerCanvas = await html2canvas(headerEl, { scale: 2, useCORS: true });
+            const headerImgData = headerCanvas.toDataURL('image/png');
+            const headerImgProps = pdf.getImageProperties(headerImgData);
+            headerHeight = (headerImgProps.height * pdfWidth) / headerImgProps.width;
+            pdf.addImage(headerImgData, 'PNG', 0, 0, pdfWidth, headerHeight);
+        }
+
+        // --- Footer ---
+        if (footerEl && footerEl.innerHTML.trim() !== "") {
+            const footerCanvas = await html2canvas(footerEl, { scale: 2, useCORS: true });
+            const footerImgData = footerCanvas.toDataURL('image/png');
+            const footerImgProps = pdf.getImageProperties(footerImgData);
+            footerHeight = (footerImgProps.height * pdfWidth) / footerImgProps.width;
+            pdf.addImage(footerImgData, 'PNG', 0, pdfHeight - footerHeight, pdfWidth, footerHeight);
+        }
+
+        // --- Content ---
+        const contentCanvas = await html2canvas(contentEl, { scale: 2, useCORS: true });
+        const contentImgData = contentCanvas.toDataURL('image/png');
+        const contentImgProps = pdf.getImageProperties(contentImgData);
+        
+        const availableContentHeight = pdfHeight - headerHeight - footerHeight;
+        const contentWidth = pdfWidth;
+        let contentHeight = (contentImgProps.height * contentWidth) / contentImgProps.width;
+        let yPos = headerHeight;
+
+        if (contentHeight > availableContentHeight) {
+            const scale = availableContentHeight / contentHeight;
+            contentHeight *= scale;
+            yPos += (availableContentHeight - contentHeight) / 2; // Center vertically
+        }
+        
+        pdf.addImage(contentImgData, 'PNG', 0, yPos, contentWidth, contentHeight);
+        
         pdf.save(`invoice-${invoice.to.replace(/ /g, '_')}-${invoice.id}.pdf`);
         
         setIsDownloadingPdf(false);
