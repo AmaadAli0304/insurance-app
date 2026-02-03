@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -76,11 +77,8 @@ export default function ViewInvoicePage() {
     };
 
     const handleDownloadPdf = async () => {
-        const headerEl = document.getElementById('pdf-header-container');
-        const contentEl = document.getElementById('pdf-content-container');
-        const footerEl = document.getElementById('pdf-footer-container');
-
-        if (!contentEl || !invoice) {
+        const formToCapture = document.getElementById('printable-invoice');
+        if (!formToCapture || !invoice) {
             toast({
                 title: "Error",
                 description: "Cannot download PDF. Invoice content is missing.",
@@ -95,74 +93,33 @@ export default function ViewInvoicePage() {
             description: "Please wait while the PDF is being created...",
         });
 
-        const hasHeader = invoice.companySettings?.header_img && headerEl;
-        const hasFooter = invoice.companySettings?.footer_img && footerEl;
-
-        const contentCanvas = await html2canvas(contentEl, { scale: 2, useCORS: true });
-        const headerCanvas = hasHeader ? await html2canvas(headerEl!, { scale: 2, useCORS: true }) : null;
-        const footerCanvas = hasFooter ? await html2canvas(footerEl!, { scale: 2, useCORS: true }) : null;
-
-        const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+        const canvas = await html2canvas(formToCapture, { scale: 2, useCORS: true });
+        
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+        });
+        
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
-        const margin = 10;
-        const gap = 5;
-        const usableWidth = pdfWidth - margin * 2;
+        
+        const imgProps = pdf.getImageProperties(imgData);
+        const imgWidth = imgProps.width;
+        const imgHeight = imgProps.height;
+        
+        const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+        
+        const finalWidth = imgWidth * ratio;
+        const finalHeight = imgHeight * ratio;
+        
+        const xOffset = (pdfWidth - finalWidth) / 2;
+        const yOffset = (pdfHeight - finalHeight) / 2;
 
-        const headerHeight = headerCanvas ? (headerCanvas.height * usableWidth) / headerCanvas.width : 0;
-        const footerHeight = footerCanvas ? (footerCanvas.height * usableWidth) / footerCanvas.width : 0;
-
-        const contentImgTotalHeight = (contentCanvas.height * usableWidth) / contentCanvas.width;
-
-        const contentAreaHeight = pdfHeight - headerHeight - footerHeight - (margin * 2) - (gap * 2);
-
-        let contentDrawnInMm = 0;
-        let pageCount = 0;
-
-        while (contentDrawnInMm < contentImgTotalHeight) {
-            pageCount++;
-            if (pageCount > 1) {
-                pdf.addPage();
-            }
-
-            if (headerCanvas) {
-                const headerImgData = headerCanvas.toDataURL('image/png');
-                pdf.addImage(headerImgData, 'PNG', margin, margin, usableWidth, headerHeight);
-            }
-
-            const contentYOnPage = margin + headerHeight + gap;
-            const sourceY = (contentDrawnInMm / contentImgTotalHeight) * contentCanvas.height;
-            const remainingContentInMm = contentImgTotalHeight - contentDrawnInMm;
-            const heightToDrawInMm = Math.min(contentAreaHeight, remainingContentInMm);
-            const sourceHeightToCopy = (heightToDrawInMm / contentImgTotalHeight) * contentCanvas.height;
-
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = contentCanvas.width;
-            tempCanvas.height = sourceHeightToCopy;
-            const tempCtx = tempCanvas.getContext('2d');
-            
-            if (tempCtx) {
-                tempCtx.drawImage(
-                    contentCanvas,
-                    0, sourceY,
-                    contentCanvas.width, sourceHeightToCopy,
-                    0, 0,
-                    contentCanvas.width, sourceHeightToCopy
-                );
-            }
-
-            const pageContentData = tempCanvas.toDataURL('image/png');
-            pdf.addImage(pageContentData, 'PNG', margin, contentYOnPage, usableWidth, heightToDrawInMm);
-
-            if (footerCanvas) {
-                const footerImgData = footerCanvas.toDataURL('image/png');
-                pdf.addImage(footerImgData, 'PNG', margin, pdfHeight - footerHeight - margin, usableWidth, footerHeight);
-            }
-
-            contentDrawnInMm += heightToDrawInMm;
-        }
-
+        pdf.addImage(imgData, 'PNG', xOffset, yOffset, finalWidth, finalHeight);
         pdf.save(`invoice-${invoice.to.replace(/ /g, '_')}-${invoice.id}.pdf`);
+        
         setIsDownloadingPdf(false);
     };
 
@@ -206,7 +163,7 @@ export default function ViewInvoicePage() {
                     </Button>
                 </div>
             </div>
-            <div id="printable-invoice" ref={pdfFormRef} className="bg-white p-4">
+            <div id="printable-invoice" ref={pdfFormRef} className="bg-white p-2">
                 <div id="pdf-header-container">
                     {invoice.companySettings?.header_img && (
                         <img 
@@ -218,12 +175,12 @@ export default function ViewInvoicePage() {
                     )}
                 </div>
                 <div id="pdf-content-container">
-                    <div className="border-2 border-black">
-                        <div className="bg-yellow-400 text-black text-center py-2">
-                            <h1 className="text-2xl font-bold">INVOICE</h1>
+                    <div className="border-2 border-black text-xs">
+                        <div className="bg-yellow-400 text-black text-center py-1">
+                            <h1 className="text-lg font-bold">INVOICE</h1>
                         </div>
-                        <div className="grid grid-cols-2 p-4 border-b-2 border-black">
-                            <div className="space-y-1">
+                        <div className="grid grid-cols-2 p-2 border-b-2 border-black">
+                            <div className="space-y-0.5">
                                 <p><strong>Company Name:</strong> {invoice.companySettings?.name || 'N/A'}</p>
                                 <p><strong>Address:</strong> {invoice.companySettings?.address || 'N/A'}</p>
                                 <p><strong>Email:</strong> {user?.email || 'N/A'}</p>
@@ -234,15 +191,15 @@ export default function ViewInvoicePage() {
                                 <Logo />
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 p-4 border-b-2 border-black">
-                            <div className="space-y-1">
+                        <div className="grid grid-cols-2 p-2 border-b-2 border-black">
+                            <div className="space-y-0.5">
                                 <p><strong>Billing To:</strong> {invoice.to}</p>
                                 <p><strong>Name:</strong> {invoice.hospitalContactPerson || 'N/A'}</p>
                                 <p><strong>Address:</strong> {invoice.hospitalAddress || 'N/A'}</p>
                                 <p><strong>Mobile:</strong> {invoice.hospitalPhone || 'N/A'}</p>
                                 <p><strong>Email ID:</strong> {invoice.hospitalEmail || 'N/A'}</p>
                             </div>
-                            <div className="space-y-1 text-right">
+                            <div className="space-y-0.5 text-right">
                                 <p><strong>Invoice No:</strong> INV-{String(invoice.id).padStart(4, '0')}</p>
                                 <p><strong>Invoice Date:</strong> {format(new Date(invoice.created_at), 'dd-MMM-yyyy')}</p>
                                 <p><strong>PAN No:</strong> {invoice.companySettings?.pan_no || 'N/A'}</p>
@@ -250,52 +207,52 @@ export default function ViewInvoicePage() {
                             </div>
                         </div>
                         <div>
-                            <Table className="w-full">
+                            <Table className="w-full text-xs">
                                 <TableHeader>
                                     <TableRow className="border-b-2 border-black">
-                                        <TableHead className="w-[80px] border-r-2 border-black text-black font-bold">Sr No</TableHead>
-                                        <TableHead className="text-black font-bold">Description</TableHead>
-                                        <TableHead className="text-right text-black font-bold">Amount</TableHead>
+                                        <TableHead className="w-[40px] border-r-2 border-black text-black font-bold p-1 text-xs">Sr No</TableHead>
+                                        <TableHead className="text-black font-bold p-1 text-xs">Description</TableHead>
+                                        <TableHead className="text-right text-black font-bold p-1 text-xs">Amount</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {invoice.items.map((item, index) => (
                                         <TableRow key={item.id} className="border-b-2 border-black">
-                                            <TableCell className="border-r-2 border-black text-center">{index + 1}</TableCell>
-                                            <TableCell>{item.description}</TableCell>
-                                            <TableCell className="text-right font-mono">{item.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
+                                            <TableCell className="border-r-2 border-black text-center p-1">{index + 1}</TableCell>
+                                            <TableCell className="p-1">{item.description}</TableCell>
+                                            <TableCell className="text-right font-mono p-1">{item.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
                                         </TableRow>
                                     ))}
                                     <TableRow>
-                                        <TableCell colSpan={2} className="pt-4 align-top">
-                                            <div className="text-xs space-y-1">
+                                        <TableCell colSpan={2} className="pt-2 align-top p-1">
+                                            <div className="text-xs space-y-0.5">
                                                 <p className="font-bold underline">Terms &amp; Conditions:</p>
-                                                <ol className="list-decimal list-inside">
+                                                <ol className="list-decimal list-inside text-[10px]">
                                                 </ol>
                                             </div>
                                         </TableCell>
                                         <TableCell className="p-0">
-                                            <Table className="w-full">
+                                            <Table className="w-full text-xs">
                                                 <TableBody>
                                                     <TableRow>
-                                                        <TableCell className="text-right font-bold border-t-2 border-black">Sub Total</TableCell>
-                                                        <TableCell className="text-right font-mono border-t-2 border-black">{subtotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
+                                                        <TableCell className="text-right font-bold border-t-2 border-black p-1">Sub Total</TableCell>
+                                                        <TableCell className="text-right font-mono border-t-2 border-black p-1">{subtotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
                                                     </TableRow>
                                                     <TableRow>
-                                                        <TableCell className="text-right font-bold">CGST 9%</TableCell>
-                                                        <TableCell className="text-right font-mono">{cgstAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
+                                                        <TableCell className="text-right font-bold p-1">CGST 9%</TableCell>
+                                                        <TableCell className="text-right font-mono p-1">{cgstAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
                                                     </TableRow>
                                                     <TableRow>
-                                                        <TableCell className="text-right font-bold">SGST 9%</TableCell>
-                                                        <TableCell className="text-right font-mono">{sgstAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
+                                                        <TableCell className="text-right font-bold p-1">SGST 9%</TableCell>
+                                                        <TableCell className="text-right font-mono p-1">{sgstAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
                                                     </TableRow>
                                                     <TableRow>
-                                                        <TableCell className="text-right font-bold">Balance Received</TableCell>
-                                                        <TableCell className="text-right font-mono">0.00</TableCell>
+                                                        <TableCell className="text-right font-bold p-1">Balance Received</TableCell>
+                                                        <TableCell className="text-right font-mono p-1">0.00</TableCell>
                                                     </TableRow>
                                                     <TableRow>
-                                                        <TableCell className="text-right font-bold">Balance Due</TableCell>
-                                                        <TableCell className="text-right font-mono">{grandTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
+                                                        <TableCell className="text-right font-bold p-1">Balance Due</TableCell>
+                                                        <TableCell className="text-right font-mono p-1">{grandTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
                                                     </TableRow>
                                                 </TableBody>
                                             </Table>
@@ -304,13 +261,13 @@ export default function ViewInvoicePage() {
                                 </TableBody>
                                 <TableFooter>
                                     <TableRow className="border-t-2 border-black bg-yellow-400">
-                                        <TableHead colSpan={2} className="text-right text-black font-bold">Total</TableHead>
-                                        <TableHead className="text-right text-black font-bold font-mono">{grandTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableHead>
+                                        <TableHead colSpan={2} className="text-right text-black font-bold p-1 text-sm">Total</TableHead>
+                                        <TableHead className="text-right text-black font-bold font-mono p-1 text-sm">{grandTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableHead>
                                     </TableRow>
                                 </TableFooter>
                             </Table>
                         </div>
-                        <div className="p-4 space-y-1">
+                        <div className="p-2 space-y-0.5 text-xs">
                             <p><strong>Amount in Words:</strong> {numberToWords(grandTotal)}</p>
                             <p><strong>Amount to be credited:</strong></p>
                             <p><strong>Account Name:</strong> {invoice.companySettings?.account_name || 'N/A'}</p>
