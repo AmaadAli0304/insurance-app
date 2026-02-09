@@ -103,6 +103,7 @@ export default function ViewInvoicePage() {
         });
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
+        const margin = 5; // 5mm margin
         let headerHeight = 0;
         let footerHeight = 0;
 
@@ -121,7 +122,8 @@ export default function ViewInvoicePage() {
             const footerImgData = footerCanvas.toDataURL('image/png');
             const footerImgProps = pdf.getImageProperties(footerImgData);
             footerHeight = (footerImgProps.height * pdfWidth) / footerImgProps.width;
-            pdf.addImage(footerImgData, 'PNG', 0, pdfHeight - footerHeight, pdfWidth, footerHeight);
+            // Move footer up to create space below it
+            pdf.addImage(footerImgData, 'PNG', 0, pdfHeight - footerHeight - margin, pdfWidth, footerHeight);
         }
 
         // --- Content ---
@@ -129,15 +131,17 @@ export default function ViewInvoicePage() {
         const contentImgData = contentCanvas.toDataURL('image/png');
         const contentImgProps = pdf.getImageProperties(contentImgData);
         
-        const availableContentHeight = pdfHeight - headerHeight - footerHeight;
+        // Adjust available height for margins
+        const availableContentHeight = pdfHeight - headerHeight - footerHeight - (margin * 2);
+        
         const contentWidth = pdfWidth;
         let contentHeight = (contentImgProps.height * contentWidth) / contentImgProps.width;
-        let yPos = headerHeight;
+        
+        // Position content after header and margin
+        let yPos = headerHeight + margin;
 
         if (contentHeight > availableContentHeight) {
-            const scale = availableContentHeight / contentHeight;
-            contentHeight *= scale;
-            yPos += (availableContentHeight - contentHeight) / 2; // Center vertically
+            contentHeight = availableContentHeight;
         }
         
         pdf.addImage(contentImgData, 'PNG', 0, yPos, contentWidth, contentHeight);
@@ -243,19 +247,19 @@ export default function ViewInvoicePage() {
                                     {invoice.items.map((item, index) => (
                                         <TableRow key={item.id} className="border-b-2 border-black">
                                             <TableCell className="border-r-2 border-black text-center p-1">{index + 1}</TableCell>
-                                            <TableCell className="p-2">{item.description}</TableCell>
+                                            <TableCell className="p-2 py-4">{item.description}</TableCell>
                                             <TableCell className="text-right font-mono p-2">{item.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
                                         </TableRow>
                                     ))}
                                     <TableRow>
-                                        <TableCell colSpan={2} className="pt-2 align-top p-1">
+                                        <TableCell colSpan={2} className="pt-2 align-top p-1 border-b-2 border-black">
                                             <div className="text-xs space-y-0.5">
                                                 <p className="font-bold underline">Terms &amp; Conditions:</p>
                                                 <ol className="list-decimal list-inside text-[10px]">
                                                 </ol>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="p-0">
+                                        <TableCell className="p-0 border-b-2 border-black">
                                             <Table className="w-full text-xs">
                                                 <TableBody>
                                                     <TableRow>
