@@ -103,7 +103,6 @@ export default function ViewInvoicePage() {
         });
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
-        const margin = 5; // 5mm margin
         let headerHeight = 0;
         let footerHeight = 0;
 
@@ -122,8 +121,7 @@ export default function ViewInvoicePage() {
             const footerImgData = footerCanvas.toDataURL('image/png');
             const footerImgProps = pdf.getImageProperties(footerImgData);
             footerHeight = (footerImgProps.height * pdfWidth) / footerImgProps.width;
-            // Move footer up to create space below it
-            pdf.addImage(footerImgData, 'PNG', 0, pdfHeight - footerHeight - margin, pdfWidth, footerHeight);
+            pdf.addImage(footerImgData, 'PNG', 0, pdfHeight - footerHeight, pdfWidth, footerHeight);
         }
 
         // --- Content ---
@@ -131,20 +129,19 @@ export default function ViewInvoicePage() {
         const contentImgData = contentCanvas.toDataURL('image/png');
         const contentImgProps = pdf.getImageProperties(contentImgData);
         
-        // Adjust available height for margins
-        const availableContentHeight = pdfHeight - headerHeight - footerHeight - (margin * 2);
-        
         const contentWidth = pdfWidth;
         let contentHeight = (contentImgProps.height * contentWidth) / contentImgProps.width;
-        
-        // Position content after header and margin
-        let yPos = headerHeight + margin;
 
-        if (contentHeight > availableContentHeight) {
-            contentHeight = availableContentHeight;
+        // Calculate available space for content and center it
+        const availableHeightForContent = pdfHeight - headerHeight - footerHeight;
+        
+        if (contentHeight > availableHeightForContent) {
+            contentHeight = availableHeightForContent;
         }
         
-        pdf.addImage(contentImgData, 'PNG', 0, yPos, contentWidth, contentHeight);
+        const contentY = headerHeight + (availableHeightForContent - contentHeight) / 2;
+        
+        pdf.addImage(contentImgData, 'PNG', 0, contentY, contentWidth, contentHeight);
         
         pdf.save(`invoice-${invoice.to.replace(/ /g, '_')}-${invoice.id}.pdf`);
         
@@ -239,7 +236,7 @@ export default function ViewInvoicePage() {
                                 <TableHeader>
                                     <TableRow className="border-b-2 border-black">
                                         <TableHead className="w-[40px] border-r-2 border-black text-black font-bold p-1 text-xs">Sr No</TableHead>
-                                        <TableHead className="text-black font-bold p-1 text-xs">Description</TableHead>
+                                        <TableHead className="text-black font-bold p-1 text-xs py-2">Description</TableHead>
                                         <TableHead className="text-right text-black font-bold p-1 text-xs">Amount</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -259,7 +256,7 @@ export default function ViewInvoicePage() {
                                                 </ol>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="p-0 border-b-2 border-black">
+                                        <TableCell className="p-0">
                                             <Table className="w-full text-xs">
                                                 <TableBody>
                                                     <TableRow>
@@ -278,7 +275,7 @@ export default function ViewInvoicePage() {
                                                         <TableCell className="text-right font-bold p-1">Balance Received</TableCell>
                                                         <TableCell className="text-right font-mono p-1">0.00</TableCell>
                                                     </TableRow>
-                                                    <TableRow>
+                                                    <TableRow className="border-b-2 border-black">
                                                         <TableCell className="text-right font-bold p-1">Balance Due</TableCell>
                                                         <TableCell className="text-right font-mono p-1">{grandTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
                                                     </TableRow>
