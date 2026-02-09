@@ -188,7 +188,7 @@ export default function ViewInvoicePage() {
                     </Button>
                 </div>
             </div>
-            <div id="printable-invoice" ref={pdfFormRef} className="bg-white p-2">
+            <div id="printable-invoice" ref={pdfFormRef} className="bg-white">
                 <div id="pdf-header-container">
                     {invoice.companySettings?.header_img && (
                         <img 
