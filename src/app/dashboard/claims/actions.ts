@@ -109,7 +109,7 @@ export async function getClaimById(id: string): Promise<Claim | null> {
         
         // Get the current claim's details
         const claimResult = await pool.request()
-            .input('id', sql.NVarChar, id)
+            .input('id', sql.Int, Number(id))
             .query(`
                 SELECT 
                     cl.*,
