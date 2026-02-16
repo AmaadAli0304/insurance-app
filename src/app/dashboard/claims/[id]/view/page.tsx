@@ -114,6 +114,8 @@ export default function ViewClaimPage() {
           (Number(claim.other_charges) || 0) +
           (Number(claim.mou_discount) || 0)
         : 0;
+        
+    const billedAmount = claim.initialBilledAmount ?? (claim.status === 'Pre auth Sent' ? claim.amount : null);
 
     return (
         <div className="space-y-6">
@@ -128,13 +130,14 @@ export default function ViewClaimPage() {
                     </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    {claim.status !== 'Settled' && claim.status !== 'Settlement Query' && (
+                    {claim.status !== 'Settled' && claim.status !== 'Final Approval' && claim.status !== 'Final Discharge sent' && (
                         <Card>
                             <CardHeader>
                                 <CardTitle className="text-xl">Financial Summary</CardTitle>
                             </CardHeader>
                             <CardContent className="grid md:grid-cols-3 gap-4">
-                                {claim.status !== 'Final Approval' && claim.status !== 'Final Discharge sent' && <DetailItem label="Billed Amount" value={claim.amount} isCurrency />}
+                                {billedAmount && <DetailItem label="Initial Billed Amount" value={billedAmount} isCurrency />}
+                                {claim.status === 'Initial Approval' && <DetailItem label="Approved Amount" value={claim.amount} isCurrency />}
                                 <DetailItem label="Last Updated" value={new Date(claim.updated_at).toLocaleDateString()} />
                             </CardContent>
                         </Card>

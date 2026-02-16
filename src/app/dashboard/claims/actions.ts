@@ -107,7 +107,6 @@ export async function getClaimById(id: string): Promise<Claim | null> {
     try {
         const pool = await getDbPool();
         
-        // Get the current claim's details
         const claimResult = await pool.request()
             .input('id', sql.Int, Number(id))
             .query(`
@@ -133,13 +132,12 @@ export async function getClaimById(id: string): Promise<Claim | null> {
 
         const record = claimResult.recordset[0];
         
-        if (record.status === 'Settled') {
-            // No changes needed, 'amount' is already Net Amount Credited
-        } else if (record.status === 'Final Approval') {
-            record.finalAuthorisedAmount = record.amount; 
-            record.amountPaidByInsured = record.final_amount; 
-        } else {
-             // Get the initial "Pre auth Sent" amount
+        // This block ensures the correct amounts are displayed based on status
+        if (record.status === 'Final Approval') {
+            record.finalAuthorisedAmount = record.final_amount; // Correct mapping
+            record.amountPaidByInsured = record.amount;      // Correct mapping
+        } else if (record.status !== 'Settled') {
+            // For other statuses, fetch the initial billed amount for context if needed
             const preAuthSentResult = await pool.request()
                 .input('admission_id', sql.NVarChar, record.admission_id)
                 .query(`
@@ -148,11 +146,10 @@ export async function getClaimById(id: string): Promise<Claim | null> {
                     WHERE admission_id = @admission_id AND status = 'Pre auth Sent'
                     ORDER BY created_at ASC
                 `);
-            record.amount = preAuthSentResult.recordset[0]?.amount ?? record.totalExpectedCost;
+            // We can add it to a new property to avoid overwriting the actual claim amount
+            record.initialBilledAmount = preAuthSentResult.recordset[0]?.amount ?? record.totalExpectedCost;
         }
-
-
-        // Backward compatibility for patient name
+        
         record.Patient_name = record.PatientFullName || record.Patient_name;
 
         return record as Claim;

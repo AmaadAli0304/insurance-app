@@ -445,6 +445,8 @@ export interface Claim {
   mou_discount?: number;
   preauthId?: number;
   amountPaidByInsured?: number;
+  finalAuthorisedAmount?: number;
+  initialBilledAmount?: number;
   
   // Joined properties
   hospitalName?: string;
