@@ -2,14 +2,17 @@
 import sql from 'mssql';
 
 const config = {
-  user:process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  server: process.env.DB_HOST,
-  port: 4554,
-  database:process.env.DB_DATABASE,
+  user: "admin",
+  password: "qrPgK#SFwd",
+  server: "insurancesoft.cf2i0ooyg93r.ap-south-1.rds.amazonaws.com",
+  port: 1433,
+  database: "Insurancesoftlive",
+  connectionTimeout: 60000,  // 60s - RDS can be slow to respond
+  requestTimeout: 60000,     // 60s - initial setup query may need more time
   options: {
-    encrypt: true, 
-    trustServerCertificate: true,
+    encrypt: true,
+    trustServerCertificate: true,  // Required for AWS RDS
+    enableArithAbort: true,        // Often required for RDS SQL Server
   },
   pool: {
     max: 10,
@@ -18,10 +21,10 @@ const config = {
   }
 };
 
-let pool: sql.ConnectionPool;
+let pool: sql.ConnectionPool | undefined;
 
 export async function getDbPool(): Promise<sql.ConnectionPool> {
-  if (pool && pool.connected) {
+  if (pool?.connected) {
     return pool;
   }
   try {
@@ -68,9 +71,10 @@ export async function getDbPool(): Promise<sql.ConnectionPool> {
     return pool;
   } catch (err) {
     console.error('Database connection failed:', err);
-    // Ensure the pool is closed on a failed connection attempt to avoid leaving open connections.
-    if (pool) {
-      await pool.close();
+    const failedPool = pool;
+    pool = undefined;
+    if (failedPool) {
+      try { await failedPool.close(); } catch { /* ignore */ }
     }
     const dbError = err as Error;
     throw new Error(`Failed to connect to the database: ${dbError.message}`);
